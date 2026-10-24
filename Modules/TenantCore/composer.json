@@ -1,0 +1,11 @@
+{
+    "name": "prof-matin/tenant-core",
+    "description": "Tenant-facing accounts and permission integration.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Modules\\TenantCore\\": "app/"
+        }
+    }
+}

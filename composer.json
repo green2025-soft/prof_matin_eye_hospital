@@ -1,0 +1,77 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "prof-matin/modular-boilerplate",
+    "type": "project",
+    "description": "A reusable modular Laravel boilerplate with Blade, Bootstrap and session authentication infrastructure.",
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "^8.4.1",
+        "laravel/framework": "^13.17",
+        "laravel/tinker": "^3.0",
+        "nwidart/laravel-modules": "^13.0",
+        "spatie/laravel-multitenancy": "^4.2",
+        "spatie/laravel-permission": "^8.0"
+    },
+    "require-dev": {
+        "fruitcake/laravel-debugbar": "^4.4",
+        "laravel/boost": "^2.2",
+        "laravel/pail": "^1.2.5",
+        "laravel/pint": "^1.27",
+        "nunomaduro/collision": "^8.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "scripts": {
+        "dev": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan dev"
+        ],
+        "lint": "@php vendor/bin/pint --test",
+        "format": "@php vendor/bin/pint",
+        "optimize": "@php artisan optimize",
+        "optimize-clear": "@php artisan optimize:clear --except=cache",
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force",
+            "@php artisan boost:update --ansi --no-interaction --no-discover"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "pre-package-uninstall": [
+            "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        },
+        "merge-plugin": {
+            "include": [
+                "Modules/*/composer.json"
+            ]
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true,
+            "wikimedia/composer-merge-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

@@ -1,0 +1,10 @@
+{
+    "name": "$VENDOR$/$LOWER_NAME$",
+    "description": "$STUDLY_NAME$ module",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "$MODULE_NAMESPACE$\\$STUDLY_NAME$\\": "$APP_FOLDER_NAME$"
+        }
+    }
+}

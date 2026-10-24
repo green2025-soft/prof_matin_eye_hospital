@@ -1,0 +1,10 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+Route::middleware('web')
+    ->prefix('$KEBAB_NAME$')
+    ->name('$LOWER_NAME$.')
+    ->group(function (): void {
+        // Add authorized routes when this module has an implemented feature.
+    });

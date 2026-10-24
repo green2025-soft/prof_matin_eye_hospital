@@ -1,0 +1,11 @@
+{
+    "name": "prof-matin/core",
+    "description": "Shared web infrastructure and application shell.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Modules\\Core\\": "app/"
+        }
+    }
+}

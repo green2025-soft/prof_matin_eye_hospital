@@ -1,0 +1,11 @@
+{
+    "name": "TenantCore",
+    "alias": "tenantcore",
+    "description": "Tenant-facing accounts and permission integration.",
+    "keywords": [],
+    "priority": 50,
+    "providers": [
+        "Modules\\TenantCore\\Providers\\TenantCoreServiceProvider"
+    ],
+    "files": []
+}

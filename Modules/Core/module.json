@@ -1,0 +1,13 @@
+{
+    "name": "Core",
+    "alias": "core",
+    "description": "Shared web infrastructure and application shell.",
+    "keywords": [],
+    "priority": 100,
+    "providers": [
+        "Modules\\Core\\Providers\\CoreServiceProvider"
+    ],
+    "files": [
+        "app/Helpers/helper.php"
+    ]
+}
