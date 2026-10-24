@@ -32,6 +32,11 @@ class TenantPolicy
         return $this->permitted($account, PlatformPermission::UpdateTenants);
     }
 
+    public function enter(Account $account, Tenant $tenant): bool
+    {
+        return $tenant->status === Tenant::STATUS_ACTIVE && $this->permitted($account, PlatformPermission::EnterTenants);
+    }
+
     private function permitted(Account $account, PlatformPermission $permission): bool
     {
         return $account->hasOwnerRole() || $account->can($permission->value);

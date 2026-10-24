@@ -24,7 +24,7 @@ trait HandlesModelQueries
         $rules = [
             'search' => ['bail', 'nullable', 'string', 'max:80'],
             'page' => ['nullable', 'integer', 'min:1'],
-            'per_page' => ['nullable', 'integer', Rule::in(config('pagination.options'))],
+            'per_page' => ['nullable', Rule::in(config('pagination.options'))],
             'sort' => ['nullable', 'string', Rule::in($contract['sortable'])],
             'direction' => ['nullable', Rule::in(['asc', 'desc'])],
             'include' => ['nullable', 'string', 'max:500'],
@@ -37,9 +37,9 @@ trait HandlesModelQueries
         return $rules;
     }
 
-    public function paginateRecords(array $filters): LengthAwarePaginator
+    public function paginateRecords(array $filters, ?Builder $query = null): LengthAwarePaginator
     {
-        $query = $this->listQuery();
+        $query ??= $this->listQuery();
         $model = $query->getModel();
         $contract = $model->queryContract();
         $applied = [];
@@ -97,16 +97,19 @@ trait HandlesModelQueries
             $applied['include'] = implode(',', $includes);
         }
 
-        $perPage = (int) ($filters['per_page'] ?? config('pagination.default'));
+        $size = $filters['per_page'] ?? config('pagination.default');
+        $all = $size === 'all';
+        $size = $all ? 'all' : (int) $size;
 
-        if (! in_array($perPage, config('pagination.options'), true)) {
-            $perPage = config('pagination.default');
+        if (! in_array($size, config('pagination.options'), true)) {
+            $size = config('pagination.default');
         }
 
-        $page = max(1, (int) ($filters['page'] ?? 1));
+        $page = $all ? 1 : max(1, (int) ($filters['page'] ?? 1));
+        $perPage = $all ? fn (int $total): int => max(1, $total) : $size;
 
         return $query->paginate($perPage, $query->getQuery()->getColumns(), 'page', $page)
-            ->appends($applied + ['per_page' => $perPage]);
+            ->appends($applied + ['per_page' => $size]);
     }
 
     public function prepareForForm(): static

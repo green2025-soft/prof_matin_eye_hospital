@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('web')
+Route::middleware(['web', 'auth'])
     ->prefix('$KEBAB_NAME$')
     ->name('$LOWER_NAME$.')
     ->group(function (): void {

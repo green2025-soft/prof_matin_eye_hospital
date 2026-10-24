@@ -5,6 +5,10 @@ namespace Modules\Core\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
 use Modules\Core\Services\PlatformInstaller;
+use Modules\Core\Validation\TenantRules;
+
+use function Laravel\Prompts\password;
+use function Laravel\Prompts\text;
 
 class InstallPlatformCommand extends Command
 {
@@ -20,10 +24,15 @@ class InstallPlatformCommand extends Command
             return self::FAILURE;
         }
 
+        $rules = TenantRules::owner();
         $admin = $installer->install(
-            $this->ask('Platform administrator name'),
-            $this->ask('Platform administrator email'),
-            $this->secret('Password (at least 12 characters)'),
+            trim(text(
+                'Platform administrator name',
+                required: true,
+                validate: fn ($value) => $this->validatePrompt(trim($value), $rules['owner_name']),
+            )),
+            normalizeEmail(text('Platform administrator email', required: true, validate: $rules['owner_email'])),
+            password('Password', required: true, validate: $rules['password']),
         );
 
         $this->info('Platform ready. Administrator: '.$admin->email);

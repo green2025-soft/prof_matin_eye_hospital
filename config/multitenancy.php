@@ -4,6 +4,13 @@ use Modules\Core\Models\Tenant;
 use Modules\Core\Tasks\SwitchTenantSettings;
 use Spatie\Multitenancy\Tasks\SwitchTenantDatabaseTask;
 
+$centralDomains = array_values(array_filter(array_map(
+    static fn (string $domain): string => strtolower(rtrim(trim($domain), '.')),
+    explode(',', env('CENTRAL_DOMAINS', 'platform.localhost')),
+)));
+$centralHost = $centralDomains[0] ?? 'platform.localhost';
+$parentDomain = explode('.', $centralHost, 2)[1] ?? $centralHost;
+
 return [
     // Resolve domains in middleware so boot never queries the tenant registry.
     'tenant_finder' => null,
@@ -19,10 +26,8 @@ return [
         SwitchTenantSettings::class,
     ],
 
-    'central_domains' => array_values(array_filter(array_map(
-        static fn (string $domain): string => strtolower(rtrim(trim($domain), '.')),
-        explode(',', env('CENTRAL_DOMAINS', 'platform.localhost')),
-    ))),
+    'central_domains' => $centralDomains,
+    'tenant_base_domain' => strtolower(rtrim(trim(env('TENANT_BASE_DOMAIN') ?: $parentDomain), '.')),
 
     'database_prefix' => env('TENANT_DATABASE_PREFIX', 'tenant_'),
 

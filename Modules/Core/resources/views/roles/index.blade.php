@@ -38,7 +38,7 @@
                                 <td class="small text-body-secondary text-nowrap">{{ $role->created_at?->format('d M Y') ?? '—' }}</td>
                                 <td>
                                     <div class="d-flex justify-content-end gap-2">
-                                        @can('viewPermissions', \Modules\Core\Models\Role::class)
+                                        @can('viewPermissions', $role)
                                             <a class="btn btn-outline-secondary btn-sm app-action-button" href="{{ route('core.permissions.index', ['role' => $role->id]) }}" aria-label="Permissions for {{ $role->name }}" title="Permissions for {{ $role->name }}"><i class="fa-solid fa-key" aria-hidden="true"></i></a>
                                         @endcan
                                         @include('core::partials.row-actions', ['model' => $role, 'routePrefix' => 'core.roles'])

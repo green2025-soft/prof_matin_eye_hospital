@@ -18,6 +18,8 @@ class BaseRequest extends FormRequest
 
     protected array $fieldAbilities = [];
 
+    protected bool $partialUpdates = true;
+
     public function authorize(): bool
     {
         $record = $this->record();
@@ -43,6 +45,11 @@ class BaseRequest extends FormRequest
         return $this->rules;
     }
 
+    public function payload(): array
+    {
+        return $this->validated();
+    }
+
     public function record(): ?Model
     {
         return $this->controller()->record($this);
@@ -57,7 +64,7 @@ class BaseRequest extends FormRequest
     {
         $rules = parent::validationRules();
 
-        if (! $this->isUpdate()) {
+        if (! $this->isUpdate() || ! $this->partialUpdates) {
             return $rules;
         }
 

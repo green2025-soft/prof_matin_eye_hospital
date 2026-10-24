@@ -53,6 +53,12 @@ return [
             'lock_path' => storage_path('framework/cache/locks'),
         ],
 
+        'tenant-handoff' => [
+            'driver' => 'file',
+            'path' => storage_path('framework/cache/tenant-handoff'),
+            'lock_path' => storage_path('framework/cache/tenant-handoff-locks'),
+        ],
+
         'storage' => [
             'driver' => 'storage',
             'disk' => env('CACHE_STORAGE_DISK'),

@@ -20,7 +20,7 @@
                 <div class="col-md-6">
                     <label class="form-label" for="name">Full name <span class="text-danger" aria-hidden="true">*</span></label>
                     <div class="app-input-wrap">
-                        <input class="{{ inputClass('name') }}" id="name" name="name" type="text" value="{{ getValue('name', $account) }}"autocomplete="name" required autofocus {{ inputAttrs('name') }}>
+                        <input class="{{ inputClass('name') }}" id="name" name="name" type="text" value="{{ getValue('name', $account) }}" minlength="5" maxlength="255" autocomplete="name" required autofocus {{ inputAttrs('name') }}>
                     </div>
                     @error('name')
                         <div class="invalid-feedback d-block" id="name-error">{{ $message }}</div>
@@ -29,7 +29,7 @@
                 <div class="col-md-6">
                     <label class="form-label" for="email">Email address <span class="text-danger" aria-hidden="true">*</span></label>
                     <div class="app-input-wrap">
-                        <input class="{{ inputClass('email') }}" id="email" name="email" type="email" value="{{ getValue('email', $account) }}" maxlength="255" autocomplete="email" required {{ inputAttrs('email') }}>
+                        <input class="{{ inputClass('email') }}" id="email" name="email" type="email" value="{{ getValue('email', $account) }}" minlength="5" maxlength="255" autocomplete="email" required {{ inputAttrs('email') }}>
                     </div>
                     @error('email')
                         <div class="invalid-feedback d-block" id="email-error">{{ $message }}</div>
@@ -38,13 +38,13 @@
             </div>
         </section>
         <section class="app-form-section" aria-labelledby="account-security-heading">
-            <h2 class="app-form-section-title" id="account-security-heading"><span class="app-form-section-icon"><i class="fa-solid fa-lock" aria-hidden="true"></i></span>Password &amp; security</h2>
-            <p class="app-form-section-note">{{ $account->exists ? 'Leave both fields blank to keep the current password.' : 'Set a password with at least 12 characters.' }}</p>
+
+
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label" for="password">{{ $account->exists ? 'New password' : 'Password' }} @if (! $account->exists)<span class="text-danger" aria-hidden="true">*</span>@endif</label>
                     <div class="app-input-wrap">
-                        <input class="{{ inputClass('password') }} app-password-input" id="password" name="password" type="password"  autocomplete="new-password" @required(! $account->exists) {{ inputAttrs('password') }}>
+                        <input class="{{ inputClass('password') }} app-password-input" id="password" name="password" type="password" minlength="{{ config('auth.password_min_length', 5) }}" maxlength="4096" autocomplete="new-password" @required(! $account->exists) {{ inputAttrs('password') }}>
                         <button class="app-password-toggle" type="button" data-password-toggle aria-controls="password" aria-label="Show password" aria-pressed="false" title="Show password"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
                     </div>
                     @error('password')
@@ -54,7 +54,7 @@
                 <div class="col-md-6">
                     <label class="form-label" for="password_confirmation">Confirm password @if (! $account->exists)<span class="text-danger" aria-hidden="true">*</span>@endif</label>
                     <div class="app-input-wrap">
-                        <input class="{{ inputClass('password_confirmation') }} app-password-input" id="password_confirmation" name="password_confirmation" type="password"  autocomplete="new-password" @required(! $account->exists) {{ inputAttrs('password_confirmation') }}>
+                        <input class="{{ inputClass('password_confirmation') }} app-password-input" id="password_confirmation" name="password_confirmation" type="password" minlength="{{ config('auth.password_min_length', 5) }}" maxlength="4096" autocomplete="new-password" @required(! $account->exists) {{ inputAttrs('password_confirmation') }}>
                         <button class="app-password-toggle" type="button" data-password-toggle aria-controls="password_confirmation" aria-label="Show password" aria-pressed="false" title="Show password"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
                     </div>
                     @error('password_confirmation')
@@ -65,10 +65,9 @@
         </section>
         @if ($canAssignRoles)
             <section class="app-form-section" aria-labelledby="account-access-heading">
-                <h2 class="app-form-section-title" id="account-access-heading"><span class="app-form-section-icon"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>Access</h2>
+
                 <fieldset {{ inputAttrs('roles', null, 'roles-help') }}>
-                    <legend class="small fw-semibold mb-1">Assigned roles</legend>
-                    <p class="small text-body-secondary mb-3" id="roles-help">Choose the roles this account needs.</p>
+
                     <input name="roles_present" type="hidden" value="1">
                     <div class="row g-2">
                         @forelse ($roles as $role)

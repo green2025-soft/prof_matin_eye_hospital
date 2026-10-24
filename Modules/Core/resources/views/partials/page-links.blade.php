@@ -4,7 +4,7 @@
         $endPage = min($paginator->lastPage(), $startPage + 4);
     @endphp
     <nav aria-label="Table pagination">
-        <ul class="pagination pagination-sm mb-0">
+        <ul class="pagination pagination-sm flex-wrap mb-0">
             @if ($paginator->onFirstPage())
                 <li class="page-item disabled" aria-disabled="true"><span class="page-link" aria-label="First page">&laquo;</span></li>
                 <li class="page-item disabled" aria-disabled="true"><span class="page-link" aria-label="Previous page">&lsaquo;</span></li>

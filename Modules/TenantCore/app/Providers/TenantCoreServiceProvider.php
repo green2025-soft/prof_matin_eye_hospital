@@ -19,5 +19,6 @@ class TenantCoreServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(User::class, AccountPolicy::class);
+        $this->loadRoutesFrom(module_path('TenantCore', 'routes/web.php'));
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
+use Modules\Core\Http\Middleware\EnsureActiveSubscription;
 use Modules\Core\Http\Middleware\EnsureCentralApplication;
 use Modules\Core\Http\Middleware\EnsureSessionScope;
 use Modules\Core\Http\Middleware\ResolveApplication;
@@ -26,6 +27,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(fn (): string => route('auth.login'));
         $middleware->redirectUsersTo(fn (): string => route('home'));
+        $middleware->trimStrings(except: ['credentials.*']);
+        $middleware->validateCsrfTokens(except: ['core/payments/callback/*', 'core/payments/notify/*']);
 
         $middleware->web(prepend: [ResolveApplication::class], append: [EnsureSessionScope::class, AuthenticateSession::class]);
         $middleware->prependToPriorityList(EncryptCookies::class, ResolveApplication::class);
@@ -35,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'central' => EnsureCentralApplication::class,
+            'subscribed' => EnsureActiveSubscription::class,
             'tenant' => NeedsTenant::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
@@ -43,5 +47,5 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->map(NoCurrentTenant::class, fn (NoCurrentTenant $exception): NotFoundHttpException => new NotFoundHttpException(previous: $exception));
-        $exceptions->dontFlash(['remember_token']);
+        $exceptions->dontFlash(['remember_token', 'credentials', 'token']);
     })->create();

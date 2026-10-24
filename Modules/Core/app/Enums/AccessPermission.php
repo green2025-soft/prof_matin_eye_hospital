@@ -15,4 +15,8 @@ enum AccessPermission: string
     case AssignRoles = 'roles.assign';
     case ViewPermissions = 'permissions.view';
     case ManagePermissions = 'permissions.manage';
+    case ViewSettings = 'settings.view';
+    case UpdateSettings = 'settings.update';
+    case ViewBilling = 'billing.view';
+    case PayInvoices = 'billing.pay';
 }

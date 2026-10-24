@@ -98,8 +98,16 @@ return [
     */
 
     'passwords' => [
+        'admins' => [
+            'provider' => 'admins',
+            'connection' => 'central',
+            'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 60,
+            'throttle' => 60,
+        ],
         'users' => [
             'provider' => 'users',
+            'connection' => 'tenant',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
             'expire' => 60,
             'throttle' => 60,
@@ -116,6 +124,8 @@ return [
     | confirmation screen. By default, the timeout lasts for three hours.
     |
     */
+
+    'password_min_length' => 5,
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 

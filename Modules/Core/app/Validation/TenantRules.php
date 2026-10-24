@@ -2,14 +2,45 @@
 
 namespace Modules\Core\Validation;
 
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Modules\Core\Models\Domain;
 use Modules\Core\Models\Tenant;
 
 class TenantRules
 {
+    public static function availableSlug(string $name): string
+    {
+        $base = static::slugFromName($name);
+        $slug = $base;
+        $suffix = 1;
+
+        while (Tenant::query()->where('slug', $slug)->exists()
+            || Domain::query()->where('domain', static::defaultDomain($slug))->exists()
+            || in_array(static::defaultDomain($slug), config('multitenancy.central_domains', []), true)) {
+            $ending = '-'.++$suffix;
+            $slug = rtrim(substr($base, 0, 63 - strlen($ending)), '-').$ending;
+        }
+
+        return $slug;
+    }
+
+    public static function slugFromName(string $name): string
+    {
+        $slug = Str::slug($name);
+        $slug = strlen($slug) < 5 ? trim($slug.'-tenant', '-') : $slug;
+
+        return rtrim(substr($slug, 0, 63), '-');
+    }
+
+    public static function defaultDomain(string $slug): string
+    {
+        return $slug.'.'.config('multitenancy.tenant_base_domain');
+    }
+
     public static function normalize(array $data): array
     {
-        foreach (['name', 'slug', 'owner_name'] as $field) {
+        foreach (['name', 'slug', 'owner_name', 'address', 'phone'] as $field) {
             if (array_key_exists($field, $data)) {
                 $data[$field] = is_string($data[$field]) ? trim($data[$field]) : null;
             }
@@ -41,11 +72,14 @@ class TenantRules
         }
 
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:80', 'regex:/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', Rule::unique('central.tenants', 'slug')->ignore($tenant?->getKey())],
+            'name' => ['required', 'string', 'min:5', 'max:255'],
+            'slug' => ['required', 'string', 'min:5', 'max:80', 'regex:/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', Rule::unique('central.tenants', 'slug')->ignore($tenant?->getKey())],
+            'address' => ['nullable', 'string', 'min:5', 'max:2000'],
+            'phone' => ['nullable', 'string', 'min:5', 'max:30', 'regex:/\A[0-9]+\z/'],
+            'has_branches' => ['sometimes', 'boolean'],
             'domains' => ['required', 'array', 'min:1', 'max:20'],
             'domains.*' => [
-                'required', 'string', 'max:253', 'distinct',
+                'required', 'string', 'min:5', 'max:253', 'distinct',
                 'regex:/\A[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*\z/',
                 Rule::notIn(config('multitenancy.central_domains', [])), $domainUnique,
             ],
@@ -55,10 +89,15 @@ class TenantRules
     public static function owner(): array
     {
         return [
-            'owner_name' => ['required', 'string', 'max:255'],
-            'owner_email' => ['required', 'email', 'max:255'],
-            'password' => ['required', 'string', 'min:12', 'max:4096'],
+            'owner_name' => ['required', 'string', 'min:5', 'max:255'],
+            'owner_email' => ['required', 'email', 'min:5', 'max:255'],
+            'password' => ['required', 'string', 'min:'.config('auth.password_min_length', 5), 'max:4096'],
         ];
+    }
+
+    public static function logo(): array
+    {
+        return ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'mimetypes:image/jpeg,image/png,image/webp,image/gif', 'max:2048'];
     }
 
     public static function database(): array

@@ -4,7 +4,11 @@ namespace Modules\Core\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
+use Illuminate\Support\Facades\Validator;
 use Modules\Core\Services\TenantProvisioner;
+use Modules\Core\Validation\TenantRules;
+
+use function Laravel\Prompts\text;
 
 class AdoptTenantCommand extends Command
 {
@@ -20,12 +24,24 @@ class AdoptTenantCommand extends Command
             return self::FAILURE;
         }
 
+        $rules = TenantRules::metadata();
+        $name = trim(text(
+            'Tenant name',
+            required: true,
+            validate: fn ($value) => $this->validatePrompt(trim($value), $rules['name']),
+        ));
+        $slug = text('Tenant slug', required: true, validate: $rules['slug']);
+        $domains = text('Domains (comma separated, without ports)', required: true, validate: fn ($value) => Validator::make(
+            TenantRules::normalize(['domains' => explode(',', $value)]),
+            ['domains' => $rules['domains'], 'domains.*' => $rules['domains.*']],
+        )->errors()->first());
+
         $tenant = $provisioner->adopt(
-            $this->ask('Tenant name'),
-            $this->ask('Tenant slug'),
-            array_map('trim', explode(',', $this->ask('Domains (comma separated, without ports)'))),
-            $this->ask('Existing database name'),
-            $this->ask('Existing tenant administrator email'),
+            $name,
+            $slug,
+            TenantRules::normalize(['domains' => explode(',', $domains)])['domains'],
+            text('Existing database name', required: true, validate: TenantRules::database()),
+            normalizeEmail(text('Existing tenant administrator email', required: true, validate: TenantRules::owner()['owner_email'])),
         );
 
         $this->info('Existing tenant ready: '.$tenant->slug.'. Its account was preserved.');

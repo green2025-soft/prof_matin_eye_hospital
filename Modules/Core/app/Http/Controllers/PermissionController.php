@@ -2,7 +2,7 @@
 
 namespace Modules\Core\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Modules\Core\Http\Requests\PermissionPageRequest;
@@ -10,19 +10,30 @@ use Modules\Core\Http\Requests\RolePermissionRequest;
 use Modules\Core\Models\Role;
 use Modules\Core\Services\RolePermissionService;
 
-class PermissionController extends Controller
+class PermissionController extends BaseController
 {
-    public function index(PermissionPageRequest $request, RolePermissionService $permissions): View
-    {
-        $values = $request->validated();
+    protected string $model = Role::class;
 
-        return view('core::permissions.index', $permissions->pageData($request->user('web'), $values['role'] ?? null, $values['role_search'] ?? ''));
+    protected string $title = 'Role permission';
+
+    protected string $service = RolePermissionService::class;
+
+    protected string $views = 'core::permissions';
+
+    protected string $parameter = 'role';
+
+    public function index(PermissionPageRequest $request): View
+    {
+        return $this->listData($request, app($this->service)->pageData($request->user('web'), $request->validated()));
     }
 
-    public function store(RolePermissionRequest $request, Role $role, RolePermissionService $permissions): RedirectResponse
+    public function store(RolePermissionRequest $request): RedirectResponse
     {
-        $permissions->sync($request->user('web'), $role, $request->validated('permissions'));
+        return $this->saveData($request);
+    }
 
-        return redirect()->route('core.permissions.index', ['role' => $role->getKey()])->with('status', 'Role permissions updated.');
+    protected function redirectAfterWrite(?Model $record = null): RedirectResponse
+    {
+        return redirect()->route($this->routePrefix().'.index', ['role' => $record->getKey()]);
     }
 }

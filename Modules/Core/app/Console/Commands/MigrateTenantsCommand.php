@@ -5,6 +5,7 @@ namespace Modules\Core\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
 use Illuminate\Database\Eloquent\Builder;
+use Modules\Core\Models\Setting;
 use Modules\Core\Models\Tenant;
 use Modules\Core\Services\DatabaseInstaller;
 use Modules\Core\Services\PermissionCatalog;
@@ -78,6 +79,7 @@ class MigrateTenantsCommand extends Command
 
                         if (! $pretend) {
                             $permissions->sync();
+                            Setting::initialize('tenant');
                         }
                     });
                 });

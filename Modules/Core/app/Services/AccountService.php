@@ -10,12 +10,13 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Role;
+use Modules\Core\Models\Tenant;
 use Modules\Core\Policies\AccountPolicy;
 use SensitiveParameter;
 
 class AccountService
 {
-    public function __construct(private AccessManager $access, private AccountPolicy $policy) {}
+    public function __construct(private AccessManager $access, private AccountPolicy $policy, private SubscriptionService $subscriptions) {}
 
     public function save(Account $actor, ?Model $record, #[SensitiveParameter] array $values): Model
     {
@@ -25,6 +26,14 @@ class AccountService
             throw new AuthorizationException;
         }
 
+        $save = fn (): Model => $this->persist($actor, $record, $values);
+        $tenant = Tenant::current();
+
+        return ! $record?->exists && $tenant !== null ? $this->subscriptions->createUser($tenant, $actor, $save) : $save();
+    }
+
+    private function persist(Account $actor, ?Model $record, #[SensitiveParameter] array $values): Model
+    {
         try {
             return $this->access->transaction($actor, function (Account $freshActor) use ($record, $values): Account {
                 $target = $record?->exists
@@ -51,11 +60,11 @@ class AccountService
                 }
 
                 if (array_key_exists('name', $values)) {
-                    $target->name = trim($values['name']);
+                    $target->name = $values['name'];
                 }
 
                 if (array_key_exists('email', $values)) {
-                    $target->email = normalizeEmail($values['email']);
+                    $target->email = $values['email'];
                 }
 
                 $password = $values['password'] ?? null;
@@ -63,8 +72,6 @@ class AccountService
                 if ($password !== null && $password !== '') {
                     $target->password = $password;
                     $target->remember_token = Str::random(60);
-                } elseif (! $target->exists) {
-                    throw ValidationException::withMessages(['password' => 'A password is required for a new account.']);
                 }
 
                 $target->save();

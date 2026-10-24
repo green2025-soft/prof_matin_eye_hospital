@@ -2,18 +2,19 @@
 
 namespace Modules\Core\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator as ValidatorFacade;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use Modules\Core\Models\Role;
 
-class RolePermissionRequest extends FormRequest
+class RolePermissionRequest extends BaseRequest
 {
+    protected bool $partialUpdates = false;
+
     public function authorize(): bool
     {
-        $role = $this->route('role');
+        $role = $this->record();
 
         return $role instanceof Role && $role->exists && Gate::allows('managePermissions', $role);
     }

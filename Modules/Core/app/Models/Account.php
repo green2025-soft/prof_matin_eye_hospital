@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use LogicException;
 use Modules\Core\Models\Concerns\HasCrudContract;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -28,6 +29,17 @@ abstract class Account extends Authenticatable
     protected array $listWith = ['roles:id,name,guard_name', 'roles.permissions:id,name,guard_name', 'permissions:id,name,guard_name'];
 
     protected array $exposedRelations = ['roles' => ['id', 'name', 'guard_name']];
+
+    public static function modelForProvider(string $provider): string
+    {
+        $model = config('auth.providers.'.$provider.'.model');
+
+        if (! in_array($provider, ['admins', 'users'], true) || ! is_string($model) || ! is_subclass_of($model, self::class)) {
+            throw new LogicException('Resolve the account provider before using an account.');
+        }
+
+        return $model;
+    }
 
     protected function casts(): array
     {

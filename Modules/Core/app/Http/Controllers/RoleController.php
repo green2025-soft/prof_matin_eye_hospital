@@ -2,10 +2,13 @@
 
 namespace Modules\Core\Http\Controllers;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
+use Modules\Core\Http\Requests\ListRequest;
 use Modules\Core\Http\Requests\RoleRequest;
+use Modules\Core\Models\Account;
 use Modules\Core\Models\Role;
-use Modules\Core\Services\RoleService;
 
 class RoleController extends BaseController
 {
@@ -13,16 +16,22 @@ class RoleController extends BaseController
 
     protected string $title = 'Role';
 
-    protected string $service = RoleService::class;
-
     protected string $views = 'core::roles';
 
     protected string $parameter = 'role';
 
-    public string $routePrefix = 'core.roles';
+    public function index(ListRequest $request): View
+    {
+        return $this->listData($request);
+    }
 
     public function store(RoleRequest $request): RedirectResponse
     {
         return $this->saveData($request);
+    }
+
+    protected function formData(Account $actor, Model $record): array
+    {
+        return ['isReservedRole' => $record->isReserved()];
     }
 }

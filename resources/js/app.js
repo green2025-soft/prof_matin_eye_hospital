@@ -126,9 +126,60 @@ function updateDomainRows($editor) {
     $editor.find('[data-domain-announcement]').text(`${$rows.length} domain fields`);
 }
 
+function initializeTenantForm(form) {
+    const $form = $(form);
+
+    if ($form.attr('data-tenant-create') !== '1') {
+        return;
+    }
+
+    const $name = $form.find('[name="name"]');
+    const $slug = $form.find('[name="slug"]');
+    const baseDomain = $form.attr('data-tenant-base-domain');
+    const $automatic = $form.find('[data-tenant-domain-auto]');
+    const firstDomain = () => $form.find('[name="domains[]"]').first();
+    const initialDomain = String(firstDomain().val() ?? '');
+    let automaticDomain = initialDomain === '' || initialDomain === `${$slug.val()}.${baseDomain}`;
+
+    function updatePreview() {
+        let slug = String($name.val() ?? '').normalize('NFKD')
+            .replace(/[\u0300-\u036f]/g, '').toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+        if (slug.length < 5) {
+            slug = `${slug}-tenant`.replace(/^-+/, '');
+        }
+
+        slug = slug.slice(0, 63).replace(/-+$/, '');
+        $slug.val($name.val() ? slug : '');
+
+        if (automaticDomain) {
+            firstDomain().val($name.val() ? `${slug}.${baseDomain}` : '');
+            $automatic.val('1');
+        }
+    }
+
+    $name.on('input', updatePreview);
+    $form.on('input', '[name="domains[]"]', function () {
+        if (this === firstDomain()[0]) {
+            automaticDomain = this.value.trim() === '';
+            $automatic.val(automaticDomain ? '1' : '0');
+        }
+    });
+    $form.on('click', '[data-domain-remove]', function () {
+        automaticDomain = false;
+        $automatic.val('0');
+    });
+
+    updatePreview();
+}
+
 $(() => {
     $('[data-domain-editor]').each(function () {
         updateDomainRows($(this));
+    });
+    $('[data-tenant-form]').each(function () {
+        initializeTenantForm(this);
     });
 });
 
@@ -182,7 +233,10 @@ function initializePermissionEditor(editor) {
     }
 
     function visibleItems() {
-        return $rows.filter((_, row) => !row.hidden).find('[data-permission-item]');
+        return $rows.filter((_, row) => !row.hidden).find('[data-permission-item]').filter((_, item) => {
+            const option = item.closest('.app-permission-option');
+            return !option || !option.hidden;
+        });
     }
 
     function matchingItems($visible, attribute, key) {
@@ -225,9 +279,23 @@ function initializePermissionEditor(editor) {
         let visibleRows = 0;
 
         $rows.each((_, row) => {
-            const matches = (!area || row.getAttribute('data-permission-area-key') === area)
-                && (!group || row.getAttribute('data-permission-group-key') === group)
-                && (!search || (row.getAttribute('data-permission-search-text') ?? '').toLocaleLowerCase().includes(search));
+            const matchesScope = (!area || row.getAttribute('data-permission-area-key') === area)
+                && (!group || row.getAttribute('data-permission-group-key') === group);
+            const context = [
+                row.querySelector('.app-permission-area span')?.textContent ?? '',
+                row.querySelector('.app-permission-group span')?.textContent ?? '',
+            ].join(' ');
+            let matches = false;
+
+            $(row).find('.app-permission-option').each((_, option) => {
+                const text = `${context} ${option.getAttribute('title') ?? ''} ${option.textContent}`
+                    .replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+                option.hidden = !matchesScope || (search !== '' && !text.includes(search));
+
+                if (!option.hidden) {
+                    matches = true;
+                }
+            });
 
             row.hidden = !matches;
             visibleRows += Number(matches);
@@ -315,4 +383,79 @@ function initializePermissionEditor(editor) {
 
 $(() => {
     $('[data-permission-editor]').each((_, editor) => initializePermissionEditor(editor));
+});
+
+function initializeInvoiceEditor(editor) {
+    const $editor = $(editor);
+    const $items = $editor.find('[data-invoice-items]');
+    const template = $editor.find('template[data-invoice-template]')[0];
+    let nextIndex = 0;
+
+    if (!$items.length || !template) {
+        return;
+    }
+
+    $items.find('[name]').each(function () {
+        const match = this.name.match(/^items\[(\d+)\]/);
+        const index = match ? Number(match[1]) : -1;
+
+        if (Number.isSafeInteger(index)) {
+            nextIndex = Math.max(nextIndex, index + 1);
+        }
+    });
+
+    function updateControls() {
+        const count = $items.children('[data-invoice-item]').length;
+        $editor.find('[data-invoice-add]').prop('disabled', count >= 100);
+        $items.find('[data-invoice-remove]').prop('disabled', count <= 1);
+    }
+
+    $editor.on('click', '[data-invoice-add]', () => {
+        if ($items.children('[data-invoice-item]').length >= 100) {
+            return;
+        }
+
+        const row = template.innerHTML.replaceAll('__INDEX__', String(nextIndex++));
+        $items.append(row);
+        updateControls();
+        $items.children('[data-invoice-item]').last().find('input').first().trigger('focus');
+    });
+
+    $editor.on('click', '[data-invoice-remove]', function () {
+        if ($items.children('[data-invoice-item]').length <= 1) {
+            return;
+        }
+
+        $(this).closest('[data-invoice-item]').remove();
+        updateControls();
+    });
+
+    updateControls();
+}
+
+function initializePaymentProvider(select) {
+    const $fields = $(select.form).find('[data-manual-payment-fields]');
+    const requiredInputs = new Set($fields.find(':input[required]').toArray());
+
+    function updateFields() {
+        const manual = select.value === 'manual';
+        const method = select.selectedOptions[0];
+        $(select.form).find('[data-payment-extra-charge]').text(method?.dataset.extraCharge ?? '0.00');
+        $(select.form).find('[data-payment-total]').text(method?.dataset.total ?? '0.00');
+        $fields.prop('hidden', !manual);
+        $fields.find(':input').each(function () {
+            this.disabled = !manual;
+            this.required = manual && requiredInputs.has(this);
+        });
+    }
+
+    $(select).on('change', updateFields);
+    updateFields();
+}
+
+$(document).on('click', '[data-print]', () => window.print());
+
+$(() => {
+    $('[data-invoice-editor]').each((_, editor) => initializeInvoiceEditor(editor));
+    $('[data-payment-provider]').each((_, select) => initializePaymentProvider(select));
 });

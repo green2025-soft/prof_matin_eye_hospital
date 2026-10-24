@@ -5,10 +5,11 @@ namespace Modules\Core\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 use Modules\Core\Models\Concerns\HasCrudContract;
 use Spatie\Multitenancy\Models\Tenant as BaseTenant;
 
-#[Fillable(['name', 'slug'])]
+#[Fillable(['name', 'slug', 'address', 'phone', 'has_branches'])]
 #[Hidden(['database_token'])]
 class Tenant extends BaseTenant
 {
@@ -32,9 +33,9 @@ class Tenant extends BaseTenant
         self::STATUS_SUSPENDED => 'Suspended',
     ];
 
-    protected $attributes = ['status' => self::STATUS_PENDING];
+    protected $attributes = ['status' => self::STATUS_PENDING, 'has_branches' => false];
 
-    protected array $exposed = ['id', 'name', 'slug', 'owner_email', 'status', 'created_at'];
+    protected array $exposed = ['id', 'name', 'slug', 'owner_email', 'address', 'phone', 'logo_path', 'has_branches', 'status', 'created_at'];
 
     protected array $filterable = ['status' => self::STATUSES];
 
@@ -45,6 +46,16 @@ class Tenant extends BaseTenant
     public function domains(): HasMany
     {
         return $this->hasMany(Domain::class);
+    }
+
+    protected function casts(): array
+    {
+        return ['has_branches' => 'boolean'];
+    }
+
+    public function getLogoUrlAttribute(): ?string
+    {
+        return $this->logo_path === null ? null : Storage::disk('public')->url($this->logo_path);
     }
 
     public function isReady(): bool

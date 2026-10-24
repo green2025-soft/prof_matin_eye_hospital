@@ -6,6 +6,10 @@ use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
 use Modules\Core\Models\Tenant;
 use Modules\Core\Services\TenantProvisioner;
+use Modules\Core\Validation\TenantRules;
+
+use function Laravel\Prompts\password;
+use function Laravel\Prompts\text;
 
 class RetryTenantCommand extends Command
 {
@@ -23,10 +27,16 @@ class RetryTenantCommand extends Command
 
         $tenant = Tenant::query()->where('slug', $this->argument('tenant'))->firstOrFail();
         $adopt = (bool) $this->option('adopt');
+        $rules = TenantRules::owner();
+
         $provisioner->retry(
             $tenant,
-            $adopt ? '' : $this->ask('Tenant administrator name'),
-            $adopt ? null : $this->secret('Password (at least 12 characters)'),
+            $adopt ? '' : trim(text(
+                'Tenant administrator name',
+                required: true,
+                validate: fn ($value) => $this->validatePrompt(trim($value), $rules['owner_name']),
+            )),
+            $adopt ? null : password('Password', required: true, validate: $rules['password']),
             $adopt,
         );
 

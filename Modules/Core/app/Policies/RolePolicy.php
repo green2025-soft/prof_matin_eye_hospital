@@ -35,12 +35,21 @@ class RolePolicy
     public function delete(Account $actor, Role $role): bool
     {
         return ($this->access->isOwner($actor) || $actor->can(AccessPermission::DeleteRoles->value))
-            && $this->access->roleWithinActor($actor, $role);
+            && $this->access->roleWithinActor($actor, $role)
+            && ! ($role->users_count ?? $role->users()->exists());
     }
 
-    public function viewPermissions(Account $actor): bool
+    public function viewPermissions(Account $actor, ?Role $role = null): bool
     {
-        return $this->access->isOwner($actor) || $actor->can(AccessPermission::ViewPermissions->value);
+        $owner = $this->access->isOwner($actor);
+
+        if (! $owner && ! $actor->can(AccessPermission::ViewPermissions->value)) {
+            return false;
+        }
+
+        return $role === null || ($role->guard_name === 'web'
+            && $role->getConnection()->getName() === $actor->getConnection()->getName()
+            && ($owner || $this->access->roleWithinActor($actor, $role)));
     }
 
     public function managePermissions(Account $actor, Role $role): bool

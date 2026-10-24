@@ -2,11 +2,18 @@
 
 namespace Modules\Core\Models\Concerns;
 
+use Closure;
 use LogicException;
+use Modules\Core\Models\Account;
 
 trait HasCrudContract
 {
     use HandlesModelQueries;
+
+    public function writeTransaction(Account $actor, Closure $operation): mixed
+    {
+        return $this->getConnection()->transaction(fn (): mixed => $operation($actor), 3);
+    }
 
     public function queryContract(): array
     {

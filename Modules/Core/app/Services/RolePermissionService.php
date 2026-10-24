@@ -2,6 +2,8 @@
 
 namespace Modules\Core\Services;
 
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -14,10 +16,12 @@ class RolePermissionService
 {
     public function __construct(private AccessManager $access) {}
 
-    public function pageData(Account $actor, ?int $roleId = null, string $roleSearch = ''): array
+    public function pageData(Account $actor, array $filters): array
     {
         $this->access->assertActorContext($actor);
         Gate::forUser($actor)->authorize('viewPermissions', Role::class);
+        $roleId = $filters['role'] ?? null;
+        $roleSearch = $filters['role_search'] ?? '';
         $query = $this->access->rolesQuery($actor)->select(['id', 'name', 'guard_name']);
 
         if ($roleSearch !== '') {
@@ -54,9 +58,16 @@ class RolePermissionService
         ];
     }
 
-    public function sync(Account $actor, Role $role, array $permissionIds): Role
+    public function save(Account $actor, ?Model $record, array $values): Role
     {
         $this->access->assertActorContext($actor);
+
+        if (! $record instanceof Role || ! $record->exists) {
+            throw new AuthorizationException;
+        }
+
+        $role = $record;
+        $permissionIds = $values['permissions'];
         Gate::forUser($actor)->authorize('managePermissions', $role);
 
         return $this->access->transaction($actor, function (Account $freshActor) use ($role, $permissionIds): Role {

@@ -2,9 +2,10 @@
 
 namespace Modules\Core\Services;
 
-use Illuminate\Support\Facades\Validator;
 use LogicException;
 use Modules\Core\Models\Admin;
+use Modules\Core\Models\Plan;
+use Modules\Core\Models\Setting;
 use Modules\Core\Models\Tenant;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -17,12 +18,6 @@ class PlatformInstaller
         if (Tenant::checkCurrent() || config('database.default') !== 'central') {
             throw new LogicException('Install the platform from the central command context.');
         }
-
-        Validator::make(compact('name', 'email', 'password'), [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
-            'password' => ['required', 'string', 'min:12', 'max:4096'],
-        ])->validate();
 
         $database = config('database.connections.central.database');
 
@@ -60,5 +55,22 @@ class PlatformInstaller
         }
 
         $this->permissions->sync(platform: true);
+        Setting::initialize('central');
+
+        Plan::query()->firstOrCreate(['slug' => config('billing.default_plan')], [
+            'name' => 'Starter',
+            'description' => 'Free workspace plan. Configure paid plans from Plans.',
+            'price_minor' => 0,
+            'currency' => config('billing.currency'),
+            'billing_interval' => 'monthly',
+            'trial_days' => 0,
+            'features' => [],
+            'user_limit' => null,
+            'is_active' => true,
+        ]);
+
+        foreach (Tenant::query()->whereIn('status', [Tenant::STATUS_ACTIVE, Tenant::STATUS_SUSPENDED])->lazyById(100) as $tenant) {
+            app(SubscriptionService::class)->enrollDefault($tenant);
+        }
     }
 }

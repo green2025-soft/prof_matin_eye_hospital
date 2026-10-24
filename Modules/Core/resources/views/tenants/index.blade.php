@@ -40,14 +40,41 @@
                             <tr>
                                 <th scope="row">
                                     <div class="app-table-person d-flex align-items-center gap-3">
-                                        <span class="app-table-avatar" aria-hidden="true"><i class="fa-solid fa-building"></i></span>
-                                        <div><div class="fw-semibold">{{ $tenant->name }}</div><div class="small text-body-secondary fw-normal">{{ $tenant->slug }}</div></div>
+                                        @if ($tenant->logo_url)
+                                            <img class="app-table-avatar rounded-circle object-fit-cover" src="{{ $tenant->logo_url }}" width="40" height="40" alt="">
+                                        @else
+                                            <span class="app-table-avatar" aria-hidden="true"><i class="fa-solid fa-building"></i></span>
+                                        @endif
+                                        <div>
+                                            <div class="fw-semibold">{{ $tenant->name }}</div>
+                                            <div class="small text-body-secondary fw-normal">{{ $tenant->slug }}</div>
+                                            @if ($tenant->has_branches)
+                                                <span class="app-tag">Has branches</span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </th>
                                 <td>@include('core::partials.tags', ['labels' => $tenant->domains->pluck('domain'), 'empty' => ''])</td>
-                                <td class="small">{{ $tenant->owner_email }}</td>
+                                <td class="small">
+                                    <div>{{ $tenant->owner_email }}</div>
+                                    @if ($tenant->phone)
+                                        <div class="text-body-secondary">{{ $tenant->phone }}</div>
+                                    @endif
+                                </td>
                                 <td><span class="app-status app-status-{{ $tenant->status }}">{{ $filterOptions['status'][$tenant->status] ?? $tenant->status }}</span></td>
-                                <td>@include('core::partials.row-actions', ['model' => $tenant, 'routePrefix' => 'core.tenants'])</td>
+                                <td>
+                                    <div class="d-flex justify-content-end align-items-center gap-2 text-nowrap">
+                                        @can('enter', $tenant)
+                                            @if ($tenant->domains->isNotEmpty())
+                                                <form action="{{ route('core.tenants.enter', $tenant) }}" method="POST">
+                                                    @csrf
+                                                    <button class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2" type="submit" aria-label="Open {{ $tenant->name }} dashboard" title="Open dashboard"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Dashboard</span></button>
+                                                </form>
+                                            @endif
+                                        @endcan
+                                        @include('core::partials.row-actions', ['model' => $tenant, 'routePrefix' => 'core.tenants'])
+                                    </div>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

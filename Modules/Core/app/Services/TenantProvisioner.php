@@ -5,16 +5,16 @@ namespace Modules\Core\Services;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 use Modules\Core\Contracts\TenantAccounts;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Tenant;
-use Modules\Core\Validation\TenantRules;
 use Throwable;
 
 class TenantProvisioner
@@ -27,15 +27,48 @@ class TenantProvisioner
             throw new AuthorizationException;
         }
 
-        if ($record?->exists) {
-            Gate::forUser($actor)->authorize('update', $record);
+        $this->ensureCentral();
+        Gate::forUser($actor)->authorize($record?->exists ? 'update' : 'create', $record?->exists ? $record : Tenant::class);
+        $details = Arr::only($values, ['address', 'phone', 'has_branches']);
+        $disk = Storage::disk('public');
+        $newLogo = null;
 
-            return $this->update($record, $values['name'] ?? null, $values['slug'] ?? null, $values['domains'] ?? null, $values['status'] ?? null);
+        if (($values['logo'] ?? null) instanceof UploadedFile) {
+            $newLogo = $values['logo']->store('tenant-logos', 'public');
+            if (! is_string($newLogo)) {
+                throw ValidationException::withMessages(['logo' => 'The logo could not be stored. Please try again.']);
+            }
+            $details['logo_path'] = $newLogo;
         }
 
-        Gate::forUser($actor)->authorize('create', Tenant::class);
+        try {
+            if ($record?->exists) {
+                return $this->update(
+                    $record,
+                    $values['name'] ?? null,
+                    $values['slug'] ?? null,
+                    $values['domains'] ?? null,
+                    $values['status'] ?? null,
+                    $details,
+                );
+            }
 
-        return $this->create($values['name'], $values['slug'], $values['domains'], $values['owner_name'], $values['owner_email'], $values['password']);
+            return $this->create(
+                $values['name'],
+                $values['slug'],
+                $values['domains'],
+                $values['owner_name'],
+                $values['owner_email'],
+                $values['password'],
+                $details,
+            );
+        } catch (Throwable $exception) {
+            if ($newLogo !== null && ! Tenant::query()->where('logo_path', $newLogo)->exists()) {
+                $disk->delete($newLogo);
+            }
+
+            throw $exception;
+        }
     }
 
     public function formData(Account $actor, Model $record): array
@@ -50,17 +83,27 @@ class TenantProvisioner
             'tenant' => $record,
             'domains' => $record->exists ? ($record->domains->pluck('domain')->all() ?: ['']) : [''],
             'statusOptions' => $record->statusOptions(),
+            'tenantBaseDomain' => config('multitenancy.tenant_base_domain'),
+            'logoUrl' => $record->logo_url,
+            'passwordMinLength' => config('auth.password_min_length', 5),
         ];
     }
 
-    public function create(string $name, string $slug, array $domains, string $ownerName, string $email, #[\SensitiveParameter] string $password): Tenant
+    public function create(string $name, string $slug, array $domains, string $ownerName, string $email, #[\SensitiveParameter] string $password, array $details = []): Tenant
     {
-        $this->validateOwner($ownerName, $email, $password);
-
         $database = config('multitenancy.database_prefix').str_replace('-', '', (string) Str::uuid());
-        $tenant = $this->register($name, $slug, $domains, $database, $email);
+        $tenant = $this->register($name, $slug, $domains, $database, $email, $details);
 
-        return $this->retry($tenant, $ownerName, $password);
+        try {
+            return $this->retry($tenant, $ownerName, $password);
+        } catch (Throwable $exception) {
+            if (isset($details['logo_path'])) {
+                $tenant->logo_path = null;
+                $tenant->save();
+            }
+
+            throw $exception;
+        }
     }
 
     public function adopt(string $name, string $slug, array $domains, string $database, string $email): Tenant
@@ -73,10 +116,6 @@ class TenantProvisioner
     public function retry(Tenant $tenant, string $ownerName = '', #[\SensitiveParameter] ?string $password = null, bool $adopt = false): Tenant
     {
         $this->ensureCentral();
-
-        if (! $adopt) {
-            $this->validateOwner($ownerName, $tenant->owner_email, $password);
-        }
 
         return $this->prepare($tenant, function () use ($tenant, $ownerName, $password, $adopt): void {
             if ($adopt && ! $this->accounts->ownerExists($tenant->owner_email)) {
@@ -98,36 +137,41 @@ class TenantProvisioner
         });
     }
 
-    public function update(Tenant $tenant, ?string $name = null, ?string $slug = null, ?array $domains = null, ?string $status = null): Tenant
+    public function update(Tenant $tenant, ?string $name = null, ?string $slug = null, ?array $domains = null, ?string $status = null, array $details = []): Tenant
     {
         $this->ensureCentral();
 
         try {
-            return $this->databases->locked($tenant->database, function () use ($tenant, $name, $slug, $domains, $status): Tenant {
-                return $tenant->getConnection()->transaction(function () use ($tenant, $name, $slug, $domains, $status): Tenant {
+            return $this->databases->locked($tenant->database, function () use ($tenant, $name, $slug, $domains, $status, $details): Tenant {
+                return $tenant->getConnection()->transaction(function () use ($tenant, $name, $slug, $domains, $status, $details): Tenant {
                     $current = Tenant::query()->whereKey($tenant->getKey())->lockForUpdate()->firstOrFail();
-                    $data = TenantRules::normalize([
-                        'name' => $name ?? $current->name,
-                        'slug' => $slug ?? $current->slug,
-                        'domains' => $domains ?? $current->domains()->pluck('domain')->all(),
-                    ]);
-
-                    if ($status !== null) {
-                        $data['status'] = $status;
+                    if ($status !== null && ! array_key_exists($status, $current->statusOptions())) {
+                        throw ValidationException::withMessages(['status' => 'Workspace access cannot change before setup completes.']);
                     }
 
-                    $rules = TenantRules::metadata($current);
-                    $rules['status'] = ['sometimes', 'string', Rule::in(array_keys($current->statusOptions()))];
-                    $values = Validator::make($data, $rules)->validate();
+                    $current->fill([
+                        'name' => $name ?? $current->name,
+                        'slug' => $slug ?? $current->slug,
+                    ] + Arr::only($details, ['address', 'phone', 'has_branches']));
+                    $current->status = $status ?? $current->status;
 
-                    $current->fill(['name' => $values['name'], 'slug' => $values['slug']]);
-                    $current->status = $values['status'] ?? $current->status;
+                    if (isset($details['logo_path'])) {
+                        $previousLogo = $current->logo_path;
+                        $current->logo_path = $details['logo_path'];
+
+                        if ($previousLogo !== null) {
+                            $disk = Storage::disk('public');
+                            $current->getConnection()->afterCommit(fn () => $disk->delete($previousLogo));
+                        }
+                    }
+
                     $current->save();
 
                     $existing = $current->domains()->pluck('domain')->all();
-                    $current->domains()->whereNotIn('domain', $values['domains'])->delete();
+                    $domains ??= $existing;
+                    $current->domains()->whereNotIn('domain', $domains)->delete();
 
-                    foreach (array_diff($values['domains'], $existing) as $domain) {
+                    foreach (array_diff($domains, $existing) as $domain) {
                         $current->domains()->create(['domain' => $domain]);
                     }
 
@@ -139,33 +183,20 @@ class TenantProvisioner
         }
     }
 
-    private function validateOwner(string $ownerName, string $email, #[\SensitiveParameter] ?string $password): void
-    {
-        $data = TenantRules::normalize(['owner_name' => $ownerName, 'owner_email' => $email]);
-        $data['password'] = $password;
-
-        Validator::make($data, TenantRules::owner())->validate();
-    }
-
-    private function register(string $name, string $slug, array $domains, string $database, string $email): Tenant
+    private function register(string $name, string $slug, array $domains, string $database, string $email, array $details = []): Tenant
     {
         $this->ensureCentral();
-        $data = TenantRules::normalize(compact('name', 'slug', 'domains', 'database') + ['owner_email' => $email]);
-        $rules = TenantRules::metadata() + [
-            'database' => TenantRules::database(),
-            'owner_email' => TenantRules::owner()['owner_email'],
-        ];
-        $values = Validator::make($data, $rules)->validate();
 
         try {
-            return (new Tenant)->getConnection()->transaction(function () use ($values): Tenant {
-                $tenant = new Tenant(['name' => $values['name'], 'slug' => $values['slug']]);
-                $tenant->database = $values['database'];
+            return (new Tenant)->getConnection()->transaction(function () use ($name, $slug, $domains, $database, $email, $details): Tenant {
+                $tenant = new Tenant(['name' => $name, 'slug' => $slug] + Arr::only($details, ['address', 'phone', 'has_branches']));
+                $tenant->logo_path = $details['logo_path'] ?? null;
+                $tenant->database = $database;
                 $tenant->database_token = (string) Str::uuid();
-                $tenant->owner_email = $values['owner_email'];
+                $tenant->owner_email = $email;
                 $tenant->save();
 
-                foreach ($values['domains'] as $domain) {
+                foreach ($domains as $domain) {
                     $tenant->domains()->create(['domain' => $domain]);
                 }
 
@@ -202,6 +233,7 @@ class TenantProvisioner
 
             try {
                 $tenant->execute($callback);
+                app(SubscriptionService::class)->enrollDefault($tenant);
                 $tenant->status = Tenant::STATUS_ACTIVE;
                 $tenant->provisioning_error = null;
                 $tenant->save();

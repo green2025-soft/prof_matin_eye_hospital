@@ -1496,9 +1496,8 @@
     min-width: 720px;
 }
 
-.app-permission-matrix [data-permission-row][hidden],
-.app-permission-matrix [data-permission-empty][hidden] {
-    display: none;
+[data-permission-editor] [hidden] {
+    display: none !important;
 }
 
 .app-permission-matrix th:first-child {
@@ -1557,5 +1556,45 @@
     .app-toolbar-button,
     .app-quick-link {
         transition: none;
+    }
+}
+
+@media print {
+    @page {
+        margin: 14mm;
+    }
+
+    .app-sidebar,
+    .app-header,
+    .app-page-footer,
+    .app-print-hidden,
+    .app-skip-link,
+    [data-print] {
+        display: none !important;
+    }
+
+    .app-shell,
+    .app-page {
+        min-height: 0;
+        width: 100%;
+        margin: 0 !important;
+        color: var(--app-text);
+        background: var(--app-surface);
+    }
+
+    .app-content {
+        padding: 0;
+    }
+
+    .app-invoice-document {
+        width: 100%;
+        max-width: none;
+        padding: 0 !important;
+        border: 0;
+        box-shadow: none;
+    }
+
+    .app-invoice-document tr {
+        break-inside: avoid;
     }
 }
