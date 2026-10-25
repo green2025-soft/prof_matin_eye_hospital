@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Helpers\Money;
 
 #[Fillable(['name', 'slug', 'description', 'price', 'price_minor', 'currency', 'billing_interval', 'trial_days', 'features', 'user_limit', 'is_active'])]
+
 class Plan extends CoreModel
 {
     public const INTERVALS = ['monthly' => 'Monthly', 'yearly' => 'Yearly'];
