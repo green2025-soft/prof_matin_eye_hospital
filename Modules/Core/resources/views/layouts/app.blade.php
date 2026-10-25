@@ -4,6 +4,9 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>@yield('title', $pageTitle ?? 'Dashboard') | {{ $layout['appName'] }}</title>
+        @if ($layout['faviconUrl'])
+            <link rel="icon" href="{{ $layout['faviconUrl'] }}">
+        @endif
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="app-shell{{ $layout['user'] ? '' : ' app-auth-shell' }}">
@@ -12,7 +15,11 @@
             <aside class="app-sidebar offcanvas-lg offcanvas-start" id="appSidebar" tabindex="-1" aria-labelledby="sidebar-brand">
                 <div class="app-sidebar-head">
                     <a class="app-brand" href="{{ $layout['homeUrl'] }}" id="sidebar-brand">
-                        <span class="app-brand-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
+                        @if ($layout['logoUrl'])
+                            <img class="app-brand-logo" src="{{ $layout['logoUrl'] }}" alt="" width="36" height="36">
+                        @else
+                            <span class="app-brand-icon" aria-hidden="true">{{ $layout['appInitial'] }}</span>
+                        @endif
                         <span class="app-brand-copy"><strong>{{ $layout['appName'] }}</strong><small>{{ $layout['tagline'] ?: 'Admin panel' }}</small></span>
                     </a>
                     <button class="btn-close btn-close-white d-lg-none" type="button" data-bs-dismiss="offcanvas" data-bs-target="#appSidebar" aria-label="Close navigation"></button>
@@ -146,7 +153,11 @@
             <main class="app-auth-layout" id="main-content">
                 <section class="app-auth-intro" aria-labelledby="auth-intro-title">
                     <a class="app-brand" href="{{ $layout['loginUrl'] }}">
-                        <span class="app-brand-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
+                        @if ($layout['logoUrl'])
+                            <img class="app-brand-logo" src="{{ $layout['logoUrl'] }}" alt="" width="36" height="36">
+                        @else
+                            <span class="app-brand-icon" aria-hidden="true">{{ $layout['appInitial'] }}</span>
+                        @endif
                         <span class="app-brand-copy"><strong>{{ $layout['appName'] }}</strong><small>{{ $layout['tagline'] ?: 'Admin panel' }}</small></span>
                     </a>
                     <div>

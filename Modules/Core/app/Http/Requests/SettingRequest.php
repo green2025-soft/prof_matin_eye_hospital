@@ -54,6 +54,25 @@ class SettingRequest extends BaseRequest
         $rules = [
             'group' => ['missing'],
             'secrets' => ['missing'],
+            'logo_path' => ['missing'],
+            'favicon_path' => ['missing'],
+            'logo' => $setting->group === 'branding'
+                ? [
+                    'nullable', 'image',
+                    'mimes:png,jpg,jpeg,webp,gif',
+                    'extensions:png,jpg,jpeg,webp,gif',
+                    'mimetypes:image/png,image/jpeg,image/webp,image/gif',
+                    'max:2048',
+                ]
+                : ['missing'],
+            'favicon' => $setting->group === 'branding'
+                ? [
+                    'nullable', 'file',
+                    'mimes:png,ico', 'extensions:png,ico',
+                    'mimetypes:image/png,image/x-icon,image/vnd.microsoft.icon',
+                    'max:512',
+                ]
+                : ['missing'],
             'data' => ['required', 'array:'.implode(',', array_keys($fields))],
             'credentials' => $credentials === [] ? ['missing'] : ['sometimes', 'array:'.implode(',', array_keys($credentials))],
         ];

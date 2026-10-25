@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Role;
+use Modules\Core\Models\Subscription;
 use Modules\Core\Models\Tenant;
 
 class DashboardController extends Controller
@@ -21,10 +22,14 @@ class DashboardController extends Controller
 
         $accountModel = get_class($actor);
         $central = $request->attributes->get('application_scope') === 'central';
+        $subscription = $central ? null : Subscription::forTenant(Tenant::current());
+        $request->attributes->set('application_subscription', $subscription);
+        $plan = $subscription?->isUsable() ? $subscription->plan : null;
         $accountRoutePrefix = $central ? 'core.accounts' : 'tenantcore.accounts';
         $canViewTenants = $central && Gate::allows('viewAny', Tenant::class);
-        $canViewAccounts = Gate::allows('viewAny', $accountModel);
-        $canViewRoles = Gate::allows('viewAny', Role::class);
+        $canViewAccounts = ($central || $plan?->allowsRoutePermission('accounts.view')) && Gate::allows('viewAny', $accountModel);
+        $canViewRoles = ($central || $plan?->allowsRoutePermission('roles.view')) && Gate::allows('viewAny', Role::class);
+        $canUpdateAccounts = $central || $plan?->allowsRoutePermission('accounts.update');
         $metrics = [];
 
         if ($canViewTenants) {
@@ -65,7 +70,7 @@ class DashboardController extends Controller
                 ? Tenant::query()->select(['id', 'name', 'slug', 'status', 'created_at'])
                 : $accountModel::query()->select(['id', 'name', 'email', 'created_at'])->with(['roles.permissions', 'permissions']);
 
-            $recentRecords = $query->orderByDesc('id')->limit(5)->get()->map(function ($record) use ($central, $recentRoutePrefix): array {
+            $recentRecords = $query->orderByDesc('id')->limit(5)->get()->map(function ($record) use ($central, $recentRoutePrefix, $canUpdateAccounts): array {
                 return [
                     'name' => $record->name,
                     'detail' => $central ? $record->slug : $record->email,
@@ -73,7 +78,7 @@ class DashboardController extends Controller
                     'statusLabel' => $central ? (Tenant::STATUSES[$record->status] ?? $record->status) : null,
                     'created' => $record->created_at?->format('d M Y') ?? '—',
                     'createdIso' => $record->created_at?->toDateString(),
-                    'url' => Gate::allows('update', $record) ? route($recentRoutePrefix.'.edit', $record) : null,
+                    'url' => $canUpdateAccounts && Gate::allows('update', $record) ? route($recentRoutePrefix.'.edit', $record) : null,
                 ];
             });
         }
@@ -84,11 +89,11 @@ class DashboardController extends Controller
             $quickActions[] = ['label' => 'Create tenant', 'description' => 'Set up a new workspace', 'icon' => 'building', 'url' => route('core.tenants.create'), 'tone' => 'primary'];
         }
 
-        if (Gate::allows('create', $accountModel)) {
+        if (($central || $plan?->allowsRoutePermission('accounts.create')) && Gate::allows('create', $accountModel)) {
             $quickActions[] = ['label' => $central ? 'Add administrator' : 'Add user', 'description' => 'Add an account to your team', 'icon' => 'user-plus', 'url' => route($accountRoutePrefix.'.create'), 'tone' => 'success'];
         }
 
-        if (Gate::allows('create', Role::class)) {
+        if (($central || $plan?->allowsRoutePermission('roles.create')) && Gate::allows('create', Role::class)) {
             $quickActions[] = ['label' => 'Create role', 'description' => 'Define access for your team', 'icon' => 'shield-halved', 'url' => route('core.roles.create'), 'tone' => 'warning'];
         }
 
@@ -110,7 +115,7 @@ class DashboardController extends Controller
             'accountEmail' => $actor->email,
             'accountInitials' => Str::upper(Str::substr(trim($actor->name), 0, 2)),
             'accountRoles' => $actor->roles->where('guard_name', 'web')->pluck('name')->all(),
-            'accountEditUrl' => Gate::allows('update', $actor) ? route($accountRoutePrefix.'.edit', $actor) : null,
+            'accountEditUrl' => $canUpdateAccounts && Gate::allows('update', $actor) ? route($accountRoutePrefix.'.edit', $actor) : null,
         ]);
     }
 }

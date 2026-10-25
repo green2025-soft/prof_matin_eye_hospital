@@ -1,4 +1,4 @@
-<form class="app-card p-3 p-md-4" action="{{ $formAction }}" method="POST">
+<form class="app-card p-3 p-md-4" action="{{ $formAction }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
     <fieldset class="app-form-section border-0 p-0 mb-0" aria-labelledby="settings-{{ $setting->group }}-heading" @disabled(! $canUpdate)>
@@ -109,6 +109,46 @@
                     <label class="form-label" for="branding-tagline">Tagline</label>
                     <input class="{{ inputClass('data.tagline') }}" id="branding-tagline" minlength="5" name="data[tagline]" type="text" value="{{ getValue('data.tagline', null, $values['data']['tagline']) }}" maxlength="255" {{ inputAttrs('data.tagline', 'branding-tagline') }}>
                     @error('data.tagline')<div class="invalid-feedback d-block" id="branding-tagline-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="branding-logo">Logo</label>
+                    @if ($logoUrl)
+                        <img class="app-brand-preview img-thumbnail mb-2" src="{{ $logoUrl }}" alt="Current workspace logo" width="160" height="80">
+                    @endif
+                    <input
+                        class="{{ inputClass('logo') }}"
+                        id="branding-logo"
+                        name="logo"
+                        type="file"
+                        accept=".png,.jpg,.jpeg,.webp,.gif,image/png,image/jpeg,image/webp,image/gif"
+                        {{ inputAttrs('logo', 'branding-logo', 'branding-logo-help') }}
+                    >
+                    <div class="form-text" id="branding-logo-help">
+                        PNG, JPG, WebP, or GIF up to 2 MB. Leave empty to keep the current logo.
+                    </div>
+                    @error('logo')
+                        <div class="invalid-feedback d-block" id="branding-logo-error">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="branding-favicon">Favicon</label>
+                    @if ($faviconUrl)
+                        <img class="app-brand-preview app-favicon-preview img-thumbnail mb-2" src="{{ $faviconUrl }}" alt="Current workspace favicon" width="48" height="48">
+                    @endif
+                    <input
+                        class="{{ inputClass('favicon') }}"
+                        id="branding-favicon"
+                        name="favicon"
+                        type="file"
+                        accept=".png,.ico,image/png,image/x-icon,image/vnd.microsoft.icon"
+                        {{ inputAttrs('favicon', 'branding-favicon', 'branding-favicon-help') }}
+                    >
+                    <div class="form-text" id="branding-favicon-help">
+                        PNG or ICO up to 512 KB. Leave empty to keep the current browser icon.
+                    </div>
+                    @error('favicon')
+                        <div class="invalid-feedback d-block" id="branding-favicon-error">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
         @elseif ($setting->group === 'billing')

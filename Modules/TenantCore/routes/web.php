@@ -9,7 +9,7 @@ use Modules\Core\Http\Controllers\SettingController;
 
 Route::middleware(['web', 'auth', 'tenant'])->name('tenantcore.')->group(function (): void {
     Route::resource('users', AccountController::class)->parameters(['users' => 'account'])->names('accounts')->except('show')->middleware('subscribed');
-    Route::resource('settings', SettingController::class)->only(['index', 'edit', 'update']);
+    Route::resource('settings', SettingController::class)->only(['index', 'edit', 'update'])->middleware('subscribed');
     Route::resource('billing', BillingController::class)->only('index');
     Route::prefix('billing')->name('billing.')->group(function (): void {
         Route::resource('invoices', InvoiceController::class)->only('show')->names(['show' => 'show']);

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Helpers\Money;
 
-#[Fillable(['name', 'slug', 'description', 'price', 'price_minor', 'currency', 'billing_interval', 'trial_days', 'features', 'user_limit', 'is_active'])]
+#[Fillable(['name', 'slug', 'description', 'price', 'price_minor', 'currency', 'billing_interval', 'trial_days', 'features', 'user_limit', 'is_active', 'route_permissions'])]
 
 class Plan extends CoreModel
 {
@@ -28,7 +28,7 @@ class Plan extends CoreModel
 
     protected function casts(): array
     {
-        return ['price_minor' => 'integer', 'trial_days' => 'integer', 'features' => 'array', 'user_limit' => 'integer', 'is_active' => 'boolean'];
+        return ['price_minor' => 'integer', 'trial_days' => 'integer', 'features' => 'array', 'route_permissions' => 'array', 'user_limit' => 'integer', 'is_active' => 'boolean'];
     }
 
     public function subscriptions(): HasMany
@@ -49,6 +49,11 @@ class Plan extends CoreModel
     public function allowsFeature(string $key): bool
     {
         return ($this->features[$key] ?? false) === true;
+    }
+
+    public function allowsRoutePermission(string $permission): bool
+    {
+        return $this->route_permissions === null || in_array($permission, $this->route_permissions, true);
     }
 
     public function isDefault(): bool

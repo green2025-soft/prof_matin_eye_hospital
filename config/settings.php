@@ -13,7 +13,7 @@ return [
     'payment_groups' => ['manual', 'sslcommerz', 'bkash', 'nagad', 'eps'],
     'groups' => [
         'company' => ['label' => 'Company', 'description' => 'Organization contact details and tax identification.', 'icon' => 'building'],
-        'branding' => ['label' => 'Branding', 'description' => 'The name and tagline shown in your workspace.', 'icon' => 'palette'],
+        'branding' => ['label' => 'Branding', 'description' => 'The name, tagline, logo, and favicon shown in your workspace.', 'icon' => 'palette'],
         'billing' => ['label' => 'Billing', 'description' => 'Invoice currency, numbering prefix, and payment instructions.', 'icon' => 'file-invoice-dollar'],
         'general' => ['label' => 'General', 'description' => 'Workspace timezone and language preferences.', 'icon' => 'sliders'],
         'manual' => ['label' => 'Manual payment', 'description' => 'Manual payment availability, customer instructions, and a fixed extra charge.', 'icon' => 'money-bill-transfer'],
@@ -49,7 +49,12 @@ return [
     ],
     'defaults' => [
         'company' => ['name' => env('APP_NAME', 'Laravel Modular Boilerplate'), 'email' => env('MAIL_FROM_ADDRESS', 'hello@example.com'), 'phone' => '', 'address' => '', 'tax_id' => ''],
-        'branding' => ['app_name' => env('APP_NAME', 'Laravel Modular Boilerplate'), 'tagline' => ''],
+        'branding' => [
+            'app_name' => env('APP_NAME', 'Laravel Modular Boilerplate'),
+            'tagline' => '',
+            'logo_path' => '',
+            'favicon_path' => '',
+        ],
         'billing' => ['currency' => 'BDT', 'invoice_prefix' => 'INV', 'payment_instructions' => ''],
         'general' => ['timezone' => env('APP_TIMEZONE', 'Asia/Dhaka'), 'locale' => env('APP_LOCALE', 'en')],
         'manual' => ['enabled' => true, 'instructions' => '', 'extra_charge' => '0.00'],

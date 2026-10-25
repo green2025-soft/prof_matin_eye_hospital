@@ -24,9 +24,9 @@ Copy-Item .env.example .env
 php artisan key:generate
 ```
 
-Preserve an existing `.env` and application key. Configure MySQL credentials, `DB_CONNECTION=central`, `CENTRAL_DB_DATABASE`, and `CENTRAL_DOMAINS` in `.env`. The default platform host is `platform.localhost`. The central database must differ from any tenant database. Optional `DB_PROVISION_USERNAME`/`DB_PROVISION_PASSWORD` supply database-creation credentials; otherwise the MySQL credentials are used. Setup commands need permission to create databases and apply schema changes.
+Preserve an existing `.env` and application key. Configure MySQL credentials, `DB_CONNECTION=central`, `CENTRAL_DB_DATABASE`, and `CENTRAL_DOMAINS` in `.env`. The default platform host is `localhost`: use `APP_URL=http://localhost:8000` and `CENTRAL_DOMAINS=localhost` locally. The central database must differ from any tenant database. Optional `DB_PROVISION_USERNAME`/`DB_PROVISION_PASSWORD` supply database-creation credentials; otherwise the MySQL credentials are used. Setup commands need permission to create databases and apply schema changes.
 
-The platform tenant form generates a unique slug from the workspace name and suggests its domain. Set `TENANT_BASE_DOMAIN=example.com` to suggest `workspace.example.com`; `platform.localhost` defaults to `workspace.localhost`. Domains remain editable. Tenant profiles support optional address/phone, a PNG/JPG/WebP/GIF logo up to 2 MB, and a branches flag without branch management. Applicable text fields need at least 5 characters; phone numbers require at least 5 digits. Logo uploads need the public storage link (`php artisan storage:link`).
+The platform tenant form generates a unique slug from the workspace name and suggests its domain. The local default suggests `workspace.localhost`; set `TENANT_BASE_DOMAIN=example.com` to suggest `workspace.example.com`. Domains remain editable. Tenant profiles support optional address/phone, a PNG/JPG/WebP/GIF logo up to 2 MB, and a branches flag without branch management. Applicable text fields need at least 5 characters; phone numbers require at least 5 digits. Logo uploads need the public storage link (`php artisan storage:link`).
 
 Create the platform and its separate administrator, then the first tenant with its own database:
 
@@ -35,14 +35,14 @@ php artisan platform:install
 php artisan tenant:create
 ```
 
-Commands prompt for account details and a hidden password (minimum 5 characters by default, configured by `auth.password_min_length`). For the local tenant, supply `localhost,127.0.0.1` as its domains. To attach an existing tenant database/account, use `php artisan tenant:adopt` instead; its password is preserved. Resume an unfinished setup with `php artisan tenant:retry SLUG` (add `--adopt` for an adoption). No fixed password is seeded. File sessions/cache and synchronous queues remain the development defaults.
+Commands prompt for account details and a hidden password (minimum 5 characters by default, configured by `auth.password_min_length`). Use a separate domain such as `workspace.localhost` for the local tenant; `localhost` belongs to the platform. To attach an existing tenant database/account, use `php artisan tenant:adopt` instead with that separate tenant domain; its password is preserved. Resume an unfinished setup with `php artisan tenant:retry SLUG` (add `--adopt` for an adoption). No fixed password is seeded. File sessions/cache and synchronous queues remain the development defaults.
 
 ```powershell
 npm run build
 php artisan serve
 ```
 
-Open `http://platform.localhost:8000/auth/login` for the platform, or `http://127.0.0.1:8000/auth/login` for the registered local tenant. Each uses its own administrator. Unknown/inactive tenant hosts return 404. The root page requires authentication. Login POST uses `throttle:login`, allowing five submissions per scope/email/IP per minute. Build assets again after CSS/JavaScript changes, or use `composer dev` for Laravel and Vite together. Serve only `public/` with Laragon/another web server; production uses built assets and a configured web server.
+Open `http://localhost:8000/auth/login` for the platform, or `http://workspace.localhost:8000/auth/login` for a tenant registered with that domain. Each uses its own administrator. Unknown/inactive tenant hosts return 404. The root page requires authentication. Login POST uses `throttle:login`, allowing five submissions per scope/email/IP per minute. Build assets again after CSS/JavaScript changes, or use `composer dev` for Laravel and Vite together. Serve only `public/` with Laragon/another web server; production uses built assets and a configured web server.
 
 Forgot password is available at `/auth/forgot-password` on the appropriate platform or tenant host. Reset tokens use Laravel's separate central `admins` and tenant `users` brokers. Mail defaults to `MAIL_MAILER=log`, which records reset messages locally and sends no email. Configure a working SMTP transport (`MAIL_MAILER=smtp`, host, port, credentials, and sender) or another supported mail provider before relying on email delivery.
 
@@ -50,13 +50,13 @@ Authorized platform accounts manage tenants at `/core/tenants` and platform acco
 
 Lists use numbered pagination with 10 rows by default. Choose 5/10/15/20/30/50/100 or All; All shows every filtered, authorized record on page 1. Changing size resets page 1, while filters and sorting persist.
 
-Grouped company/branding/general settings are isolated per database; platform billing and payment settings stay central. The Payments tab has fixed Manual/SSLCommerz/bKash/Nagad/EPS buttons and loads only the selected provider. Manual has enabled/instructions controls; every method has a fixed extra charge, default `0.00`, without percentages. Save/error redirects retain the selected provider, and legacy gateway group URLs remain supported. Metadata comes from `config/settings.php` and input validation from `SettingRequest`. Credentials are encrypted, hidden, never prefilled, and preserved when left blank. Explicit setup/migration preserves saved values. The sidebar shows authorized pages and current-database branding.
+Grouped company/branding/general settings are isolated per database; platform billing and payment settings stay central. Branding accepts PNG/JPG/WebP/GIF logos up to 2 MB and PNG/ICO favicons up to 512 KB, with previews and generated paths on the current scoped public disk; supplied paths are rejected, and replacement cleanup follows commit. The Payments tab has fixed Manual/SSLCommerz/bKash/Nagad/EPS buttons and loads only the selected provider. Manual has enabled/instructions controls; every method has a fixed extra charge, default `0.00`, without percentages. Save/error redirects retain the selected provider, and legacy gateway group URLs remain supported. Metadata comes from `config/settings.php` and input validation from `SettingRequest`. Credentials are encrypted, hidden, never prefilled, and preserved when left blank. Explicit setup/migration preserves saved values. The sidebar shows authorized pages and current-database branding.
 
 ## Billing and deployment
 
 Platform screens live under `/core/plans`, `/core/subscriptions`, `/core/invoices`, `/core/payments`, and `/core/settings`. Invoices includes pending manual payment review; there is no separate platform Billing page. Tenant `/billing` shows its subscription/invoices and starts checkout; `/settings` manages its allowed groups. A submitted reference alone never marks an invoice paid. Checkout snapshots the fixed charge, verifies the total received, and credits only the invoice principal; receipts show principal, charge, and total separately.
 
-Setup creates the free Starter plan and enrolls tenants without charging them. `platform:migrate` also enrolls existing active/suspended tenants that lack a subscription. Free plans can upgrade immediately; paid current periods are preserved. Paid renewal produces an invoice rather than an automatic charge. Issued invoices and payment records retain financial history.
+Setup creates the free Starter plan and enrolls tenants without charging them. `platform:migrate` also enrolls existing active/suspended tenants that lack a subscription. Plan `route_permissions` limit mapped tenant actions in addition to account roles: `null` allows all, while `[]` allows none. Sign-in/password recovery, home, and Billing recovery remain accessible under their normal policies. Free plans can upgrade immediately; paid current periods are preserved. Paid renewal produces an invoice rather than an automatic charge. Issued invoices and payment records retain financial history. Invoice due dates use bundled Flatpickr through the shared JavaScript/CSS and submit `Y-m-d` values.
 
 For an existing installation, apply the central schema before tenant schema:
 

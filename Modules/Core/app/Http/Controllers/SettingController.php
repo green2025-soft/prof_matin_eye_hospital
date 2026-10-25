@@ -8,10 +8,14 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Modules\Core\Http\Requests\ListRequest;
 use Modules\Core\Http\Requests\SettingRequest;
+use Modules\Core\Models\Account;
 use Modules\Core\Models\Setting;
+use Throwable;
 
 class SettingController extends BaseController
 {
@@ -58,7 +62,51 @@ class SettingController extends BaseController
 
     public function store(SettingRequest $request): RedirectResponse
     {
-        return $this->saveData($request);
+        if (! $request->hasFile('logo') && ! $request->hasFile('favicon')) {
+            return $this->saveData($request);
+        }
+
+        $setting = $this->record($request);
+        $disk = Storage::disk('public');
+        $uploads = [];
+        $committed = false;
+
+        try {
+            foreach (['logo', 'favicon'] as $field) {
+                if (! $request->hasFile($field)) {
+                    continue;
+                }
+
+                $path = $disk->putFile('branding', $request->file($field));
+                if (! is_string($path)) {
+                    throw ValidationException::withMessages([$field => 'The image could not be stored. Please try again.']);
+                }
+
+                $uploads[$field.'_path'] = $path;
+            }
+
+            $setting->writeTransaction($request->user('web'), function (Account $actor) use ($setting, $request, $disk, $uploads, &$committed): void {
+                $target = $setting->newQuery()->whereKey($setting->getKey())->lockForUpdate()->firstOrFail();
+                Gate::forUser($actor)->authorize('update', $target);
+                $previous = Arr::only($target->publicValues(), array_keys($uploads));
+                $values = $request->payload();
+                $values['data'] = array_replace($values['data'], $uploads);
+                $target->fill($values)->save();
+
+                $target->getConnection()->afterCommit(function () use ($disk, $previous, &$committed): void {
+                    $committed = true;
+                    $disk->delete(array_values(array_filter($previous)));
+                });
+            });
+        } catch (Throwable $exception) {
+            if (! $committed) {
+                $disk->delete(array_values($uploads));
+            }
+
+            throw $exception;
+        }
+
+        return $this->redirectAfterWrite($setting)->with('status', 'Branding updated.');
     }
 
     protected function redirectAfterWrite(?Model $record = null): RedirectResponse
@@ -87,6 +135,8 @@ class SettingController extends BaseController
             'credentialFields' => config('settings.credentials.'.$setting->group, []),
             'configuredCredentials' => $configured,
             'timezones' => $setting->group === 'general' ? DateTimeZone::listIdentifiers() : [],
+            'logoUrl' => ! empty($values['logo_path']) ? Storage::disk('public')->url($values['logo_path']) : null,
+            'faviconUrl' => ! empty($values['favicon_path']) ? Storage::disk('public')->url($values['favicon_path']) : null,
         ];
     }
 }

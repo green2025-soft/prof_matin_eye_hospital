@@ -54,14 +54,23 @@
                 </div>
                 <div class="col-md-3 col-xl-3">
                     <label class="form-label" for="due-at">Due date</label>
-                    <input
-                        class="{{ inputClass('due_at') }}"
-                        id="due-at"
-                        name="due_at"
-                        type="date"
-                        value="{{ getValue('due_at', null, $invoice->due_at?->toDateString()) }}"
-                        {{ inputAttrs('due_at', 'due-at') }}
-                    >
+                    <div class="input-group" data-datepicker>
+                        <input
+                            class="{{ inputClass('due_at') }}"
+                            id="due-at"
+                            name="due_at"
+                            type="text"
+                            inputmode="numeric"
+                            autocomplete="off"
+                            placeholder="YYYY-MM-DD"
+                            value="{{ getValue('due_at', null, $invoice->due_at?->toDateString()) }}"
+                            data-input
+                            {{ inputAttrs('due_at', 'due-at') }}
+                        >
+                        <button class="btn btn-outline-secondary" type="button" data-toggle aria-controls="due-at" aria-label="Choose due date" title="Choose due date">
+                            <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+                        </button>
+                    </div>
                     @error('due_at')
                         <div class="invalid-feedback d-block" id="due-at-error">{{ $message }}</div>
                     @enderror

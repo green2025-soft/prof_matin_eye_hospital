@@ -6,9 +6,9 @@ use Spatie\Multitenancy\Tasks\SwitchTenantDatabaseTask;
 
 $centralDomains = array_values(array_filter(array_map(
     static fn (string $domain): string => strtolower(rtrim(trim($domain), '.')),
-    explode(',', env('CENTRAL_DOMAINS', 'platform.localhost')),
+    explode(',', env('CENTRAL_DOMAINS', 'localhost')),
 )));
-$centralHost = $centralDomains[0] ?? 'platform.localhost';
+$centralHost = $centralDomains[0] ?? 'localhost';
 $parentDomain = explode('.', $centralHost, 2)[1] ?? $centralHost;
 
 return [

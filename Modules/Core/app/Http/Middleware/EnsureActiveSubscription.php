@@ -14,12 +14,22 @@ class EnsureActiveSubscription
     {
         $tenant = Tenant::current();
 
-        if ($tenant === null || Subscription::forTenant($tenant)?->isUsable()) {
+        if ($tenant === null) {
             return $next($request);
         }
 
-        abort_if($request->expectsJson(), 403, 'An active subscription is required.');
+        $subscription = Subscription::forTenant($tenant);
+        $request->attributes->set('application_subscription', $subscription);
 
-        return redirect()->route('tenantcore.billing.index')->with('warning', 'Your subscription needs attention. Review Billing to restore workspace access.');
+        if (! $subscription?->isUsable()) {
+            abort_if($request->expectsJson(), 403, 'An active subscription is required.');
+
+            return redirect()->route('tenantcore.billing.index')->with('warning', 'Your subscription needs attention. Review Billing to restore workspace access.');
+        }
+
+        $permission = config('permissions.tenant_routes')[$request->route()->getName()] ?? '';
+        abort_unless($subscription->plan->allowsRoutePermission($permission), 403, 'Your plan does not include this action.');
+
+        return $next($request);
     }
 }

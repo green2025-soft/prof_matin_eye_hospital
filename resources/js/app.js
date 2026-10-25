@@ -1,5 +1,6 @@
 import { Offcanvas } from 'bootstrap';
 import $ from 'jquery';
+import flatpickr from 'flatpickr';
 
 window.$ = window.jQuery = $;
 
@@ -456,6 +457,12 @@ function initializePaymentProvider(select) {
 $(document).on('click', '[data-print]', () => window.print());
 
 $(() => {
+    $('[data-datepicker]').each((_, element) => flatpickr(element, {
+        wrap: true,
+        dateFormat: 'Y-m-d',
+        allowInput: true,
+        disableMobile: true,
+    }));
     $('[data-invoice-editor]').each((_, editor) => initializeInvoiceEditor(editor));
     $('[data-payment-provider]').each((_, select) => initializePaymentProvider(select));
 });

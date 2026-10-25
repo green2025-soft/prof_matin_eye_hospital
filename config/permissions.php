@@ -1,6 +1,27 @@
 <?php
 
+use Modules\Core\Enums\AccessPermission;
+
 return [
+    'tenant_routes' => [
+        'tenantcore.accounts.index' => AccessPermission::ViewAccounts->value,
+        'tenantcore.accounts.create' => AccessPermission::CreateAccounts->value,
+        'tenantcore.accounts.store' => AccessPermission::CreateAccounts->value,
+        'tenantcore.accounts.edit' => AccessPermission::UpdateAccounts->value,
+        'tenantcore.accounts.update' => AccessPermission::UpdateAccounts->value,
+        'tenantcore.accounts.destroy' => AccessPermission::DeleteAccounts->value,
+        'core.roles.index' => AccessPermission::ViewRoles->value,
+        'core.roles.create' => AccessPermission::CreateRoles->value,
+        'core.roles.store' => AccessPermission::CreateRoles->value,
+        'core.roles.edit' => AccessPermission::UpdateRoles->value,
+        'core.roles.update' => AccessPermission::UpdateRoles->value,
+        'core.roles.destroy' => AccessPermission::DeleteRoles->value,
+        'core.permissions.index' => AccessPermission::ViewPermissions->value,
+        'core.permissions.update' => AccessPermission::ManagePermissions->value,
+        'tenantcore.settings.index' => AccessPermission::ViewSettings->value,
+        'tenantcore.settings.edit' => AccessPermission::UpdateSettings->value,
+        'tenantcore.settings.update' => AccessPermission::UpdateSettings->value,
+    ],
     'groups' => [
         'accounts' => ['label' => 'Accounts', 'area' => 'Access control'],
         'roles' => ['label' => 'Roles', 'area' => 'Access control'],

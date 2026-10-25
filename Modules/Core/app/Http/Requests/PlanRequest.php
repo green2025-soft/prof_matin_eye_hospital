@@ -7,6 +7,8 @@ use Modules\Core\Models\Plan;
 
 class PlanRequest extends BaseRequest
 {
+    protected array $checkboxes = ['route_permissions' => 'route_permissions_present'];
+
     public function payload(): array
     {
         $values = parent::payload();
@@ -16,6 +18,12 @@ class PlanRequest extends BaseRequest
             $keys = preg_split('/[\s,]+/', trim($values['features'] ?? ''), -1, PREG_SPLIT_NO_EMPTY);
             $values['features'] = array_fill_keys(array_unique($keys), true);
         }
+
+        if (array_key_exists('unrestricted_route_access', $values)) {
+            $values['route_permissions'] = $values['unrestricted_route_access'] ? null : ($values['route_permissions'] ?? []);
+        }
+
+        unset($values['route_permissions_present'], $values['unrestricted_route_access']);
 
         return $values;
     }
@@ -37,6 +45,10 @@ class PlanRequest extends BaseRequest
             'features' => ['nullable', 'string', 'max:5000', 'regex:/\A[a-z][a-z0-9_.-]*(?:[\s,]+[a-z][a-z0-9_.-]*)*\s*\z/'],
             'user_limit' => ['nullable', 'integer', 'min:1', 'max:1000000'],
             'is_active' => ['required', 'boolean', Rule::when($isDefault, 'accepted')],
+            'route_permissions_present' => ['sometimes', Rule::in([1])],
+            'unrestricted_route_access' => ['sometimes', 'boolean'],
+            'route_permissions' => ['nullable', 'array', 'max:50'],
+            'route_permissions.*' => ['required', 'string', 'distinct', Rule::in(config('permissions.tenant_routes'))],
             'price_minor' => ['prohibited'],
         ];
     }
