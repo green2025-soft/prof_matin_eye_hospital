@@ -5,7 +5,6 @@ namespace Modules\Core\Services;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Role;
@@ -14,7 +13,7 @@ use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionService
 {
-    public function __construct(private AccessManager $access) {}
+    public function __construct(private AccessManager $access, private PermissionCatalog $catalog) {}
 
     public function pageData(Account $actor, array $filters): array
     {
@@ -50,7 +49,7 @@ class RolePermissionService
             'selectedRole' => $selectedRole,
             'roleSearch' => $roleSearch,
             'hasMoreRoles' => $matches->count() > 100,
-            'areas' => $this->areas($permissions),
+            'areas' => $this->catalog->areas($permissions->pluck('name', 'id')->all()),
             'selectedPermissions' => $selectedRole?->permissions->modelKeys() ?? [],
             'permissionCount' => $permissions->count(),
             'canManagePermissions' => $selectedRole !== null && Gate::forUser($actor)->allows('managePermissions', $selectedRole),
@@ -94,35 +93,5 @@ class RolePermissionService
 
             return $record->load('permissions:id,name,guard_name');
         });
-    }
-
-    private function areas(iterable $permissions): array
-    {
-        $groups = config('permissions.groups', []);
-        $actions = config('permissions.actions', []);
-        $areas = [];
-
-        foreach ($permissions as $permission) {
-            $resource = Str::beforeLast($permission->name, '.');
-            $action = Str::afterLast($permission->name, '.');
-            $group = $groups[$resource] ?? [];
-            $areaLabel = $group['area'] ?? 'General';
-            $areaKey = Str::slug($areaLabel);
-            $areas[$areaKey]['key'] = $areaKey;
-            $areas[$areaKey]['label'] = $areaLabel;
-            $areas[$areaKey]['groups'][$resource]['key'] = $resource;
-            $areas[$areaKey]['groups'][$resource]['label'] = $group['label'] ?? Str::headline($resource);
-            $areas[$areaKey]['groups'][$resource]['permissions'][] = [
-                'id' => $permission->getKey(),
-                'name' => $permission->name,
-                'label' => $actions[$action] ?? Str::headline($action),
-            ];
-        }
-
-        foreach ($areas as $key => $area) {
-            $areas[$key]['groups'] = array_values($area['groups']);
-        }
-
-        return array_values($areas);
     }
 }

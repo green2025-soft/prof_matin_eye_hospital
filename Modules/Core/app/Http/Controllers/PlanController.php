@@ -32,22 +32,11 @@ class PlanController extends BaseController
 
     protected function formData(Account $actor, Model $record): array
     {
-        $groups = [];
-
-        foreach (array_unique(config('permissions.tenant_routes')) as $permission) {
-            [$resource, $action] = explode('.', $permission, 2);
-            $groups[$resource]['label'] = config('permissions.groups.'.$resource.'.label');
-            $groups[$resource]['permissions'][$permission] = config('permissions.actions.'.$action);
-        }
-
         return [
             'price' => $record->price,
             'featuresText' => implode("\n", array_keys(array_filter($record->features ?? []))),
             'currency' => $record->currency ?? config('billing.currency', 'BDT'),
             'intervals' => Plan::INTERVALS,
-            'routePermissionGroups' => $groups,
-            'routePermissions' => $record->route_permissions ?? [],
-            'unrestrictedRouteAccess' => $record->route_permissions === null,
         ];
     }
 }

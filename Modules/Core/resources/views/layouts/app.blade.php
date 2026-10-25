@@ -64,6 +64,12 @@
                                 <span class="app-nav-copy">Plans</span>
                             </a>
                         @endif
+                        @if ($layout['navigation']['planPermissions']['allowed'])
+                            <a class="app-nav-link{{ $layout['navigation']['planPermissions']['active'] ? ' active' : '' }}" href="{{ $layout['navigation']['planPermissions']['url'] }}" title="Plan Permissions" @if ($layout['navigation']['planPermissions']['active']) aria-current="page" @endif>
+                                <span class="app-nav-icon"><i class="fa-solid fa-route" aria-hidden="true"></i></span>
+                                <span class="app-nav-copy">Plan Permissions</span>
+                            </a>
+                        @endif
                         @if ($layout['navigation']['subscriptions']['allowed'])
                             <a class="app-nav-link{{ $layout['navigation']['subscriptions']['active'] ? ' active' : '' }}" href="{{ $layout['navigation']['subscriptions']['url'] }}" title="Subscriptions" @if ($layout['navigation']['subscriptions']['active']) aria-current="page" @endif>
                                 <span class="app-nav-icon"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></span>

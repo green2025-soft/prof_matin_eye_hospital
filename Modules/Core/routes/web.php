@@ -8,6 +8,7 @@ use Modules\Core\Http\Controllers\InvoiceController;
 use Modules\Core\Http\Controllers\PaymentController;
 use Modules\Core\Http\Controllers\PermissionController;
 use Modules\Core\Http\Controllers\PlanController;
+use Modules\Core\Http\Controllers\PlanPermissionController;
 use Modules\Core\Http\Controllers\RoleController;
 use Modules\Core\Http\Controllers\SettingController;
 use Modules\Core\Http\Controllers\SubscriptionController;
@@ -19,6 +20,7 @@ Route::middleware(['web', 'auth'])->prefix('core')->name('core.')->group(functio
         Route::resource('tenants', TenantController::class)->except(['show', 'destroy']);
         Route::resource('admins', AccountController::class)->parameters(['admins' => 'account'])->names('accounts')->except('show');
         Route::resource('plans', PlanController::class)->except('show');
+        Route::resource('plan-permissions', PlanPermissionController::class)->parameters(['plan-permissions' => 'plan'])->only(['index', 'update']);
         Route::resource('subscriptions', SubscriptionController::class)->except(['show', 'destroy']);
         Route::controller(InvoiceController::class)->prefix('invoices')->name('invoices.')->group(function (): void {
             Route::post('generate', 'generate')->name('generate');

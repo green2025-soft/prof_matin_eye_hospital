@@ -77,37 +77,6 @@
                 </div>
             </div>
         </section>
-        <section class="app-form-section" aria-labelledby="plan-routes-heading">
-            <h2 class="app-form-section-title" id="plan-routes-heading">Tenant route permissions</h2>
-            <p class="app-form-section-note">Choose which actions this plan includes. Account roles still decide who can use them. Dashboard, sign-in, password recovery, and Billing stay available.</p>
-            <input name="route_permissions_present" type="hidden" value="1">
-            <input name="unrestricted_route_access" type="hidden" value="0">
-            <label class="form-check d-flex align-items-center gap-2 mb-3" for="unrestricted-route-access">
-                <input class="{{ inputClass('unrestricted_route_access', 'form-check-input') }}" id="unrestricted-route-access" name="unrestricted_route_access" type="checkbox" value="1" {{ getChecked(1, 'unrestricted_route_access', null, $unrestrictedRouteAccess) }} {{ inputAttrs('unrestricted_route_access', 'unrestricted-route-access', 'plan-routes-help') }}>
-                Allow all tenant routes
-            </label>
-            <p class="form-text" id="plan-routes-help">When checked, all current and future tenant routes are included. Uncheck it to apply the selections below; no selections means no optional routes.</p>
-            @error('unrestricted_route_access')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-            @error('route_permissions')<div class="invalid-feedback d-block" id="route_permissions-error">{{ $message }}</div>@enderror
-            @error('route_permissions.*')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-            <div class="row g-3">
-                @foreach ($routePermissionGroups as $groupKey => $group)
-                    <div class="col-md-6">
-                        <fieldset class="border rounded p-3 h-100" {{ inputAttrs('route_permissions', null, 'plan-routes-help') }}>
-                            <legend class="float-none w-auto px-2 fs-6 fw-semibold">{{ $group['label'] }}</legend>
-                            <div class="d-flex flex-wrap gap-2">
-                                @foreach ($group['permissions'] as $permission => $label)
-                                    <label class="app-check-option d-flex align-items-center gap-2" for="plan-permission-{{ str_replace('.', '-', $permission) }}">
-                                        <input class="{{ inputClass('route_permissions', 'form-check-input') }}" id="plan-permission-{{ str_replace('.', '-', $permission) }}" name="route_permissions[]" type="checkbox" value="{{ $permission }}" {{ getChecked($permission, 'route_permissions', null, $routePermissions) }}>
-                                        <span>{{ $label }}</span>
-                                    </label>
-                                @endforeach
-                            </div>
-                        </fieldset>
-                    </div>
-                @endforeach
-            </div>
-        </section>
         @include('core::partials.form-actions', ['model' => $plan, 'routePrefix' => $routePrefix, 'submitLabel' => $submitLabel])
     </form>
 @endsection

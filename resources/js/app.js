@@ -218,8 +218,10 @@ function initializePermissionEditor(editor) {
     const $area = $editor.find('[data-permission-area]');
     const $group = $editor.find('[data-permission-group]');
     const $search = $editor.find('[data-permission-search]');
-    const $roleSelect = $editor.find('[data-permission-role-select]');
-    const originalRole = $roleSelect.val();
+    const $recordSelect = $editor.find('[data-permission-record-select]');
+    const originalRecord = $recordSelect.val();
+    const $unrestricted = $editor.find('[data-permission-unrestricted]');
+    const initialUnrestricted = $editor.attr('data-permission-unrestricted-initial') === '1';
     const readOnly = $editor.attr('data-permission-readonly') === '1' || !$items.is(':enabled');
     const total = Number($editor.attr('data-permission-total') ?? $items.length);
     const initialValue = $editor.attr('data-permission-initial');
@@ -253,11 +255,17 @@ function initializePermissionEditor(editor) {
             .attr('aria-checked', partial ? 'mixed' : String(checked));
     }
 
-    function updateState() {
+    function updateState(selectionChanged = false) {
         const $visible = visibleItems();
         const selected = selectedIds();
+
+        if (selectionChanged && selected.size !== $items.length) {
+            $unrestricted.prop('checked', false);
+        }
+
         dirty = !readOnly && (selected.size !== initialSelected.size
-            || [...selected].some(id => !initialSelected.has(id)));
+            || [...selected].some(id => !initialSelected.has(id))
+            || $unrestricted.is(':checked') !== initialUnrestricted);
 
         $editor.find('[data-permission-visible-toggle]').each((_, toggle) => updateToggle(toggle, $visible));
         $editor.find('[data-permission-group-toggle]').each((_, toggle) => {
@@ -332,7 +340,18 @@ function initializePermissionEditor(editor) {
         updateGroupOptions();
         filterRows();
     });
-    $editor.on('change', '[data-permission-item]', updateState);
+    $unrestricted.on('change', function () {
+        if (readOnly) {
+            return;
+        }
+
+        if (this.checked) {
+            $items.filter(':enabled').prop('checked', true);
+        }
+
+        updateState();
+    });
+    $editor.on('change', '[data-permission-item]', () => updateState(true));
     $editor.on('change', '[data-permission-visible-toggle], [data-permission-group-toggle], [data-permission-area-toggle]', function () {
         if (readOnly) {
             return;
@@ -347,16 +366,16 @@ function initializePermissionEditor(editor) {
         }
 
         $matching.filter(':enabled').prop('checked', this.checked);
-        updateState();
+        updateState(true);
     });
 
-    $roleSelect.on('change', function () {
+    $recordSelect.on('change', function () {
         this.form?.requestSubmit();
     });
-    $editor.on('submit', '[data-permission-role-picker]', function (event) {
+    $editor.on('submit', '[data-permission-picker]', function (event) {
         if (dirty && !window.confirm('Discard unsaved permission changes?')) {
             event.preventDefault();
-            $roleSelect.val(originalRole);
+            $recordSelect.val(originalRecord);
             return;
         }
 

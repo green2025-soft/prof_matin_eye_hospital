@@ -79,6 +79,11 @@ class LayoutComposer
                     'url' => route('core.plans.index'),
                     'active' => $this->request->routeIs('core.plans.*'),
                 ],
+                'planPermissions' => [
+                    'allowed' => $central && $gate->allows('viewAny', Plan::class),
+                    'url' => route('core.plan-permissions.index'),
+                    'active' => $this->request->routeIs('core.plan-permissions.*'),
+                ],
                 'subscriptions' => [
                     'allowed' => $central && $gate->allows('viewAny', Subscription::class),
                     'url' => route('core.subscriptions.index'),
@@ -109,6 +114,7 @@ class LayoutComposer
             $showManagement = $navigation['tenants']['allowed'] || $navigation['accounts']['allowed']
                 || $navigation['roles']['allowed'] || $navigation['permissions']['allowed']
                 || $navigation['plans']['allowed'] || $navigation['subscriptions']['allowed']
+                || $navigation['planPermissions']['allowed']
                 || $navigation['invoices']['allowed'] || $navigation['payments']['allowed']
                 || $navigation['billing']['allowed'] || $navigation['settings']['allowed'];
         }
