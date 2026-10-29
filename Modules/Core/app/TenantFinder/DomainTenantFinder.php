@@ -3,8 +3,8 @@
 namespace Modules\Core\TenantFinder;
 
 use Illuminate\Http\Request;
-use Modules\Core\Models\Domain;
 use Modules\Core\Models\Tenant;
+use Modules\Core\Services\ContextCache;
 use Spatie\Multitenancy\Contracts\IsTenant;
 use Spatie\Multitenancy\TenantFinder\TenantFinder;
 
@@ -19,12 +19,17 @@ class DomainTenantFinder extends TenantFinder
             return null;
         }
 
-        $domain = Domain::query()->with('tenant')->where('domain', $host)->first();
-        $tenant = $domain?->tenant;
+        $model = new Tenant;
+        $attributes = app(ContextCache::class)->remember($model->getConnectionName(), 'tenant-domains', $host, function () use ($host): array {
+            $tenant = Tenant::query()->where('status', Tenant::STATUS_ACTIVE)
+                ->whereRelation('domains', 'domain', $host)->first();
 
-        abort_unless($tenant && $tenant->status === Tenant::STATUS_ACTIVE, 404);
+            abort_unless($tenant, 404);
 
-        return $tenant;
+            return $tenant->getAttributes();
+        });
+
+        return $model->newFromBuilder($attributes);
     }
 
     private function normalizeHost(string $host): string

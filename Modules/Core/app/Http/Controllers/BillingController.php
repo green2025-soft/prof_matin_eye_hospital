@@ -19,6 +19,10 @@ class BillingController extends BaseController
 
     public function index(BillingRequest $request, InvoiceService $invoices): View
     {
-        return $this->listData($request, $invoices->billingData($request->user('web'), $request->validated()));
+        $data = $invoices->billingData($request->user('web'), $request->validated());
+        request()->attributes->set('application_subscription', $data['subscription']);
+        unset($data['subscription']);
+
+        return $this->listData($request, $data);
     }
 }

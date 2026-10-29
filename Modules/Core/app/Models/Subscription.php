@@ -5,11 +5,15 @@ namespace Modules\Core\Models;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Helpers\Money;
+use Modules\Core\Policies\SubscriptionPolicy;
+use Modules\Core\Services\ContextCache;
 
 #[Fillable(['tenant_id', 'plan_id'])]
+#[UsePolicy(SubscriptionPolicy::class)]
 class Subscription extends CoreModel
 {
     public const STATUS_PENDING = 'pending';
@@ -42,6 +46,14 @@ class Subscription extends CoreModel
 
     protected array $exposedRelations = ['tenant' => ['id', 'name'], 'plan' => ['id', 'name']];
 
+    protected static function booted(): void
+    {
+        $clearContext = static fn (self $subscription) => app(ContextCache::class)->flush($subscription->getConnection()->getName(), 'subscriptions');
+
+        static::saved($clearContext);
+        static::deleted($clearContext);
+    }
+
     protected function casts(): array
     {
         return ['price_minor' => 'integer', 'starts_at' => 'immutable_datetime', 'trial_ends_at' => 'immutable_datetime', 'current_period_starts_at' => 'immutable_datetime', 'current_period_ends_at' => 'immutable_datetime', 'ends_at' => 'immutable_datetime', 'cancel_at_period_end' => 'boolean'];
@@ -64,7 +76,26 @@ class Subscription extends CoreModel
 
     public static function forTenant(Tenant $tenant): ?self
     {
-        return static::query()->with('plan')->where('tenant_id', $tenant->getKey())->first();
+        $model = new static;
+        $connection = $model->getConnection()->getName();
+        $snapshot = app(ContextCache::class)->remember($connection, 'subscriptions', $tenant->getKey(), static function () use ($tenant): ?array {
+            $subscription = static::query()->with('plan')->where('tenant_id', $tenant->getKey())->first();
+
+            return $subscription === null ? null : [
+                'attributes' => $subscription->getAttributes(),
+                'plan' => $subscription->getRelation('plan')?->getAttributes(),
+            ];
+        });
+
+        if ($snapshot === null) {
+            return null;
+        }
+
+        // Hydrate separate models so callers cannot mutate another request's cached objects.
+        $subscription = $model->newFromBuilder($snapshot['attributes'], $connection);
+        $plan = $snapshot['plan'] === null ? null : (new Plan)->newFromBuilder($snapshot['plan'], $connection);
+
+        return $subscription->setRelation('plan', $plan);
     }
 
     public function getPriceAttribute(): string

@@ -3,7 +3,12 @@
 @section('title', $pageTitle)
 
 @section('content')
-    @include('core::partials.heading', ['title' => $pageTitle, 'description' => $account->exists ? 'Update account details and access.' : 'Create an account for this workspace.'])
+    @include('core::partials.heading', [
+        'title' => $pageTitle,
+        'description' => $isTenantUser
+            ? ($account->exists ? 'Update user details and access.' : 'Create a user for this workspace.')
+            : ($account->exists ? 'Update account details and access.' : 'Create an account for this workspace.'),
+    ])
     <form class="app-card p-3 p-md-4" action="{{ $formAction }}" method="POST">
         @csrf
         @if ($formMethod !== 'POST')
@@ -13,14 +18,14 @@
             <h2 class="app-form-section-title" id="account-details-heading">
                 <span class="app-form-section-icon">
                     <i class="fa-solid fa-user" aria-hidden="true"></i>
-                </span>Account details
+                </span>{{ $isTenantUser ? 'User details' : 'Account details' }}
             </h2>
-            <p class="app-form-section-note">The name and email used to identify this account.</p>
+            <p class="app-form-section-note">{{ $isTenantUser ? 'The name and email used to identify this user.' : 'The name and email used to identify this account.' }}</p>
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label" for="name">Full name <span class="text-danger" aria-hidden="true">*</span></label>
                     <div class="app-input-wrap">
-                        <input class="{{ inputClass('name') }}" id="name" name="name" type="text" value="{{ getValue('name', $account) }}" minlength="5" maxlength="255" autocomplete="name" required autofocus {{ inputAttrs('name') }}>
+                        <input class="{{ inputClass('name') }}" id="name" name="name" type="text" value="{{ getValue('name', $account) }}" maxlength="255" autocomplete="name" required autofocus {{ inputAttrs('name') }}>
                     </div>
                     @error('name')
                         <div class="invalid-feedback d-block" id="name-error">{{ $message }}</div>
@@ -29,12 +34,49 @@
                 <div class="col-md-6">
                     <label class="form-label" for="email">Email address <span class="text-danger" aria-hidden="true">*</span></label>
                     <div class="app-input-wrap">
-                        <input class="{{ inputClass('email') }}" id="email" name="email" type="email" value="{{ getValue('email', $account) }}" minlength="5" maxlength="255" autocomplete="email" required {{ inputAttrs('email') }}>
+                        <input class="{{ inputClass('email') }}" id="email" name="email" type="email" value="{{ getValue('email', $account) }}" maxlength="255" autocomplete="email" required {{ inputAttrs('email') }}>
                     </div>
                     @error('email')
                         <div class="invalid-feedback d-block" id="email-error">{{ $message }}</div>
                     @enderror
                 </div>
+                @if ($isTenantUser)
+                    <div class="col-md-6">
+                        <label class="form-label" for="branch-id">Branch</label>
+                        <select
+                            class="{{ inputClass('branch_id', 'form-select') }}"
+                            id="branch-id"
+                            name="branch_id"
+                            {{ inputAttrs('branch_id', 'branch-id') }}
+                        >
+                            <option value="">None</option>
+                            @foreach ($branches as $branch)
+                                <option value="{{ $branch->id }}" {{ getSelected($branch->id, 'branch_id', $account) }}>{{ $branch->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('branch_id')
+                            <div class="invalid-feedback d-block" id="branch-id-error">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="redirect-url">Redirect URL</label>
+                        <input
+                            class="{{ inputClass('redirect_url') }}"
+                            id="redirect-url"
+                            name="redirect_url"
+                            type="text"
+                            value="{{ getValue('redirect_url', $account) }}"
+                            maxlength="2048"
+                            placeholder="/branches"
+                            autocomplete="off"
+                            {{ inputAttrs('redirect_url', 'redirect-url', 'redirect-url-help') }}
+                        >
+                        <div class="form-text" id="redirect-url-help">After sign-in open this page in this workspace; leave blank for Dashboard.</div>
+                        @error('redirect_url')
+                            <div class="invalid-feedback d-block" id="redirect-url-error">{{ $message }}</div>
+                        @enderror
+                    </div>
+                @endif
             </div>
         </section>
         <section class="app-form-section" aria-labelledby="account-security-heading">

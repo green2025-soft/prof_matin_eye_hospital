@@ -3,6 +3,7 @@
 namespace Modules\Core\Services;
 
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -30,8 +31,17 @@ class RolePermissionService
 
         $matches = $query->orderBy('name')->orderBy('id')->limit(101)->get();
         $roles = $matches->take(100)->values();
-        $selectedRole = $roleId === null ? null : $this->access->rolesQuery($actor)
-            ->with('permissions:id,name,guard_name')->findOrFail($roleId, ['id', 'name', 'guard_name']);
+        $selectedRole = null;
+        if ($roleId !== null) {
+            $selectedRole = $matches->firstWhere('id', $roleId)
+                ?? $this->access->rolesQuery($actor)->findOrFail($roleId, ['id', 'name', 'guard_name']);
+            $actorRoles = $actor->relationLoaded('roles') ? $actor->getRelation('roles') : new Collection;
+            $actorRole = $actorRoles->find($selectedRole->getKey());
+            if ($actorRole?->relationLoaded('permissions')) {
+                $selectedRole->setRelation('permissions', $actorRole->getRelation('permissions'));
+            }
+            (new Collection([$selectedRole, ...$actorRoles->all()]))->loadMissing('permissions:id,name,guard_name');
+        }
 
         if ($selectedRole && ! $roles->contains('id', $selectedRole->getKey())) {
             $roles->push($selectedRole);
@@ -88,7 +98,16 @@ class RolePermissionService
                 throw ValidationException::withMessages(['permissions' => 'You may grant only permissions you hold yourself.']);
             }
 
-            $record->syncPermissions($permissions);
+            $currentPermissions = $record->permissions()->get(['id', 'name', 'guard_name']);
+            $removedPermissions = $currentPermissions->diff($permissions);
+            $addedPermissions = $permissions->diff($currentPermissions);
+
+            if ($removedPermissions->isNotEmpty()) {
+                $record->revokePermissionTo($removedPermissions);
+            }
+            if ($addedPermissions->isNotEmpty()) {
+                $record->givePermissionTo($addedPermissions);
+            }
             $record->getConnection()->afterCommit(fn () => app(PermissionRegistrar::class)->forgetCachedPermissions());
 
             return $record->load('permissions:id,name,guard_name');

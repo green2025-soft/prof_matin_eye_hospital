@@ -58,6 +58,39 @@ class DatabaseInstaller
         }
     }
 
+    // The caller holds locked() for the complete tenant-deletion workflow.
+    public function dropOwnedTenant(string $database, #[\SensitiveParameter] string $token): void
+    {
+        if (! $this->verifyTenantDeletion($database, $token)) {
+            return;
+        }
+
+        $this->database->purge('tenant');
+        $this->database->connection('provisioning')->statement('DROP DATABASE `'.$database.'`');
+    }
+
+    public function verifyTenantDeletion(string $database, #[\SensitiveParameter] string $token): bool
+    {
+        $this->validateIdentifier($database);
+
+        if (in_array(strtolower($database), ['mysql', 'sys', 'information_schema', 'performance_schema', strtolower($this->config->get('database.connections.central.database'))], true)) {
+            throw new LogicException('The central and system databases cannot be deleted.');
+        }
+
+        if ($this->database->connection('tenant')->getDatabaseName() !== $database || ! Str::isUuid($token)) {
+            throw new LogicException('Select the registered tenant database before deleting it.');
+        }
+
+        $connection = $this->database->connection('provisioning');
+        if (! $connection->selectOne('SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = ?', [$database], false)) {
+            return false; // A previous deletion may have finished DROP before central cleanup.
+        }
+
+        $this->verify('tenant', $token);
+
+        return true;
+    }
+
     public function claim(string $connection, #[\SensitiveParameter] string $token, bool $allowExisting = false): void
     {
         $hash = $this->ownershipHash($token);

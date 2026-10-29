@@ -1,4 +1,5 @@
 {
     "Core": true,
-    "TenantCore": true
+    "TenantCore": true,
+    "Hospital": true
 }

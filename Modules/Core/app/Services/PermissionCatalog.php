@@ -38,16 +38,18 @@ class PermissionCatalog
 
     public function sync(bool $platform = false): void
     {
-        $catalog = AccessPermission::cases();
+        $catalog = array_column(AccessPermission::cases(), 'value');
 
         if ($platform) {
-            $catalog = array_merge($catalog, PlatformPermission::cases());
+            $catalog = array_merge($catalog, array_column(PlatformPermission::cases(), 'value'));
+        } else {
+            $catalog = array_merge($catalog, array_values(config('permissions.tenant_routes', [])));
         }
 
         $permissions = [];
 
-        foreach ($catalog as $permission) {
-            $permissions[] = Permission::findOrCreate($permission->value, 'web');
+        foreach (array_unique($catalog) as $permission) {
+            $permissions[] = Permission::findOrCreate($permission, 'web');
         }
 
         Role::findOrCreate(Role::OWNER_NAME, 'web')->givePermissionTo($permissions);

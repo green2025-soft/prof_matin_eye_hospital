@@ -7,6 +7,7 @@ enum PlatformPermission: string
     case ViewTenants = 'tenants.view';
     case CreateTenants = 'tenants.create';
     case UpdateTenants = 'tenants.update';
+    case DeleteTenants = 'tenants.delete';
     case EnterTenants = 'tenants.enter';
     case ViewPlans = 'plans.view';
     case CreatePlans = 'plans.create';

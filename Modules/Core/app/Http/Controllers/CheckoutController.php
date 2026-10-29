@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Modules\Core\Http\Requests\CheckoutRequest;
 use Modules\Core\Http\Requests\PaymentReviewRequest;
 use Modules\Core\Models\CheckoutAttempt;
+use Modules\Core\Models\Invoice;
 use Modules\Core\Services\CheckoutService;
 
 class CheckoutController extends BaseController
@@ -19,7 +20,8 @@ class CheckoutController extends BaseController
 
     protected string $parameter = 'checkout';
 
-    public function store(CheckoutRequest $request): RedirectResponse
+    // Bind the invoice before CheckoutRequest authorizes and prepares its payload.
+    public function store(CheckoutRequest $request, Invoice $invoice): RedirectResponse
     {
         return $this->saveData($request);
     }

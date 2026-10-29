@@ -64,11 +64,11 @@ return [
 
     'providers' => [
         'admins' => [
-            'driver' => 'eloquent',
+            'driver' => 'cached-eloquent',
             'model' => Admin::class,
         ],
         'users' => [
-            'driver' => 'eloquent',
+            'driver' => 'cached-eloquent',
             'model' => User::class,
         ],
 
@@ -112,6 +112,10 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+    ],
+
+    'login_types' => [
+        'user' => ['label' => 'User', 'broker' => 'users'],
     ],
 
     /*

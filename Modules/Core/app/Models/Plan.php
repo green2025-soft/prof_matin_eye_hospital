@@ -3,11 +3,14 @@
 namespace Modules\Core\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Helpers\Money;
+use Modules\Core\Policies\PlanPolicy;
+use Modules\Core\Services\ContextCache;
 
 #[Fillable(['name', 'slug', 'description', 'price', 'price_minor', 'currency', 'billing_interval', 'trial_days', 'features', 'user_limit', 'is_active', 'route_permissions'])]
-
+#[UsePolicy(PlanPolicy::class)]
 class Plan extends CoreModel
 {
     public const INTERVALS = ['monthly' => 'Monthly', 'yearly' => 'Yearly'];
@@ -25,6 +28,14 @@ class Plan extends CoreModel
     protected array $filterable = ['billing_interval' => self::INTERVALS, 'is_active' => ['0', '1']];
 
     protected array $exposedCounts = ['subscriptions'];
+
+    protected static function booted(): void
+    {
+        $clearSubscriptions = static fn (self $plan) => app(ContextCache::class)->flush($plan->getConnection()->getName(), 'subscriptions');
+
+        static::saved($clearSubscriptions);
+        static::deleted($clearSubscriptions);
+    }
 
     protected function casts(): array
     {

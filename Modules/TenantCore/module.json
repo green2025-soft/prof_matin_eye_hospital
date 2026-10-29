@@ -1,7 +1,13 @@
 {
     "name": "TenantCore",
     "alias": "tenantcore",
-    "description": "Tenant-facing accounts and permission integration.",
+    "description": "Manage users, branches, permissions and workspace settings.",
+    "tenant_dashboard": {
+        "label": "Tenant Core",
+        "icon": "users-gear",
+        "route": "tenantcore.dashboard",
+        "permission": null
+    },
     "keywords": [],
     "priority": 50,
     "providers": [

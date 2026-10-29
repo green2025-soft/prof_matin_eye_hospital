@@ -17,7 +17,7 @@ use Modules\Core\Http\Controllers\TenantController;
 Route::middleware(['web', 'auth'])->prefix('core')->name('core.')->group(function (): void {
     Route::middleware('central')->group(function (): void {
         Route::post('tenants/{tenant}/enter', [TenantController::class, 'enter'])->middleware('throttle:10,1')->name('tenants.enter');
-        Route::resource('tenants', TenantController::class)->except(['show', 'destroy']);
+        Route::resource('tenants', TenantController::class)->except('show');
         Route::resource('admins', AccountController::class)->parameters(['admins' => 'account'])->names('accounts')->except('show');
         Route::resource('plans', PlanController::class)->except('show');
         Route::resource('plan-permissions', PlanPermissionController::class)->parameters(['plan-permissions' => 'plan'])->only(['index', 'update']);

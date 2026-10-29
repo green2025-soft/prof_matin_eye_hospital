@@ -4,7 +4,9 @@ namespace Modules\Core\Models\Concerns;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Validation\Rule;
+use LogicException;
 
 trait HandlesModelQueries
 {
@@ -34,6 +36,10 @@ trait HandlesModelQueries
             $rules[$field] = ['nullable', 'string', Rule::in($this->filterValues($options))];
         }
 
+        foreach ($contract['filterableIds'] as $field => $column) {
+            $rules[$field] = ['nullable', 'integer', 'min:1'];
+        }
+
         return $rules;
     }
 
@@ -46,13 +52,7 @@ trait HandlesModelQueries
         $search = is_string($filters['search'] ?? null) ? trim($filters['search']) : '';
 
         if ($search !== '' && $contract['searchable'] !== []) {
-            $prefix = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search).'%';
-            $query->where(function (Builder $searchQuery) use ($contract, $model, $prefix): void {
-                foreach ($contract['searchable'] as $field) {
-                    $column = $searchQuery->getGrammar()->wrap($model->qualifyColumn($field));
-                    $searchQuery->orWhereRaw($column." LIKE ? ESCAPE '!'", [$prefix]);
-                }
-            });
+            $this->applySearch($query, $search, $contract['searchable'], $contract['containsSearch']);
             $applied['search'] = $search;
         }
 
@@ -65,9 +65,17 @@ trait HandlesModelQueries
             }
         }
 
+        foreach ($contract['filterableIds'] as $field => $column) {
+            if (isset($filters[$field])) {
+                $query->where($model->qualifyColumn($column), $filters[$field]);
+                $applied[$field] = $filters[$field];
+            }
+        }
+
         $sort = $filters['sort'] ?? $contract['defaultSort'];
         $sort = in_array($sort, $contract['sortable'], true) ? $sort : $contract['defaultSort'];
-        $direction = ($filters['direction'] ?? null) === 'desc' ? 'desc' : 'asc';
+        $direction = in_array($filters['direction'] ?? null, ['asc', 'desc'], true)
+            ? $filters['direction'] : $contract['defaultDirection'];
 
         // Retain a unique tie-breaker when the allowed primary order changes.
         foreach (array_unique([$sort, $contract['defaultSort'], $model->getKeyName()]) as $field) {
@@ -110,6 +118,53 @@ trait HandlesModelQueries
 
         return $query->paginate($perPage, $query->getQuery()->getColumns(), 'page', $page)
             ->appends($applied + ['per_page' => $size]);
+    }
+
+    public function optionRecords(array $filters, array $fields): Paginator
+    {
+        $contract = $this->queryContract();
+        $relations = array_intersect_key($contract['exposedRelations'], array_flip($fields));
+        $columns = array_diff($fields, array_keys($relations));
+        if (array_diff($columns, $contract['exposed']) !== []) {
+            throw new LogicException('Selector fields must belong to the model exposure contract.');
+        }
+
+        $columns = array_unique([...$columns, $this->getKeyName()]);
+        $query = $this->newQuery()->where($contract['constraints'])
+            ->select(array_map($this->qualifyColumn(...), $columns));
+
+        foreach ($relations as $relation => $relationColumns) {
+            $query->with($relation.':'.implode(',', $relationColumns));
+        }
+
+        foreach ($this->selectorFilters ?? [] as $field) {
+            if (isset($filters[$field])) {
+                $query->where($this->qualifyColumn($field), $filters[$field]);
+            }
+        }
+
+        $search = trim($filters['search'] ?? '');
+        if ($search !== '' && $contract['searchable'] !== []) {
+            $this->applySearch($query, $search, $contract['searchable'], $contract['containsSearch']);
+        }
+
+        foreach (array_unique([$contract['defaultSort'], $this->getKeyName()]) as $field) {
+            $query->orderBy($this->qualifyColumn($field));
+        }
+
+        return $query->simplePaginate(20, $columns, 'page', $filters['page'] ?? 1);
+    }
+
+    private function applySearch(Builder $query, string $search, array $fields, array $containsSearch): void
+    {
+        $escaped = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search);
+        $query->where(function (Builder $searchQuery) use ($fields, $escaped, $containsSearch): void {
+            foreach ($fields as $field) {
+                $column = $searchQuery->getGrammar()->wrap($searchQuery->getModel()->qualifyColumn($field));
+                $pattern = in_array($field, $containsSearch, true) ? '%'.$escaped.'%' : $escaped.'%';
+                $searchQuery->orWhereRaw($column." LIKE ? ESCAPE '!'", [$pattern]);
+            }
+        });
     }
 
     public function prepareForForm(): static

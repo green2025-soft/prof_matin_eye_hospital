@@ -27,9 +27,9 @@ class PlanRequest extends BaseRequest
         $isDefault = $wasDefault || $this->input('slug') === $defaultSlug;
 
         return [
-            'name' => ['required', 'string', 'min:5', 'max:255'],
-            'slug' => ['required', 'string', 'min:5', 'max:80', 'regex:/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $this->unique('slug'), Rule::when($wasDefault, Rule::in([$defaultSlug]))],
-            'description' => ['nullable', 'string', 'min:5', 'max:5000'],
+            'name' => ['required', 'string', 'max:255'],
+            'slug' => ['required', 'string', 'max:80', 'regex:/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $this->unique('slug'), Rule::when($wasDefault, Rule::in([$defaultSlug]))],
+            'description' => ['nullable', 'string', 'max:5000'],
             'price' => ['required', 'string', 'regex:/\A\d{1,10}(?:\.\d{1,2})?\z/', Rule::when($isDefault, ['numeric', 'max:0'])],
             'currency' => ['required', 'string', 'regex:/\A[A-Z]{3}\z/'],
             'billing_interval' => ['required', Rule::in(array_keys(Plan::INTERVALS))],

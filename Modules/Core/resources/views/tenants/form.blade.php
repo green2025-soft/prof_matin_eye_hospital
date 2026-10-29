@@ -26,19 +26,19 @@
                     <p class="app-form-section-note">The workspace name and its unique identifier.</p>
                     <div class="mb-3">
                         <label class="form-label" for="tenant-name">Workspace name <span class="text-danger" aria-hidden="true">*</span></label>
-                        <input class="{{ inputClass('name') }}" id="tenant-name" name="name" type="text" value="{{ getValue('name', $tenant) }}" minlength="5" maxlength="255" required autofocus {{ inputAttrs('name', 'tenant-name') }}>
+                        <input class="{{ inputClass('name') }}" id="tenant-name" name="name" type="text" value="{{ getValue('name', $tenant) }}" maxlength="255" required autofocus {{ inputAttrs('name', 'tenant-name') }}>
                         @error('name')
                             <div class="invalid-feedback d-block" id="tenant-name-error">{{ $message }}</div>
                         @enderror
                     </div>
                     <div class="mb-0">
                         <label class="form-label" for="tenant-slug">Slug <span class="text-danger" aria-hidden="true">*</span></label>
-                        <input class="{{ inputClass('slug') }}" id="tenant-slug" name="slug" type="text" value="{{ getValue('slug', $tenant) }}" minlength="5" maxlength="80" autocomplete="off" required @readonly(! $tenant->exists) {{ inputAttrs('slug', 'tenant-slug', 'tenant-slug-help') }}>
+                        <input class="{{ inputClass('slug') }}" id="tenant-slug" name="slug" type="text" value="{{ getValue('slug', $tenant) }}" maxlength="80" autocomplete="off" required @readonly(! $tenant->exists) {{ inputAttrs('slug', 'tenant-slug', 'tenant-slug-help') }}>
                         @error('slug')
                             <div class="invalid-feedback d-block" id="tenant-slug-error">{{ $message }}</div>
                         @enderror
                         <div class="form-text" id="tenant-slug-help">
-                            {{ $tenant->exists ? 'Use at least 5 lowercase letters, numbers, or hyphens. Changing the name does not change the slug.' : 'Generated from the workspace name. A suffix is added if the name is already used.' }}
+                            {{ $tenant->exists ? 'Use lowercase letters, numbers, or hyphens. Changing the name does not change the slug.' : 'Generated from the workspace name. A suffix is added if the name is already used.' }}
                         </div>
                     </div>
                 </section>
@@ -46,15 +46,15 @@
                     <h2 class="app-form-section-title" id="tenant-contact-heading">Contact and branding</h2>
                     <div class="mb-3">
                         <label class="form-label" for="tenant-address">Address</label>
-                        <textarea class="{{ inputClass('address') }}" id="tenant-address" name="address" rows="3" minlength="5" maxlength="2000" {{ inputAttrs('address', 'tenant-address') }}>{{ getValue('address', $tenant) }}</textarea>
+                        <textarea class="{{ inputClass('address') }}" id="tenant-address" name="address" rows="3" maxlength="2000" {{ inputAttrs('address', 'tenant-address') }}>{{ getValue('address', $tenant) }}</textarea>
                         @error('address')
                             <div class="invalid-feedback d-block" id="tenant-address-error">{{ $message }}</div>
                         @enderror
                     </div>
                     <div class="mb-3">
                         <label class="form-label" for="tenant-phone">Phone</label>
-                        <input class="{{ inputClass('phone') }}" id="tenant-phone" name="phone" type="tel" inputmode="numeric" value="{{ getValue('phone', $tenant) }}" minlength="5" maxlength="30" pattern="[0-9]{5,30}" {{ inputAttrs('phone', 'tenant-phone', 'tenant-phone-help') }}>
-                        <div class="form-text" id="tenant-phone-help">Optional. Enter at least 5 digits without spaces or symbols.</div>
+                        <input class="{{ inputClass('phone') }}" id="tenant-phone" name="phone" type="tel" inputmode="numeric" value="{{ getValue('phone', $tenant) }}" maxlength="30" pattern="[0-9]{1,30}" {{ inputAttrs('phone', 'tenant-phone', 'tenant-phone-help') }}>
+                        <div class="form-text" id="tenant-phone-help">Optional. Enter digits without spaces or symbols.</div>
                         @error('phone')
                             <div class="invalid-feedback d-block" id="tenant-phone-error">{{ $message }}</div>
                         @enderror
@@ -81,7 +81,7 @@
                             <div class="d-flex align-items-start gap-2" data-domain-row>
                                 <div class="flex-grow-1 app-domain-field">
                                     <label class="visually-hidden" for="tenant-domain-{{ $index }}" data-domain-label>Domain {{ $index + 1 }}</label>
-                                    <input class="{{ inputClass('domains.'.$index) }}" id="tenant-domain-{{ $index }}" name="domains[]" type="text" value="{{ getValue('domains.'.$index, null, is_scalar($domainValue) ? $domainValue : '') }}" placeholder="workspace.{{ $tenantBaseDomain }}" minlength="5" maxlength="253" autocomplete="off" autocapitalize="none" spellcheck="false" {{ inputAttrs('domains.'.$index, 'tenant-domain-'.$index, 'domains-help') }}>
+                                    <input class="{{ inputClass('domains.'.$index) }}" id="tenant-domain-{{ $index }}" name="domains[]" type="text" value="{{ getValue('domains.'.$index, null, is_scalar($domainValue) ? $domainValue : '') }}" placeholder="workspace.{{ $tenantBaseDomain }}" maxlength="253" autocomplete="off" autocapitalize="none" spellcheck="false" {{ inputAttrs('domains.'.$index, 'tenant-domain-'.$index, 'domains-help') }}>
                                     @error('domains.'.$index)
                                         <div class="invalid-feedback d-block" id="tenant-domain-{{ $index }}-error">{{ $message }}</div>
                                     @enderror
@@ -99,7 +99,7 @@
                         <div class="d-flex align-items-start gap-2" data-domain-row>
                             <div class="flex-grow-1 app-domain-field">
                                 <label class="visually-hidden" for="tenant-domain-template" data-domain-label>Domain</label>
-                                <input class="form-control" id="tenant-domain-template" name="domains[]" type="text" placeholder="workspace.{{ $tenantBaseDomain }}" minlength="5" maxlength="253" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="domains-help">
+                                <input class="form-control" id="tenant-domain-template" name="domains[]" type="text" placeholder="workspace.{{ $tenantBaseDomain }}" maxlength="253" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="domains-help">
                             </div>
                             <button class="btn btn-outline-secondary app-domain-remove" type="button" data-domain-remove aria-label="Remove domain"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
                         </div>
@@ -131,14 +131,14 @@
                     @else
                         <div class="mb-3">
                             <label class="form-label" for="owner-name">Full name <span class="text-danger" aria-hidden="true">*</span></label>
-                            <input class="{{ inputClass('owner_name') }}" id="owner-name" name="owner_name" type="text" value="{{ getValue('owner_name') }}" minlength="5" maxlength="255" autocomplete="name" required {{ inputAttrs('owner_name', 'owner-name') }}>
+                            <input class="{{ inputClass('owner_name') }}" id="owner-name" name="owner_name" type="text" value="{{ getValue('owner_name') }}" maxlength="255" autocomplete="name" required {{ inputAttrs('owner_name', 'owner-name') }}>
                             @error('owner_name')
                                 <div class="invalid-feedback d-block" id="owner-name-error">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="mb-0">
                             <label class="form-label" for="owner-email">Email address <span class="text-danger" aria-hidden="true">*</span></label>
-                            <input class="{{ inputClass('owner_email') }}" id="owner-email" name="owner_email" type="email" value="{{ getValue('owner_email') }}" minlength="5" maxlength="255" autocomplete="email" required {{ inputAttrs('owner_email', 'owner-email') }}>
+                            <input class="{{ inputClass('owner_email') }}" id="owner-email" name="owner_email" type="email" value="{{ getValue('owner_email') }}" maxlength="255" autocomplete="email" required {{ inputAttrs('owner_email', 'owner-email') }}>
                             @error('owner_email')
                                 <div class="invalid-feedback d-block" id="owner-email-error">{{ $message }}</div>
                             @enderror

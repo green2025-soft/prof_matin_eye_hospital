@@ -7,6 +7,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Filesystem\FilesystemManager;
 use LogicException;
+use Modules\Core\Helpers\WorkspaceMail;
 use Spatie\Multitenancy\Contracts\IsTenant;
 use Spatie\Multitenancy\Tasks\SwitchTenantTask;
 use Spatie\Permission\PermissionRegistrar;
@@ -82,6 +83,7 @@ class SwitchTenantSettings implements SwitchTenantTask
 
     private function resetStores(): void
     {
+        $this->app->make(WorkspaceMail::class)->reset();
         $stores = array_keys($this->config->get('cache.stores', []));
         $this->cache->forgetDriver($stores);
         $this->filesystems->forgetDisk(['local', 'public']);

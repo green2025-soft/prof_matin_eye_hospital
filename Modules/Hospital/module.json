@@ -1,0 +1,17 @@
+{
+    "name": "Hospital",
+    "alias": "hospital",
+    "description": "Hospital workspace.",
+    "tenant_dashboard": {
+        "label": "Hospital",
+        "icon": "hospital",
+        "route": "hospital.dashboard",
+        "permission": "hospital.view"
+    },
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Hospital\\Providers\\HospitalServiceProvider"
+    ],
+    "files": []
+}

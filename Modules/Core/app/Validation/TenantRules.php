@@ -28,7 +28,7 @@ class TenantRules
     public static function slugFromName(string $name): string
     {
         $slug = Str::slug($name);
-        $slug = strlen($slug) < 5 ? trim($slug.'-tenant', '-') : $slug;
+        $slug = $slug === '' ? 'tenant' : $slug;
 
         return rtrim(substr($slug, 0, 63), '-');
     }
@@ -72,14 +72,14 @@ class TenantRules
         }
 
         return [
-            'name' => ['required', 'string', 'min:5', 'max:255'],
-            'slug' => ['required', 'string', 'min:5', 'max:80', 'regex:/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', Rule::unique('central.tenants', 'slug')->ignore($tenant?->getKey())],
-            'address' => ['nullable', 'string', 'min:5', 'max:2000'],
-            'phone' => ['nullable', 'string', 'min:5', 'max:30', 'regex:/\A[0-9]+\z/'],
+            'name' => ['required', 'string', 'max:255'],
+            'slug' => ['required', 'string', 'max:80', 'regex:/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', Rule::unique('central.tenants', 'slug')->ignore($tenant?->getKey())],
+            'address' => ['nullable', 'string', 'max:2000'],
+            'phone' => ['nullable', 'string', 'max:30', 'regex:/\A[0-9]+\z/'],
             'has_branches' => ['sometimes', 'boolean'],
             'domains' => ['required', 'array', 'min:1', 'max:20'],
             'domains.*' => [
-                'required', 'string', 'min:5', 'max:253', 'distinct',
+                'required', 'string', 'max:253', 'distinct',
                 'regex:/\A[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*\z/',
                 Rule::notIn(config('multitenancy.central_domains', [])), $domainUnique,
             ],
@@ -89,8 +89,8 @@ class TenantRules
     public static function owner(): array
     {
         return [
-            'owner_name' => ['required', 'string', 'min:5', 'max:255'],
-            'owner_email' => ['required', 'email', 'min:5', 'max:255'],
+            'owner_name' => ['required', 'string', 'max:255'],
+            'owner_email' => ['required', 'email', 'max:255'],
             'password' => ['required', 'string', 'min:'.config('auth.password_min_length', 5), 'max:4096'],
         ];
     }

@@ -32,7 +32,7 @@ class MigrateTenantsCommand extends Command
         }
 
         $selectors = array_values(array_unique($selectors));
-        $tenants = Tenant::query();
+        $tenants = Tenant::query()->where('status', '!=', Tenant::STATUS_DELETING);
 
         if ($selectors !== []) {
             $ids = array_values(array_filter($selectors, 'ctype_digit'));

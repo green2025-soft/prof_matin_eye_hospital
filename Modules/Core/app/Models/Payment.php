@@ -2,9 +2,12 @@
 
 namespace Modules\Core\Models;
 
+use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Core\Helpers\Money;
+use Modules\Core\Policies\PaymentPolicy;
 
+#[UsePolicy(PaymentPolicy::class)]
 class Payment extends CoreModel
 {
     public const STATUS_COMPLETED = 'completed';

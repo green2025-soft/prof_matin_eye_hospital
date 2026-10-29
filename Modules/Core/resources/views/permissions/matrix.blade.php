@@ -149,7 +149,7 @@
         <span class="app-permission-state small text-body-secondary" data-permission-state>{{ ! $canManagePermissions ? 'Read-only access' : (getValue($markerName) ? 'Unsaved changes' : 'All changes saved') }}</span>
         @if ($canManagePermissions)
             <button class="btn btn-primary" type="submit" data-permission-save>
-                <i class="fa-solid fa-floppy-disk me-2" aria-hidden="true"></i>Save permissions
+                <i class="fa-solid fa-floppy-disk me-2" aria-hidden="true"></i>Save
             </button>
         @endif
     </div>

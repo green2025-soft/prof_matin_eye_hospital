@@ -2,6 +2,7 @@
 @import '@fortawesome/fontawesome-free/css/fontawesome.css';
 @import '@fortawesome/fontawesome-free/css/solid.css';
 @import 'flatpickr/dist/flatpickr.min.css';
+@import 'select2/dist/css/select2.min.css';
 
 :root {
     --app-primary: #635bdb;
@@ -263,6 +264,43 @@
     background: var(--app-sidebar-active-hover);
 }
 
+.app-nav-group-toggle {
+    cursor: pointer;
+    list-style: none;
+}
+
+.app-nav-group-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.app-nav-group-toggle.active,
+.app-nav-group-toggle.active:hover {
+    color: var(--app-sidebar-strong);
+    background: var(--app-sidebar-hover);
+}
+
+.app-nav-group-caret {
+    font-size: 0.625rem;
+    transition: transform 0.15s ease;
+}
+
+.app-nav-group[open] > .app-nav-group-toggle .app-nav-group-caret {
+    transform: rotate(180deg);
+}
+
+.app-nav-submenu {
+    display: grid;
+    gap: 0.25rem;
+    margin-top: 0.375rem;
+    margin-inline-start: 1.4375rem;
+    border-inline-start: 1px solid var(--app-sidebar-border);
+}
+
+.app-nav-submenu .app-nav-link {
+    min-height: 39px;
+    font-size: 0.75rem;
+}
+
 .app-nav-icon {
     display: inline-flex;
     flex-shrink: 0;
@@ -410,6 +448,274 @@
 
 .app-breadcrumb a:hover {
     color: var(--app-primary);
+}
+
+.app-branch-context {
+    display: flex;
+    flex-shrink: 1;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+}
+
+.app-branch-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    max-width: 12rem;
+    padding: 0.375rem 0.625rem;
+    color: var(--app-primary);
+    background: var(--app-primary-soft);
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.app-branch-context-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.app-branch-switch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 34px;
+    padding: 0.375rem 0.625rem;
+    color: var(--app-muted);
+    background: var(--app-transparent);
+    border: 1px solid var(--app-border);
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.app-branch-switch:hover {
+    color: var(--app-primary);
+    background: var(--app-surface-muted);
+    border-color: var(--app-primary);
+}
+
+.app-selection-intro {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.app-selection-intro h1 {
+    margin: 0 0 0.375rem;
+    color: var(--app-text);
+    font-size: 1.625rem;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+}
+
+.app-selection-intro p {
+    margin: 0;
+    color: var(--app-muted);
+    font-size: 0.875rem;
+}
+
+.app-selection-count {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.875rem;
+    color: var(--app-muted);
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: 20px;
+    font-size: 0.75rem;
+}
+
+.app-selection-count strong {
+    color: var(--app-text);
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.app-selection-search {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1.75rem;
+}
+
+.app-selection-search-field {
+    flex: 1;
+    max-width: 480px;
+    min-width: 0;
+}
+
+.app-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+
+.app-selection-choice {
+    min-width: 0;
+    margin: 0;
+}
+
+.app-selection-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    padding: 0;
+    color: var(--app-text);
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    box-shadow: var(--app-shadow);
+    text-align: start;
+    text-decoration: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.app-selection-card::before {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: var(--app-primary-soft);
+    content: "";
+}
+
+.app-selection-card:hover {
+    color: var(--app-text);
+    border-color: var(--app-primary);
+    box-shadow: 0 8px 24px rgba(var(--app-shadow-rgb), 0.08);
+}
+
+.app-selection-card.active {
+    border-color: var(--app-primary);
+}
+
+.app-selection-card.active::before {
+    background: var(--app-primary);
+}
+
+.app-selection-card-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 1.5rem;
+}
+
+.app-selection-card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    margin-bottom: 1.25rem;
+}
+
+.app-selection-mark {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    overflow: hidden;
+    color: var(--app-primary);
+    background: var(--app-primary-soft);
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    font-size: 1.25rem;
+}
+
+.app-selection-mark img {
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.app-selection-active {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-inline-start: auto;
+    color: var(--app-primary);
+    background: var(--app-primary-soft);
+    border-radius: 50%;
+    font-size: 0.6875rem;
+}
+
+.app-selection-name {
+    min-width: 0;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    line-height: 1.45;
+    letter-spacing: -0.02em;
+    overflow-wrap: anywhere;
+}
+
+.app-selection-description {
+    color: var(--app-muted);
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.app-selection-contacts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    color: var(--app-muted);
+    font-size: 0.75rem;
+}
+
+.app-selection-contacts > span {
+    display: flex;
+    align-items: baseline;
+    gap: 0.625rem;
+    min-width: 0;
+}
+
+.app-selection-contacts i {
+    width: 0.875rem;
+    flex-shrink: 0;
+    color: var(--app-placeholder);
+    text-align: center;
+}
+
+.app-selection-contacts span > span {
+    overflow-wrap: anywhere;
+}
+
+.app-selection-open {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.875rem 1.5rem;
+    color: var(--app-primary);
+    background: var(--app-surface-muted);
+    border-top: 1px solid var(--app-border);
+    font-size: 0.75rem;
+    font-weight: 650;
+}
+
+.app-selection-card.active .app-selection-open {
+    background: var(--app-primary-soft);
+}
+
+.app-selection-pagination .app-pagination {
+    border-top: 0 !important;
 }
 
 .app-user-toggle {
@@ -828,6 +1134,200 @@
     background-color: var(--app-surface-muted);
 }
 
+.select2-container {
+    max-width: 100%;
+    font-family: var(--app-font);
+    font-size: 0.8125rem;
+}
+
+.select2-container--default .select2-selection {
+    min-height: 40px;
+    color: var(--app-text);
+    background-color: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: 6px;
+}
+
+.select2-container--default .select2-selection--single {
+    height: 40px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    padding-inline: 0.75rem 2.25rem;
+    color: var(--app-text);
+    line-height: 38px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder,
+.select2-container .select2-search__field::placeholder {
+    color: var(--app-placeholder);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    top: 1px;
+    right: 0.5rem;
+    height: 38px;
+    color: var(--app-muted);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-color: currentColor var(--app-transparent) var(--app-transparent);
+}
+
+.select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+    border-color: var(--app-transparent) var(--app-transparent) currentColor;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    height: 38px;
+    margin-right: 1.5rem;
+    color: var(--app-muted);
+}
+
+.select2-container--default .select2-selection--multiple {
+    padding: 0.25rem 0.375rem;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    margin: 0.125rem 0.25rem 0.125rem 0;
+    padding-block: 0.125rem;
+    padding-inline-start: 1.375rem;
+    color: var(--app-primary);
+    background-color: var(--app-primary-soft);
+    border: 1px solid var(--app-border);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    height: 100%;
+    color: var(--app-primary);
+    background-color: var(--app-transparent);
+    border-right-color: var(--app-border);
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover,
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:focus {
+    color: var(--app-primary-hover);
+    background-color: var(--app-surface);
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:focus-visible {
+    outline: 2px solid var(--app-primary);
+    outline-offset: -2px;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__clear {
+    margin-top: 0.375rem;
+    color: var(--app-muted);
+}
+
+.select2-container--default .select2-search--inline .select2-search__field {
+    height: 24px;
+    margin: 0.25rem 0 0 0.25rem;
+    color: var(--app-text);
+    background-color: var(--app-transparent);
+    font-family: var(--app-font);
+    font-size: 0.8125rem;
+    line-height: 24px;
+}
+
+.select2-container--default.select2-container--focus .select2-selection,
+.select2-container--default.select2-container--open .select2-selection {
+    border-color: var(--app-primary);
+    outline: 0;
+    box-shadow: var(--app-focus);
+}
+
+.select2-container--default .select2-dropdown {
+    color: var(--app-text);
+    background-color: var(--app-surface);
+    border-color: var(--app-border);
+    border-radius: 6px;
+    box-shadow: var(--app-dropdown-shadow);
+}
+
+.select2-container--open .select2-dropdown--below {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.select2-container--open .select2-dropdown--above {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.select2-search--dropdown {
+    padding: 0.5rem;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    min-height: 36px;
+    padding: 0.4375rem 0.625rem;
+    color: var(--app-text);
+    background-color: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: 5px;
+    font: inherit;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field:focus {
+    border-color: var(--app-primary);
+    outline: 0;
+    box-shadow: var(--app-focus);
+}
+
+.select2-container--default .select2-results__option {
+    padding: 0.5rem 0.75rem;
+    color: var(--app-text);
+}
+
+.select2-container--default .select2-results__option--selected {
+    color: var(--app-primary);
+    background-color: var(--app-primary-soft);
+}
+
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+    color: var(--app-surface);
+    background-color: var(--app-primary);
+}
+
+.select2-container--default .select2-results__option--disabled,
+.select2-container--default .select2-results__message,
+.select2-container--default .loading-results {
+    color: var(--app-muted);
+}
+
+.select2-container--default .select2-results__group {
+    color: var(--app-muted);
+    background-color: var(--app-surface-muted);
+    font-size: 0.6875rem;
+    font-weight: 600;
+}
+
+.select2-container--default.select2-container--disabled .select2-selection,
+.select2-container--default.select2-container--disabled .select2-selection__choice {
+    color: var(--app-muted);
+    background-color: var(--app-surface-muted);
+    border-color: var(--app-border);
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.select2-container--default.select2-container--disabled .select2-selection__rendered {
+    color: var(--app-muted);
+}
+
+.form-select.is-invalid + .select2-container .select2-selection {
+    border-color: var(--app-danger);
+}
+
+.form-select.is-invalid + .select2-container--focus .select2-selection,
+.form-select.is-invalid + .select2-container--open .select2-selection {
+    box-shadow: 0 0 0 3px var(--app-danger-soft);
+}
+
 .form-text {
     margin-top: 0.375rem;
     color: var(--app-muted);
@@ -981,6 +1481,11 @@
     margin-top: 1.5rem;
     padding-top: 1.25rem;
     border-top: 1px solid var(--app-border);
+}
+
+.app-appointment-form .app-form-actions {
+    margin-top: 0.75rem !important;
+    padding-top: 0.75rem !important;
 }
 
 .app-domain-field {
@@ -1341,6 +1846,7 @@
     .sidebar-collapsed .app-brand-copy,
     .sidebar-collapsed .app-nav-label,
     .sidebar-collapsed .app-nav-copy,
+    .sidebar-collapsed .app-nav-group-caret,
     .sidebar-collapsed .app-workspace-copy {
         display: none;
     }
@@ -1360,6 +1866,12 @@
         padding-inline: 0.5rem;
     }
 
+    .sidebar-collapsed .app-nav-submenu {
+        margin-inline-start: 0;
+        padding-inline-start: 0 !important;
+        border-inline-start: 0;
+    }
+
     .sidebar-collapsed .app-sidebar-footer {
         padding-inline: 0.75rem;
     }
@@ -1371,6 +1883,26 @@
 }
 
 @media (max-width: 1199.98px) {
+    .app-selection-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .app-header-inner {
+        flex-wrap: wrap;
+        row-gap: 0.625rem;
+        padding-block: 0.75rem;
+    }
+
+    .app-branch-context {
+        order: 4;
+        flex-basis: 100%;
+        justify-content: space-between;
+    }
+
+    .app-branch-badge {
+        max-width: min(70%, 24rem);
+    }
+
     .app-dashboard-grid {
         grid-template-columns: minmax(0, 1fr);
     }
@@ -1420,6 +1952,36 @@
 }
 
 @media (max-width: 575.98px) {
+    .app-selection-intro {
+        align-items: flex-start;
+    }
+
+    .app-selection-intro h1 {
+        font-size: 1.375rem;
+    }
+
+    .app-selection-count {
+        gap: 0.375rem;
+        padding: 0.375rem 0.625rem;
+    }
+
+    .app-selection-search {
+        flex-wrap: wrap;
+    }
+
+    .app-selection-search-field {
+        flex-basis: 100%;
+        max-width: none;
+    }
+
+    .app-selection-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .app-branch-badge {
+        max-width: 60%;
+    }
+
     .app-header-inner {
         gap: 0.75rem;
         padding-inline: 1rem;
@@ -1571,11 +2133,227 @@
     }
 }
 
+.app-clinical-invoice {
+    max-width: 210mm;
+    margin-inline: auto;
+    padding: 1.75rem;
+    font-size: 0.8125rem;
+}
+
+.app-clinical-invoice-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    text-align: center;
+}
+
+.app-clinical-invoice-logo {
+    flex-shrink: 0;
+    width: 76px;
+    height: 76px;
+    object-fit: contain;
+}
+
+.app-clinical-invoice-company {
+    margin-bottom: 0.375rem;
+    font-size: 1.5rem;
+    font-weight: 750;
+    line-height: 1.3;
+}
+
+.app-clinical-invoice-address {
+    margin-bottom: 0.25rem;
+    white-space: pre-line;
+}
+
+.app-clinical-invoice-contact {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.125rem 1rem;
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+}
+
+.app-clinical-invoice-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-block: 1.25rem;
+    padding-block: 0.75rem;
+    border-block: 2px solid var(--app-text);
+    overflow-wrap: anywhere;
+}
+
+.app-clinical-invoice-title-row h1 {
+    margin-bottom: 0.25rem;
+    font-size: 1.0625rem;
+    font-weight: 750;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+}
+
+.app-clinical-invoice-status {
+    flex-shrink: 0;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--app-text);
+    font-size: 0.75rem;
+    font-weight: 750;
+    letter-spacing: 0.1em;
+}
+
+.app-clinical-invoice-meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.app-clinical-invoice-meta dt {
+    margin-bottom: 0.125rem;
+    color: var(--app-muted);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.app-clinical-invoice-meta dd {
+    margin: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.app-clinical-invoice-table {
+    width: 100%;
+    margin-bottom: 1.25rem;
+    border-color: var(--app-border);
+    font-size: inherit;
+}
+
+.app-clinical-invoice-table > thead > tr > th {
+    padding: 0.625rem 0.5rem;
+    background: var(--app-surface-muted);
+    border-block: 1px solid var(--app-text);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.app-clinical-invoice-table > tbody > tr > td {
+    padding: 0.625rem 0.5rem;
+    vertical-align: top;
+}
+
+.app-clinical-invoice-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(230px, 0.8fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.app-clinical-invoice-section-title {
+    margin-bottom: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.app-clinical-invoice-note {
+    margin-bottom: 1rem;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+}
+
+.app-clinical-invoice-totals dl > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.375rem;
+}
+
+.app-clinical-invoice-totals dt {
+    font-weight: 400;
+}
+
+.app-clinical-invoice-totals dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.app-clinical-invoice-totals .app-clinical-invoice-total {
+    margin-top: 0.375rem;
+    border-block: 1px solid var(--app-text);
+}
+
+.app-clinical-invoice-totals .app-clinical-invoice-total dt,
+.app-clinical-invoice-totals .app-clinical-invoice-total dd,
+.app-clinical-invoice-totals .app-clinical-invoice-refund-total dt,
+.app-clinical-invoice-totals .app-clinical-invoice-refund-total dd {
+    font-weight: 700;
+}
+
+.app-clinical-invoice-totals .app-clinical-invoice-refund-total {
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 2px solid var(--app-text);
+    font-size: 1rem;
+}
+
+.app-clinical-invoice-footer {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--app-border);
+}
+
+.app-clinical-invoice-signature {
+    min-width: 10rem;
+    padding-top: 2rem;
+    text-align: center;
+}
+
+.app-clinical-invoice-signature span {
+    display: block;
+    padding-top: 0.375rem;
+    border-top: 1px solid var(--app-text);
+    font-size: 0.6875rem;
+}
+
+@media screen and (max-width: 575.98px) {
+    .app-clinical-invoice {
+        padding: 1rem;
+    }
+
+    .app-clinical-invoice-brand {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .app-clinical-invoice-meta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .app-clinical-invoice-summary {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .app-clinical-invoice-footer {
+        flex-wrap: wrap;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .app-sidebar.offcanvas-lg,
     .app-page,
     .app-nav-link,
     .app-toolbar-button,
+    .app-selection-card,
     .app-quick-link {
         transition: none;
     }
@@ -1583,7 +2361,8 @@
 
 @media print {
     @page {
-        margin: 14mm;
+        size: auto;
+        margin: 0.5in;
     }
 
     .app-sidebar,
@@ -1591,6 +2370,7 @@
     .app-page-footer,
     .app-print-hidden,
     .app-skip-link,
+    .app-content > .alert,
     [data-print] {
         display: none !important;
     }
@@ -1608,6 +2388,10 @@
         padding: 0;
     }
 
+    .app-page {
+        display: block;
+    }
+
     .app-invoice-document {
         width: 100%;
         max-width: none;
@@ -1618,6 +2402,189 @@
 
     .app-invoice-document tr {
         break-inside: avoid;
+    }
+
+    .app-clinical-invoice {
+        margin: 0;
+        border-radius: 0;
+        font-size: 11pt;
+        line-height: 1.4;
+    }
+
+    .app-clinical-invoice-brand {
+        gap: 3mm;
+    }
+
+    .app-clinical-invoice-brand > div {
+        min-width: 0;
+    }
+
+    .app-clinical-invoice-logo {
+        width: 13mm;
+        height: 13mm;
+    }
+
+    .app-clinical-invoice-company {
+        margin-bottom: 1mm;
+        font-size: 15pt;
+        overflow-wrap: anywhere;
+    }
+
+    .app-clinical-invoice-address {
+        margin-bottom: 1mm;
+    }
+
+    .app-clinical-invoice-contact {
+        gap: 0 3mm;
+        font-size: 10pt;
+    }
+
+    .app-clinical-invoice-title-row {
+        margin-block: 3mm;
+        padding-block: 2mm;
+        gap: 3mm;
+    }
+
+    .app-clinical-invoice-title-row > div {
+        min-width: 0;
+    }
+
+    .app-clinical-invoice-title-row h1 {
+        margin-bottom: 1mm;
+        font-size: 12pt;
+    }
+
+    .app-clinical-invoice-status {
+        padding: 1mm 2mm;
+        font-size: 10pt;
+    }
+
+    .app-clinical-invoice-meta {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 2mm 3mm;
+        margin-bottom: 3mm;
+    }
+
+    .app-clinical-invoice-meta dt {
+        color: var(--app-text);
+        font-size: 10pt;
+    }
+
+    .app-clinical-invoice-table {
+        table-layout: fixed;
+        margin-bottom: 3mm;
+    }
+
+    .app-clinical-invoice-table > thead > tr > th,
+    .app-clinical-invoice-table > tbody > tr > td {
+        padding: 1.5mm 1mm;
+        font-size: inherit;
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+
+    .app-clinical-invoice-table .app-clinical-invoice-number {
+        width: 7%;
+    }
+
+    .app-clinical-invoice-table .app-clinical-invoice-room {
+        width: 11%;
+    }
+
+    .app-clinical-invoice-table .app-clinical-invoice-eye {
+        width: 11%;
+    }
+
+    .app-clinical-invoice-table .app-clinical-invoice-amount {
+        width: 23%;
+    }
+
+    .app-clinical-invoice-summary {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 4mm;
+    }
+
+    .app-clinical-invoice-section-title {
+        margin-bottom: 1mm;
+        font-size: 11pt;
+    }
+
+    .app-clinical-invoice-note {
+        margin-bottom: 2mm;
+        orphans: 2;
+        widows: 2;
+    }
+
+    .app-clinical-invoice-totals dl > div {
+        gap: 2mm;
+        padding-block: 1mm;
+    }
+
+    .app-clinical-invoice-totals dt,
+    .app-clinical-invoice-totals dd {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .app-clinical-invoice-totals dd,
+    .app-clinical-invoice .text-nowrap {
+        white-space: normal !important;
+        overflow-wrap: anywhere;
+    }
+
+    .app-clinical-invoice-totals .app-clinical-invoice-refund-total {
+        margin-top: 1mm;
+        padding-top: 2mm;
+        font-size: 11pt;
+    }
+
+    .app-clinical-invoice-footer {
+        flex-wrap: wrap;
+        gap: 3mm;
+        margin-top: 4mm;
+        padding-top: 2mm;
+    }
+
+    .app-clinical-invoice-footer > div {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .app-clinical-invoice-signature {
+        min-width: 35mm;
+        padding-top: 7mm;
+    }
+
+    .app-clinical-invoice-signature span {
+        padding-top: 1mm;
+        font-size: 10pt;
+    }
+
+    .app-clinical-invoice .small {
+        font-size: 10pt;
+    }
+
+    .app-clinical-invoice .text-body-secondary {
+        color: var(--app-text) !important;
+    }
+
+    .app-clinical-invoice .table-responsive {
+        overflow: visible;
+    }
+
+    .app-clinical-invoice-header,
+    .app-clinical-invoice-meta,
+    .app-clinical-invoice-totals dl,
+    .app-clinical-invoice-footer {
+        break-inside: avoid;
+    }
+
+    .app-clinical-invoice-section-title {
+        break-after: avoid;
+    }
+
+    .app-clinical-invoice-table thead {
+        display: table-header-group;
     }
 }
 

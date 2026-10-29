@@ -9,9 +9,22 @@
     <p class="text-body-secondary mb-4">{{ $loginDescription }}</p>
     <form action="{{ route('auth.store') }}" method="POST">
         @csrf
+        @if ($tenantLogin && count($accountTypes) > 1)
+            <div class="mb-3">
+                <label class="form-label" for="account_type">Account type</label>
+                <select class="{{ inputClass('account_type', 'form-select') }}" id="account_type" name="account_type" required {{ inputAttrs('account_type') }}>
+                    @foreach ($accountTypes as $type => $details)
+                        <option value="{{ $type }}" {{ getSelected($type, 'account_type', null, $accountType) }}>{{ $details['label'] }}</option>
+                    @endforeach
+                </select>
+                @error('account_type')
+                    <div class="invalid-feedback d-block" id="account_type-error">{{ $message }}</div>
+                @enderror
+            </div>
+        @endif
         <div class="mb-3">
             <label class="form-label" for="email">Email address <span class="text-danger" aria-hidden="true">*</span></label>
-            <input class="{{ inputClass('email') }}" id="email" name="email" type="email" value="{{ getValue('email') }}" minlength="5" maxlength="255" autocomplete="username" placeholder="you@example.com" required autofocus {{ inputAttrs('email') }}>
+            <input class="{{ inputClass('email') }}" id="email" name="email" type="email" value="{{ getValue('email') }}" maxlength="255" autocomplete="username" placeholder="you@example.com" required autofocus {{ inputAttrs('email') }}>
             @error('email')
                 <div class="invalid-feedback d-block" id="email-error">{{ $message }}</div>
             @enderror
@@ -31,7 +44,7 @@
                 <input class="form-check-input" id="remember" name="remember" type="checkbox" value="1" {{ getChecked(1, 'remember', null, 0) }}>
                 <label class="form-check-label" for="remember">Keep me signed in</label>
             </div>
-            <a class="small" href="{{ route('auth.password.request') }}">Forgot password?</a>
+            <a class="small" href="{{ route('auth.password.request', $tenantLogin ? ['account_type' => getValue('account_type', null, $accountType)] : []) }}">Forgot password?</a>
         </div>
         <button class="btn btn-primary w-100" type="submit">Sign in<i class="fa-solid fa-arrow-right ms-2" aria-hidden="true"></i></button>
         <p class="small text-body-secondary text-center mt-4 mb-0"><i class="fa-solid fa-lock me-1" aria-hidden="true"></i>Access is limited to authorized accounts.</p>

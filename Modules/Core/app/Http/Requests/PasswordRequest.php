@@ -3,6 +3,7 @@
 namespace Modules\Core\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class PasswordRequest extends FormRequest
 {
@@ -13,7 +14,11 @@ class PasswordRequest extends FormRequest
 
     public function rules(): array
     {
-        $rules = ['email' => ['required', 'string', 'email', 'min:5', 'max:255']];
+        $rules = [
+            'email' => [$this->isMethod('GET') ? 'nullable' : 'required', 'string', 'email', 'max:255'],
+            'account_type' => $this->attributes->get('application_provider') === 'users'
+                ? ['required', 'string', Rule::in(array_keys(config('auth.login_types')))] : ['missing'],
+        ];
 
         if ($this->routeIs('auth.password.update')) {
             $rules += [
@@ -29,5 +34,9 @@ class PasswordRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge(['email' => normalizeEmail($this->input('email'))]);
+
+        if ($this->attributes->get('application_provider') === 'users' && ! $this->exists('account_type')) {
+            $this->merge(['account_type' => 'user']);
+        }
     }
 }

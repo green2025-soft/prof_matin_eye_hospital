@@ -84,7 +84,7 @@
                                                         </div>
                                                     @enderror
                                                     <button class="btn btn-outline-danger btn-sm mt-2" type="submit">
-                                                        Confirm rejection
+                                                        Reject
                                                     </button>
                                                 </form>
                                             </details>

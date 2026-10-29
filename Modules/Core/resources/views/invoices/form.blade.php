@@ -135,7 +135,7 @@
         @include('core::partials.form-actions', [
             'model' => $invoice,
             'routePrefix' => 'core.invoices',
-            'submitLabel' => 'Save invoice',
+            'submitLabel' => $submitLabel,
         ])
     </form>
 @endsection

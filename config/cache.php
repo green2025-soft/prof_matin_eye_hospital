@@ -34,6 +34,18 @@ return [
 
     'stores' => [
 
+        'context' => [
+            'driver' => 'file',
+            'path' => storage_path('framework/cache/context'),
+            'lock_path' => storage_path('framework/cache/locks/context'),
+        ],
+
+        'branding' => [
+            'driver' => 'file',
+            'path' => storage_path('framework/cache/branding'),
+            'lock_path' => storage_path('framework/cache/locks/branding'),
+        ],
+
         'array' => [
             'driver' => 'array',
             'serialize' => false,

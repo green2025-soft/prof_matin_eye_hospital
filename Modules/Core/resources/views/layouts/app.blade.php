@@ -27,82 +27,143 @@
                 <div class="offcanvas-body">
                     <nav class="app-nav" aria-label="Main navigation">
                         <p class="app-nav-label">Overview</p>
-                        <a class="app-nav-link{{ $layout['navigation']['dashboard']['active'] ? ' active' : '' }}" href="{{ $layout['homeUrl'] }}" title="Dashboard" @if ($layout['navigation']['dashboard']['active']) aria-current="page" @endif>
+                        <a class="app-nav-link{{ ($moduleMenu['homeActive'] ?? $layout['navigation']['dashboard']['active']) ? ' active' : '' }}" href="{{ $moduleMenu['homeUrl'] ?? $layout['navigation']['dashboard']['url'] }}" title="{{ $moduleMenu['homeLabel'] ?? 'Dashboard' }}" @if ($moduleMenu['homeActive'] ?? $layout['navigation']['dashboard']['active']) aria-current="page" @endif>
                             <span class="app-nav-icon"><i class="fa-solid fa-table-cells-large" aria-hidden="true"></i></span>
-                            <span class="app-nav-copy">Dashboard</span>
+                            <span class="app-nav-copy">{{ $moduleMenu['homeLabel'] ?? 'Dashboard' }}</span>
                         </a>
-                        @if ($layout['showManagement'])
-                            <p class="app-nav-label">Management</p>
-                        @endif
-                        @if ($layout['navigation']['tenants']['allowed'])
-                            <a class="app-nav-link{{ $layout['navigation']['tenants']['active'] ? ' active' : '' }}" href="{{ $layout['navigation']['tenants']['url'] }}" title="Tenants" @if ($layout['navigation']['tenants']['active']) aria-current="page" @endif>
-                                <span class="app-nav-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
-                                <span class="app-nav-copy">Tenants</span>
-                            </a>
-                        @endif
-                        @if ($layout['navigation']['accounts']['allowed'])
-                            <a class="app-nav-link{{ $layout['navigation']['accounts']['active'] ? ' active' : '' }}" href="{{ $layout['navigation']['accounts']['url'] }}" title="{{ $layout['navigation']['accounts']['label'] }}" @if ($layout['navigation']['accounts']['active']) aria-current="page" @endif>
-                                <span class="app-nav-icon"><i class="fa-solid fa-users" aria-hidden="true"></i></span>
-                                <span class="app-nav-copy">{{ $layout['navigation']['accounts']['label'] }}</span>
-                            </a>
-                        @endif
-                        @if ($layout['navigation']['roles']['allowed'])
-                            <a class="app-nav-link{{ $layout['navigation']['roles']['active'] ? ' active' : '' }}" href="{{ $layout['navigation']['roles']['url'] }}" title="Roles" @if ($layout['navigation']['roles']['active']) aria-current="page" @endif>
-                                <span class="app-nav-icon"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
-                                <span class="app-nav-copy">Roles</span>
-                            </a>
-                        @endif
-                        @if ($layout['navigation']['permissions']['allowed'])
-                            <a class="app-nav-link{{ $layout['navigation']['permissions']['active'] ? ' active' : '' }}" href="{{ $layout['navigation']['permissions']['url'] }}" title="Permissions" @if ($layout['navigation']['permissions']['active']) aria-current="page" @endif>
-                                <span class="app-nav-icon"><i class="fa-solid fa-key" aria-hidden="true"></i></span>
-                                <span class="app-nav-copy">Permissions</span>
-                            </a>
-                        @endif
-                        @if ($layout['navigation']['plans']['allowed'])
-                            <a class="app-nav-link{{ $layout['navigation']['plans']['active'] ? ' active' : '' }}" href="{{ $layout['navigation']['plans']['url'] }}" title="Plans" @if ($layout['navigation']['plans']['active']) aria-current="page" @endif>
+                        @if ($layout['navigation']['modules']['allowed'] ?? false)
+                            <a class="app-nav-link{{ $layout['navigation']['modules']['active'] ? ' active' : '' }}" href="{{ $layout['navigation']['modules']['url'] }}" title="Modules" @if ($layout['navigation']['modules']['active']) aria-current="page" @endif>
                                 <span class="app-nav-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
-                                <span class="app-nav-copy">Plans</span>
+                                <span class="app-nav-copy">Modules</span>
                             </a>
                         @endif
-                        @if ($layout['navigation']['planPermissions']['allowed'])
-                            <a class="app-nav-link{{ $layout['navigation']['planPermissions']['active'] ? ' active' : '' }}" href="{{ $layout['navigation']['planPermissions']['url'] }}" title="Plan Permissions" @if ($layout['navigation']['planPermissions']['active']) aria-current="page" @endif>
-                                <span class="app-nav-icon"><i class="fa-solid fa-route" aria-hidden="true"></i></span>
-                                <span class="app-nav-copy">Plan Permissions</span>
-                            </a>
-                        @endif
-                        @if ($layout['navigation']['subscriptions']['allowed'])
-                            <a class="app-nav-link{{ $layout['navigation']['subscriptions']['active'] ? ' active' : '' }}" href="{{ $layout['navigation']['subscriptions']['url'] }}" title="Subscriptions" @if ($layout['navigation']['subscriptions']['active']) aria-current="page" @endif>
-                                <span class="app-nav-icon"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></span>
-                                <span class="app-nav-copy">Subscriptions</span>
-                            </a>
-                        @endif
-                        @if ($layout['navigation']['invoices']['allowed'])
-                            <a class="app-nav-link{{ $layout['navigation']['invoices']['active'] ? ' active' : '' }}" href="{{ $layout['navigation']['invoices']['url'] }}" title="Invoices" @if ($layout['navigation']['invoices']['active']) aria-current="page" @endif>
-                                <span class="app-nav-icon"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i></span>
-                                <span class="app-nav-copy">Invoices</span>
-                            </a>
-                        @endif
-                        @if ($layout['navigation']['payments']['allowed'])
-                            <a class="app-nav-link{{ $layout['navigation']['payments']['active'] ? ' active' : '' }}" href="{{ $layout['navigation']['payments']['url'] }}" title="Payments" @if ($layout['navigation']['payments']['active']) aria-current="page" @endif>
-                                <span class="app-nav-icon"><i class="fa-solid fa-credit-card" aria-hidden="true"></i></span>
-                                <span class="app-nav-copy">Payments</span>
-                            </a>
-                        @endif
-                        @if ($layout['navigation']['billing']['allowed'])
-                            <a class="app-nav-link{{ $layout['navigation']['billing']['active'] ? ' active' : '' }}" href="{{ $layout['navigation']['billing']['url'] }}" title="Billing" @if ($layout['navigation']['billing']['active']) aria-current="page" @endif>
-                                <span class="app-nav-icon"><i class="fa-solid fa-wallet" aria-hidden="true"></i></span>
-                                <span class="app-nav-copy">Billing</span>
-                            </a>
-                        @endif
-                        @if ($layout['navigation']['settings']['allowed'])
-                            <a class="app-nav-link{{ $layout['navigation']['settings']['active'] ? ' active' : '' }}" href="{{ $layout['navigation']['settings']['url'] }}" title="Settings" @if ($layout['navigation']['settings']['active']) aria-current="page" @endif>
-                                <span class="app-nav-icon"><i class="fa-solid fa-gear" aria-hidden="true"></i></span>
-                                <span class="app-nav-copy">Settings</span>
-                            </a>
-                        @endif
+                        @isset($moduleMenu)
+                            @include($moduleMenu['view'])
+                        @else
+                            @if (($layout['permissions']['accounts.view'] ?? false)
+                                || ($layout['permissions']['roles.view'] ?? false)
+                                || ($layout['permissions']['permissions.view'] ?? false)
+                                || ($layout['permissions']['settings.view'] ?? false)
+                                || ($layout['central'] && (($layout['permissions']['tenants.view'] ?? false)
+                                    || ($layout['permissions']['plans.view'] ?? false)
+                                    || ($layout['permissions']['subscriptions.view'] ?? false)
+                                    || ($layout['permissions']['invoices.view'] ?? false)
+                                    || ($layout['permissions']['payments.view'] ?? false)))
+                                || (! $layout['central'] && (($layout['permissions']['branches.view'] ?? false)
+                                    || ($layout['permissions']['payment-types.view'] ?? false)
+                                    || ($layout['permissions']['divisions.view'] ?? false)
+                                    || ($layout['permissions']['districts.view'] ?? false)
+                                    || ($layout['permissions']['thanas.view'] ?? false)
+                                    || ($layout['permissions']['audit-logs.view'] ?? false)
+                                    || ($layout['permissions']['billing.view'] ?? false))))
+                                <p class="app-nav-label">Management</p>
+                            @endif
+                            @if ($layout['central'] && ($layout['permissions']['tenants.view'] ?? false))
+                                <a class="app-nav-link{{ request()->routeIs('core.tenants.*') ? ' active' : '' }}" href="{{ route('core.tenants.index') }}" title="Tenants" @if (request()->routeIs('core.tenants.*')) aria-current="page" @endif>
+                                    <span class="app-nav-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
+                                    <span class="app-nav-copy">Tenants</span>
+                                </a>
+                            @endif
+                            @if ($layout['permissions']['accounts.view'] ?? false)
+                                <a class="app-nav-link{{ request()->routeIs($layout['accountRoutePrefix'].'.*') ? ' active' : '' }}" href="{{ route($layout['accountRoutePrefix'].'.index') }}" title="{{ $layout['accountLabel'] }}" @if (request()->routeIs($layout['accountRoutePrefix'].'.*')) aria-current="page" @endif>
+                                    <span class="app-nav-icon"><i class="fa-solid fa-users" aria-hidden="true"></i></span>
+                                    <span class="app-nav-copy">{{ $layout['accountLabel'] }}</span>
+                                </a>
+                            @endif
+                            @if (! $layout['central'] && ($layout['permissions']['branches.view'] ?? false))
+                                <a class="app-nav-link{{ request()->routeIs('tenantcore.branches.*') ? ' active' : '' }}" href="{{ route('tenantcore.branches.index') }}" title="Branches" @if (request()->routeIs('tenantcore.branches.*')) aria-current="page" @endif>
+                                    <span class="app-nav-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
+                                    <span class="app-nav-copy">Branches</span>
+                                </a>
+                            @endif
+                            @if (! $layout['central'] && ($layout['permissions']['payment-types.view'] ?? false))
+                                <a class="app-nav-link{{ request()->routeIs('tenantcore.payment-types.*') ? ' active' : '' }}" href="{{ route('tenantcore.payment-types.index') }}" title="Payment Types" @if (request()->routeIs('tenantcore.payment-types.*')) aria-current="page" @endif>
+                                    <span class="app-nav-icon"><i class="fa-solid fa-money-bill-wave" aria-hidden="true"></i></span>
+                                    <span class="app-nav-copy">Payment Types</span>
+                                </a>
+                            @endif
+                            @if (! $layout['central'] && ($layout['permissions']['divisions.view'] ?? false))
+                                <a class="app-nav-link{{ request()->routeIs('tenantcore.divisions.*') ? ' active' : '' }}" href="{{ route('tenantcore.divisions.index') }}" title="Divisions" @if (request()->routeIs('tenantcore.divisions.*')) aria-current="page" @endif>
+                                    <span class="app-nav-icon"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i></span>
+                                    <span class="app-nav-copy">Divisions</span>
+                                </a>
+                            @endif
+                            @if (! $layout['central'] && ($layout['permissions']['districts.view'] ?? false))
+                                <a class="app-nav-link{{ request()->routeIs('tenantcore.districts.*') ? ' active' : '' }}" href="{{ route('tenantcore.districts.index') }}" title="Districts" @if (request()->routeIs('tenantcore.districts.*')) aria-current="page" @endif>
+                                    <span class="app-nav-icon"><i class="fa-solid fa-map" aria-hidden="true"></i></span>
+                                    <span class="app-nav-copy">Districts</span>
+                                </a>
+                            @endif
+                            @if (! $layout['central'] && ($layout['permissions']['thanas.view'] ?? false))
+                                <a class="app-nav-link{{ request()->routeIs('tenantcore.thanas.*') ? ' active' : '' }}" href="{{ route('tenantcore.thanas.index') }}" title="Thanas" @if (request()->routeIs('tenantcore.thanas.*')) aria-current="page" @endif>
+                                    <span class="app-nav-icon"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></span>
+                                    <span class="app-nav-copy">Thanas</span>
+                                </a>
+                            @endif
+                            @if ($layout['permissions']['roles.view'] ?? false)
+                                <a class="app-nav-link{{ request()->routeIs('core.roles.*') ? ' active' : '' }}" href="{{ route('core.roles.index') }}" title="Roles" @if (request()->routeIs('core.roles.*')) aria-current="page" @endif>
+                                    <span class="app-nav-icon"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+                                    <span class="app-nav-copy">Roles</span>
+                                </a>
+                            @endif
+                            @if (! $layout['central'] && ($layout['permissions']['audit-logs.view'] ?? false))
+                                <a class="app-nav-link{{ request()->routeIs('tenantcore.audit-logs.*') ? ' active' : '' }}" href="{{ route('tenantcore.audit-logs.index') }}" title="Audit Logs" @if (request()->routeIs('tenantcore.audit-logs.*')) aria-current="page" @endif>
+                                    <span class="app-nav-icon"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i></span>
+                                    <span class="app-nav-copy">Audit Logs</span>
+                                </a>
+                            @endif
+                            @if ($layout['permissions']['permissions.view'] ?? false)
+                                <a class="app-nav-link{{ request()->routeIs('core.permissions.*') ? ' active' : '' }}" href="{{ route('core.permissions.index') }}" title="Permissions" @if (request()->routeIs('core.permissions.*')) aria-current="page" @endif>
+                                    <span class="app-nav-icon"><i class="fa-solid fa-key" aria-hidden="true"></i></span>
+                                    <span class="app-nav-copy">Permissions</span>
+                                </a>
+                            @endif
+                            @if ($layout['central'] && ($layout['permissions']['plans.view'] ?? false))
+                                <a class="app-nav-link{{ request()->routeIs('core.plans.*') ? ' active' : '' }}" href="{{ route('core.plans.index') }}" title="Plans" @if (request()->routeIs('core.plans.*')) aria-current="page" @endif>
+                                    <span class="app-nav-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
+                                    <span class="app-nav-copy">Plans</span>
+                                </a>
+                            @endif
+                            @if ($layout['central'] && ($layout['permissions']['plans.view'] ?? false))
+                                <a class="app-nav-link{{ request()->routeIs('core.plan-permissions.*') ? ' active' : '' }}" href="{{ route('core.plan-permissions.index') }}" title="Plan Permissions" @if (request()->routeIs('core.plan-permissions.*')) aria-current="page" @endif>
+                                    <span class="app-nav-icon"><i class="fa-solid fa-route" aria-hidden="true"></i></span>
+                                    <span class="app-nav-copy">Plan Permissions</span>
+                                </a>
+                            @endif
+                            @if ($layout['central'] && ($layout['permissions']['subscriptions.view'] ?? false))
+                                <a class="app-nav-link{{ request()->routeIs('core.subscriptions.*') ? ' active' : '' }}" href="{{ route('core.subscriptions.index') }}" title="Subscriptions" @if (request()->routeIs('core.subscriptions.*')) aria-current="page" @endif>
+                                    <span class="app-nav-icon"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></span>
+                                    <span class="app-nav-copy">Subscriptions</span>
+                                </a>
+                            @endif
+                            @if ($layout['central'] && ($layout['permissions']['invoices.view'] ?? false))
+                                <a class="app-nav-link{{ request()->routeIs('core.invoices.*') ? ' active' : '' }}" href="{{ route('core.invoices.index') }}" title="Invoices" @if (request()->routeIs('core.invoices.*')) aria-current="page" @endif>
+                                    <span class="app-nav-icon"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i></span>
+                                    <span class="app-nav-copy">Invoices</span>
+                                </a>
+                            @endif
+                            @if ($layout['central'] && ($layout['permissions']['payments.view'] ?? false))
+                                <a class="app-nav-link{{ request()->routeIs('core.payments.*') ? ' active' : '' }}" href="{{ route('core.payments.index') }}" title="Payments" @if (request()->routeIs('core.payments.*')) aria-current="page" @endif>
+                                    <span class="app-nav-icon"><i class="fa-solid fa-credit-card" aria-hidden="true"></i></span>
+                                    <span class="app-nav-copy">Payments</span>
+                                </a>
+                            @endif
+                            @if (! $layout['central'] && ($layout['permissions']['billing.view'] ?? false))
+                                <a class="app-nav-link{{ request()->routeIs('tenantcore.billing.*') ? ' active' : '' }}" href="{{ route('tenantcore.billing.index') }}" title="Billing" @if (request()->routeIs('tenantcore.billing.*')) aria-current="page" @endif>
+                                    <span class="app-nav-icon"><i class="fa-solid fa-wallet" aria-hidden="true"></i></span>
+                                    <span class="app-nav-copy">Billing</span>
+                                </a>
+                            @endif
+                            @if ($layout['permissions']['settings.view'] ?? false)
+                                <a class="app-nav-link{{ request()->routeIs($layout['settingsRoutePrefix'].'.*') ? ' active' : '' }}" href="{{ route($layout['settingsRoutePrefix'].'.index') }}" title="Settings" @if (request()->routeIs($layout['settingsRoutePrefix'].'.*')) aria-current="page" @endif>
+                                    <span class="app-nav-icon"><i class="fa-solid fa-gear" aria-hidden="true"></i></span>
+                                    <span class="app-nav-copy">Settings</span>
+                                </a>
+                            @endif
+                        @endisset
                     </nav>
                 </div>
-                <div class="app-sidebar-footer">
+                {{-- <div class="app-sidebar-footer">
                     <div class="app-workspace">
                         <span class="app-workspace-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
                         <div class="app-workspace-copy">
@@ -110,7 +171,7 @@
                             <small>{{ $layout['workspaceLabel'] }}</small>
                         </div>
                     </div>
-                </div>
+                </div> --}}
             </aside>
             <div class="app-page">
                 <header class="app-header">
@@ -123,6 +184,27 @@
                             <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                             <span aria-current="page">@yield('title', $pageTitle ?? 'Dashboard')</span>
                         </nav>
+                        @if (($layout['branchName'] ?? null) || ($layout['canSwitchBranch'] ?? false))
+                            <div class="app-branch-context">
+                                @if ($layout['branchName'] ?? null)
+                                    <span class="app-branch-badge" title="Active branch: {{ $layout['branchName'] }}">
+                                        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                                        <span class="visually-hidden">Active branch:</span>
+                                        <span class="app-branch-context-name">{{ $layout['branchName'] }}</span>
+                                    </span>
+                                @endif
+                                @if ($layout['canSwitchBranch'] ?? false)
+                                    <form action="{{ $layout['switchBranchUrl'] }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="app-branch-switch" type="submit" aria-label="Switch branch" title="Choose a different branch">
+                                            <i class="fa-solid fa-arrow-right-arrow-left" aria-hidden="true"></i>
+                                            <span>Switch branch</span>
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        @endif
                         <div class="d-flex align-items-center gap-2 ms-auto">
                             <span class="app-tag d-none d-lg-inline-flex">{{ $layout['workspaceLabel'] }}</span>
                             <button class="app-toolbar-button d-none d-md-inline-flex" type="button" data-fullscreen-toggle aria-pressed="false" aria-label="Enter fullscreen" title="Enter fullscreen">

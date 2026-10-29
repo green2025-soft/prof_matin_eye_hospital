@@ -27,14 +27,15 @@ class SubscriptionService
             throw new AuthorizationException;
         }
 
-        return (new Subscription)->getConnection()->transaction(function () use ($tenant, $actor, $operation): mixed {
+        return (new Subscription)->getConnection()->transaction(function () use ($tenant, $operation): mixed {
             $subscription = Subscription::query()->with('plan')->where('tenant_id', $tenant->getKey())->lockForUpdate()->first();
 
             if (! $subscription?->isUsable()) {
                 throw new AuthorizationException('An active subscription is required to add an account.');
             }
 
-            if (! $subscription->canAddUser($actor->newQuery()->count())) {
+            $userModel = Account::modelForProvider('users');
+            if (! $subscription->canAddUser($userModel::query()->count())) {
                 throw ValidationException::withMessages(['account' => 'The plan account limit has been reached. Contact the platform administrator to change your plan.']);
             }
 
@@ -55,6 +56,9 @@ class SubscriptionService
             return (new Subscription)->getConnection()->transaction(function () use ($actor, $record, $values): Subscription {
                 $tenantId = $record?->exists ? $record->tenant_id : $values['tenant_id'];
                 $tenant = Tenant::query()->whereKey($tenantId)->lockForUpdate()->firstOrFail();
+                if ($tenant->status === Tenant::STATUS_DELETING) {
+                    throw new LogicException('A deleting tenant cannot change its subscription.');
+                }
                 $subscription = Subscription::query()->where('tenant_id', $tenant->getKey())->lockForUpdate()->first();
 
                 if (! $record?->exists && $subscription !== null) {

@@ -68,7 +68,7 @@
         @include('core::partials.form-actions', [
             'model' => $payment,
             'routePrefix' => 'core.payments',
-            'submitLabel' => 'Record payment',
+            'submitLabel' => 'Save',
         ])
     </form>
 @endsection

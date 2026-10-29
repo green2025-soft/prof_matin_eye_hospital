@@ -1,5 +1,11 @@
 <?php
 
+$from = [
+    'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+    'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+];
+$fallback = env('MAIL_MAILER', 'log');
+
 return [
 
     /*
@@ -14,7 +20,7 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER', 'log'),
+    'default' => 'workspace',
 
     /*
     |--------------------------------------------------------------------------
@@ -36,6 +42,12 @@ return [
     */
 
     'mailers' => [
+
+        'workspace' => [
+            'transport' => 'workspace',
+            'fallback' => $fallback === 'workspace' ? 'log' : $fallback,
+            'fallback_from' => $from,
+        ],
 
         'smtp' => [
             'transport' => 'smtp',
@@ -110,9 +122,6 @@ return [
     |
     */
 
-    'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
-    ],
+    'from' => $from,
 
 ];

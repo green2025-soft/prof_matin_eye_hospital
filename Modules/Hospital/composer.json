@@ -1,0 +1,10 @@
+{
+    "name": "prof-matin/hospital",
+    "description": "Hospital module",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Modules\\Hospital\\": "app/"
+        }
+    }
+}

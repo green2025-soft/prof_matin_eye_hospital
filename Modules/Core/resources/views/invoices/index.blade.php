@@ -17,7 +17,7 @@
         <div class="d-flex justify-content-end mb-3">
             <form action="{{ route('core.invoices.generate') }}" method="POST">
                 @csrf
-                <button class="btn btn-outline-primary" type="submit"><i class="fa-solid fa-file-invoice me-2" aria-hidden="true"></i>Generate due invoices</button>
+                <button class="btn btn-outline-primary" type="submit"><i class="fa-solid fa-file-invoice me-2" aria-hidden="true"></i>Generate</button>
             </form>
         </div>
     @endcan

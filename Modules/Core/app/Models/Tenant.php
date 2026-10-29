@@ -4,13 +4,17 @@ namespace Modules\Core\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 use Modules\Core\Models\Concerns\HasCrudContract;
+use Modules\Core\Policies\TenantPolicy;
+use Modules\Core\Services\ContextCache;
 use Spatie\Multitenancy\Models\Tenant as BaseTenant;
 
 #[Fillable(['name', 'slug', 'address', 'phone', 'has_branches'])]
 #[Hidden(['database_token'])]
+#[UsePolicy(TenantPolicy::class)]
 class Tenant extends BaseTenant
 {
     use HasCrudContract;
@@ -25,12 +29,15 @@ class Tenant extends BaseTenant
 
     public const STATUS_SUSPENDED = 'suspended';
 
+    public const STATUS_DELETING = 'deleting';
+
     public const STATUSES = [
         self::STATUS_PENDING => 'Pending',
         self::STATUS_PROVISIONING => 'Provisioning',
         self::STATUS_ACTIVE => 'Active',
         self::STATUS_FAILED => 'Failed',
         self::STATUS_SUSPENDED => 'Suspended',
+        self::STATUS_DELETING => 'Deleting',
     ];
 
     protected $attributes = ['status' => self::STATUS_PENDING, 'has_branches' => false];
@@ -42,6 +49,13 @@ class Tenant extends BaseTenant
     protected array $listWith = ['domains:id,tenant_id,domain'];
 
     protected array $exposedRelations = ['domains' => ['id', 'tenant_id', 'domain']];
+
+    protected static function booted(): void
+    {
+        $clearContext = static fn (self $tenant) => app(ContextCache::class)->flush($tenant->getConnectionName(), 'tenant-domains');
+        static::saved($clearContext);
+        static::deleted($clearContext);
+    }
 
     public function domains(): HasMany
     {

@@ -72,7 +72,7 @@
                                                 </form>
                                             @endif
                                         @endcan
-                                        @include('core::partials.row-actions', ['model' => $tenant, 'routePrefix' => 'core.tenants'])
+                                        @include('core::partials.row-actions', ['model' => $tenant, 'routePrefix' => 'core.tenants', 'deleteConfirmation' => 'Permanently delete '.$tenant->name.'? The tenant database, all uploads, subscriptions, invoices and payments will be permanently deleted. This cannot be undone.'])
                                     </div>
                                 </td>
                             </tr>

@@ -4,14 +4,18 @@ namespace Modules\Core\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use LogicException;
 use Modules\Core\Models\Concerns\HasCrudContract;
+use Modules\Core\Policies\AccountPolicy;
+use Modules\Core\Services\ContextCache;
 use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
+#[UsePolicy(AccountPolicy::class)]
 abstract class Account extends Authenticatable
 {
     use HasCrudContract;
@@ -29,6 +33,18 @@ abstract class Account extends Authenticatable
     protected array $listWith = ['roles:id,name,guard_name', 'roles.permissions:id,name,guard_name', 'permissions:id,name,guard_name'];
 
     protected array $exposedRelations = ['roles' => ['id', 'name', 'guard_name']];
+
+    protected static function booted(): void
+    {
+        $clearContext = static fn (self $account) => app(ContextCache::class)->flush($account->getConnection()->getName(), 'actors');
+        static::saved($clearContext);
+        static::deleted($clearContext);
+    }
+
+    public function authenticationRelations(): array
+    {
+        return ['roles.permissions', 'permissions'];
+    }
 
     public static function modelForProvider(string $provider): string
     {
@@ -73,5 +89,25 @@ abstract class Account extends Authenticatable
         $this->loadMissing('roles');
 
         return $this->roles->contains(fn (Role $role): bool => $role->guard_name === 'web' && $role->isReserved());
+    }
+
+    public function profileRoutePrefix(): string
+    {
+        return $this instanceof Admin ? 'core.accounts' : 'tenantcore.accounts';
+    }
+
+    public function loginType(): string
+    {
+        return 'user';
+    }
+
+    public function permissionGuardName(): string
+    {
+        return $this->guard_name;
+    }
+
+    public function profileUpdatePermission(): string
+    {
+        return 'accounts.update';
     }
 }

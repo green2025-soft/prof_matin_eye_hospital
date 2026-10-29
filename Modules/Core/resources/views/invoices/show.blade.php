@@ -23,7 +23,7 @@
                     data-confirm="Issue this invoice? Its details will become final."
                 >
                     @csrf
-                    <button class="btn btn-primary" type="submit">Issue invoice</button>
+                    <button class="btn btn-primary" type="submit">Issue</button>
                 </form>
             @endcan
             @if ($canRecordPayment)
@@ -187,7 +187,7 @@
                         <div class="col-12">
                             <p class="small mb-1">Extra charge: {{ $invoice->currency }} <span data-payment-extra-charge>{{ $checkout['providers'][$checkout['defaultProvider']]['extraCharge'] }}</span></p>
                             <p class="fw-semibold">Total payment: {{ $invoice->currency }} <span data-payment-total>{{ $checkout['providers'][$checkout['defaultProvider']]['total'] }}</span></p>
-                            <button class="btn btn-primary" type="submit">Continue payment</button>
+                            <button class="btn btn-primary" type="submit">Pay</button>
                         </div>
                     </div>
                 </form>
@@ -243,7 +243,7 @@
             @error('reason')
                 <div class="invalid-feedback d-block" id="reason-error">{{ $message }}</div>
             @enderror
-            <button class="btn btn-outline-danger mt-3" type="submit">Void invoice</button>
+            <button class="btn btn-outline-danger mt-3" type="submit">Void</button>
         </form>
     @endcan
 @endsection

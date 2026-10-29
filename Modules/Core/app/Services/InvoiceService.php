@@ -222,10 +222,12 @@ class InvoiceService
             throw new AuthorizationException;
         }
 
-        return $this->overviewData($actor, $filters, $tenant);
+        $subscription = Subscription::forTenant($tenant);
+
+        return $this->overviewData($actor, $filters, $tenant, $subscription) + ['subscription' => $subscription];
     }
 
-    private function overviewData(Account $actor, array $filters, ?Tenant $tenant = null): array
+    private function overviewData(Account $actor, array $filters, ?Tenant $tenant = null, ?Subscription $subscription = null): array
     {
         $isPlatform = $tenant === null;
         $model = new Invoice;
@@ -247,7 +249,6 @@ class InvoiceService
                 'balance' => Money::decimal($summary->balance),
             ])->all();
 
-        $subscription = $tenant === null ? null : Subscription::forTenant($tenant);
         $canReviewPayments = $isPlatform && Gate::forUser($actor)->allows('create', Payment::class);
         $manualSubmissions = [];
 

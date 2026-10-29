@@ -4,7 +4,7 @@
     @endcan
     @if (\Illuminate\Support\Facades\Route::has($routePrefix.'.destroy'))
         @can('delete', $model)
-            <form class="d-inline-flex" action="{{ route($routePrefix.'.destroy', $model) }}" method="POST" data-confirm="Delete this record? This cannot be undone.">
+            <form class="d-inline-flex" action="{{ route($routePrefix.'.destroy', $model) }}" method="POST" data-confirm="{{ $deleteConfirmation ?? 'Delete this record? This cannot be undone.' }}">
                 @csrf
                 @method('DELETE')
                 <button class="btn btn-outline-danger btn-sm app-action-button" type="submit" aria-label="Delete {{ $model->name }}" title="Delete {{ $model->name }}"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>

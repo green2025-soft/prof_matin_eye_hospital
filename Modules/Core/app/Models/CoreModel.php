@@ -2,12 +2,7 @@
 
 namespace Modules\Core\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Modules\Core\Models\Concerns\HasCrudContract;
-
-abstract class CoreModel extends Model
+abstract class CoreModel extends BaseModel
 {
-    use HasCrudContract;
-
     protected $connection = 'central';
 }

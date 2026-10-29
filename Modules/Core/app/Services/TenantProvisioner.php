@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -14,12 +15,86 @@ use Illuminate\Validation\ValidationException;
 use LogicException;
 use Modules\Core\Contracts\TenantAccounts;
 use Modules\Core\Models\Account;
+use Modules\Core\Models\Subscription;
 use Modules\Core\Models\Tenant;
+use RuntimeException;
 use Throwable;
 
 class TenantProvisioner
 {
-    public function __construct(private DatabaseInstaller $databases, private TenantAccounts $accounts) {}
+    public function __construct(private DatabaseInstaller $databases, private TenantAccounts $accounts, private AccessManager $access) {}
+
+    public function delete(Account $actor, Model $record): void
+    {
+        $this->ensureCentral();
+        if (! $record instanceof Tenant) {
+            throw new AuthorizationException;
+        }
+        Gate::forUser($actor)->authorize('delete', $record);
+
+        $this->databases->locked($record->database, function () use ($actor, $record): void {
+            $record->execute(fn () => $this->databases->verifyTenantDeletion($record->database, $record->database_token));
+            $tenant = $this->access->transaction($actor, function (Account $freshActor) use ($record): Tenant {
+                $tenant = Tenant::query()->whereKey($record->getKey())->lockForUpdate()->firstOrFail();
+                Gate::forUser($freshActor)->authorize('delete', $tenant);
+                $connection = $tenant->getConnection();
+                $invoices = $connection->table('invoices')->where('tenant_id', $tenant->getKey())->select('id');
+                $pending = $connection->table('checkout_attempts')->whereIn('invoice_id', $invoices)
+                    ->whereNotNull('active_invoice_id')->where('provider', '!=', 'manual')->lockForUpdate()->first(['id']);
+
+                if ($pending !== null) {
+                    throw ValidationException::withMessages(['tenant' => 'Resolve pending online payments before deleting this tenant.']);
+                }
+
+                $tenant->status = Tenant::STATUS_DELETING;
+                $tenant->save();
+                Subscription::query()->where('tenant_id', $tenant->getKey())->update(['status' => Subscription::STATUS_CANCELLED]);
+                app(ContextCache::class)->flush($connection->getName(), 'subscriptions');
+
+                return $tenant;
+            });
+
+            // MySQL DROP cannot roll back. Keep the registry until every cleanup succeeds.
+            $tenant->execute(fn () => $this->databases->dropOwnedTenant($tenant->database, $tenant->database_token));
+            $this->deleteFiles($tenant);
+
+            $tenant->getConnection()->transaction(function () use ($tenant): void {
+                $current = Tenant::query()->whereKey($tenant->getKey())->lockForUpdate()->firstOrFail();
+                $connection = $current->getConnection();
+                $invoices = $connection->table('invoices')->where('tenant_id', $current->getKey())->select('id');
+                $connection->table('checkout_attempts')->whereIn('invoice_id', $invoices)->delete();
+                $connection->table('payments')->where('tenant_id', $current->getKey())->delete();
+                $connection->table('invoice_items')->whereIn('invoice_id', $invoices)->delete();
+                $connection->table('invoices')->where('tenant_id', $current->getKey())->delete();
+                $connection->table('subscriptions')->where('tenant_id', $current->getKey())->delete();
+                app(ContextCache::class)->flush($connection->getName(), 'subscriptions');
+                $current->domains()->delete();
+                $current->delete();
+            }, 3);
+        });
+    }
+
+    private function deleteFiles(Tenant $tenant): void
+    {
+        $scope = 'tenant_'.(int) $tenant->getKey();
+        foreach (['local', 'public'] as $name) {
+            if (! Storage::disk($name)->deleteDirectory($scope)) {
+                throw new RuntimeException('Tenant uploads could not be removed. Retry tenant deletion.');
+            }
+        }
+
+        if ($tenant->logo_path !== null && ! Storage::disk('public')->delete($tenant->logo_path)) {
+            throw new RuntimeException('The tenant logo could not be removed. Retry tenant deletion.');
+        }
+
+        $cacheRoot = realpath(config('cache.stores.file.path'));
+        $cache = $cacheRoot === false ? false : realpath($cacheRoot.DIRECTORY_SEPARATOR.$scope);
+        if ($cache !== false) {
+            if (! str_starts_with($cache, $cacheRoot.DIRECTORY_SEPARATOR) || ! File::deleteDirectory($cache)) {
+                throw new RuntimeException('Tenant cache files could not be safely removed. Retry tenant deletion.');
+            }
+        }
+    }
 
     public function save(Account $actor, ?Model $record, #[\SensitiveParameter] array $values): Model
     {
@@ -145,6 +220,9 @@ class TenantProvisioner
             return $this->databases->locked($tenant->database, function () use ($tenant, $name, $slug, $domains, $status, $details): Tenant {
                 return $tenant->getConnection()->transaction(function () use ($tenant, $name, $slug, $domains, $status, $details): Tenant {
                     $current = Tenant::query()->whereKey($tenant->getKey())->lockForUpdate()->firstOrFail();
+                    if ($current->status === Tenant::STATUS_DELETING) {
+                        throw new LogicException('Finish deleting this tenant before changing its settings.');
+                    }
                     if ($status !== null && ! array_key_exists($status, $current->statusOptions())) {
                         throw ValidationException::withMessages(['status' => 'Workspace access cannot change before setup completes.']);
                     }
@@ -224,8 +302,8 @@ class TenantProvisioner
         $this->databases->locked($tenant->database, function () use ($tenant, $callback): void {
             $tenant->refresh();
 
-            if ($tenant->isReady()) {
-                throw new LogicException('This tenant is already set up.');
+            if ($tenant->isReady() || $tenant->status === Tenant::STATUS_DELETING) {
+                throw new LogicException('A ready or deleting tenant cannot be provisioned again.');
             }
 
             $tenant->status = Tenant::STATUS_PROVISIONING;

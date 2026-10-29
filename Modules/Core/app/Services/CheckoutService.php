@@ -14,6 +14,7 @@ use Modules\Core\Models\CheckoutAttempt;
 use Modules\Core\Models\Invoice;
 use Modules\Core\Models\Payment;
 use Modules\Core\Models\Setting;
+use Modules\Core\Models\Tenant;
 use Modules\Core\Policies\BillingPolicy;
 use SensitiveParameter;
 
@@ -25,17 +26,27 @@ class CheckoutService
     {
         $canPay = $this->policy->pay($actor, $invoice);
         $available = $invoice->currency === 'BDT' ? Payment::PROVIDERS : ['manual'];
-        $providers = $canPay ? Setting::on('central')->whereIn('group', $available)
-            ->where('data->enabled', true)->get(['group', 'data'])->mapWithKeys(function (Setting $setting) use ($invoice): array {
+        $providers = [];
+        $manualInstructions = '';
+
+        if ($canPay) {
+            $settings = Setting::on('central')->whereIn('group', $available)
+                ->where('data->enabled', true)->get(['group', 'data']);
+
+            foreach ($settings as $setting) {
                 $values = $setting->publicValues();
                 $charge = Money::minor($values['extra_charge']);
-
-                return [$setting->group => [
+                $providers[$setting->group] = [
                     'label' => config('settings.groups.'.$setting->group.'.label'),
                     'extraCharge' => Money::decimal($charge),
                     'total' => Money::decimal($invoice->outstandingMinor() + $charge),
-                ]];
-            })->all() : [];
+                ];
+
+                if ($setting->group === 'manual') {
+                    $manualInstructions = $values['instructions'];
+                }
+            }
+        }
 
         $active = $canPay ? CheckoutAttempt::query()->where('active_invoice_id', $invoice->getKey())
             ->first(['id', 'provider', 'status', 'redirect_url', 'submitted_reference', 'amount_minor', 'extra_charge_minor', 'created_at']) : null;
@@ -44,7 +55,7 @@ class CheckoutService
             'canPay' => $canPay,
             'providers' => $providers,
             'defaultProvider' => isset($providers['manual']) ? 'manual' : array_key_first($providers),
-            'manualInstructions' => $canPay ? Setting::values('manual', 'central')['instructions'] : '',
+            'manualInstructions' => $manualInstructions,
             'activeAttempt' => $active === null ? null : [
                 'reference' => $active->submitted_reference,
                 'url' => $active->status === CheckoutAttempt::STATUS_READY ? $active->redirect_url : null,
@@ -78,6 +89,7 @@ class CheckoutService
         $this->assertEnvironment($settings);
 
         $attempt = $invoice->locked(function (Invoice $current) use ($actor, $values, $provider, $settings): CheckoutAttempt {
+            abort_if($current->tenant()->lockForUpdate()->value('status') === Tenant::STATUS_DELETING, 409, 'This tenant is being deleted.');
             abort_unless($this->policy->pay($actor, $current), 403);
             $active = CheckoutAttempt::query()->where('active_invoice_id', $current->getKey())->lockForUpdate()->first();
 

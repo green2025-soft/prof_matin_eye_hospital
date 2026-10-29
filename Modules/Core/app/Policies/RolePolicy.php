@@ -36,7 +36,7 @@ class RolePolicy
     {
         return ($this->access->isOwner($actor) || $actor->can(AccessPermission::DeleteRoles->value))
             && $this->access->roleWithinActor($actor, $role)
-            && ! ($role->users_count ?? $role->users()->exists());
+            && ! $role->hasAssignedAccounts();
     }
 
     public function viewPermissions(Account $actor, ?Role $role = null): bool

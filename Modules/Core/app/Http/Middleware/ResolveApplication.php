@@ -9,6 +9,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Cookie\CookieJar;
 use Illuminate\Http\Request;
 use Illuminate\Session\SessionManager;
+use Modules\Core\Helpers\WorkspaceMail;
 use Modules\Core\Models\Tenant;
 use Modules\Core\TenantFinder\DomainTenantFinder;
 use Symfony\Component\HttpFoundation\Response;
@@ -70,6 +71,7 @@ class ResolveApplication
 
     private function resetWebState(): void
     {
+        $this->app->make(WorkspaceMail::class)->reset();
         $this->auth->forgetGuards();
         $this->sessions->forgetDrivers();
         $this->cookies->flushQueuedCookies();

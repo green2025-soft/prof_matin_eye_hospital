@@ -21,18 +21,35 @@ class SessionController extends Controller
     public function create(Request $request): View
     {
         $central = $request->attributes->get('application_scope') === 'central';
+        $accountTypes = config('auth.login_types');
+        $accountType = $request->query('account_type', 'user');
+        if ($central || ! is_string($accountType) || ! array_key_exists($accountType, $accountTypes)) {
+            $accountType = 'user';
+        }
 
         return view('core::auth.login', [
             'loginTitle' => $central ? 'Sign in to Core administration' : 'Sign in to your workspace',
             'loginDescription' => $central
                 ? 'Manage tenants, plans, subscriptions, invoices and payments.'
                 : 'Manage your team, permissions, billing and workspace settings.',
+            'tenantLogin' => ! $central,
+            'accountType' => $accountType,
+            'accountTypes' => $accountTypes,
         ]);
     }
 
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
+
+        $user = $request->user('web');
+        $redirectUrl = $user->getAttributes()['redirect_url'] ?? null;
+
+        if ($request->attributes->get('application_provider') === 'users' && filled($redirectUrl)) {
+            $request->session()->forget('url.intended');
+
+            return redirect()->to($redirectUrl);
+        }
 
         return redirect()->intended(route('home'));
     }

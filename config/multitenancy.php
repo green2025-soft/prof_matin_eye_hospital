@@ -40,6 +40,7 @@ return [
         'tenant' => array_values(array_filter([
             base_path('Modules/Core/database/migrations/shared'),
             base_path('Modules/TenantCore/database/migrations'),
+            base_path('Modules/Hospital/database/migrations'),
         ], 'is_dir')),
     ],
 ];

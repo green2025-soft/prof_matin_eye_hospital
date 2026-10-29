@@ -12,9 +12,27 @@
         @if ($token !== null)
             <input type="hidden" name="token" value="{{ $token }}">
         @endif
+        @if ($tenantPassword && count($accountTypes) > 1)
+            @if ($token !== null)
+                <input type="hidden" name="account_type" value="{{ $accountType }}">
+                <p class="small text-body-secondary">{{ $accountTypes[$accountType]['label'] }} account</p>
+            @else
+                <div class="mb-3">
+                    <label class="form-label" for="account_type">Account type</label>
+                    <select class="{{ inputClass('account_type', 'form-select') }}" id="account_type" name="account_type" required {{ inputAttrs('account_type') }}>
+                        @foreach ($accountTypes as $type => $details)
+                            <option value="{{ $type }}" {{ getSelected($type, 'account_type', null, $accountType) }}>{{ $details['label'] }}</option>
+                        @endforeach
+                    </select>
+                    @error('account_type')
+                        <div class="invalid-feedback d-block" id="account_type-error">{{ $message }}</div>
+                    @enderror
+                </div>
+            @endif
+        @endif
         <div class="mb-3">
             <label class="form-label" for="email">Email address</label>
-            <input class="{{ inputClass('email') }}" id="email" name="email" type="email" value="{{ getValue('email', null, $email) }}" minlength="5" maxlength="255" autocomplete="email" required autofocus {{ inputAttrs('email') }}>
+            <input class="{{ inputClass('email') }}" id="email" name="email" type="email" value="{{ getValue('email', null, $email) }}" maxlength="255" autocomplete="email" required autofocus {{ inputAttrs('email') }}>
             @error('email')
                 <div class="invalid-feedback" id="email-error">{{ $message }}</div>
             @enderror
@@ -43,6 +61,6 @@
             </div>
         @endif
         <button class="btn btn-primary w-100" type="submit">{{ $submitLabel }}</button>
-        <p class="text-center small mt-4 mb-0"><a href="{{ route('auth.login') }}">Back to sign in</a></p>
+        <p class="text-center small mt-4 mb-0"><a href="{{ $loginUrl }}">Back to sign in</a></p>
     </form>
 @endsection

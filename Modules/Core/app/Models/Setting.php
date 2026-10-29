@@ -2,20 +2,21 @@
 
 namespace Modules\Core\Models;
 
+use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
-use Modules\Core\Models\Concerns\HasCrudContract;
+use Modules\Core\Policies\SettingPolicy;
 
 #[Fillable(['data', 'credentials'])]
 #[Hidden(['secrets', 'credentials'])]
-class Setting extends Model
+#[UsePolicy(SettingPolicy::class)]
+class Setting extends BaseModel
 {
-    use HasCrudContract;
-
     protected array $exposed = ['id', 'group', 'data', 'updated_at'];
 
     protected array $searchable = ['group'];
@@ -34,6 +35,20 @@ class Setting extends Model
         static::addGlobalScope('setting_groups', function (Builder $query): void {
             $query->whereIn($query->qualifyColumn('group'), static::allowedGroups($query->getModel()->getConnectionName()));
         });
+
+        $clearBranding = static function (self $setting): void {
+            if ($setting->group !== 'branding') {
+                return;
+            }
+
+            $connection = $setting->getConnection();
+            $cache = Cache::store('branding');
+            $key = static::brandingCacheKey($connection);
+            $connection->afterCommit(fn () => $cache->forget($key));
+        };
+
+        static::saved($clearBranding);
+        static::deleted($clearBranding);
     }
 
     public static function initialize(?string $connection = null): void
@@ -64,7 +79,7 @@ class Setting extends Model
     public static function allowedGroups(?string $connection = null): array
     {
         return ($connection ?? config('database.default')) === 'central'
-            ? array_keys(config('settings.groups'))
+            ? array_values(array_diff(array_keys(config('settings.groups')), config('settings.tenant_only_groups', [])))
             : config('settings.tenant_groups');
     }
 
@@ -79,6 +94,16 @@ class Setting extends Model
             throw new InvalidArgumentException('This settings group is not available in the selected application.');
         }
 
+        if ($group === 'branding') {
+            $database = (new static)->setConnection($connection)->getConnection();
+            $read = static fn (): array => static::on($database->getName())->where('group', 'branding')
+                ->first(['group', 'data'])?->publicValues() ?? static::defaults('branding');
+
+            // Transactional reads must never publish uncommitted settings to the shared cache.
+            return $database->transactionLevel() > 0 ? $read()
+                : Cache::store('branding')->remember(static::brandingCacheKey($database), 300, $read);
+        }
+
         $record = static::on($connection)->where('group', $group)->first(['group', 'data', 'secrets']);
         $values = $record?->publicValues() ?? static::defaults($group);
         $secrets = $record?->secrets ?? [];
@@ -88,6 +113,11 @@ class Setting extends Model
         }
 
         return $values;
+    }
+
+    private static function brandingCacheKey(Connection $connection): string
+    {
+        return 'settings.branding.'.hash('sha256', $connection->getName().'|'.$connection->getDatabaseName());
     }
 
     public function publicValues(): array

@@ -7,8 +7,12 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
+use Modules\Core\Enums\AccessPermission;
+use Modules\Core\Enums\PlatformPermission;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Admin;
+use Modules\Core\Models\BaseModel;
+use Modules\Core\Models\Plan;
 use Modules\Core\Models\Role;
 use Modules\Core\Models\Tenant;
 use Spatie\Permission\Models\Permission;
@@ -42,14 +46,80 @@ class AccessManager
         return $this->actorMatchesContext($account) && $account->hasOwnerRole();
     }
 
+    public function allowsCrud(Account $actor, mixed $subject, string $action): bool
+    {
+        $model = $this->crudModel($actor, $subject);
+
+        if ($model === null || ! in_array($action, ['view', 'create', 'update', 'delete'], true)) {
+            return false;
+        }
+
+        if (in_array($action, ['update', 'delete'], true) && ! $model->exists) {
+            return false;
+        }
+
+        if (! $this->isOwner($actor) && ! $actor->can($model->crudPermission().'.'.$action)) {
+            return false;
+        }
+
+        return $action !== 'delete' || ! $model->hasReferences();
+    }
+
+    private function crudModel(Account $actor, mixed $subject): ?BaseModel
+    {
+        if (is_string($subject) && is_subclass_of($subject, BaseModel::class)) {
+            $subject = new $subject;
+        }
+
+        if (! $subject instanceof BaseModel || $subject->crudPermission() === '' || ! $this->actorMatchesContext($actor)) {
+            return null;
+        }
+
+        $connection = $subject->getConnection();
+        $actorConnection = $actor->getConnection();
+
+        if ($connection->getName() !== $actorConnection->getName()
+            || $connection->getDatabaseName() !== $actorConnection->getDatabaseName()
+            || ! $subject->matchesBranchContext()) {
+            return null;
+        }
+
+        return $subject;
+    }
+
     public function permissionNames(Account $account): Collection
     {
         $this->assertActorContext($account);
         $connection = $account->getConnection()->getName();
 
         return $account->getAllPermissions()
-            ->filter(fn (Permission $permission): bool => $permission->guard_name === 'web' && $permission->getConnection()->getName() === $connection)
+            ->filter(fn (Permission $permission): bool => $permission->guard_name === $account->permissionGuardName() && $permission->getConnection()->getName() === $connection)
             ->pluck('name')->unique()->values();
+    }
+
+    public function navigationPermissions(Account $actor, ?Plan $plan): array
+    {
+        $this->assertActorContext($actor);
+        $central = $actor instanceof Admin;
+
+        if ($this->isOwner($actor)) {
+            $permissions = array_merge(
+                array_column(AccessPermission::cases(), 'value'),
+                $central ? array_column(PlatformPermission::cases(), 'value') : array_values(config('permissions.tenant_routes', [])),
+            );
+        } else {
+            $permissions = $this->permissionNames($actor)->all();
+        }
+
+        $allowed = [];
+
+        foreach (array_unique($permissions) as $permission) {
+            if ($central || str_starts_with($permission, 'billing.') || $plan?->allowsRoutePermission($permission)) {
+                $allowed[$permission] = true;
+            }
+        }
+
+        return $allowed;
     }
 
     public function permissionsWithinActor(Account $actor, iterable $permissions): bool
@@ -68,7 +138,7 @@ class AccessManager
                 continue;
             }
 
-            if (! $permission instanceof Permission || $permission->guard_name !== 'web'
+            if (! $permission instanceof Permission || $permission->guard_name !== $actor->permissionGuardName()
                 || $permission->getConnection()->getName() !== $connection) {
                 return false;
             }
@@ -106,6 +176,29 @@ class AccessManager
         }
 
         return $query;
+    }
+
+    public function rolesForAssignment(Account $actor, array $roleIds, bool $allowOwner = true): \Illuminate\Database\Eloquent\Collection
+    {
+        $this->assertActorContext($actor);
+        $roles = Role::on($actor->getConnectionName())->where('guard_name', 'web')
+            ->whereIn('id', $roleIds)->orderBy('id')->lockForUpdate()->with('permissions')->get();
+
+        if ($roles->count() !== count($roleIds)) {
+            throw ValidationException::withMessages(['roles' => 'Select valid roles from this application.']);
+        }
+
+        foreach ($roles as $role) {
+            $allowed = $role->isReserved()
+                ? $allowOwner && $this->isOwner($actor)
+                : $this->roleWithinActor($actor, $role);
+
+            if (! $allowed) {
+                throw ValidationException::withMessages(['roles' => 'You cannot assign this role or grant greater access than your own.']);
+            }
+        }
+
+        return $roles;
     }
 
     public function transaction(Account $actor, Closure $operation): mixed

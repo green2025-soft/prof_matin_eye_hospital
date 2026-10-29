@@ -4,6 +4,7 @@ namespace Modules\Core\Policies;
 
 use Modules\Core\Enums\AccessPermission;
 use Modules\Core\Models\Account;
+use Modules\Core\Models\Admin;
 use Modules\Core\Services\AccessManager;
 
 class AccountPolicy
@@ -41,7 +42,8 @@ class AccountPolicy
 
     private function canManageTarget(Account $actor, Account $account): bool
     {
-        if (get_class($actor) !== get_class($account) || ! $this->access->actorMatchesContext($account)) {
+        $model = Account::modelForProvider($actor instanceof Admin ? 'admins' : 'users');
+        if (get_class($account) !== $model || ! $this->access->actorMatchesContext($account)) {
             return false;
         }
 

@@ -6,9 +6,11 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Modules\Core\Models\Account;
+use Modules\Core\Models\Admin;
 use Modules\Core\Models\Role;
 use Modules\Core\Models\Tenant;
 use Modules\Core\Policies\AccountPolicy;
@@ -21,8 +23,9 @@ class AccountService
     public function save(Account $actor, ?Model $record, #[SensitiveParameter] array $values): Model
     {
         $this->access->assertActorContext($actor);
+        $model = Account::modelForProvider($actor instanceof Admin ? 'admins' : 'users');
 
-        if ($record !== null && (! $record instanceof Account || get_class($record) !== get_class($actor))) {
+        if ($record !== null && (! $record instanceof Account || get_class($record) !== $model)) {
             throw new AuthorizationException;
         }
 
@@ -36,9 +39,10 @@ class AccountService
     {
         try {
             return $this->access->transaction($actor, function (Account $freshActor) use ($record, $values): Account {
+                $model = Account::modelForProvider($freshActor instanceof Admin ? 'admins' : 'users');
                 $target = $record?->exists
                     ? $record->newQuery()->whereKey($record->getKey())->lockForUpdate()->firstOrFail()
-                    : $freshActor->newInstance();
+                    : new $model;
 
                 $allowed = $target->exists
                     ? $this->policy->update($freshActor, $target)
@@ -55,17 +59,11 @@ class AccountService
                         throw new AuthorizationException;
                     }
 
-                    $roles = $this->assertRoleAssignments($freshActor, $values['roles'] ?? []);
+                    $roles = $this->access->rolesForAssignment($freshActor, $values['roles'] ?? []);
                     $this->assertOwnerRemains($target, $roles);
                 }
 
-                if (array_key_exists('name', $values)) {
-                    $target->name = $values['name'];
-                }
-
-                if (array_key_exists('email', $values)) {
-                    $target->email = $values['email'];
-                }
+                $target->fill(Arr::only($values, ['name', 'email', 'branch_id', 'redirect_url']));
 
                 $password = $values['password'] ?? null;
 
@@ -77,7 +75,16 @@ class AccountService
                 $target->save();
 
                 if ($roles !== null) {
-                    $target->syncRoles($roles);
+                    $currentRoles = $target->roles()->get(['id', 'name', 'guard_name']);
+                    $removedRoles = $currentRoles->diff($roles);
+                    $addedRoles = $roles->diff($currentRoles);
+
+                    if ($removedRoles->isNotEmpty()) {
+                        $target->removeRole($removedRoles);
+                    }
+                    if ($addedRoles->isNotEmpty()) {
+                        $target->assignRole($addedRoles);
+                    }
                 }
 
                 return $target->load(['roles.permissions', 'permissions']);
@@ -89,7 +96,8 @@ class AccountService
 
     public function delete(Account $actor, Model $record): void
     {
-        if (! $record instanceof Account || get_class($record) !== get_class($actor) || ! $record->exists) {
+        $model = Account::modelForProvider($actor instanceof Admin ? 'admins' : 'users');
+        if (! $record instanceof Account || get_class($record) !== $model || ! $record->exists) {
             throw new AuthorizationException;
         }
 
@@ -108,46 +116,37 @@ class AccountService
     public function formData(Account $actor, Model $record): array
     {
         $this->access->assertActorContext($actor);
+        $model = Account::modelForProvider($actor instanceof Admin ? 'admins' : 'users');
 
-        if (! $record instanceof Account || get_class($record) !== get_class($actor)) {
+        if (! $record instanceof Account || get_class($record) !== $model) {
             throw new AuthorizationException;
         }
 
         $canAssignRoles = $this->policy->assignRoles($actor, $record->exists ? $record : null);
+        $isTenantUser = ! $actor instanceof Admin;
+        $branches = new Collection;
+
+        if ($isTenantUser) {
+            $branches = $record->branch()->getRelated()->newQuery()->orderBy('name')->orderBy('id')->limit(100)->get(['id', 'name']);
+
+            if ($record->branch_id !== null && ! $branches->contains('id', $record->branch_id) && $record->branch !== null) {
+                $branches->push($record->branch);
+            }
+        }
 
         return [
             'account' => $record,
             'roles' => $canAssignRoles ? $this->assignableRoles($actor) : new Collection,
             'selectedRoles' => $record->roles->modelKeys(),
             'canAssignRoles' => $canAssignRoles,
+            'isTenantUser' => $isTenantUser,
+            'branches' => $branches,
         ];
     }
 
     private function assignableRoles(Account $actor): Collection
     {
         return $this->access->rolesQuery($actor)->orderBy('name')->orderBy('id')->get(['id', 'name', 'guard_name']);
-    }
-
-    private function assertRoleAssignments(Account $actor, array $roleIds): Collection
-    {
-        $roles = Role::on($actor->getConnectionName())->where('guard_name', 'web')
-            ->whereIn('id', $roleIds)->orderBy('id')->lockForUpdate()->with('permissions')->get();
-
-        if ($roles->count() !== count($roleIds)) {
-            throw ValidationException::withMessages(['roles' => 'Select valid roles from this application.']);
-        }
-
-        foreach ($roles as $role) {
-            $allowed = $role->isReserved()
-                ? $this->access->isOwner($actor)
-                : $this->access->roleWithinActor($actor, $role);
-
-            if (! $allowed) {
-                throw ValidationException::withMessages(['roles' => 'You cannot assign a role with greater access than your own.']);
-            }
-        }
-
-        return $roles;
     }
 
     private function assertOwnerRemains(Account $account, Collection $roles): void

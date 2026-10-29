@@ -29,12 +29,17 @@ class TenantPolicy
 
     public function update(Account $account, Tenant $tenant): bool
     {
-        return $this->permitted($account, PlatformPermission::UpdateTenants);
+        return $tenant->status !== Tenant::STATUS_DELETING && $this->permitted($account, PlatformPermission::UpdateTenants);
     }
 
     public function enter(Account $account, Tenant $tenant): bool
     {
         return $tenant->status === Tenant::STATUS_ACTIVE && $this->permitted($account, PlatformPermission::EnterTenants);
+    }
+
+    public function delete(Account $account, Tenant $tenant): bool
+    {
+        return $this->permitted($account, PlatformPermission::DeleteTenants);
     }
 
     private function permitted(Account $account, PlatformPermission $permission): bool

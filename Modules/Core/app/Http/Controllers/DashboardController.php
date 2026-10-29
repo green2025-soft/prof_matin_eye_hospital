@@ -3,6 +3,7 @@
 namespace Modules\Core\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -11,17 +12,22 @@ use Modules\Core\Models\Account;
 use Modules\Core\Models\Role;
 use Modules\Core\Models\Subscription;
 use Modules\Core\Models\Tenant;
+use Modules\Core\Services\AccessManager;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, AccessManager $access): View|RedirectResponse
     {
+        if ($request->attributes->get('application_provider') === 'users' && $request->routeIs('home')) {
+            return redirect()->route('tenantcore.module-dashboard.index');
+        }
+
         $actor = $request->user('web');
         abort_unless($actor instanceof Account, 403);
         $actor->loadMissing(['roles.permissions', 'permissions']);
 
-        $accountModel = get_class($actor);
         $central = $request->attributes->get('application_scope') === 'central';
+        $accountModel = Account::modelForProvider($central ? 'admins' : 'users');
         $subscription = $central ? null : Subscription::forTenant(Tenant::current());
         $request->attributes->set('application_subscription', $subscription);
         $plan = $subscription?->isUsable() ? $subscription->plan : null;
@@ -68,7 +74,11 @@ class DashboardController extends Controller
         if ($canViewRecent) {
             $query = $central
                 ? Tenant::query()->select(['id', 'name', 'slug', 'status', 'created_at'])
-                : $accountModel::query()->select(['id', 'name', 'email', 'created_at'])->with(['roles.permissions', 'permissions']);
+                : $accountModel::query()->select(['id', 'name', 'email', 'created_at']);
+
+            if (! $central && $canUpdateAccounts && ! $access->isOwner($actor)) {
+                $query->with(['roles.permissions', 'permissions']);
+            }
 
             $recentRecords = $query->orderByDesc('id')->limit(5)->get()->map(function ($record) use ($central, $recentRoutePrefix, $canUpdateAccounts): array {
                 return [
@@ -115,7 +125,8 @@ class DashboardController extends Controller
             'accountEmail' => $actor->email,
             'accountInitials' => Str::upper(Str::substr(trim($actor->name), 0, 2)),
             'accountRoles' => $actor->roles->where('guard_name', 'web')->pluck('name')->all(),
-            'accountEditUrl' => $canUpdateAccounts && Gate::allows('update', $actor) ? route($accountRoutePrefix.'.edit', $actor) : null,
+            'accountEditUrl' => ($central || $plan?->allowsRoutePermission($actor->profileUpdatePermission())) && Gate::allows('update', $actor)
+                ? route($actor->profileRoutePrefix().'.edit', $actor) : null,
         ]);
     }
 }

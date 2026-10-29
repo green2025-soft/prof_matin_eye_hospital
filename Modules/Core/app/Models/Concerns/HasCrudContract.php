@@ -10,9 +10,22 @@ trait HasCrudContract
 {
     use HandlesModelQueries;
 
+    protected array $selectorFilters = [];
+
+    protected array $filterableIds = [];
+
+    protected array $containsSearch = [];
+
+    protected string $defaultDirection = 'asc';
+
     public function writeTransaction(Account $actor, Closure $operation): mixed
     {
         return $this->getConnection()->transaction(fn (): mixed => $operation($actor), 3);
+    }
+
+    public function selectorFilters(): array
+    {
+        return $this->selectorFilters;
     }
 
     public function queryContract(): array
@@ -31,9 +44,12 @@ trait HasCrudContract
         return [
             'constraints' => $this->queryConstraints ?? [],
             'searchable' => $this->searchable ?? ['name'],
+            'containsSearch' => $this->containsSearch,
             'filterable' => $this->filterable ?? [],
+            'filterableIds' => $this->filterableIds,
             'sortable' => $this->sortable ?? ['name', 'id'],
             'defaultSort' => $this->defaultSort ?? 'name',
+            'defaultDirection' => $this->defaultDirection,
             'listColumns' => $columns,
             'listWith' => $with,
             'formWith' => $this->formWith ?? $with,

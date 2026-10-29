@@ -4,6 +4,36 @@ use Illuminate\Support\Str;
 use Illuminate\Support\ViewErrorBag;
 use Illuminate\View\ComponentAttributeBag;
 
+function commissionTypes(): array
+{
+    return ['iol' => 'IOL Commission', 'minor' => 'Minor Commission'];
+}
+
+function patientTypes(): array
+{
+    return ['new' => 'New', 'follow_up' => 'Follow Up'];
+}
+
+function eyeTypes(): array
+{
+    return ['left' => 'Left', 'right' => 'Right', 'both' => 'Both'];
+}
+
+function clinicalServiceOptions(): array
+{
+    return ['all' => 'All', 'consultation' => 'Consultation', 'investigation' => 'Investigation', 'operation' => 'Operation'];
+}
+
+function genders(): array
+{
+    return ['male' => 'Male', 'female' => 'Female', 'other' => 'Other'];
+}
+
+function bloodGroups(): array
+{
+    return ['A+' => 'A+', 'A-' => 'A-', 'B+' => 'B+', 'B-' => 'B-', 'AB+' => 'AB+', 'AB-' => 'AB-', 'O+' => 'O+', 'O-' => 'O-'];
+}
+
 function normalizeEmail(mixed $email): ?string
 {
     return is_string($email) ? Str::lower(trim($email)) : null;

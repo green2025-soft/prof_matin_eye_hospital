@@ -3,10 +3,13 @@
 namespace Modules\Core\Models;
 
 use Closure;
+use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Helpers\Money;
+use Modules\Core\Policies\InvoicePolicy;
 
+#[UsePolicy(InvoicePolicy::class)]
 class Invoice extends CoreModel
 {
     public const STATUS_DRAFT = 'draft';
@@ -46,6 +49,17 @@ class Invoice extends CoreModel
     protected function casts(): array
     {
         return ['tenant_id' => 'integer', 'subscription_id' => 'integer', 'subtotal_minor' => 'integer', 'total_minor' => 'integer', 'paid_minor' => 'integer', 'merchant_snapshot' => 'array', 'customer_snapshot' => 'array', 'due_at' => 'immutable_date', 'issued_at' => 'immutable_datetime', 'voided_at' => 'immutable_datetime', 'period_start' => 'immutable_datetime', 'period_end' => 'immutable_datetime'];
+    }
+
+    public function resolveRouteBindingQuery($query, $value, $field = null)
+    {
+        $query = parent::resolveRouteBindingQuery($query, $value, $field);
+
+        if ($tenant = Tenant::current()) {
+            $query->where($this->qualifyColumn('tenant_id'), $tenant->getKey());
+        }
+
+        return $query;
     }
 
     public function tenant(): BelongsTo
