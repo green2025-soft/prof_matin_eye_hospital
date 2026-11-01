@@ -3,6 +3,7 @@
 namespace Modules\Core\Services;
 
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\UploadedFile;
@@ -22,7 +23,7 @@ use Throwable;
 
 class TenantProvisioner
 {
-    public function __construct(private DatabaseInstaller $databases, private TenantAccounts $accounts, private AccessManager $access) {}
+    public function __construct(private DatabaseInstaller $databases, private TenantAccounts $accounts, private AccessManager $access, private Kernel $console) {}
 
     public function delete(Account $actor, Model $record): void
     {
@@ -208,6 +209,13 @@ class TenantProvisioner
                 $this->accounts->adoptOwner($tenant->owner_email);
             } else {
                 $this->accounts->createOwner($ownerName, $tenant->owner_email, $password);
+
+                // Seed fresh tenant databases only; adoption preserves existing business data.
+                $status = $this->console->call('db:seed', ['--database' => 'tenant', '--force' => true]);
+
+                if ($status !== 0) {
+                    throw new RuntimeException('Tenant catalog initialization failed. Retry tenant setup.');
+                }
             }
         });
     }

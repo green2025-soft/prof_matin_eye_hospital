@@ -1,0 +1,17 @@
+{
+    "version": "2026-10-31-v1",
+    "file": "catalog-2026-10-31-v1.json",
+    "sha256": "1d40497896372b303eee1d6f08a49ff34682f89ffbfbc36a58c482471854e1ad",
+    "counts": {
+        "categories": 460,
+        "dosages": 113,
+        "suppliers": 254,
+        "shelves": 41,
+        "units": 1,
+        "products": 1685,
+        "medicine": 1225,
+        "optic": 460,
+        "needs_setup": 1400
+    },
+    "scope": "Catalog masters and default prices only; no stock, balances, dues, transactions, patients, users or credentials."
+}

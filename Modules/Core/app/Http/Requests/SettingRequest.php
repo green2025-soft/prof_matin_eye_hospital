@@ -18,7 +18,11 @@ class SettingRequest extends BaseRequest
         return route(str_replace('.update', '.index', $this->route()->getName()), [
             'group' => $isPayment ? 'payments' : $group,
             'provider' => $isPayment ? $group : null,
-            'section' => $group === 'hospital' ? $this->hospitalSection() : null,
+            'section' => match ($group) {
+                'hospital' => $this->hospitalSection(),
+                'inventory' => $this->inventorySection(),
+                default => null,
+            },
         ]);
     }
 
@@ -40,6 +44,15 @@ class SettingRequest extends BaseRequest
             $values['data']['invoice_prefix'] = strtoupper($values['data']['invoice_prefix']);
         } elseif ($group === 'company' && array_key_exists('email', $values['data'])) {
             $values['data']['email'] = normalizeEmail($values['data']['email']) ?? '';
+        } elseif ($group === 'inventory') {
+            foreach (array_merge(['vat_enabled', 'medicine_sale_without_stock_enabled', 'optic_sale_without_stock_enabled'], config('settings.inventory_sections.items')) as $field) {
+                if (array_key_exists($field, $values['data'])) {
+                    $values['data'][$field] = $this->boolean('data.'.$field);
+                }
+            }
+            if (array_key_exists('vat_percent', $values['data'])) {
+                $values['data']['vat_percent'] = Money::decimal(Money::minor((string) $values['data']['vat_percent']));
+            }
         } elseif ($group === 'hospital') {
             foreach (['consultation_serial_enabled', 'consultation_invoice_enabled', 'reference_defaults_enabled', 'reference_percentages_enabled', 'reference_consultation_percent_enabled', 'reference_investigation_percent_enabled', 'reference_operation_percent_enabled', 'consultation_reference_enabled', 'investigation_reference_enabled', 'operation_reference_enabled'] as $field) {
                 if (array_key_exists($field, $values['data'])) {
@@ -64,15 +77,20 @@ class SettingRequest extends BaseRequest
         $setting = $this->record();
 
         $fields = config('settings.rules.'.$setting->group);
+        $sections = [];
         if ($setting->group === 'hospital') {
             $fields = Arr::only($fields, config('settings.hospital_sections')[$this->hospitalSection()]);
+            $sections = array_keys(config('settings.hospital_sections'));
+        } elseif ($setting->group === 'inventory') {
+            $fields = Arr::only($fields, config('settings.inventory_sections')[$this->inventorySection()]);
+            $sections = array_keys(config('settings.inventory_sections'));
         }
         $credentials = config('settings.credentials.'.$setting->group, []);
         $configured = $setting->configuredCredentials();
         $enabled = in_array($this->input('data.enabled'), [1, '1', true], true);
         $rules = [
             'group' => ['missing'],
-            'section' => $setting->group === 'hospital' ? ['required', Rule::in(array_keys(config('settings.hospital_sections')))] : ['missing'],
+            'section' => $sections === [] ? ['missing'] : ['required', Rule::in($sections)],
             'secrets' => ['missing'],
             'logo_path' => ['missing'],
             'favicon_path' => ['missing'],
@@ -108,6 +126,15 @@ class SettingRequest extends BaseRequest
                 }
                 $rules['data.'.$prefix.'_pattern'][] = function (string $attribute, mixed $value, \Closure $fail) use ($prefix): void {
                     $this->validateHospitalNumberPattern($prefix, $value, $fail);
+                };
+            }
+        } elseif ($setting->group === 'inventory') {
+            foreach (config('settings.inventory_sections.numbering') as $field) {
+                if (! isset($rules['data.'.$field])) {
+                    continue;
+                }
+                $rules['data.'.$field][] = function (string $attribute, mixed $value, \Closure $fail) use ($field): void {
+                    $this->validateInventoryNumberPattern($value, $field === 'payment_invoice_pattern' ? 40 : 80, $fail);
                 };
             }
         }
@@ -151,6 +178,42 @@ class SettingRequest extends BaseRequest
         $section = $this->input('section', 'patient');
 
         return is_string($section) && array_key_exists($section, config('settings.hospital_sections')) ? $section : 'patient';
+    }
+
+    private function inventorySection(): string
+    {
+        $section = $this->input('section', 'general');
+
+        return is_string($section) && array_key_exists($section, config('settings.inventory_sections')) ? $section : 'general';
+    }
+
+    private function validateInventoryNumberPattern(string $pattern, int $maximumLength, \Closure $fail): void
+    {
+        if (! preg_match('/\A(?:[\p{L}\p{N} ._\/-]|\{(?:YYYY|MM|DD|BRANCH|PRODUCT|SEQ(?::(?:[1-9]|1[0-2]))?)\})+\z/u', $pattern)) {
+            $fail('Use letters, numbers, spaces, . _ / -, and supported numbering tokens only.');
+
+            return;
+        }
+        if (preg_match_all('/\{SEQ(?::(?:[1-9]|1[0-2]))?\}/', $pattern) !== 1) {
+            $fail('Include exactly one {SEQ} or {SEQ:1} to {SEQ:12} token.');
+
+            return;
+        }
+        if (! str_contains($pattern, '{BRANCH}')) {
+            $fail('Include {BRANCH} in the invoice pattern.');
+
+            return;
+        }
+
+        $rendered = str_replace(
+            ['{YYYY}', '{MM}', '{DD}', '{BRANCH}', '{PRODUCT}'],
+            ['9999', '99', '99', str_repeat('9', 20), 'MED'],
+            $pattern,
+        );
+        $rendered = preg_replace('/\{SEQ(?::(?:[1-9]|1[0-2]))?\}/', str_repeat('9', 12), $rendered);
+        if (mb_strlen($rendered) > $maximumLength) {
+            $fail('The generated number must fit within '.$maximumLength.' characters. Shorten the pattern.');
+        }
     }
 
     private function validateHospitalNumberPattern(string $prefix, string $pattern, \Closure $fail): void

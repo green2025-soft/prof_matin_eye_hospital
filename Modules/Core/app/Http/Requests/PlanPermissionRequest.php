@@ -3,6 +3,7 @@
 namespace Modules\Core\Http\Requests;
 
 use Illuminate\Validation\Rule;
+use Modules\Core\Services\PermissionCatalog;
 
 class PlanPermissionRequest extends BaseRequest
 {
@@ -15,8 +16,8 @@ class PlanPermissionRequest extends BaseRequest
         return [
             'route_permissions_present' => ['required', 'in:1'],
             'unrestricted_route_access' => ['required', 'boolean'],
-            'route_permissions' => ['present', 'array', 'max:50'],
-            'route_permissions.*' => ['required', 'string', 'distinct', Rule::in(config('permissions.tenant_routes'))],
+            'route_permissions' => ['present', 'array', 'max:'.count(PermissionCatalog::tenantPermissions())],
+            'route_permissions.*' => ['required', 'string', 'distinct', Rule::in(PermissionCatalog::tenantPermissions())],
         ];
     }
 

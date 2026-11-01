@@ -1,5 +1,6 @@
 {
     "Core": true,
     "TenantCore": true,
-    "Hospital": true
+    "Hospital": true,
+    "Inventory": true
 }

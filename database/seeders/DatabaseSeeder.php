@@ -4,6 +4,9 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Modules\Core\Models\Tenant;
+use Modules\Inventory\Database\Seeders\InventoryDatabaseSeeder;
+use Nwidart\Modules\Facades\Module;
 
 class DatabaseSeeder extends Seeder
 {
@@ -14,6 +17,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Register module seeders here once the modules are implemented.
+        if (Tenant::checkCurrent() && Module::isEnabled('Inventory')) {
+            $this->call(InventoryDatabaseSeeder::class);
+        }
     }
 }

@@ -41,6 +41,7 @@ return [
             base_path('Modules/Core/database/migrations/shared'),
             base_path('Modules/TenantCore/database/migrations'),
             base_path('Modules/Hospital/database/migrations'),
+            base_path('Modules/Inventory/database/migrations'),
         ], 'is_dir')),
     ],
 ];

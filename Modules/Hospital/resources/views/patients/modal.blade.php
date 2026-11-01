@@ -12,7 +12,7 @@
                     <div data-patient-modal-content></div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-warning" type="button" data-bs-dismiss="modal">Cancel</button>
                     <button class="btn btn-primary" type="submit" data-patient-modal-save disabled><i class="fa-solid fa-check me-2" aria-hidden="true"></i>Save</button>
                 </div>
             </form>

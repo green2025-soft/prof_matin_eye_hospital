@@ -105,7 +105,7 @@ class AccessManager
         if ($this->isOwner($actor)) {
             $permissions = array_merge(
                 array_column(AccessPermission::cases(), 'value'),
-                $central ? array_column(PlatformPermission::cases(), 'value') : array_values(config('permissions.tenant_routes', [])),
+                $central ? array_column(PlatformPermission::cases(), 'value') : PermissionCatalog::tenantPermissions(),
             );
         } else {
             $permissions = $this->permissionNames($actor)->all();

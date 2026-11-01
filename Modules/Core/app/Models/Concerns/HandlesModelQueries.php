@@ -155,7 +155,7 @@ trait HandlesModelQueries
         return $query->simplePaginate(20, $columns, 'page', $filters['page'] ?? 1);
     }
 
-    private function applySearch(Builder $query, string $search, array $fields, array $containsSearch): void
+    protected function applySearch(Builder $query, string $search, array $fields, array $containsSearch): void
     {
         $escaped = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search);
         $query->where(function (Builder $searchQuery) use ($fields, $escaped, $containsSearch): void {

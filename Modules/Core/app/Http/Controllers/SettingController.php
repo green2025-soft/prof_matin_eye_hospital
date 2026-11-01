@@ -43,9 +43,13 @@ class SettingController extends BaseController
         $setting = Setting::query()->where('group', $group)->firstOrFail();
         $isPayment = in_array($setting->group, $paymentGroups, true);
         $hospitalSection = null;
+        $inventorySection = null;
         if ($setting->group === 'hospital') {
             $hospitalSection = $request->query('section', 'patient');
             abort_unless(is_string($hospitalSection) && array_key_exists($hospitalSection, config('settings.hospital_sections')), 404);
+        } elseif ($setting->group === 'inventory') {
+            $inventorySection = $request->query('section', 'general');
+            abort_unless(is_string($inventorySection) && array_key_exists($inventorySection, config('settings.inventory_sections')), 404);
         }
 
         return $this->listData($request, $this->groupData($setting) + [
@@ -53,6 +57,7 @@ class SettingController extends BaseController
             'activeGroup' => $isPayment ? 'payments' : $setting->group,
             'activeProvider' => $isPayment ? $setting->group : null,
             'activeHospitalSection' => $hospitalSection,
+            'activeInventorySection' => $inventorySection,
             'isPlatform' => $request->attributes->get('application_scope') === 'central',
             'formAction' => route($this->routePrefix().'.update', $setting),
             'canUpdate' => Gate::forUser($request->user('web'))->allows('update', $setting),
@@ -120,13 +125,19 @@ class SettingController extends BaseController
     {
         $group = $record instanceof Setting ? $record->group : 'company';
         $isPayment = in_array($group, config('settings.payment_groups'), true);
-        $section = request()->input('section', 'patient');
-        $section = is_string($section) && array_key_exists($section, config('settings.hospital_sections')) ? $section : 'patient';
+        $section = null;
+        if ($group === 'hospital') {
+            $section = request()->input('section', 'patient');
+            $section = is_string($section) && array_key_exists($section, config('settings.hospital_sections')) ? $section : 'patient';
+        } elseif ($group === 'inventory') {
+            $section = request()->input('section', 'general');
+            $section = is_string($section) && array_key_exists($section, config('settings.inventory_sections')) ? $section : 'general';
+        }
 
         return redirect()->route($this->routePrefix().'.index', [
             'group' => $isPayment ? 'payments' : $group,
             'provider' => $isPayment ? $group : null,
-            'section' => $group === 'hospital' ? $section : null,
+            'section' => $section,
         ]);
     }
 

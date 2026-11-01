@@ -17,7 +17,6 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Number;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 use Modules\Core\Helpers\Money;
@@ -638,11 +637,11 @@ class ClinicalEntryService
             'remainingDue' => Money::decimal($state['remaining_due']),
             'remarks' => $isRefund || $isCollection ? $document->remarks : $source->getAttribute('remarks'),
             'refundCause' => $isRefund ? $document->cause()->value('name') : null,
-            'amountWords' => $this->amountWords(match (true) {
+            'amountWords' => Money::words(Money::minor(match (true) {
                 $isRefund => Money::decimal($refundCredit),
                 $isCollection => $document->amount,
                 default => Money::decimal($state['remaining_amount']),
-            }),
+            })),
             'status' => $isCollection ? 'RECEIVED' : ($isRefund || ($state['credit'] > 0 && $state['remaining_amount'] === 0)
                 ? 'REFUNDED' : ($state['credit'] > 0 ? 'PARTIALLY REFUNDED' : ($state['remaining_due'] > 0 ? 'DUE' : 'PAID'))),
             'backUrl' => route($routePrefix.'.index'),
@@ -1182,17 +1181,6 @@ class ClinicalEntryService
             'eye' => null,
             'amount' => $source->amount,
         ]];
-    }
-
-    private function amountWords(string $amount): string
-    {
-        $minor = Money::minor($amount);
-        $words = ucfirst(Number::spell(intdiv($minor, 100), locale: 'en')).' taka';
-        if ($minor % 100 > 0) {
-            $words .= ' and '.Number::spell($minor % 100, locale: 'en').' paisa';
-        }
-
-        return $words.' only.';
     }
 
     private function assignNumbers(BaseModel $entry, string $resource, string $date, ?int $doctorId = null): void

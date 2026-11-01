@@ -2,6 +2,7 @@
 
 namespace Modules\Core\Helpers;
 
+use Illuminate\Support\Number;
 use InvalidArgumentException;
 
 final class Money
@@ -17,12 +18,28 @@ final class Money
 
     public static function decimal(int|string $minor): string
     {
-        if (! preg_match('/^\d{1,65}$/D', (string) $minor)) {
+        if (! preg_match('/^-?\d{1,65}$/D', (string) $minor)) {
+            throw new InvalidArgumentException('Use a whole amount in minor currency units.');
+        }
+
+        $digits = ltrim((string) $minor, '-0');
+        $sign = str_starts_with((string) $minor, '-') && $digits !== '' ? '-' : '';
+        $digits = str_pad($digits, 3, '0', STR_PAD_LEFT);
+
+        return $sign.substr($digits, 0, -2).'.'.substr($digits, -2);
+    }
+
+    public static function words(int $minor): string
+    {
+        if ($minor < 0) {
             throw new InvalidArgumentException('Use a nonnegative amount in minor currency units.');
         }
 
-        $digits = str_pad(ltrim((string) $minor, '0'), 3, '0', STR_PAD_LEFT);
+        $words = ucfirst(Number::spell(intdiv($minor, 100), locale: 'en')).' taka';
+        if ($minor % 100 > 0) {
+            $words .= ' and '.Number::spell($minor % 100, locale: 'en').' paisa';
+        }
 
-        return substr($digits, 0, -2).'.'.substr($digits, -2);
+        return $words.' only.';
     }
 }

@@ -7,13 +7,20 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Modules\Hospital\Contracts\InventoryCustomers;
 use Modules\Hospital\Models\Doctor;
 use Modules\Hospital\Services\HospitalUserProvider;
+use Modules\Hospital\Services\PatientService;
 use Modules\Hospital\View\Composers\MenuComposer;
 use Spatie\Permission\Models\Permission;
 
 class HospitalServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        $this->app->bind(InventoryCustomers::class, PatientService::class);
+    }
+
     public function boot(): void
     {
         Event::listen(['eloquent.saved: '.Permission::class, 'eloquent.deleted: '.Permission::class], static function (Permission $permission): void {

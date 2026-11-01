@@ -11,6 +11,7 @@
         <button class="nav-link{{ $activeGroup === 'email' ? ' active' : '' }}" type="submit" name="group" value="email" aria-pressed="{{ $activeGroup === 'email' ? 'true' : 'false' }}">Email</button>
         @if (! $isPlatform)
             <button class="nav-link{{ $activeGroup === 'hospital' ? ' active' : '' }}" type="submit" name="group" value="hospital" aria-pressed="{{ $activeGroup === 'hospital' ? 'true' : 'false' }}">Hospital</button>
+            <button class="nav-link{{ $activeGroup === 'inventory' ? ' active' : '' }}" type="submit" name="group" value="inventory" aria-pressed="{{ $activeGroup === 'inventory' ? 'true' : 'false' }}">Inventory</button>
         @endif
         @if ($isPlatform)
             <button class="nav-link{{ $activeGroup === 'billing' ? ' active' : '' }}" type="submit" name="group" value="billing" aria-pressed="{{ $activeGroup === 'billing' ? 'true' : 'false' }}">Billing</button>
@@ -31,6 +32,15 @@
             <button class="btn btn-sm {{ $activeHospitalSection === 'operation' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="operation" aria-pressed="{{ $activeHospitalSection === 'operation' ? 'true' : 'false' }}">Operation</button>
             <button class="btn btn-sm {{ $activeHospitalSection === 'refund' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="refund" aria-pressed="{{ $activeHospitalSection === 'refund' ? 'true' : 'false' }}">Refund</button>
             <button class="btn btn-sm {{ $activeHospitalSection === 'due_collection' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="due_collection" aria-pressed="{{ $activeHospitalSection === 'due_collection' ? 'true' : 'false' }}">Due Collection</button>
+        </form>
+    @endif
+
+    @if ($activeGroup === 'inventory')
+        <form class="d-flex flex-wrap gap-2 mb-3" action="{{ route($routePrefix.'.index') }}" method="GET" aria-label="Inventory settings sections">
+            <input name="group" type="hidden" value="inventory">
+            <button class="btn btn-sm {{ $activeInventorySection === 'general' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="general" aria-pressed="{{ $activeInventorySection === 'general' ? 'true' : 'false' }}">General</button>
+            <button class="btn btn-sm {{ $activeInventorySection === 'numbering' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="numbering" aria-pressed="{{ $activeInventorySection === 'numbering' ? 'true' : 'false' }}">Numbering</button>
+            <button class="btn btn-sm {{ $activeInventorySection === 'items' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="items" aria-pressed="{{ $activeInventorySection === 'items' ? 'true' : 'false' }}">Item fields</button>
         </form>
     @endif
 

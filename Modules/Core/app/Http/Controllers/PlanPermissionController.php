@@ -40,7 +40,7 @@ class PlanPermissionController extends BaseController
             $plans->push($selected);
         }
 
-        $permissions = array_values(array_unique(config('permissions.tenant_routes')));
+        $permissions = PermissionCatalog::tenantPermissions();
         $unrestricted = $selected !== null && $selected->route_permissions === null;
 
         return $this->listData($request, [

@@ -1,0 +1,17 @@
+{
+    "name": "Inventory",
+    "alias": "inventory",
+    "description": "Medicine and optic inventory, purchasing, sales and stock movements.",
+    "tenant_dashboard": {
+        "label": "Inventory",
+        "icon": "boxes-stacked",
+        "route": "inventory.dashboard",
+        "permission": "inventory.view"
+    },
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Inventory\\Providers\\InventoryServiceProvider"
+    ],
+    "files": []
+}

@@ -10,6 +10,14 @@ use Spatie\Permission\Models\Permission;
 
 class PermissionCatalog
 {
+    public static function tenantPermissions(): array
+    {
+        return array_values(array_unique(array_merge(
+            array_values(config('permissions.tenant_routes', [])),
+            config('permissions.tenant_permissions', []),
+        )));
+    }
+
     public function areas(array $permissions): array
     {
         $groups = config('permissions.groups', []);
@@ -43,7 +51,7 @@ class PermissionCatalog
         if ($platform) {
             $catalog = array_merge($catalog, array_column(PlatformPermission::cases(), 'value'));
         } else {
-            $catalog = array_merge($catalog, array_values(config('permissions.tenant_routes', [])));
+            $catalog = array_merge($catalog, static::tenantPermissions());
         }
 
         $permissions = [];

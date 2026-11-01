@@ -95,37 +95,22 @@ class Setting extends BaseModel
         }
 
         if ($group === 'branding') {
-            $database = (new static)->setConnection($connection)->getConnection();
-            $read = static fn (): array => static::on($database->getName())->where('group', 'branding')
-                ->first(['group', 'data'])?->publicValues() ?? static::defaults('branding');
-
-            // Transactional reads must never publish uncommitted settings to the shared cache.
-            return $database->transactionLevel() > 0 ? $read()
-                : Cache::store('branding')->remember(static::brandingCacheKey($database), 300, $read);
+            return static::brandingValues($connection);
         }
 
-        $record = static::on($connection)->where('group', $group)->first(['group', 'data', 'secrets']);
-        $values = $record?->publicValues() ?? static::defaults($group);
-        $secrets = $record?->secrets ?? [];
+        $record = static::on($connection)->where('group', $group)->first(['group', 'data', 'secrets'])
+            ?? (new static)->forceFill(['group' => $group]);
 
-        foreach (array_keys(config('settings.credentials.'.$group, [])) as $field) {
-            $values[$field] = is_string($secrets[$field] ?? null) ? $secrets[$field] : '';
-        }
-
-        return $values;
-    }
-
-    private static function brandingCacheKey(Connection $connection): string
-    {
-        return 'settings.branding.'.hash('sha256', $connection->getName().'|'.$connection->getDatabaseName());
+        return array_replace($record->publicValues(), $record->credentialValues());
     }
 
     public function publicValues(): array
     {
         $values = static::defaults($this->group);
+        $storedValues = $this->data ?? [];
 
         foreach ($values as $field => $default) {
-            $stored = $this->data[$field] ?? null;
+            $stored = $storedValues[$field] ?? null;
 
             if ((is_bool($default) && is_bool($stored)) || (is_string($default) && is_string($stored))) {
                 $values[$field] = $stored;
@@ -137,13 +122,35 @@ class Setting extends BaseModel
 
     public function configuredCredentials(): array
     {
-        $secrets = $this->secrets ?? [];
-        $configured = [];
+        return array_map(fn (string $value): bool => filled($value), $this->credentialValues());
+    }
 
-        foreach (array_keys(config('settings.credentials.'.$this->group, [])) as $field) {
-            $configured[$field] = is_string($secrets[$field] ?? null) && filled($secrets[$field]);
+    private function credentialValues(): array
+    {
+        $fields = array_keys(config('settings.credentials.'.$this->group, []));
+        $defaults = array_fill_keys($fields, '');
+        $stored = Arr::only($this->secrets ?? [], $fields);
+        $strings = array_filter($stored, 'is_string');
+
+        return array_replace($defaults, $strings);
+    }
+
+    private static function brandingValues(?string $connection): array
+    {
+        $database = (new static)->setConnection($connection)->getConnection();
+        $read = static fn (): array => static::on($database->getName())->where('group', 'branding')
+            ->first(['group', 'data'])?->publicValues() ?? static::defaults('branding');
+
+        // Transactional reads must never publish uncommitted settings to the shared cache.
+        if ($database->transactionLevel() > 0) {
+            return $read();
         }
 
-        return $configured;
+        return Cache::store('branding')->remember(static::brandingCacheKey($database), 300, $read);
+    }
+
+    private static function brandingCacheKey(Connection $connection): string
+    {
+        return 'settings.branding.'.hash('sha256', $connection->getName().'|'.$connection->getDatabaseName());
     }
 }

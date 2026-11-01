@@ -2,9 +2,41 @@ import { Modal, Offcanvas } from 'bootstrap';
 import $ from 'jquery';
 import flatpickr from 'flatpickr';
 import attachSelect2 from 'select2';
+import toastr from 'toastr';
+import './inventory';
 
 window.$ = window.jQuery = $;
 attachSelect2(window, $);
+
+toastr.options = {
+    toastClass: 'app-toast',
+    positionClass: 'toast-top-right',
+    escapeHtml: true,
+    closeButton: true,
+    closeHtml: '<button type="button" aria-label="Close notification">&times;</button>',
+    progressBar: true,
+    preventDuplicates: true,
+    newestOnTop: true,
+    timeOut: 5000,
+    extendedTimeOut: 1500,
+    showDuration: 150,
+    hideDuration: 150,
+};
+
+window.showToast = function (message, type = 'info') {
+    const text = String(message ?? '').trim();
+    if (!text) return;
+    const toastType = ['success', 'error', 'warning', 'info'].includes(type) ? type : 'info';
+
+    return toastr[toastType](text);
+};
+
+$(() => {
+    document.querySelectorAll('[data-toast-message]').forEach(element => {
+        window.showToast(element.dataset.toastMessage, element.dataset.toastType);
+        element.remove();
+    });
+});
 
 window.initAjaxSelects = function (root = document) {
     $(root).find('select[data-ajax-select]').addBack('select[data-ajax-select]').each(function () {
@@ -420,7 +452,7 @@ $(document).on('show.bs.modal', '#patient-create-modal', function (event) {
     }).fail((xhr, status) => {
         if (status !== 'abort') {
             $content.empty();
-            showPatientModalError(modal, patientRequestError(xhr.status));
+            window.showToast(patientRequestError(xhr.status), 'error');
         }
     }).always(() => {
         if (patientFieldsRequest === request) {
@@ -478,7 +510,7 @@ $(document).on('submit', '[data-patient-create-form]', function (event) {
         if (xhr.status !== 201 || !validId || typeof patient.name !== 'string'
             || !patient.name.trim() || typeof patient.patient_id !== 'string' || !patient.patient_id.trim()
             || typeof patient.text !== 'string' || !patient.text.trim()) {
-            showPatientModalError(modal, 'The patient response could not be read. Refresh the page before trying again.');
+            window.showToast('The patient response could not be read. Refresh the page before trying again.', 'error');
             return;
         }
 
@@ -492,11 +524,13 @@ $(document).on('submit', '[data-patient-create-form]', function (event) {
         $select.trigger({ type: 'select2:select', params: { data } });
         resetFormSubmission(form);
         Modal.getOrCreateInstance(modal).hide();
-    }).fail(xhr => {
+        window.showToast('Patient created.', 'success');
+    }).fail((xhr, status) => {
+        if (status === 'abort') return;
         if (xhr.status === 422) {
             showPatientValidationErrors(form, xhr.responseJSON?.errors);
         } else {
-            showPatientModalError(modal, patientRequestError(xhr.status));
+            window.showToast(patientRequestError(xhr.status), 'error');
         }
     }).always(() => resetFormSubmission(form));
 });
@@ -1613,37 +1647,58 @@ function initializePaymentProvider(select) {
 
 $(document).on('click', '[data-print]', () => window.print());
 
-$(() => {
-    $('[data-datepicker]').each((_, element) => flatpickr(element, {
-        wrap: true,
-        dateFormat: 'Y-m-d',
-        allowInput: true,
-        disableMobile: true,
-    }));
-    $('[data-timepicker]').each((_, element) => flatpickr(element, {
-        wrap: true,
-        enableTime: true,
-        noCalendar: true,
-        dateFormat: 'H:i',
-        altInput: true,
-        altFormat: 'G:i K',
-        time_24hr: false,
-        allowInput: true,
-        disableMobile: true,
-        onReady(_, __, picker) {
-            const { input, altInput } = picker;
-            input.before(altInput);
-            altInput.id = input.id;
-            input.id += '_value';
-            altInput.autocomplete = 'off';
-            for (const attribute of ['aria-invalid', 'aria-describedby']) {
-                const value = input.getAttribute(attribute);
-                if (value !== null) {
-                    altInput.setAttribute(attribute, value);
+window.initDateTimePickers = function (root = document) {
+    $(root).find('[data-datepicker]').addBack('[data-datepicker]').each((_, element) => {
+        if (element._flatpickr || element.querySelector('[data-input]')?._flatpickr) return;
+
+        flatpickr(element, {
+            wrap: true,
+            dateFormat: 'Y-m-d',
+            allowInput: true,
+            disableMobile: true,
+        });
+    });
+    $(root).find('[data-timepicker]').addBack('[data-timepicker]').each((_, element) => {
+        if (element._flatpickr || element.querySelector('[data-input]')?._flatpickr) return;
+
+        flatpickr(element, {
+            wrap: true,
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: 'H:i',
+            altInput: true,
+            altFormat: 'G:i K',
+            time_24hr: false,
+            allowInput: true,
+            disableMobile: true,
+            onReady(_, __, picker) {
+                const { input, altInput } = picker;
+                input.before(altInput);
+                altInput.id = input.id;
+                input.id += '_value';
+                altInput.autocomplete = 'off';
+                for (const attribute of ['aria-invalid', 'aria-describedby']) {
+                    const value = input.getAttribute(attribute);
+                    if (value !== null) {
+                        altInput.setAttribute(attribute, value);
+                    }
                 }
-            }
-        },
-    }));
+            },
+        });
+    });
+};
+
+$(() => {
+    const saleInvoicePaper = document.getElementById('inventory-sale-invoice-paper');
+    const salePosWidth = document.querySelector('[data-inventory-pos-width]');
+    if (saleInvoicePaper && salePosWidth) {
+        const updatePosWidth = () => {
+            salePosWidth.hidden = saleInvoicePaper.value !== 'pos' && !salePosWidth.querySelector('.is-invalid');
+        };
+        saleInvoicePaper.addEventListener('change', updatePosWidth);
+        updatePosWidth();
+    }
+    window.initDateTimePickers();
     $('[data-clinical-entry]').each((_, form) => initializeClinicalEntry(form));
     $('[data-refund-form]').each((_, form) => initializeRefundForm(form));
     $('[data-due-collection-form]').each((_, form) => initializeDueCollectionForm(form));

@@ -3,21 +3,159 @@
 namespace Modules\Hospital\Services;
 
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Setting;
 use Modules\Core\Models\Subscription;
 use Modules\Core\Models\Tenant;
 use Modules\Core\Services\AccessManager;
+use Modules\Hospital\Contracts\InventoryCustomers;
 use Modules\Hospital\Models\Patient;
 
-class PatientService
+class PatientService implements InventoryCustomers
 {
     public function __construct(private AccessManager $access) {}
+
+    public function paginate(Account $actor, array $filters): LengthAwarePaginator
+    {
+        $this->authorizeInventoryCustomers($actor);
+        $size = $filters['per_page'] ?? config('pagination.default');
+        $all = $size === 'all';
+        $size = $all ? 'all' : (int) $size;
+        if (! in_array($size, config('pagination.options'), true)) {
+            $size = config('pagination.default');
+        }
+        $records = $this->inventoryCustomerQuery($filters['search'] ?? '', false)
+            ->orderBy('name')->orderBy('id')
+            ->paginate($all ? fn (int $total): int => max(1, $total) : $size, ['*'], 'page', $all ? 1 : max(1, (int) ($filters['page'] ?? 1)))
+            ->appends(['search' => $filters['search'] ?? '', 'per_page' => $size]);
+        $records->setCollection($records->getCollection()->map($this->customerOption(...)));
+
+        return $records;
+    }
+
+    public function search(Account $actor, string $search, bool $customersOnly, int $page = 1, ?QueryBuilder $eligibleIds = null): array
+    {
+        $this->authorizeInventoryCustomers($actor);
+        $query = $this->inventoryCustomerQuery($search, $customersOnly);
+        if ($eligibleIds !== null) {
+            $query->whereIn('id', $eligibleIds);
+        }
+        $records = $query->orderBy('name')->orderBy('id')->simplePaginate(20, ['*'], 'page', max(1, $page));
+
+        return ['results' => $records->getCollection()->map($this->customerOption(...))->all(), 'pagination' => ['more' => $records->hasMorePages()]];
+    }
+
+    private function inventoryCustomerQuery(string $search, bool $customersOnly): Builder
+    {
+        $query = Patient::withoutGlobalScope('branch')->select(['id', 'patient_id', 'name', 'mobile_no', 'type']);
+
+        if ($customersOnly) {
+            $query->where('type', 'customer');
+        }
+        if ($search !== '') {
+            $term = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], mb_substr($search, 0, 80));
+            $query->where(function ($query) use ($term): void {
+                $query->whereRaw("name LIKE ? ESCAPE '!'", [$term.'%'])->orWhereRaw("mobile_no LIKE ? ESCAPE '!'", [$term.'%'])
+                    ->orWhereRaw("patient_id LIKE ? ESCAPE '!'", ['%'.$term.'%']);
+            });
+        }
+
+        return $query;
+    }
+
+    public function findMany(Account $actor, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+        $this->authorizeInventoryCustomers($actor);
+
+        $customers = [];
+        foreach (array_chunk(array_unique($ids), 500) as $chunk) {
+            $records = Patient::withoutGlobalScope('branch')->whereIn('id', $chunk)
+                ->get(['id', 'patient_id', 'name', 'mobile_no', 'type']);
+            foreach ($records as $patient) {
+                $customers[$patient->id] = $this->customerOption($patient);
+            }
+        }
+
+        return $customers;
+    }
+
+    public function create(Account $actor, array $values, int $branchId): array
+    {
+        $values = Validator::make($values, [
+            'name' => ['required', 'string', 'max:255'],
+            'mobile_no' => ['required', 'string', 'max:30', 'regex:/\A(?=.*[0-9])[0-9+() .-]+\z/'],
+            'age' => ['nullable', 'integer', 'between:0,150'],
+            'gender' => ['nullable', Rule::in(array_keys(genders()))],
+            'address' => ['nullable', 'string', 'max:2000'],
+        ])->validate();
+
+        try {
+            return $this->access->transaction($actor, function (Account $freshActor) use ($values, $branchId): array {
+                $this->authorizeInventoryCustomers($freshActor, creating: true);
+                if ($branchId < 1 || $branchId !== (int) request()->attributes->get('branch_id')) {
+                    throw new AuthorizationException('Select a branch before creating a customer.');
+                }
+
+                $patient = new Patient;
+                $patient->branch_id = $branchId;
+                $patient->type = 'customer';
+                $patient->patient_id = $this->nextPatientId($patient);
+                $patient->fill($values)->save();
+
+                return $this->customerOption($patient);
+            });
+        } catch (UniqueConstraintViolationException $exception) {
+            if (str_contains($exception->errorInfo[2] ?? '', 'patients_patient_id_unique')) {
+                throw ValidationException::withMessages(['name' => 'The generated Patient ID already exists. Choose a distinct Patient ID pattern in Hospital settings.']);
+            }
+
+            throw $exception;
+        }
+    }
+
+    private function authorizeInventoryCustomers(Account $actor, bool $creating = false): void
+    {
+        $this->access->assertActorContext($actor);
+        $tenant = Tenant::current();
+        $subscription = $tenant === null ? null : Subscription::forTenant($tenant);
+        $plan = $subscription?->plan;
+        if (! $subscription?->isUsable() || ! $plan->allowsRoutePermission('inventory.view')
+            || (! $this->access->isOwner($actor) && ! $actor->can('inventory.view'))) {
+            throw new AuthorizationException('Inventory access is required.');
+        }
+
+        $permissions = $creating ? ['inventory-sales.create', 'inventory-customers.create'] : [
+            'inventory-sales.view', 'inventory-sales.create', 'inventory-sales.update',
+            'inventory-sale-returns.view', 'inventory-sale-returns.create', 'inventory-sale-returns.update',
+            'inventory-customers.view', 'inventory-payments.view', 'inventory-payments.create',
+            'inventory-reports.view',
+        ];
+        $allowed = array_map(fn (string $permission): bool => $plan->allowsRoutePermission($permission)
+            && ($this->access->isOwner($actor) || $actor->can($permission)), $permissions);
+
+        if ($creating ? in_array(false, $allowed, true) : ! in_array(true, $allowed, true)) {
+            throw new AuthorizationException('Your account or plan does not include this customer action.');
+        }
+    }
+
+    private function customerOption(Patient $patient): array
+    {
+        return $patient->only(['id', 'patient_id', 'name', 'mobile_no', 'type'])
+            + ['text' => $patient->patient_id.' — '.$patient->name.' — '.$patient->mobile_no];
+    }
 
     public function save(Account $actor, ?Patient $record, array $values, int $branchId): Patient
     {

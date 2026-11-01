@@ -5,11 +5,13 @@ namespace Modules\Core\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -38,6 +40,10 @@ abstract class BaseController extends Controller
     protected array $selectorFields = ['id', 'name'];
 
     protected array $uploads = [];
+
+    protected array $routeFilters = [];
+
+    protected array $defaultFilters = [];
 
     protected string $uploadDirectory = '';
 
@@ -94,7 +100,7 @@ abstract class BaseController extends Controller
 
     protected function listData(BaseRequest $request, ?array $data = null): View
     {
-        $filters = $request->validated();
+        $filters = array_replace($this->defaultFilters, array_filter($request->validated(), fn ($value): bool => $value !== null && $value !== ''));
         $model = $this->modelClass();
 
         $data = ($data ?? [
@@ -104,6 +110,7 @@ abstract class BaseController extends Controller
             'filters' => $filters,
             'pageTitle' => Str::plural($this->title),
             'routePrefix' => $this->routePrefix(),
+            'routeParameters' => $this->routeParameters(),
         ];
 
         if ($this->inlineForm) {
@@ -111,6 +118,23 @@ abstract class BaseController extends Controller
         }
 
         return view($this->views.'.index', $data);
+    }
+
+    protected function paginateQuery(Builder|QueryBuilder $query, array $validatedFilters, array $serverColumns = ['*']): LengthAwarePaginator
+    {
+        $size = $validatedFilters['per_page'] ?? config('pagination.default');
+        $size = $size === 'all' ? 'all' : (int) $size;
+        if (! in_array($size, config('pagination.options'), true)) {
+            $size = config('pagination.default');
+        }
+
+        $all = $size === 'all';
+        $page = $all ? 1 : max(1, (int) ($validatedFilters['page'] ?? 1));
+        $perPage = $all ? static fn (int $total): int => max(1, $total) : $size;
+        unset($validatedFilters['page']);
+        $validatedFilters['per_page'] = $size;
+
+        return $query->paginate($perPage, $serverColumns, 'page', $page)->appends($validatedFilters);
     }
 
     public function create(Request $request): View
@@ -159,7 +183,7 @@ abstract class BaseController extends Controller
             throw ValidationException::withMessages(['record' => 'This record is in use and cannot be deleted.']);
         }
 
-        return $this->redirectAfterWrite()->with('status', $this->title.' deleted.');
+        return $this->redirectAfterWrite($record)->with('status', $this->title.' deleted.');
     }
 
     protected function saveData(BaseRequest $request): RedirectResponse
@@ -229,10 +253,11 @@ abstract class BaseController extends Controller
 
         if ($this->inlineForm) {
             $model = $this->modelClass();
+            $filters = array_replace($this->defaultFilters, $this->routeParameters($record));
 
             return view($this->views.'.index', [
-                'records' => Gate::allows('viewAny', $model) ? (new $model)->paginateRecords([]) : null,
-                'filters' => [],
+                'records' => Gate::allows('viewAny', $model) ? (new $model)->paginateRecords($filters) : null,
+                'filters' => $filters,
                 'form' => $data,
             ] + $data);
         }
@@ -244,15 +269,19 @@ abstract class BaseController extends Controller
     {
         $record = $record->prepareForForm();
         $data = $this->formData($request->user('web'), $record);
+        $routeParameters = $this->routeParameters($record);
 
         return [
             ...$data,
             $this->parameter => $record,
-            'formAction' => $record->exists ? route($this->routePrefix().'.update', $record) : route($this->routePrefix().'.store'),
+            'formAction' => $record->exists
+                ? route($this->routePrefix().'.update', [$this->parameter => $record] + $routeParameters)
+                : route($this->routePrefix().'.store', $routeParameters),
             'formMethod' => $record->exists ? 'PUT' : 'POST',
-            'pageTitle' => ($record->exists ? 'Edit ' : 'Create ').Str::lower($this->title),
+            'pageTitle' => $data['pageTitle'] ?? ($record->exists ? 'Edit ' : 'Create ').Str::lower($this->title),
             'submitLabel' => $record->exists ? 'Update' : 'Save',
             'routePrefix' => $this->routePrefix(),
+            'routeParameters' => $routeParameters,
         ];
     }
 
@@ -270,17 +299,49 @@ abstract class BaseController extends Controller
         return $query->find($selectedId, $columns);
     }
 
+    protected function oldRows(string $field, array $defaults = [], int $limit = 100): array
+    {
+        $rows = old($field, $defaults);
+        if (! is_array($rows)) {
+            return [];
+        }
+        $rows = array_slice($rows, 0, $limit, true);
+        foreach ($rows as $index => $row) {
+            if (! is_array($row)) {
+                unset($rows[$index]);
+
+                continue;
+            }
+            $rows[$index] = array_filter($row, static fn ($value): bool => is_scalar($value) || $value === null);
+        }
+
+        return $rows;
+    }
+
     protected function redirectAfterWrite(?Model $record = null): RedirectResponse
     {
         if (Gate::allows('viewAny', $this->modelClass())) {
-            return redirect()->route($this->routePrefix().'.index');
+            return redirect()->route($this->routePrefix().'.index', $this->routeParameters($record));
         }
 
         if ($record && Gate::allows('update', $record)) {
-            return redirect()->route($this->routePrefix().'.edit', $record);
+            return redirect()->route($this->routePrefix().'.edit', [$this->parameter => $record] + $this->routeParameters($record));
         }
 
         return redirect()->route('home');
+    }
+
+    protected function routeParameters(?Model $record = null): array
+    {
+        $parameters = [];
+        foreach ($this->routeFilters as $queryKey => $column) {
+            $value = $record?->getAttribute($column) ?? request()->query($queryKey) ?? ($this->defaultFilters[$queryKey] ?? null);
+            if ((is_string($value) || is_int($value)) && filled($value)) {
+                $parameters[$queryKey] = $value;
+            }
+        }
+
+        return $parameters;
     }
 
     protected function routePrefix(): string

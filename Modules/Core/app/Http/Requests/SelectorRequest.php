@@ -2,6 +2,7 @@
 
 namespace Modules\Core\Http\Requests;
 
+use Illuminate\Validation\Rule;
 use Modules\Core\Models\Account;
 use Modules\Core\Services\AccessManager;
 
@@ -24,8 +25,15 @@ class SelectorRequest extends BaseRequest
         $rules = parent::rules();
         $model = $this->controller()->modelClass();
 
-        foreach ((new $model)->selectorFilters() as $field) {
-            $rules[$field] = ['nullable', 'integer', 'min:1'];
+        $instance = new $model;
+        $rules['search'] = $instance->queryRules()['search'];
+        $filters = $instance->queryContract()['filterable'];
+
+        foreach ($instance->selectorFilters() as $field) {
+            $choices = $filters[$field] ?? null;
+            $rules[$field] = is_array($choices)
+                ? ['nullable', Rule::in(array_is_list($choices) ? $choices : array_keys($choices))]
+                : ['nullable', 'integer', 'min:1'];
         }
 
         return $rules;
