@@ -40,7 +40,9 @@ class SettingController extends BaseController
             $group = $provider;
         }
 
-        $setting = Setting::query()->where('group', $group)->firstOrFail();
+        $setting = Setting::query()
+            ->where('group', $group)
+            ->firstOrFail();
         $isPayment = in_array($setting->group, $paymentGroups, true);
         $hospitalSection = null;
         $inventorySection = null;
@@ -60,7 +62,8 @@ class SettingController extends BaseController
             'activeInventorySection' => $inventorySection,
             'isPlatform' => $request->attributes->get('application_scope') === 'central',
             'formAction' => route($this->routePrefix().'.update', $setting),
-            'canUpdate' => Gate::forUser($request->user('web'))->allows('update', $setting),
+            'canUpdate' => Gate::forUser($request->user('web'))
+                ->allows('update', $setting),
         ]);
     }
 
@@ -91,24 +94,32 @@ class SettingController extends BaseController
 
                 $path = $disk->putFile('branding', $request->file($field));
                 if (! is_string($path)) {
-                    throw ValidationException::withMessages([$field => 'The image could not be stored. Please try again.']);
+                    throw ValidationException::withMessages([
+                        $field => 'The image could not be stored. Please try again.',
+                    ]);
                 }
 
                 $uploads[$field.'_path'] = $path;
             }
 
             $setting->writeTransaction($request->user('web'), function (Account $actor) use ($setting, $request, $disk, $uploads, &$committed): void {
-                $target = $setting->newQuery()->whereKey($setting->getKey())->lockForUpdate()->firstOrFail();
-                Gate::forUser($actor)->authorize('update', $target);
+                $target = $setting->newQuery()
+                    ->whereKey($setting->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                Gate::forUser($actor)
+                    ->authorize('update', $target);
                 $previous = Arr::only($target->publicValues(), array_keys($uploads));
                 $values = $request->payload();
                 $values['data'] = array_replace($values['data'], $uploads);
-                $target->fill($values)->save();
+                $target->fill($values)
+                    ->save();
 
-                $target->getConnection()->afterCommit(function () use ($disk, $previous, &$committed): void {
-                    $committed = true;
-                    $disk->delete(array_values(array_filter($previous)));
-                });
+                $target->getConnection()
+                    ->afterCommit(function () use ($disk, $previous, &$committed): void {
+                        $committed = true;
+                        $disk->delete(array_values(array_filter($previous)));
+                    });
             });
         } catch (Throwable $exception) {
             if (! $committed) {
@@ -118,7 +129,8 @@ class SettingController extends BaseController
             throw $exception;
         }
 
-        return $this->redirectAfterWrite($setting)->with('status', 'Branding updated.');
+        return $this->redirectAfterWrite($setting)
+            ->with('status', 'Branding updated.');
     }
 
     protected function redirectAfterWrite(?Model $record = null): RedirectResponse
@@ -127,18 +139,21 @@ class SettingController extends BaseController
         $isPayment = in_array($group, config('settings.payment_groups'), true);
         $section = null;
         if ($group === 'hospital') {
-            $section = request()->input('section', 'patient');
+            $section = request()
+                ->input('section', 'patient');
             $section = is_string($section) && array_key_exists($section, config('settings.hospital_sections')) ? $section : 'patient';
         } elseif ($group === 'inventory') {
-            $section = request()->input('section', 'general');
+            $section = request()
+                ->input('section', 'general');
             $section = is_string($section) && array_key_exists($section, config('settings.inventory_sections')) ? $section : 'general';
         }
 
-        return redirect()->route($this->routePrefix().'.index', [
-            'group' => $isPayment ? 'payments' : $group,
-            'provider' => $isPayment ? $group : null,
-            'section' => $section,
-        ]);
+        return redirect()
+            ->route($this->routePrefix().'.index', [
+                'group' => $isPayment ? 'payments' : $group,
+                'provider' => $isPayment ? $group : null,
+                'section' => $section,
+            ]);
     }
 
     private function groupData(Setting $setting): array
@@ -152,12 +167,20 @@ class SettingController extends BaseController
             'groupLabel' => $group['label'],
             'groupDescription' => $group['description'],
             'groupIcon' => $group['icon'],
-            'values' => ['data' => $values],
+            'values' => [
+                'data' => $values,
+            ],
             'credentialFields' => config('settings.credentials.'.$setting->group, []),
             'configuredCredentials' => $configured,
             'timezones' => $setting->group === 'general' ? DateTimeZone::listIdentifiers() : [],
-            'logoUrl' => ! empty($values['logo_path']) ? Storage::disk('public')->url($values['logo_path']) : null,
-            'faviconUrl' => ! empty($values['favicon_path']) ? Storage::disk('public')->url($values['favicon_path']) : null,
+            'logoUrl' => ! empty($values['logo_path'])
+                ? Storage::disk('public')
+                    ->url($values['logo_path'])
+                : null,
+            'faviconUrl' => ! empty($values['favicon_path'])
+                ? Storage::disk('public')
+                    ->url($values['favicon_path'])
+                : null,
         ];
     }
 }

@@ -1,29 +1,29 @@
 @extends('core::layouts.app')
 
-@section('title', ucfirst($document->product_type).' Sales Return')
+@section('title', ucfirst($entry->product_type).' Sales Return')
 
 @section('content')
     <div class="app-print-hidden">
-        @include('core::partials.heading', ['title' => ucfirst($document->product_type).' '.$document->number])
+        @include('core::partials.heading', ['title' => ucfirst($entry->product_type).' '.$entry->number])
         <div class="d-flex flex-wrap gap-2 mb-3">
-            <a class="btn btn-outline-secondary btn-sm" href="{{ route($routePrefix.'.index', ['product_type' => $document->product_type]) }}">
+            <a class="btn btn-outline-secondary btn-sm" href="{{ route($routePrefix.'.index', ['product_type' => $entry->product_type]) }}">
                 <i class="fa-solid fa-arrow-left me-2" aria-hidden="true"></i>Back
             </a>
-            <button class="btn btn-primary btn-sm" type="button" data-inventory-print>
+            <button class="btn btn-primary btn-sm" type="button" data-print>
                 <i class="fa-solid fa-print me-2" aria-hidden="true"></i>Print
             </button>
-            @can('update', $document)
-                <a class="btn btn-outline-primary btn-sm" href="{{ route($routePrefix.'.edit', [$resourceParameter => $document, 'product_type' => $document->product_type]) }}"><i class="fa-solid fa-pen-to-square me-2" aria-hidden="true"></i>Edit</a>
+            @can('update', $entry)
+                <a class="btn btn-outline-primary btn-sm" href="{{ route($routePrefix.'.edit', [$resourceParameter => $entry, 'product_type' => $entry->product_type]) }}"><i class="fa-solid fa-pen-to-square me-2" aria-hidden="true"></i>Edit</a>
             @endcan
-            @can('delete', $document)
-                <form action="{{ route($routePrefix.'.destroy', [$resourceParameter => $document, 'product_type' => $document->product_type]) }}" method="POST" data-inventory-confirm="Delete this sales return and reverse its stock and amounts?">
+            @can('delete', $entry)
+                <form action="{{ route($routePrefix.'.destroy', [$resourceParameter => $entry, 'product_type' => $entry->product_type]) }}" method="POST" data-confirm="Delete this sales return and reverse its stock and amounts?">
                     @csrf
                     @method('DELETE')
                     <button class="btn btn-outline-danger btn-sm" type="submit"><i class="fa-solid fa-trash-can me-2" aria-hidden="true"></i>Delete</button>
                 </form>
             @endcan
             @if ($canVoid)
-                <form action="{{ route($routePrefix.'.void', [$resourceParameter => $document, 'product_type' => $document->product_type]) }}" method="POST" data-inventory-confirm="Void this sales return and reverse its stock and amounts?">
+                <form action="{{ route($routePrefix.'.void', [$resourceParameter => $entry, 'product_type' => $entry->product_type]) }}" method="POST" data-confirm="Void this sales return and reverse its stock and amounts?">
                     @csrf
                     <button class="btn btn-outline-danger btn-sm" type="submit">Void</button>
                 </form>
@@ -32,8 +32,8 @@
     </div>
 
     @php
-        $documentTitle = 'Sales Return';
-        $invoiceStatus = $document->voided_at ? 'VOID' : 'POSTED';
+        $invoiceTitle = 'Sales Return';
+        $invoiceStatus = $entry->voided_at ? 'VOID' : 'POSTED';
     @endphp
 
     <article class="app-card app-invoice-document app-clinical-invoice app-inventory-invoice" aria-labelledby="inventory-invoice-title">
@@ -53,31 +53,31 @@
             </div>
             <div>
                 @include('inventory::entries.partials.invoice-meta')
+                @include('inventory::entries.partials.invoice-payment-meta')
+                <dl class="app-clinical-invoice-meta mb-0">
+                    <div><dt>Original invoice</dt><dd>{{ $entry->sale->number }}</dd></div>
+                </dl>
             </div>
         </div>
 
-        @include('inventory::entries.partials.invoice-financial-items', ['showDiscount' => false, 'showVat' => false, 'showExpiry' => false])
+        @include('inventory::entries.partials.invoice-financial-items', ['showDiscount' => false, 'showVat' => false])
 
         <div class="app-inventory-invoice-summary">
             <div>
-                @if ($document->reason)
-                    <h2 class="app-clinical-invoice-section-title">Reason</h2>
-                    <p class="app-inventory-invoice-note">{{ $document->reason }}</p>
-                @endif
-                @if ($document->notes)
+                @if ($entry->notes)
                     <h2 class="app-clinical-invoice-section-title">Notes</h2>
-                    <p class="app-inventory-invoice-note">{{ $document->notes }}</p>
+                    <p class="app-inventory-invoice-note">{{ $entry->notes }}</p>
                 @endif
             </div>
             <div class="app-clinical-invoice-totals">
                 <dl class="mb-0">
                     <div class="app-clinical-invoice-total">
                         <dt>Original invoice credit</dt>
-                        <dd>{{ \Modules\Core\Helpers\Money::decimal($document->total_minor) }}</dd>
+                        <dd>{{ moneyDecimal($entry->total) }}</dd>
                     </div>
                     <div>
                         <dt>Cash refunded</dt>
-                        <dd>{{ \Modules\Core\Helpers\Money::decimal($document->initial_paid_minor) }}</dd>
+                        <dd>{{ moneyDecimal($entry->initial_paid) }}</dd>
                     </div>
                 </dl>
             </div>

@@ -19,7 +19,8 @@ class DashboardController extends Controller
     public function index(Request $request, AccessManager $access): View|RedirectResponse
     {
         if ($request->attributes->get('application_provider') === 'users' && $request->routeIs('home')) {
-            return redirect()->route('tenantcore.module-dashboard.index');
+            return redirect()
+                ->route('tenantcore.module-dashboard.index');
         }
 
         $actor = $request->user('web');
@@ -40,31 +41,51 @@ class DashboardController extends Controller
 
         if ($canViewTenants) {
             $metrics[] = [
-                'label' => 'Tenants', 'value' => Tenant::query()->count(),
-                'caption' => 'Registered workspaces', 'icon' => 'building', 'tone' => 'primary',
+                'label' => 'Tenants',
+                'value' => Tenant::query()
+                    ->count(),
+                'caption' => 'Registered workspaces',
+                'icon' => 'building',
+                'tone' => 'primary',
                 'url' => route('core.tenants.index'),
             ];
         }
 
         if ($canViewAccounts) {
             $metrics[] = [
-                'label' => $central ? 'Administrators' : 'Users', 'value' => $accountModel::query()->count(),
-                'caption' => $central ? 'Platform accounts' : 'Workspace accounts', 'icon' => 'users', 'tone' => 'success',
+                'label' => $central ? 'Administrators' : 'Users',
+                'value' => $accountModel::query()
+                    ->count(),
+                'caption' => $central ? 'Platform accounts' : 'Workspace accounts',
+                'icon' => 'users',
+                'tone' => 'success',
                 'url' => route($accountRoutePrefix.'.index'),
             ];
         }
 
         if ($canViewRoles) {
             $metrics[] = [
-                'label' => 'Roles', 'value' => Role::query()->where('guard_name', 'web')->count(),
-                'caption' => 'Access roles in this workspace', 'icon' => 'shield-halved', 'tone' => 'warning',
+                'label' => 'Roles',
+                'value' => Role::query()
+                    ->where('guard_name', 'web')
+                    ->count(),
+                'caption' => 'Access roles in this workspace',
+                'icon' => 'shield-halved',
+                'tone' => 'warning',
                 'url' => route('core.roles.index'),
             ];
         }
 
         $metrics[] = [
-            'label' => 'Your permissions', 'value' => $actor->getAllPermissions()->where('guard_name', 'web')->unique('id')->count(),
-            'caption' => 'Assigned access permissions', 'icon' => 'key', 'tone' => 'info', 'url' => null,
+            'label' => 'Your permissions',
+            'value' => $actor->getAllPermissions()
+                ->where('guard_name', 'web')
+                ->unique('id')
+                ->count(),
+            'caption' => 'Assigned access permissions',
+            'icon' => 'key',
+            'tone' => 'info',
+            'url' => null,
         ];
 
         $canViewRecent = $central ? $canViewTenants : $canViewAccounts;
@@ -73,38 +94,61 @@ class DashboardController extends Controller
 
         if ($canViewRecent) {
             $query = $central
-                ? Tenant::query()->select(['id', 'name', 'slug', 'status', 'created_at'])
-                : $accountModel::query()->select(['id', 'name', 'email', 'created_at']);
+                ? Tenant::query()
+                    ->select(['id', 'name', 'slug', 'status', 'created_at'])
+                : $accountModel::query()
+                    ->select(['id', 'name', 'email', 'created_at']);
 
             if (! $central && $canUpdateAccounts && ! $access->isOwner($actor)) {
                 $query->with(['roles.permissions', 'permissions']);
             }
 
-            $recentRecords = $query->orderByDesc('id')->limit(5)->get()->map(function ($record) use ($central, $recentRoutePrefix, $canUpdateAccounts): array {
-                return [
-                    'name' => $record->name,
-                    'detail' => $central ? $record->slug : $record->email,
-                    'status' => $central ? $record->status : null,
-                    'statusLabel' => $central ? (Tenant::STATUSES[$record->status] ?? $record->status) : null,
-                    'created' => $record->created_at?->format('d M Y') ?? '—',
-                    'createdIso' => $record->created_at?->toDateString(),
-                    'url' => $canUpdateAccounts && Gate::allows('update', $record) ? route($recentRoutePrefix.'.edit', $record) : null,
-                ];
-            });
+            $recentRecords = $query->orderByDesc('id')
+                ->limit(5)
+                ->get()
+                ->map(function ($record) use ($central, $recentRoutePrefix, $canUpdateAccounts): array {
+                    return [
+                        'name' => $record->name,
+                        'detail' => $central ? $record->slug : $record->email,
+                        'status' => $central ? $record->status : null,
+                        'statusLabel' => $central ? (Tenant::STATUSES[$record->status] ?? $record->status) : null,
+                        'created' => $record->created_at?->format('d M Y') ?? '—',
+                        'createdIso' => $record->created_at?->toDateString(),
+                        'url' => $canUpdateAccounts && Gate::allows('update', $record) ? route($recentRoutePrefix.'.edit', $record) : null,
+                    ];
+                });
         }
 
         $quickActions = [];
 
         if ($central && Gate::allows('create', Tenant::class)) {
-            $quickActions[] = ['label' => 'Create tenant', 'description' => 'Set up a new workspace', 'icon' => 'building', 'url' => route('core.tenants.create'), 'tone' => 'primary'];
+            $quickActions[] = [
+                'label' => 'Create tenant',
+                'description' => 'Set up a new workspace',
+                'icon' => 'building',
+                'url' => route('core.tenants.create'),
+                'tone' => 'primary',
+            ];
         }
 
         if (($central || $plan?->allowsRoutePermission('accounts.create')) && Gate::allows('create', $accountModel)) {
-            $quickActions[] = ['label' => $central ? 'Add administrator' : 'Add user', 'description' => 'Add an account to your team', 'icon' => 'user-plus', 'url' => route($accountRoutePrefix.'.create'), 'tone' => 'success'];
+            $quickActions[] = [
+                'label' => $central ? 'Add administrator' : 'Add user',
+                'description' => 'Add an account to your team',
+                'icon' => 'user-plus',
+                'url' => route($accountRoutePrefix.'.create'),
+                'tone' => 'success',
+            ];
         }
 
         if (($central || $plan?->allowsRoutePermission('roles.create')) && Gate::allows('create', Role::class)) {
-            $quickActions[] = ['label' => 'Create role', 'description' => 'Define access for your team', 'icon' => 'shield-halved', 'url' => route('core.roles.create'), 'tone' => 'warning'];
+            $quickActions[] = [
+                'label' => 'Create role',
+                'description' => 'Define access for your team',
+                'icon' => 'shield-halved',
+                'url' => route('core.roles.create'),
+                'tone' => 'warning',
+            ];
         }
 
         $date = now();
@@ -124,7 +168,9 @@ class DashboardController extends Controller
             'accountName' => $actor->name,
             'accountEmail' => $actor->email,
             'accountInitials' => Str::upper(Str::substr(trim($actor->name), 0, 2)),
-            'accountRoles' => $actor->roles->where('guard_name', 'web')->pluck('name')->all(),
+            'accountRoles' => $actor->roles->where('guard_name', 'web')
+                ->pluck('name')
+                ->all(),
             'accountEditUrl' => ($central || $plan?->allowsRoutePermission($actor->profileUpdatePermission())) && Gate::allows('update', $actor)
                 ? route($actor->profileRoutePrefix().'.edit', $actor) : null,
         ]);

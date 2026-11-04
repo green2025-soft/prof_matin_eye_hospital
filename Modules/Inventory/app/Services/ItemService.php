@@ -5,11 +5,10 @@ namespace Modules\Inventory\Services;
 use Brick\Math\BigInteger;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
-use Modules\Core\Helpers\Money;
-use Modules\Inventory\Models\Document;
 use Modules\Inventory\Models\Product;
 use Modules\Inventory\Models\ProductUnit;
 use Modules\Inventory\Models\ProductVariant;
+use Modules\Inventory\Models\StockEntry;
 
 class ItemService
 {
@@ -58,7 +57,7 @@ class ItemService
         ])->whereIn('id', $ids)->get()->keyBy('id');
     }
 
-    public function prepareLines(Document $document, array $inputs): array
+    public function prepareQuantities(StockEntry $entry, array $inputs): array
     {
         $catalog = $this->loadCatalog($inputs);
         $lines = [];
@@ -66,7 +65,7 @@ class ItemService
         foreach ($inputs as $index => $input) {
             $variant = $catalog['variants']->get((int) ($input['variant_id'] ?? 0));
             $product = $variant === null ? null : $catalog['products']->get($variant->product_id);
-            if ($product === null || ! $product->active || ! $variant->active || $product->type !== $document->product_type) {
+            if ($product === null || ! $product->active || ! $variant->active || $product->type !== $entry->product_type) {
                 throw ValidationException::withMessages(["lines.$index.variant_id" => 'Choose an active product for this entry type.']);
             }
             $unit = $catalog['units']->get((int) ($input['product_unit_id'] ?? 0));
@@ -84,34 +83,12 @@ class ItemService
             }
             $quantity = (int) $quantity;
             $baseQuantity = $this->bounded(BigInteger::of($quantity)->multipliedBy($unit->factor));
-            $price = Money::minor($input['unit_price'] ?? '0');
-            $subtotal = $this->bounded(BigInteger::of($price)->multipliedBy($quantity));
-
             $lines[$index] = [
                 'variant_id' => $variant->id,
                 'product_unit_id' => $unit->id,
                 'quantity' => $quantity,
                 'factor' => $unit->factor,
                 'base_quantity' => $baseQuantity,
-                'unit_price_minor' => $price,
-                'sale_price_per_piece_minor' => null,
-                'subtotal_minor' => $subtotal,
-                'discount_minor' => 0,
-                'discount_calculation' => null,
-                'discount_percent' => null,
-                'discount_unit_amount_minor' => null,
-                'invoice_discount_minor' => 0,
-                'vat_mode' => 'none',
-                'vat_percent' => '0.00',
-                'vat_calculation' => 'percent',
-                'vat_unit_amount_minor' => null,
-                'vat_minor' => 0,
-                'total_minor' => $subtotal,
-                'cost_minor' => $subtotal,
-                'batch_no' => $input['batch_no'] ?? null,
-                'expiry_date' => $input['expiry_date'] ?? null,
-                'direction' => $input['direction'] ?? null,
-                'stock_lot_id' => $input['stock_lot_id'] ?? null,
             ];
         }
 

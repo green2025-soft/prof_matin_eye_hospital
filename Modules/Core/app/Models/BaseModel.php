@@ -43,6 +43,11 @@ abstract class BaseModel extends Model
         return $this->crudPermission;
     }
 
+    public function isCrudEnabled(): bool
+    {
+        return true;
+    }
+
     public function matchesBranchContext(): bool
     {
         if (! $this->branchScoped) {

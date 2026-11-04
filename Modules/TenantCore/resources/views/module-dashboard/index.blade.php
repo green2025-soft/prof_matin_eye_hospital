@@ -27,7 +27,7 @@
                     <span class="app-selection-card-content">
                         <span class="app-selection-card-head">
                             <span class="app-selection-mark"><i class="fa-solid fa-{{ $module['icon'] }}" aria-hidden="true"></i></span>
-                            <span class="app-selection-name">{{ $module['label'] }}</span>
+                            <span class="app-selection-name">{{ $module['label'] =='Tenant Core' ? 'Administrator' : $module['label'] }}</span>
                         </span>
                         <span class="app-selection-description" id="module-description-{{ $module['name'] }}">{{ $module['description'] }}</span>
                     </span>

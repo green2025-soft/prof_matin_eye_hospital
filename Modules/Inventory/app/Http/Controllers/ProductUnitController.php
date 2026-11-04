@@ -23,7 +23,9 @@ class ProductUnitController extends BaseController
 
     protected string $parameter = 'product_unit';
 
-    protected array $routeFilters = ['product_id' => 'product_id'];
+    protected array $routeFilters = [
+        'product_id' => 'product_id',
+    ];
 
     protected array $selectorFields = ['id', 'product_id', 'unit_id', 'factor', 'unit'];
 
@@ -47,7 +49,8 @@ class ProductUnitController extends BaseController
     {
         $productId = $record->exists ? $record->product_id : getValue('product_id', $record);
         if (! $record->exists && blank($productId)) {
-            $productId = request()->query('product_id');
+            $productId = request()
+                ->query('product_id');
         }
         $product = $this->selectedOption(Product::query(), $productId, ['id', 'name', 'type']);
         if ($product !== null) {

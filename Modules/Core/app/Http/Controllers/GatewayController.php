@@ -20,14 +20,20 @@ class GatewayController extends Controller
             default => 'Payment confirmation is pending. Please check Billing shortly.',
         };
 
-        return redirect()->to($attempt->return_url)->with('status', $message);
+        return redirect()
+            ->to($attempt->return_url)
+            ->with('status', $message);
     }
 
     public function notify(Request $request, string $gateway, string $token, CheckoutService $payments): JsonResponse
     {
         $attempt = $payments->verify($gateway, $token, $this->callbackValues($request));
 
-        return response()->json(['received' => true, 'status' => $attempt->status]);
+        return response()
+            ->json([
+                'received' => true,
+                'status' => $attempt->status,
+            ]);
     }
 
     private function callbackValues(Request $request): array

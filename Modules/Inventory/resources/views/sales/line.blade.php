@@ -2,9 +2,9 @@
     $originalLineId = $lineValues['original_line_id'] ?? $savedLine?->id;
     $productUnitId = $hasOldLines ? ($lineValues['product_unit_id'] ?? '') : ($savedLine?->product_unit_id ?? '');
     $quantity = $hasOldLines ? ($lineValues['quantity'] ?? '') : ($savedLine?->quantity ?? '');
-    $unitPrice = $hasOldLines ? ($lineValues['unit_price'] ?? '') : ($savedLine === null ? '' : \Modules\Core\Helpers\Money::decimal($savedLine->unit_price_minor));
+    $unitPrice = $hasOldLines ? ($lineValues['unit_price'] ?? '') : ($savedLine === null ? '' : moneyDecimal($savedLine->unit_price));
     $discountValue = $itemFields['discount'] && $hasOldLines ? ($lineValues['discount'] ?? '')
-        : ($savedLine === null && $itemFields['discount'] ? '' : \Modules\Core\Helpers\Money::decimal($savedLine?->discount_minor ?? 0));
+        : ($savedLine === null && $itemFields['discount'] ? '' : moneyDecimal($savedLine?->discount ?? 0));
     $availableStock = ($stockQuantities->get($variant?->id) ?? 0) + ($revisionStock->get($variant?->id) ?? 0);
 @endphp
 
@@ -12,40 +12,25 @@
     disabled
     data-inventory-line
     data-index="{{ $lineIndex }}"
-    data-product-id="{{ $variant?->product_id }}"
-    data-purchase-price="{{ $variant?->product?->purchase_price ?? '0.00' }}"
     data-sale-price="{{ $variant?->product?->sale_price ?? '0.00' }}"
-    data-available-quantity="{{ $availableStock }}"
-    data-unit-profiles="{{ $variant ? $variant->product->units->map(fn ($unit) => ['id' => $unit->id, 'unit_id' => $unit->unit_id, 'factor' => $unit->factor])->toJson() : '[]' }}"
 >
     <legend class="visually-hidden">Item details</legend>
     <div>
         <input name="lines[{{ $lineIndex }}][variant_id]" type="hidden" value="{{ $lineValues['variant_id'] ?? $variant?->id ?? '' }}">
-        @if (filled($originalLineId))
-            <input name="lines[{{ $lineIndex }}][original_line_id]" type="hidden" value="{{ $originalLineId }}">
-        @endif
-        <strong class="app-inventory-entry-name" data-inventory-product-name hidden>{{ $variant?->product?->name ?? 'Select an available product' }}</strong>
-        <small class="app-inventory-entry-code text-body-secondary" data-inventory-product-code hidden>
-            {{ $variant?->sku }}
-            @if ($variant?->name && $variant->name !== 'Default') / {{ $variant->name }} @endif
-            @if ($variant?->color) / {{ $variant->color }} @endif
-            @if ($variant?->size) / {{ $variant->size }} @endif
-            @if ($variant !== null && $variant->sph !== null) / SPH {{ $variant->sph }} @endif
-            @if ($variant !== null && $variant->cyl !== null) / CYL {{ $variant->cyl }} @endif
-        </small>
+        <input name="lines[{{ $lineIndex }}][original_line_id]" type="hidden" value="{{ $originalLineId }}">
+        <strong class="app-inventory-entry-name" hidden>{{ $variant?->product?->name ?? 'Select an available product' }}</strong>
+        <small class="app-inventory-entry-code text-body-secondary" hidden>{{ $variant?->description() }}</small>
         @error('lines.'.$lineIndex.'.variant_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         @error('lines.'.$lineIndex.'.original_line_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
     </div>
     <div class="row g-2">
         <div class="col-sm-6 col-lg-4 col-xl-2">
             <label class="form-label" for="trade_{{ $lineIndex }}_unit">Unit <span class="text-danger" aria-hidden="true">*</span></label>
-            <select class="{{ inputClass('lines.'.$lineIndex.'.product_unit_id', 'form-select') }}" id="trade_{{ $lineIndex }}_unit" name="lines[{{ $lineIndex }}][product_unit_id]" data-inventory-unit aria-keyshortcuts="F4 Alt+B Alt+P" title="Unit (F4, Alt+B Box, Alt+P Pcs)" required {{ inputAttrs('lines.'.$lineIndex.'.product_unit_id', 'trade_'.$lineIndex.'_unit') }}>
+            <select class="{{ inputClass('lines.'.$lineIndex.'.product_unit_id', 'form-select') }}" id="trade_{{ $lineIndex }}_unit" name="lines[{{ $lineIndex }}][product_unit_id]" aria-keyshortcuts="F4 Alt+B Alt+P" title="Unit (F4, Alt+B Box, Alt+P Pcs)" required {{ inputAttrs('lines.'.$lineIndex.'.product_unit_id', 'trade_'.$lineIndex.'_unit') }}>
                 <option value="">Unit</option>
-                @if ($variant)
-                    @foreach ($variant->product->units as $unit)
-                        <option value="{{ $unit->id }}" data-factor="{{ $unit->factor }}" data-unit-name="{{ $unit->unit->symbol ?: $unit->unit->name }}" data-symbol="{{ $unit->unit->symbol }}" @selected((string) $productUnitId === (string) $unit->id)>{{ $unit->unit->symbol ?: $unit->unit->name }} × {{ $unit->factor }}</option>
-                    @endforeach
-                @endif
+                @foreach ($variant?->product?->units ?? [] as $unit)
+                    <option value="{{ $unit->id }}" data-factor="{{ $unit->factor }}" data-unit-name="{{ $unit->unit->symbol ?: $unit->unit->name }}" data-symbol="{{ $unit->unit->symbol }}" @selected((string) $productUnitId === (string) $unit->id)>{{ $unit->unit->symbol ?: $unit->unit->name }} × {{ $unit->factor }}</option>
+                @endforeach
             </select>
             @error('lines.'.$lineIndex.'.product_unit_id')
                 <div class="invalid-feedback d-block" id="trade_{{ $lineIndex }}_unit-error">{{ $message }}</div>
@@ -65,7 +50,7 @@
         <div class="col-sm-6 col-lg-4 col-xl-2">
             <label class="form-label" for="trade_{{ $lineIndex }}_price">Rate <span class="text-danger" aria-hidden="true">*</span></label>
             <div>
-                <input class="{{ inputClass('lines.'.$lineIndex.'.unit_price', 'form-control text-end') }}" id="trade_{{ $lineIndex }}_price" name="lines[{{ $lineIndex }}][unit_price]" type="number" inputmode="decimal" min="0" step="0.01" value="{{ $unitPrice }}" data-inventory-unit-price required {{ inputAttrs('lines.'.$lineIndex.'.unit_price', 'trade_'.$lineIndex.'_price') }}>
+                <input class="{{ inputClass('lines.'.$lineIndex.'.unit_price', 'form-control text-end') }}" id="trade_{{ $lineIndex }}_price" name="lines[{{ $lineIndex }}][unit_price]" type="number" inputmode="decimal" min="0" step="0.01" value="{{ $unitPrice }}" required {{ inputAttrs('lines.'.$lineIndex.'.unit_price', 'trade_'.$lineIndex.'_price') }}>
             </div>
             @error('lines.'.$lineIndex.'.unit_price')<div class="invalid-feedback d-block" id="trade_{{ $lineIndex }}_price-error">{{ $message }}</div>@enderror
         </div>

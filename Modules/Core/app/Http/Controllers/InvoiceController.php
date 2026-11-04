@@ -28,7 +28,8 @@ class InvoiceController extends BaseController
 
     public function index(ListRequest $request): View
     {
-        return $this->listData($request, app(InvoiceService::class)->indexData($request->user('web'), $request->validated()));
+        return $this->listData($request, app(InvoiceService::class)
+            ->indexData($request->user('web'), $request->validated()));
     }
 
     public function generate(): RedirectResponse
@@ -36,8 +37,10 @@ class InvoiceController extends BaseController
         Gate::authorize('create', Invoice::class);
         $result = GenerateDueInvoices::dispatchSync(failOnError: false);
         $response = Gate::allows('viewAny', Invoice::class)
-            ? redirect()->route('core.invoices.index')
-            : redirect()->route('home');
+            ? redirect()
+                ->route('core.invoices.index')
+            : redirect()
+                ->route('home');
         $response->with('status', 'Generated '.$result['generated'].' invoices; processed '.$result['processed'].' due subscriptions.');
 
         if ($result['failed'] !== []) {
@@ -61,20 +64,26 @@ class InvoiceController extends BaseController
     {
         $invoice = $invoices->issue($request->user('web'), $this->record($request));
 
-        return redirect()->route('core.invoices.show', $invoice)->with('status', 'Invoice issued.');
+        return redirect()
+            ->route('core.invoices.show', $invoice)
+            ->with('status', 'Invoice issued.');
     }
 
     public function void(InvoiceActionRequest $request, InvoiceService $invoices): RedirectResponse
     {
         $invoice = $invoices->void($request->user('web'), $this->record($request), $request->validated('reason'));
 
-        return redirect()->route('core.invoices.show', $invoice)->with('status', 'Invoice voided.');
+        return redirect()
+            ->route('core.invoices.show', $invoice)
+            ->with('status', 'Invoice voided.');
     }
 
     protected function redirectAfterWrite(?Model $record = null): RedirectResponse
     {
         return $record && Gate::allows('view', $record)
-            ? redirect()->route('core.invoices.show', $record)
-            : redirect()->route('home');
+            ? redirect()
+                ->route('core.invoices.show', $record)
+            : redirect()
+                ->route('home');
     }
 }

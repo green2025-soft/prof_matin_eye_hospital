@@ -9,8 +9,8 @@ $gatewayRules = [
 ];
 
 return [
-    'tenant_groups' => ['company', 'branding', 'general', 'email', 'hospital', 'inventory'],
-    'tenant_only_groups' => ['hospital', 'inventory'],
+    'tenant_groups' => ['company', 'branding', 'general', 'email', 'hospital', 'inventory', 'prescription'],
+    'tenant_only_groups' => ['hospital', 'inventory', 'prescription'],
     'group_aliases' => ['patients' => 'hospital'],
     'payment_groups' => ['manual', 'sslcommerz', 'bkash', 'nagad', 'eps'],
     'reference_discount_modes' => [
@@ -54,6 +54,7 @@ return [
         ],
     ],
     'groups' => [
+        'prescription' => ['label' => 'Prescription', 'description' => 'General and glass prescription forms and printing.', 'icon' => 'prescription'],
         'company' => ['label' => 'Company', 'description' => 'Organization contact details and tax identification.', 'icon' => 'building'],
         'branding' => ['label' => 'Branding', 'description' => 'The name, tagline, logo, and favicon shown in your workspace.', 'icon' => 'palette'],
         'billing' => ['label' => 'Billing', 'description' => 'Invoice currency, numbering prefix, and payment instructions.', 'icon' => 'file-invoice-dollar'],
@@ -105,6 +106,24 @@ return [
         ],
     ],
     'defaults' => [
+        'prescription' => [
+            'general_enabled' => true,
+            'general_chief_complaints_enabled' => true,
+            'general_history_enabled' => true,
+            'general_examination_enabled' => true,
+            'general_diagnosis_enabled' => true,
+            'general_investigations_enabled' => true,
+            'general_advice_enabled' => true,
+            'general_follow_up_enabled' => true,
+            'general_paper' => 'a4',
+            'general_header_enabled' => true,
+            'glass_enabled' => true,
+            'glass_pd_enabled' => true,
+            'glass_disclaimer_enabled' => true,
+            'glass_lens_options_enabled' => true,
+            'glass_paper' => 'a5',
+            'glass_header_enabled' => true,
+        ],
         'inventory' => [
             'stock_method' => 'fifo',
             'medicine_sale_without_stock_enabled' => false,
@@ -205,6 +224,24 @@ return [
         'eps' => $gatewayDefaults,
     ],
     'rules' => [
+        'prescription' => [
+            'general_enabled' => ['required', 'boolean'],
+            'general_chief_complaints_enabled' => ['required', 'boolean'],
+            'general_history_enabled' => ['required', 'boolean'],
+            'general_examination_enabled' => ['required', 'boolean'],
+            'general_diagnosis_enabled' => ['required', 'boolean'],
+            'general_investigations_enabled' => ['required', 'boolean'],
+            'general_advice_enabled' => ['required', 'boolean'],
+            'general_follow_up_enabled' => ['required', 'boolean'],
+            'general_paper' => ['required', 'in:a4,a5'],
+            'general_header_enabled' => ['required', 'boolean'],
+            'glass_enabled' => ['required', 'boolean'],
+            'glass_pd_enabled' => ['required', 'boolean'],
+            'glass_disclaimer_enabled' => ['required', 'boolean'],
+            'glass_lens_options_enabled' => ['required', 'boolean'],
+            'glass_paper' => ['required', 'in:a4,a5'],
+            'glass_header_enabled' => ['required', 'boolean'],
+        ],
         'inventory' => [
             'stock_method' => ['required', 'in:fifo,lifo'],
             'medicine_sale_without_stock_enabled' => ['required', 'boolean'],

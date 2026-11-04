@@ -8,14 +8,13 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 
 #[Fillable(['type', 'name', 'barcode', 'category_id', 'dosage_id', 'supplier_id', 'shelf_id', 'strength', 'purchase_price', 'sale_price', 'reorder_level', 'needs_setup', 'active'])]
 class Product extends BaseModel
 {
-    protected $table = 'inventory_products';
+    protected $table = 'inv_products';
 
     protected string $crudPermission = 'inventory-products';
 
@@ -80,12 +79,11 @@ class Product extends BaseModel
             throw new LogicException('Product identifiers must be saved within a tenant transaction.');
         }
 
-        $sequences = $connection->table('inventory_sequences');
-        $sequence = (clone $sequences)->where('scope', 'product-identifiers')->lockForUpdate()->first();
+        $sequence = InventorySequence::on($connection->getName())->whereKey('product-identifiers')->lockForUpdate()->first();
         if ($sequence === null) {
-            $lastProductId = $connection->table('inventory_products')->orderByDesc('id')->lockForUpdate()->value('id') ?? 0;
-            $sequences->insertOrIgnore(['scope' => 'product-identifiers', 'last_number' => $lastProductId]);
-            $sequence = (clone $sequences)->where('scope', 'product-identifiers')->lockForUpdate()->first();
+            $lastProductId = static::on($connection->getName())->orderByDesc('id')->lockForUpdate()->value('id') ?? 0;
+            InventorySequence::on($connection->getName())->insertOrIgnore(['scope' => 'product-identifiers', 'last_number' => $lastProductId]);
+            $sequence = InventorySequence::on($connection->getName())->whereKey('product-identifiers')->lockForUpdate()->firstOrFail();
         }
 
         return (int) $sequence->last_number;
@@ -94,7 +92,7 @@ class Product extends BaseModel
     public static function identifierInUse(Connection $connection, string $identifier, ?int $productId = null): bool
     {
         // Locking reads see aliases committed while this transaction waited for the shared counter.
-        $products = $connection->table('inventory_products')->where(function (QueryBuilder $query) use ($identifier): void {
+        $products = static::on($connection->getName())->where(function (Builder $query) use ($identifier): void {
             $query->where('code', $identifier)->orWhere('barcode', $identifier);
         });
         if ($productId !== null) {
@@ -104,7 +102,7 @@ class Product extends BaseModel
             return true;
         }
 
-        $variants = $connection->table('inventory_product_variants')->where('sku', $identifier);
+        $variants = ProductVariant::on($connection->getName())->where('sku', $identifier);
         if ($productId !== null) {
             $variants->where('product_id', '!=', $productId);
         }
@@ -127,11 +125,11 @@ class Product extends BaseModel
             if (ctype_digit($search)) {
                 $digits = str_pad($search, 6, '0', STR_PAD_LEFT);
                 $searchQuery->orWhereKey($search)
-                    ->orWhere('inventory_products.source_key', 'drug_medicine:'.$search)
+                    ->orWhere('inv_products.source_key', 'drug_medicine:'.$search)
                     ->orWhereHas('variants', fn (Builder $variants) => $variants->whereIn('sku', [$search, 'MED-'.$search, 'OPT-'.$search, 'MED-'.$digits, 'OPT-'.$digits]));
             } else {
-                $escaped = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search);
-                $searchQuery->orWhereHas('variants', fn (Builder $variants) => $variants->whereRaw("inventory_product_variants.sku LIKE ? ESCAPE '!'", ['%'.$escaped.'%']));
+                $escaped = addcslashes($search, '\\%_');
+                $searchQuery->orWhereHas('variants', fn (Builder $variants) => $variants->whereLike('sku', '%'.$escaped.'%'));
             }
         });
     }
@@ -156,7 +154,7 @@ class Product extends BaseModel
             $code = $prefix.str_pad((string) $number, 6, '0', STR_PAD_LEFT);
         } while (static::identifierInUse($connection, $code));
 
-        $connection->table('inventory_sequences')->where('scope', 'product-identifiers')->update(['last_number' => $number]);
+        InventorySequence::on($connection->getName())->whereKey('product-identifiers')->update(['last_number' => $number]);
         $this->code = $code;
     }
 

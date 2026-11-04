@@ -24,7 +24,8 @@ class ModuleDashboardController extends Controller
     public function show(Request $request): View
     {
         $module = $this->availableModules($request)[$request->route('module')] ?? abort(404);
-        abort_unless($module['route'] === $request->route()->getName(), 404);
+        abort_unless($module['route'] === $request->route()
+            ->getName(), 404);
 
         return view('tenantcore::module-dashboard.show', $this->navigation($request) + [
             'pageTitle' => $module['label'],
@@ -55,9 +56,12 @@ class ModuleDashboardController extends Controller
             }
 
             $cards[$module->getName()] = [
-                'name' => $module->getName(), 'label' => $dashboard['label'],
-                'description' => $module->getDescription(), 'icon' => $dashboard['icon'],
-                'route' => $dashboard['route'], 'url' => route($dashboard['route']),
+                'name' => $module->getName(),
+                'label' => $dashboard['label'],
+                'description' => $module->getDescription(),
+                'icon' => $dashboard['icon'],
+                'route' => $dashboard['route'],
+                'url' => route($dashboard['route']),
             ];
         }
 

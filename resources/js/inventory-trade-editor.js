@@ -1,131 +1,142 @@
-import $ from 'jquery';
-import { Modal } from 'bootstrap';
+import $ from './jquery';
+import 'bootstrap';
 
 const controlSelector = 'input, select, textarea';
+const rowSelector = 'fieldset[data-inventory-line]';
 
-function copyDataset(element) {
-    return { ...element.dataset };
+function copyDataAttributes($element) {
+    const values = {};
+    $.each($element.prop('attributes'), (_, attribute) => {
+        if (attribute.name.startsWith('data-')) values[attribute.name] = $element.attr(attribute.name);
+    });
+    return values;
 }
 
-function restoreDataset(element, values) {
-    for (const key of Object.keys(element.dataset)) delete element.dataset[key];
-    Object.assign(element.dataset, values);
+function restoreDataAttributes($element, values) {
+    $element.removeAttr(Object.keys(copyDataAttributes($element)).join(' ')).attr(values);
 }
 
-function snapshotRow(row) {
-    const controls = Array.from(row.querySelectorAll(controlSelector), input => ({
-        input,
-        value: input.value,
-        checked: input.checked,
-        disabled: input.disabled,
-        hidden: input.hidden,
-        required: input.required,
-        className: input.className,
-        ariaInvalid: input.getAttribute('aria-invalid'),
-        dataset: copyDataset(input),
-        customValidity: input.validity.customError ? input.validationMessage : '',
-        options: input instanceof HTMLSelectElement
-            ? Array.from(input.options, option => option.cloneNode(true)) : null,
-    }));
-    const pickers = Array.from(row.querySelectorAll('[data-datepicker], [data-timepicker]'), wrapper => {
-        const picker = wrapper._flatpickr || wrapper.querySelector('[data-input]')?._flatpickr;
+function snapshotRow($row) {
+    const controls = $row.find(controlSelector).map(function () {
+        const $input = $(this);
         return {
-            wrapper,
-            value: wrapper.querySelector('[data-input]')?.value || '',
+            input: this,
+            value: $input.val(),
+            checked: $input.prop('checked'),
+            disabled: $input.prop('disabled'),
+            hidden: $input.prop('hidden'),
+            required: $input.prop('required'),
+            className: $input.attr('class') || '',
+            ariaInvalid: $input.attr('aria-invalid') ?? null,
+            dataAttributes: copyDataAttributes($input),
+            customValidity: $input.prop('validity').customError ? $input.prop('validationMessage') : '',
+            options: $input.is('select') ? $input.find('option').clone().toArray() : null,
+        };
+    }).get();
+    const pickers = $row.find('[data-datepicker], [data-timepicker]').map(function () {
+        const $wrapper = $(this);
+        const $input = $wrapper.find('[data-input]').first();
+        const picker = this._flatpickr || $input.get(0)?._flatpickr;
+        return {
+            $wrapper,
+            value: $input.val() || '',
             dates: picker ? picker.selectedDates.map(date => new Date(date.getTime())) : null,
         };
-    });
-    return { controls, pickers, dataset: copyDataset(row), profiles: row._unitProfiles?.map(profile => ({ ...profile })) };
+    }).get();
+    const row = $row.get(0);
+    return {
+        controls, pickers, dataAttributes: copyDataAttributes($row),
+        product: { ...row._inventoryProduct },
+        profiles: row._unitProfiles?.map(profile => ({ ...profile })),
+    };
 }
 
-function restoreRow(row, snapshot) {
-    restoreDataset(row, snapshot.dataset);
+function restoreRow($row, snapshot) {
+    const row = $row.get(0);
+    restoreDataAttributes($row, snapshot.dataAttributes);
+    row._inventoryProduct = snapshot.product;
     row._unitProfiles = snapshot.profiles;
     for (const state of snapshot.controls) {
         const { input } = state;
-        if (state.options) input.replaceChildren(...state.options.map(option => option.cloneNode(true)));
-        input.value = state.value;
-        if ('checked' in input) input.checked = state.checked;
-        input.disabled = state.disabled;
-        input.hidden = state.hidden;
-        input.required = state.required;
-        input.className = state.className;
-        restoreDataset(input, state.dataset);
+        const $input = $(input);
+        if (state.options) $input.empty().append($(state.options).clone());
+        $input.val(state.value).prop({
+            disabled: state.disabled,
+            hidden: state.hidden,
+            required: state.required,
+        }).attr('class', state.className);
+        if ('checked' in input) $input.prop('checked', state.checked);
+        restoreDataAttributes($input, state.dataAttributes);
         input.setCustomValidity(state.customValidity);
-        if (state.ariaInvalid === null) input.removeAttribute('aria-invalid');
-        else input.setAttribute('aria-invalid', state.ariaInvalid);
+        if (state.ariaInvalid === null) $input.removeAttr('aria-invalid');
+        else $input.attr('aria-invalid', state.ariaInvalid);
     }
-    for (const { wrapper, dates, value } of snapshot.pickers) {
-        const picker = wrapper._flatpickr || wrapper.querySelector('[data-input]')?._flatpickr;
+    for (const { $wrapper, dates, value } of snapshot.pickers) {
+        const picker = $wrapper.get(0)._flatpickr || $wrapper.find('[data-input]').get(0)?._flatpickr;
         picker?.setDate(dates ?? value, false);
     }
-    // Flatpickr restores its selected dates; retain any original typed value as well.
-    for (const { input, value } of snapshot.controls) input.value = value;
+    // Flatpickr restores dates; retain the original typed input as well.
+    for (const { input, value } of snapshot.controls) $(input).val(value);
 }
 
-function closeDatePickers(row, destroy = false) {
-    row.querySelectorAll('[data-datepicker], [data-timepicker]').forEach(wrapper => {
-        const picker = wrapper._flatpickr || wrapper.querySelector('[data-input]')?._flatpickr;
+function closeDatePickers($root, destroy = false) {
+    $root.find('[data-datepicker], [data-timepicker]').each(function () {
+        const picker = this._flatpickr || $(this).find('[data-input]').get(0)?._flatpickr;
         if (destroy) picker?.destroy();
         else picker?.close();
     });
 }
 
-function writePayload(row, payload) {
-    const fragment = document.createDocumentFragment();
-    for (const input of row.querySelectorAll(controlSelector)) {
-        // The stored FIELDSET is disabled. Only the control's own flag describes
-        // whether its current basis/value belongs in the submitted line.
-        if (!input.name || input.disabled || input.closest('[data-inventory-hidden-item-field]')
-            || ['button', 'submit', 'reset', 'file'].includes(input.type)) continue;
-        if (['checkbox', 'radio'].includes(input.type) && !input.checked) continue;
-        const values = input instanceof HTMLSelectElement && input.multiple
-            ? Array.from(input.selectedOptions, option => option.value) : [input.value];
-        for (const value of values) {
-            const hidden = document.createElement('input');
-            hidden.type = 'hidden';
-            hidden.name = input.name;
-            hidden.value = value;
-            fragment.append(hidden);
-        }
-    }
-    payload.replaceChildren(fragment);
+function writePayload($row, $payload) {
+    const inputs = [];
+    $row.find(controlSelector).each(function () {
+        const $input = $(this);
+        // The stored row is disabled. Only own flags and disabled inner
+        // fieldsets determine which controls belong in the submitted line.
+        if (!this.name || $input.prop('disabled') || $input.closest('[data-inventory-hidden-item-field]').length
+            || $input.parentsUntil($row, 'fieldset[disabled]').length
+            || ['button', 'submit', 'reset', 'file'].includes(this.type)) return;
+        if (['checkbox', 'radio'].includes(this.type) && !$input.prop('checked')) return;
+        const value = $input.val();
+        const values = Array.isArray(value) ? value : [value ?? ''];
+        for (const item of values) inputs.push($('<input>', { type: 'hidden', name: this.name, value: item }).get(0));
+    });
+    $payload.empty().append(inputs);
 }
 
 export function initializeTradeEditor(form, {
     selectVariant,
     applyPurchaseUnit,
     populatePurchaseUnits,
-    refreshDocumentTotal,
+    refreshEntryTotal,
     parseInteger,
     setDefaultPrice,
 }) {
-    const editor = form.querySelector('[data-inventory-item-editor]');
-    const storage = form.querySelector('[data-inventory-line-storage]');
-    const list = form.querySelector('[data-inventory-item-list]');
-    const template = form.querySelector('[data-inventory-trade-template]');
-    const summaryTemplate = form.querySelector('[data-inventory-summary-template]');
-    const picker = form.querySelector('[data-inventory-product-picker]');
-    if (!editor || !storage || !list || !template || !summaryTemplate || !picker) return;
+    const $form = $(form);
+    const $editor = $form.find('[data-inventory-item-editor]');
+    const $storage = $form.find('[data-inventory-line-storage]');
+    const $list = $form.find('[data-inventory-item-list]');
+    const $template = $form.find('[data-inventory-trade-template]');
+    const $summaryTemplate = $form.find('[data-inventory-summary-template]');
+    const $picker = $form.find('#inventory_product_picker');
+    if (!$editor.length || !$storage.length || !$list.length || !$template.length || !$summaryTemplate.length || !$picker.length) return;
 
-    const editorPanel = form.querySelector('[data-inventory-editor-panel]');
-    const $picker = $(picker);
-    const empty = list.querySelector('[data-inventory-empty]');
-    const editorTitle = form.querySelector('[data-inventory-editor-title]');
-    const editorEmpty = form.querySelector('[data-inventory-editor-empty]');
-    const activeProduct = form.querySelector('[data-inventory-active-product]');
-    const activeProductName = form.querySelector('[data-inventory-active-product-name]');
-    const activeProductCode = form.querySelector('[data-inventory-active-product-code]');
-    const activeProductStock = form.querySelector('[data-inventory-active-product-stock]');
-    const commitButton = form.querySelector('[data-inventory-commit-item]');
-    const cancelButton = form.querySelector('[data-inventory-cancel-item]');
-    const feedback = form.querySelector('[data-inventory-product-feedback]');
-    const packModalElement = document.querySelector('[data-inventory-pack-modal]');
-    const packSize = packModalElement?.querySelector('[data-inventory-pack-size]');
-    const revisionStock = JSON.parse(form.dataset.inventoryRevisionStock || '{}');
+    const $editorPanel = $form.find('[data-inventory-editor-panel]');
+    const $empty = $list.find('[data-inventory-empty]');
+    const $activeProduct = $form.find('[data-inventory-active-product]');
+    const $editorTitle = $activeProduct.children('h3');
+    const $activeProductName = $activeProduct.children('strong');
+    const $activeProductCode = $activeProduct.children('small');
+    const $commitButton = $form.find('[data-inventory-commit-item]');
+    const $cancelButton = $form.find('[data-inventory-cancel-item]');
+    const $feedback = $form.find('#inventory-product-feedback');
+    const $packModal = $('[data-inventory-pack-modal]');
+    const $packSize = $packModal.find('[data-inventory-pack-size]');
+    const options = form._inventoryOptions;
+    const revisionStock = options.revisionStock;
     const entries = new Map();
-    const originalRows = Array.from(storage.querySelectorAll('fieldset[data-inventory-line]'));
-    const indexes = originalRows.map(row => Number(row.dataset.index));
+    const $originalRows = $storage.find(rowSelector);
+    const indexes = $originalRows.map((_, row) => Number($(row).attr('data-index'))).get();
     let nextIndex = Math.max(-1, ...indexes.filter(index => Number.isSafeInteger(index) && index >= 0)) + 1;
     let active = null;
     let pendingPack = null;
@@ -137,17 +148,14 @@ export function initializeTradeEditor(form, {
 
     function announce(message, error = false) {
         if (error) window.showToast?.(message, 'error');
-        if (!feedback) return;
-        feedback.textContent = message;
-        feedback.classList.toggle('text-danger', error);
-        feedback.classList.toggle('text-body-secondary', !error);
+        $feedback.text(message).toggleClass('text-danger', error).toggleClass('text-body-secondary', !error);
     }
 
     function focusPicker(open = true) {
-        closeDatePickers(editor);
+        closeDatePickers($editor);
         window.setTimeout(() => {
             if (!$picker.hasClass('select2-hidden-accessible')) {
-                picker.focus();
+                $picker.trigger('focus');
                 return;
             }
             if (open) {
@@ -160,97 +168,77 @@ export function initializeTradeEditor(form, {
     }
 
     function revealControlDetails(input) {
-        let details = input.closest('details');
-        while (details) {
-            details.open = true;
-            details = details.parentElement?.closest('details');
-        }
+        $(input).parents('details').prop('open', true);
     }
 
     function focusControl(input) {
         if (!input) return;
         revealControlDetails(input);
-        input.focus();
-        input.select?.();
+        const $input = $(input).trigger('focus');
+        if ($input.is('input, textarea')) $input.trigger('select');
     }
 
     function updateEditor() {
-        if (editorPanel) editorPanel.hidden = !active;
-        editor.hidden = !active;
-        if (editorEmpty) editorEmpty.hidden = Boolean(active);
-        if (editorTitle) editorTitle.textContent = active?.entry ? 'Edit item' : 'Add item';
-        if (activeProduct) activeProduct.hidden = !active;
-        if (activeProductName) activeProductName.textContent = active?.row.querySelector('[data-inventory-product-name]')?.textContent.trim() || '';
-        if (activeProductCode) activeProductCode.textContent = active?.row.querySelector('[data-inventory-product-code]')?.textContent.trim() || '';
-        if (activeProductStock) {
-            const stock = active?.row.querySelector('[data-inventory-product-stock]');
-            activeProductStock.textContent = stock?.textContent.trim() || '';
-            activeProductStock.hidden = !stock || stock.classList.contains('d-none') || !activeProductStock.textContent;
-        }
-        if (commitButton) {
-            commitButton.disabled = !active;
-            commitButton.textContent = active?.entry ? 'Update item' : 'Add item';
-        }
-        if (cancelButton) cancelButton.hidden = !active;
+        const $row = active?.$row || $();
+        $editorPanel.add($editor).add($activeProduct).prop('hidden', !active);
+        $editorTitle.text(active?.entry ? 'Edit item' : 'Add item');
+        $activeProductName.text($row.find('.app-inventory-entry-name').text().trim());
+        $activeProductCode.text($row.find('.app-inventory-entry-code').text().trim());
+        $commitButton.prop('disabled', !active).text(active?.entry ? 'Update item' : 'Add item');
+        $cancelButton.prop('hidden', !active);
     }
 
     function setPayloadDisabled(entry, disabled) {
-        entry.payload.querySelectorAll('input').forEach(input => { input.disabled = disabled; });
-        entry.summary.classList.toggle('table-active', disabled);
+        entry.$payload.find('input').prop('disabled', disabled);
+        entry.$summary.toggleClass('table-active', disabled);
     }
 
     function renderSummary(entry) {
-        const { row, summary } = entry;
+        const { $row, $summary } = entry;
+        const name = $row.find('.app-inventory-entry-name').text().trim();
+        $summary.find('.app-inventory-entry-name').text(name);
+        $summary.find('.app-inventory-entry-code').text($row.find('.app-inventory-entry-code').text().trim());
         const values = {
-            name: row.querySelector('[data-inventory-product-name]')?.textContent.trim() || '',
-            code: row.querySelector('[data-inventory-product-code]')?.textContent.trim() || '',
-            quantity: row.dataset.summaryQuantity || '',
-            rate: row.dataset.summaryRate || '0.00',
-            discount: row.dataset.summaryDiscount || '0.00',
-            vat: row.dataset.summaryVat || '0.00',
-            expiry: row.querySelector('[name$="[expiry_date]"]')?.value || '—',
-            amount: row.dataset.summaryAmount || '0.00',
-            'sale-price': row.dataset.summarySalePrice || '—',
+            expiry: $row.find('[name$="[expiry_date]"]').val() || '—',
+            ...$row.get(0)._inventorySummary,
         };
-        for (const [key, value] of Object.entries(values)) {
-            const output = summary.querySelector(`[data-inventory-summary-${key}]`);
-            if (output) output.textContent = value;
-        }
-        summary.querySelector('[data-inventory-edit-line]')?.setAttribute('aria-label', `Edit ${values.name}`);
-        summary.querySelector('[data-inventory-remove-line]')?.setAttribute('aria-label', `Remove ${values.name}`);
+        for (const [key, value] of Object.entries(values)) $summary.find(`[data-inventory-summary-${key}]`).text(value);
+        $summary.find('[data-inventory-edit-line]').attr('aria-label', `Edit ${name}`);
+        $summary.find('[data-inventory-remove-line]').attr('aria-label', `Remove ${name}`);
     }
 
     function refreshRows() {
-        refreshDocumentTotal(form);
-        if (empty) empty.hidden = entries.size > 0;
+        refreshEntryTotal(form);
+        $empty.prop('hidden', entries.size > 0);
         entries.forEach(renderSummary);
     }
 
-    function createEntry(row, prepend = false) {
-        const summary = summaryTemplate.content.firstElementChild.cloneNode(true);
-        summary.dataset.index = row.dataset.index;
-        const entry = { row, summary, payload: summary.querySelector('[data-inventory-item-payload]') };
-        entries.set(row.dataset.index, entry);
-        if (prepend && empty) empty.after(summary);
-        else if (prepend) list.prepend(summary);
-        else list.append(summary);
+    function createEntry($row, prepend = false) {
+        const $summary = $($summaryTemplate.html().trim());
+        const index = $row.attr('data-index');
+        $summary.attr('data-index', index);
+        const entry = { $row, $summary, $payload: $summary.find('[data-inventory-item-payload]') };
+        entries.set(index, entry);
+        if (prepend && $empty.length) $empty.after($summary);
+        else if (prepend) $list.prepend($summary);
+        else $list.append($summary);
         return entry;
     }
 
-    function storeRow(row, placeholder = null) {
-        closeDatePickers(row);
-        row.disabled = true;
-        if (placeholder?.isConnected) placeholder.replaceWith(row);
-        else storage.append(row);
+    function storeRow($row, $placeholder = null) {
+        closeDatePickers($row);
+        $row.prop('disabled', true);
+        if ($placeholder?.prop('isConnected')) $placeholder.replaceWith($row);
+        else $storage.append($row);
     }
 
     function validateActive() {
         if (!active) return true;
         refreshRows();
-        const controls = Array.from(active.row.querySelectorAll(controlSelector)).filter(input => !input.matches(':disabled'));
-        for (const input of controls) input.dataset.touched = '1';
+        const $controls = active.$row.find(controlSelector).not(':disabled');
+        $controls.attr('data-touched', '1');
         refreshRows();
-        const invalid = controls.find(input => input.willValidate && !input.checkValidity());
+        const invalid = $controls.filter((_, input) => $(input).prop('willValidate') && !input.checkValidity()).get(0);
         if (!invalid) return true;
         focusControl(invalid);
         invalid.reportValidity();
@@ -260,11 +248,10 @@ export function initializeTradeEditor(form, {
     function commitActive() {
         if (!active) return true;
         if (!validateActive()) return false;
-        const { row, placeholder } = active;
-        const entry = active.entry || createEntry(row, true);
-        writePayload(row, entry.payload);
-        row.dataset.committed = '1';
-        storeRow(row, placeholder);
+        const { $row, $placeholder } = active;
+        const entry = active.entry || createEntry($row, true);
+        writePayload($row, entry.$payload);
+        storeRow($row, $placeholder);
         setPayloadDisabled(entry, false);
         active = null;
         updateEditor();
@@ -273,38 +260,39 @@ export function initializeTradeEditor(form, {
     }
 
     function openEntry(entry, preferredInput = null) {
-        if (active?.row === entry.row) {
-            focusControl(preferredInput || entry.row.querySelector('[name$="[quantity]"]'));
+        const { $row } = entry;
+        if (active?.$row.is($row)) {
+            focusControl(preferredInput || $row.find('[name$="[quantity]"]').get(0));
             return true;
         }
         if (!commitActive()) return false;
-        const placeholder = document.createComment(`Inventory item ${entry.row.dataset.index}`);
-        entry.row.before(placeholder);
-        active = { row: entry.row, entry, placeholder, snapshot: snapshotRow(entry.row) };
-        entry.row.disabled = false;
-        editor.replaceChildren(entry.row);
+        const $placeholder = $('<template>', { 'data-inventory-placeholder': $row.attr('data-index') });
+        $row.before($placeholder);
+        active = { $row, entry, $placeholder, snapshot: snapshotRow($row) };
+        $row.prop('disabled', false);
+        $editor.empty().append($row);
         setPayloadDisabled(entry, true);
-        window.initDateTimePickers?.(entry.row);
+        window.initDateTimePickers?.($row.get(0));
         updateEditor();
         refreshRows();
-        focusControl(preferredInput || entry.row.querySelector('[name$="[quantity]"]'));
+        focusControl(preferredInput || $row.find('[name$="[quantity]"]').get(0));
         return true;
     }
 
     function cancelActive() {
         if (!active) return;
-        const { row, entry, snapshot, placeholder } = active;
+        const { $row, entry, snapshot, $placeholder } = active;
         active = null;
         if ($picker.hasClass('select2-hidden-accessible')) $picker.select2('close');
         if (entry) {
-            restoreRow(row, snapshot);
-            const unit = row.querySelector('[data-inventory-purchase-unit]');
-            if (unit) applyPurchaseUnit(row, unit.selectedOptions[0]);
-            storeRow(row, placeholder);
+            restoreRow($row, snapshot);
+            const $unit = $row.find('[data-inventory-purchase-unit]');
+            if ($unit.length) applyPurchaseUnit($row.get(0), $unit.find('option:selected').get(0));
+            storeRow($row, $placeholder);
             setPayloadDisabled(entry, false);
         } else {
-            closeDatePickers(row, true);
-            row.remove();
+            closeDatePickers($row, true);
+            $row.remove();
         }
         updateEditor();
         refreshRows();
@@ -312,47 +300,48 @@ export function initializeTradeEditor(form, {
         focusPicker(false);
     }
 
-    function removeRow(row) {
-        if (!row) return;
-        const entry = entries.get(row.dataset.index);
-        const name = row.querySelector('[data-inventory-product-name]')?.textContent.trim() || 'Item';
-        if (active?.row === row) {
-            active.placeholder?.remove();
+    function removeRow($row) {
+        if (!$row?.length) return;
+        const index = $row.attr('data-index');
+        const entry = entries.get(index);
+        const name = $row.find('.app-inventory-entry-name').text().trim() || 'Item';
+        if (active?.$row.is($row)) {
+            active.$placeholder?.remove();
             active = null;
             updateEditor();
         }
-        closeDatePickers(row, true);
-        row.remove();
-        entry?.summary.remove();
-        entries.delete(row.dataset.index);
+        closeDatePickers($row, true);
+        $row.remove();
+        entry?.$summary.remove();
+        entries.delete(index);
         refreshRows();
         announce(`${name} removed.`);
         focusPicker();
     }
 
     function findVariant(id) {
-        return Array.from(form.querySelectorAll('fieldset[data-inventory-line]')).find(row =>
-            row.querySelector('[name$="[variant_id]"]')?.value === String(id));
+        return $form.find(rowSelector).filter(function () {
+            return $(this).find('[name$="[variant_id]"]').val() === String(id);
+        }).first();
     }
 
     function startProduct(product) {
-        const existing = form.dataset.type === 'sale' ? findVariant(product.id) : null;
+        const $existing = options.type === 'sale' ? findVariant(product.id) : $();
         const availableQuantity = parseInteger(product.available_quantity) + parseInteger(revisionStock[product.id]);
-        if (existing && active?.row === existing) {
-            focusControl(existing.querySelector('[name$="[quantity]"]'));
+        if ($existing.length && active?.$row.is($existing)) {
+            focusControl($existing.find('[name$="[quantity]"]').get(0));
             return;
         }
         if (!commitActive()) {
             announce('Finish the current item before choosing another product.', true);
             return;
         }
-        if (existing) {
-            openEntry(entries.get(existing.dataset.index));
+        if ($existing.length) {
+            openEntry(entries.get($existing.attr('data-index')));
             announce('This product is already added. Update its quantity.');
             return;
         }
-        if (form.dataset.type === 'sale' && form.dataset.allowWithoutStock !== '1'
-            && availableQuantity < 1n) {
+        if (options.type === 'sale' && !options.allowWithoutStock && availableQuantity < 1n) {
             announce('This product has no available stock.', true);
             focusPicker();
             return;
@@ -361,66 +350,56 @@ export function initializeTradeEditor(form, {
             announce('An invoice can contain up to 100 items.', true);
             return;
         }
-        if (form.dataset.type !== 'purchase' && (!Array.isArray(product.units) || product.units.length === 0)) {
+        if (options.type !== 'purchase' && (!Array.isArray(product.units) || product.units.length === 0)) {
             announce('Set up a base unit for this product before adding it.', true);
             return;
         }
 
-        const fragment = document.createElement('template');
-        fragment.innerHTML = template.innerHTML.replaceAll('__INDEX__', String(nextIndex++));
-        const row = fragment.content.querySelector('fieldset[data-inventory-line]');
-        if (!row) return;
-        row.disabled = false;
-        row.querySelector('[name$="[variant_id]"]').value = product.id;
+        const $row = $($template.html().replaceAll('__INDEX__', String(nextIndex++)).trim()).filter(rowSelector).first();
+        if (!$row.length) return;
+        bindItemControls($row);
+        $row.prop('disabled', false).find('[name$="[variant_id]"]').val(product.id);
         const name = product.product_name || product.name;
-        row.querySelector('[data-inventory-product-name]').textContent = name;
-        const description = [product.sku, product.variant_name === 'Default' ? '' : product.variant_name, product.color, product.size];
-        if (product.sph !== null && product.sph !== undefined) description.push(`SPH ${product.sph}`);
-        if (product.cyl !== null && product.cyl !== undefined) description.push(`CYL ${product.cyl}`);
-        row.querySelector('[data-inventory-product-code]').textContent = description.filter(Boolean).join(' / ');
-        if (form.dataset.type === 'sale' && product.available_quantity !== undefined) {
-            row.dataset.availableQuantity = String(availableQuantity);
-            const stock = row.querySelector('[data-inventory-product-stock]');
-            if (stock) {
-                stock.textContent = new Intl.NumberFormat('en-BD').format(availableQuantity);
-            }
-        }
-        for (const [hook, value] of [
-            ['data-inventory-line-vat-input', lastVatInput],
-            ['data-inventory-line-vat-mode', lastVatMode],
-            ['data-inventory-line-discount-input', lastDiscountInput],
+        $row.find('.app-inventory-entry-name').text(name);
+        $row.find('.app-inventory-entry-code').text(product.description);
+        if (options.type === 'sale') $row.find('[data-inventory-product-stock]').val(String(availableQuantity));
+        for (const [selector, value] of [
+            ['select[name$="[vat_input]"]', lastVatInput],
+            ['select[name$="[vat_mode]"]', lastVatMode],
+            ['select[name$="[discount_input]"]', lastDiscountInput],
         ]) {
-            const input = row.querySelector(`[${hook}]`);
-            if (input && value !== null && !input.closest('[data-inventory-hidden-item-field]')) input.value = value;
+            const $input = $row.find(selector);
+            if (value !== null && !$input.closest('[data-inventory-hidden-item-field]').length) $input.val(value);
         }
-        active = { row, entry: null, snapshot: null, placeholder: null };
-        editor.replaceChildren(row);
-        selectVariant(row, product);
-        window.initDateTimePickers?.(row);
+        active = { $row, entry: null, snapshot: null, $placeholder: null };
+        $editor.empty().append($row);
+        selectVariant($row.get(0), product);
+        window.initDateTimePickers?.($row.get(0));
         updateEditor();
         refreshRows();
         announce(`${name} selected. Add the item when ready.`);
-        focusControl(row.querySelector('[name$="[quantity]"]'));
+        focusControl($row.find('[name$="[quantity]"]').get(0));
     }
 
-    function openPackEditor(row, option, trigger) {
-        if (!packModalElement || !option?.dataset.unitId || option.dataset.fixed === '1') return;
+    function openPackEditor($row, option, trigger) {
+        const $option = $(option);
+        if (!$packModal.length || !$option.attr('data-unit-id') || $option.attr('data-fixed') === '1') return;
         if ($picker.hasClass('select2-hidden-accessible')) $picker.select2('close');
-        closeDatePickers(row);
-        pendingPack = { row, option };
+        closeDatePickers($row);
+        pendingPack = { $row, $option };
         packFocusTarget = trigger;
-        packModalElement.querySelector('[data-inventory-pack-label]').textContent = `Pieces per ${option.dataset.unitName}`;
-        packSize.value = option.dataset.factor || '';
-        packSize.setCustomValidity('');
-        Modal.getOrCreateInstance(packModalElement).show();
+        $packModal.find('[data-inventory-pack-label]').text(`Pieces per ${$option.attr('data-unit-name')}`);
+        $packSize.val($option.attr('data-factor') || '').get(0).setCustomValidity('');
+        $packModal.modal('show');
     }
 
     function openUnitChooser() {
-        const unit = active?.row.querySelector('[data-inventory-purchase-unit], [data-inventory-unit]');
-        if (!unit || unit.disabled) return;
-        closeDatePickers(active.row);
+        const $unit = active?.$row.find('[data-inventory-purchase-unit], select[name$="[product_unit_id]"]');
+        if (!$unit?.length || $unit.prop('disabled')) return;
+        closeDatePickers(active.$row);
         if ($picker.hasClass('select2-hidden-accessible')) $picker.select2('close');
-        unit.focus();
+        $unit.trigger('focus');
+        const unit = $unit.get(0);
         if (typeof unit.showPicker === 'function') {
             try {
                 unit.showPicker();
@@ -432,145 +411,150 @@ export function initializeTradeEditor(form, {
     }
 
     function selectUnitShortcut(symbol) {
-        const row = active.row;
-        const unit = row.querySelector('[data-inventory-purchase-unit], [data-inventory-unit]');
-        if (!unit || unit.disabled) return;
-        const purchase = unit.hasAttribute('data-inventory-purchase-unit');
-        const choice = purchase ? row._purchaseUnits?.find(item => item.symbol === symbol) : null;
-        const options = Array.from(unit.options).filter(option => purchase
-            ? choice && option.dataset.unitId === choice.id
-            : option.dataset.symbol?.toLowerCase() === symbol && (symbol !== 'pcs' || option.dataset.factor === '1'));
-        const saved = options.filter(option => option.dataset.factor);
-        const selected = saved.find(option => option.selected);
-        const option = selected || (saved.length === 1 ? saved[0] : options.find(item => !item.dataset.factor));
-        if (!option) {
-            announce(saved.length > 1 ? 'Choose the Box pack size.' : 'This unit is not set up for this product.', true);
+        const { $row } = active;
+        const $unit = $row.find('[data-inventory-purchase-unit], select[name$="[product_unit_id]"]');
+        if (!$unit.length || $unit.prop('disabled')) return;
+        const purchase = $unit.is('[data-inventory-purchase-unit]');
+        const choice = purchase ? $row.get(0)._purchaseUnits?.find(item => item.symbol === symbol) : null;
+        const $options = $unit.find('option').filter(function () {
+            const $option = $(this);
+            return purchase ? choice && $option.attr('data-unit-id') === choice.id
+                : $option.attr('data-symbol')?.toLowerCase() === symbol && (symbol !== 'pcs' || $option.attr('data-factor') === '1');
+        });
+        const $saved = $options.filter('[data-factor]');
+        const $selected = $saved.filter(':selected');
+        const $option = $selected.length ? $selected.first()
+            : ($saved.length === 1 ? $saved : $options.not('[data-factor]').first());
+        if (!$option.length) {
+            announce($saved.length > 1 ? 'Choose the Box pack size.' : 'This unit is not set up for this product.', true);
             openUnitChooser();
             return;
         }
-        closeDatePickers(row);
+        closeDatePickers($row);
         if ($picker.hasClass('select2-hidden-accessible')) $picker.select2('close');
-        if (unit.value !== option.value) {
-            unit.value = option.value;
-            unit.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        if (!pendingPack) focusControl(row.querySelector('[name$="[quantity]"]'));
+        if ($unit.val() !== $option.val()) $unit.val($option.val()).trigger('change');
+        if (!pendingPack) focusControl($row.find('[name$="[quantity]"]').get(0));
     }
 
     function confirmPack() {
-        if (!pendingPack || pendingPack.row !== active?.row) return;
-        const factor = parseInteger(packSize.value);
+        if (!pendingPack || !active || !pendingPack.$row.is(active.$row)) return;
+        const factor = parseInteger($packSize.val());
+        const packSize = $packSize.get(0);
         packSize.setCustomValidity(factor > 0n && factor <= 1000000n ? '' : 'Enter the pieces per pack.');
         if (!packSize.reportValidity()) return;
-        const { row, option } = pendingPack;
-        const profile = { unit_id: option.dataset.unitId, factor: String(factor) };
-        const profiles = form._purchasePacks.get(row.dataset.productId) || [];
+        const { $row, $option } = pendingPack;
+        const productId = $row.get(0)._inventoryProduct.id;
+        const profile = { unit_id: $option.attr('data-unit-id'), factor: String(factor) };
+        const profiles = form._purchasePacks.get(productId) || [];
         if (!profiles.some(item => String(item.unit_id) === profile.unit_id && String(item.factor) === profile.factor)) profiles.push(profile);
-        form._purchasePacks.set(row.dataset.productId, profiles);
-        form.querySelectorAll('fieldset[data-inventory-line]').forEach(other => {
-            if (other.dataset.productId === row.dataset.productId) populatePurchaseUnits(other, other._unitProfiles || []);
+        form._purchasePacks.set(productId, profiles);
+        $form.find(rowSelector).each(function () {
+            if (this._inventoryProduct.id === productId) populatePurchaseUnits(this, this._unitProfiles || []);
         });
-        const unit = row.querySelector('[data-inventory-purchase-unit]');
-        unit.value = `pack:${profile.unit_id}:${profile.factor}`;
-        applyPurchaseUnit(row, unit.selectedOptions[0], true);
+        const $unit = $row.find('[data-inventory-purchase-unit]');
+        $unit.val(`pack:${profile.unit_id}:${profile.factor}`);
+        applyPurchaseUnit($row.get(0), $unit.find('option:selected').get(0), true);
         pendingPack = null;
-        packFocusTarget = row.querySelector('[name$="[quantity]"]');
-        Modal.getInstance(packModalElement).hide();
+        packFocusTarget = $row.find('[name$="[quantity]"]').get(0);
+        $packModal.modal('hide');
         refreshRows();
     }
 
-    if (packModalElement) {
-        packModalElement.addEventListener('shown.bs.modal', () => focusControl(packSize));
-        packModalElement.addEventListener('hidden.bs.modal', () => {
-            if (pendingPack?.row.isConnected) {
-                const unit = pendingPack.row.querySelector('[data-inventory-purchase-unit]');
-                unit.value = pendingPack.row.dataset.selectedPurchaseUnit || '';
-                applyPurchaseUnit(pendingPack.row, unit.selectedOptions[0]);
-            }
-            pendingPack = null;
-            focusControl(packFocusTarget?.isConnected ? packFocusTarget : null);
-            packFocusTarget = null;
-        });
-        packModalElement.querySelector('[data-inventory-pack-confirm]').addEventListener('click', confirmPack);
-        packSize.addEventListener('input', () => packSize.setCustomValidity(''));
-        packSize.addEventListener('keydown', event => {
-            if (event.key !== 'Enter') return;
-            event.preventDefault();
-            confirmPack();
-        });
-    }
+    $packModal.on('shown.bs.modal.inventoryTrade', () => focusControl($packSize.get(0)));
+    $packModal.on('hidden.bs.modal.inventoryTrade', () => {
+        if (pendingPack?.$row.prop('isConnected')) {
+            const { $row } = pendingPack;
+            const $unit = $row.find('[data-inventory-purchase-unit]');
+            $unit.val($row.attr('data-selected-purchase-unit') || '');
+            applyPurchaseUnit($row.get(0), $unit.find('option:selected').get(0));
+        }
+        pendingPack = null;
+        focusControl($(packFocusTarget).prop('isConnected') ? packFocusTarget : null);
+        packFocusTarget = null;
+    });
+    $packModal.on('click.inventoryTrade', '[data-inventory-pack-confirm]', confirmPack);
+    $packSize.on('input.inventoryTrade', function () { this.setCustomValidity(''); });
+    $packSize.on('keydown.inventoryTrade', event => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        confirmPack();
+    });
 
-    $picker.on('select2:select', event => {
+    $picker.on('select2:select.inventoryTrade', event => {
         const product = event.params.data;
         $picker.val(null).trigger('change.select2');
         startProduct(product);
     });
-    commitButton?.addEventListener('click', () => {
+    $form.on('click.inventoryTrade', '[data-inventory-commit-item]', () => {
         if (commitActive()) {
             announce('Item saved.');
             focusPicker();
         }
     });
-    cancelButton?.addEventListener('click', cancelActive);
-    form.addEventListener('change', event => {
-        const row = event.target.closest('fieldset[data-inventory-line]');
-        if (row && event.target.matches('[data-inventory-unit]')) setDefaultPrice(row);
-        if (row && event.target.matches('[data-inventory-purchase-unit]')) {
-            const option = event.target.selectedOptions[0];
-            const edit = row.querySelector('[data-inventory-edit-unit]');
-            if (edit) edit.disabled = !option?.dataset.factor || option.dataset.fixed === '1';
-            if (option?.dataset.factor) applyPurchaseUnit(row, option, true);
-            else openPackEditor(row, option, event.target);
-        }
-        if (row && event.target.matches('[data-inventory-line-vat-input]')) {
-            lastVatInput = event.target.value;
-            if (lastVatInput !== 'percent') row.querySelector('[data-inventory-line-vat-amount]').value = '';
-        }
-        if (row && event.target.matches('[data-inventory-line-vat-mode]')) lastVatMode = event.target.value;
-        if (row && event.target.matches('[data-inventory-line-discount-input]')) {
-            lastDiscountInput = event.target.value;
-            row.querySelector('[data-inventory-line-discount-value]').value = '';
-        }
+    $form.on('click.inventoryTrade', '[data-inventory-cancel-item]', cancelActive);
+    $form.on('change.inventoryTrade', 'select[name$="[product_unit_id]"]', function () {
+        setDefaultPrice($(this).closest(rowSelector).get(0));
+    });
+    $form.on('change.inventoryTrade', '[data-inventory-purchase-unit]', function () {
+        const $unit = $(this);
+        const $row = $unit.closest(rowSelector);
+        const $option = $unit.find('option:selected');
+        const factor = $option.attr('data-factor');
+        $row.find('[data-inventory-edit-unit]').prop('disabled', !factor || $option.attr('data-fixed') === '1');
+        if (factor) applyPurchaseUnit($row.get(0), $option.get(0), true);
+        else openPackEditor($row, $option.get(0), this);
+    });
+    $form.on('change.inventoryTrade', 'select[name$="[vat_input]"]', function () {
+        const $input = $(this);
+        lastVatInput = $input.val();
+        if (lastVatInput !== 'percent') $input.closest(rowSelector).find('input[name$="[vat_amount]"]').val('');
+    });
+    $form.on('change.inventoryTrade', 'select[name$="[vat_mode]"]', function () { lastVatMode = $(this).val(); });
+    $form.on('change.inventoryTrade', 'select[name$="[discount_input]"]', function () {
+        const $input = $(this);
+        lastDiscountInput = $input.val();
+        $input.closest(rowSelector).find('input[name$="[discount]"]').val('');
+    });
+    $form.on('change.inventoryTrade input.inventoryTrade', refreshRows);
+    $form.on('focusin.inventoryTrade', 'input[type="number"]', function () { $(this).trigger('select'); });
+    $form.on('focusout.inventoryTrade', 'input[type="number"], [data-inventory-purchase-unit]', function () {
+        $(this).attr('data-touched', '1');
         refreshRows();
     });
-    form.addEventListener('input', refreshRows);
-    form.addEventListener('focusin', event => {
-        if (event.target.matches('input[type="number"]')) event.target.select();
+    $form.on('click.inventoryTrade', '[data-inventory-edit-unit]', function () {
+        const $row = $(this).closest(rowSelector);
+        openPackEditor($row, $row.find('[data-inventory-purchase-unit] option:selected').get(0), this);
     });
-    form.addEventListener('focusout', event => {
-        if (!event.target.matches('input[type="number"], [data-inventory-purchase-unit]')) return;
-        event.target.dataset.touched = '1';
-        refreshRows();
+    $form.on('click.inventoryTrade', '[data-inventory-edit-line]', function () {
+        const index = $(this).closest('tr[data-index]').attr('data-index');
+        const entry = entries.get(index);
+        if (entry) openEntry(entry);
     });
-    form.addEventListener('click', event => {
-        const packEdit = event.target.closest('[data-inventory-edit-unit]');
-        if (packEdit) {
-            const row = packEdit.closest('fieldset[data-inventory-line]');
-            openPackEditor(row, row.querySelector('[data-inventory-purchase-unit]').selectedOptions[0], packEdit);
-            return;
-        }
-        const edit = event.target.closest('[data-inventory-edit-line]');
-        const remove = event.target.closest('[data-inventory-remove-line]');
-        const summary = (edit || remove)?.closest('tr[data-index]');
-        const entry = summary ? entries.get(summary.dataset.index) : null;
-        if (edit && entry) openEntry(entry);
-        else if (remove) removeRow(entry?.row || remove.closest('fieldset[data-inventory-line]'));
+    $form.on('click.inventoryTrade', '[data-inventory-remove-line]', function () {
+        const $button = $(this);
+        const entry = entries.get($button.closest('tr[data-index]').attr('data-index'));
+        removeRow(entry?.$row || $button.closest(rowSelector));
     });
-    document.addEventListener('keydown', event => {
-        if (event.isComposing || event.repeat || document.querySelector('.modal.show')) return;
+
+    function handleKeyboardShortcut(event) {
+        const keyboard = event.originalEvent || event;
+        if (keyboard.isComposing || keyboard.repeat || $('.modal.show').length) return;
+        if (event.isDefaultPrevented() && !event.ctrlKey && !event.metaKey
+            && ['Enter', 'Escape'].includes(event.key)) return;
         if (event.key === 'F2') {
             event.preventDefault();
-            event.stopPropagation();
+            event.stopImmediatePropagation();
             focusPicker();
             return;
         }
-        if (!form.contains(event.target) && !$picker.data('select2')?.isOpen()) return;
-        const row = event.target.closest('fieldset[data-inventory-line]');
+        const $target = $(event.target);
+        if (!$target.closest($form).length && !$picker.data('select2')?.isOpen()) return;
+        const $row = $target.closest(rowSelector);
         if (event.key === 'Escape' && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey && active) {
-            if (document.querySelector('.select2-container--open, .flatpickr-calendar.open')) return;
-            if (event.target instanceof HTMLSelectElement && CSS.supports('selector(select:open)') && event.target.matches(':open')) return;
+            if ($('.select2-container--open, .flatpickr-calendar.open').length) return;
+            if ($target.is('select') && CSS.supports('selector(select:open)') && $target.is(':open')) return;
             event.preventDefault();
-            event.stopPropagation();
+            event.stopImmediatePropagation();
             cancelActive();
             return;
         }
@@ -578,72 +562,86 @@ export function initializeTradeEditor(form, {
             const key = event.key.toLowerCase();
             if (key === 'b' || key === 'p' || key === 'a') {
                 event.preventDefault();
-                event.stopPropagation();
-                if (key === 'a') commitButton?.click();
+                event.stopImmediatePropagation();
+                if (key === 'a') $commitButton.trigger('click');
                 else selectUnitShortcut(key === 'b' ? 'box' : 'pcs');
                 return;
             }
         }
         if (event.key === 'F4' && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey && active) {
             event.preventDefault();
-            event.stopPropagation();
+            event.stopImmediatePropagation();
             openUnitChooser();
             return;
         }
         if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
             event.preventDefault();
-            event.stopPropagation();
+            event.stopImmediatePropagation();
             if ($picker.hasClass('select2-hidden-accessible')) $picker.select2('close');
             refreshRows();
             form.requestSubmit();
             return;
         }
         if (event.altKey && event.key.toLowerCase() === 'u' && active) {
-            const unit = active.row.querySelector('[data-inventory-purchase-unit]');
-            const edit = active.row.querySelector('[data-inventory-edit-unit]');
-            if (unit && edit && !edit.disabled) {
+            const $unit = active.$row.find('[data-inventory-purchase-unit]');
+            const $edit = active.$row.find('[data-inventory-edit-unit]');
+            if ($unit.length && $edit.length && !$edit.prop('disabled')) {
                 event.preventDefault();
-                event.stopPropagation();
-                openPackEditor(active.row, unit.selectedOptions[0], event.target);
+                event.stopImmediatePropagation();
+                openPackEditor(active.$row, $unit.find('option:selected').get(0), event.target);
             }
             return;
         }
         if (event.altKey && event.key === 'Delete') {
-            const summary = event.target.closest('tr[data-index]');
-            const target = row || entries.get(summary?.dataset.index)?.row || active?.row;
-            if (target) {
+            const index = $target.closest('tr[data-index]').attr('data-index');
+            const $remove = $row.length ? $row : entries.get(index)?.$row || active?.$row;
+            if ($remove?.length) {
                 event.preventDefault();
-                event.stopPropagation();
-                removeRow(target);
+                event.stopImmediatePropagation();
+                removeRow($remove);
             }
             return;
         }
-        if (event.key !== 'Enter' || event.ctrlKey || event.metaKey || event.altKey || row !== active?.row) return;
-        if (!event.target.matches('input:not([type="hidden"]), select, textarea')) return;
-        const datePicker = event.target._flatpickr || event.target.closest('[data-datepicker]')?._flatpickr;
+        if (event.key !== 'Enter' || event.ctrlKey || event.metaKey || event.altKey || !active?.$row.is($row)) return;
+        if (!$target.is('input:not([type="hidden"]), select, textarea')) return;
+        const datePicker = event.target._flatpickr || $target.closest('[data-datepicker]').get(0)?._flatpickr;
         if (datePicker?.isOpen) return;
-        if (event.target instanceof HTMLSelectElement && CSS.supports('selector(select:open)') && event.target.matches(':open')) return;
+        if ($target.is('select') && CSS.supports('selector(select:open)') && $target.is(':open')) return;
         event.preventDefault();
-        event.stopPropagation();
-        const fields = Array.from(row.querySelectorAll('input:not([type="hidden"]), select, textarea'))
-            .filter(input => !input.matches(':disabled') && !input.readOnly && !input.hidden
-                && !input.closest('details:not([open])') && input.getClientRects().length > 0);
+        event.stopImmediatePropagation();
+        const fields = $row.find('input:not([type="hidden"]), select, textarea').filter(function () {
+            const $input = $(this);
+            return !$input.is(':disabled') && !$input.prop('readOnly') && !$input.prop('hidden')
+                && !$input.closest('details:not([open])').length && $input.is(':visible');
+        }).toArray();
         const next = fields[fields.indexOf(event.target) + (event.shiftKey ? -1 : 1)];
         if (next) focusControl(next);
         else if (event.shiftKey || commitActive()) focusPicker();
-    }, true);
-    form.addEventListener('invalid', event => {
-        if (active?.row.contains(event.target)) revealControlDetails(event.target);
-    }, true);
-    form.addEventListener('submit', event => {
+    }
+
+    function bindItemControls($row) {
+        // Bind before datepicker initialization so item shortcuts run first.
+        $row.find(controlSelector)
+            .on('keydown.inventoryTrade', handleKeyboardShortcut)
+            .on('invalid.inventoryTrade', function () { revealControlDetails(this); });
+    }
+
+    $(document).on('keydown.inventoryTrade', event => {
+        if ($(event.target).closest(rowSelector).length) return;
+        handleKeyboardShortcut(event);
+    });
+    $form.on('submit.inventoryTrade', event => {
         if (!commitActive()) {
             event.preventDefault();
             return;
         }
         refreshRows();
         for (const entry of entries.values()) {
-            const invalid = Array.from(entry.row.querySelectorAll(controlSelector))
-                .find(input => !input.disabled && !input.closest('[data-inventory-hidden-item-field]') && input.dataset.validationMessage);
+            const invalid = entry.$row.find(controlSelector).filter(function () {
+                const $input = $(this);
+                return !$input.prop('disabled') && !$input.closest('[data-inventory-hidden-item-field]').length
+                    && $input.attr('data-validation-message');
+            }).get(0);
             if (!invalid) continue;
             event.preventDefault();
             openEntry(entry, invalid);
@@ -657,26 +655,26 @@ export function initializeTradeEditor(form, {
         }
     });
 
-    for (const row of originalRows) {
-        row.disabled = true;
-        row.dataset.committed = '1';
-        if (row.querySelector('[data-inventory-purchase-unit]')) {
-            try { row._unitProfiles = JSON.parse(row.dataset.unitProfiles || '[]'); }
-            catch { row._unitProfiles = []; }
-            populatePurchaseUnits(row, row._unitProfiles);
+    $originalRows.each(function () {
+        const $row = $(this).prop('disabled', true);
+        bindItemControls($row);
+        if ($row.find('[data-inventory-purchase-unit]').length) {
+            try { this._unitProfiles = JSON.parse($row.attr('data-unit-profiles') || '[]'); }
+            catch { this._unitProfiles = []; }
+            populatePurchaseUnits(this, this._unitProfiles);
         }
-        createEntry(row);
-    }
+        createEntry($row);
+    });
     updateEditor();
     refreshRows();
-    entries.forEach(entry => writePayload(entry.row, entry.payload));
-    const invalidEntry = Array.from(entries.values()).find(entry =>
-        entry.row.querySelector('.invalid-feedback') ||
-        Array.from(entry.row.querySelectorAll('.is-invalid, [aria-invalid="true"]'))
-            .some(input => !input.disabled && !input.closest('[data-inventory-hidden-item-field]')));
-    if (invalidEntry) {
-        const invalid = Array.from(invalidEntry.row.querySelectorAll('.is-invalid, [aria-invalid="true"]'))
-            .find(input => !input.disabled && !input.closest('[data-inventory-hidden-item-field]'));
-        openEntry(invalidEntry, invalid);
+    entries.forEach(entry => writePayload(entry.$row, entry.$payload));
+    for (const entry of entries.values()) {
+        const invalid = entry.$row.find('.is-invalid, [aria-invalid="true"]').filter(function () {
+            const $input = $(this);
+            return !$input.prop('disabled') && !$input.closest('[data-inventory-hidden-item-field]').length;
+        }).get(0);
+        if (!invalid && !entry.$row.find('.invalid-feedback').length) continue;
+        openEntry(entry, invalid);
+        break;
     }
 }

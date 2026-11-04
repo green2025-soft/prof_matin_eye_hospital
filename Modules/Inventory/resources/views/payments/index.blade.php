@@ -76,10 +76,10 @@
                                 {{ $record->direction === 'customer' ? ($customers[$record->customer_id]['name'] ?? '—') : ($suppliers[$record->supplier_id] ?? '—') }}
                             </td>
                             <td class="text-end">
-                                {{ \Modules\Core\Helpers\Money::decimal($record->amount_minor) }}
+                                {{ moneyDecimal($record->amount) }}
                             </td>
                             <td class="text-end">
-                                {{ \Modules\Core\Helpers\Money::decimal($record->discount_minor) }}
+                                {{ moneyDecimal($record->discount) }}
                             </td>
                             <td>
                                 {{ $record->voided_at ? 'Voided' : 'Posted' }}

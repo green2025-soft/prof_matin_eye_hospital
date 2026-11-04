@@ -30,18 +30,24 @@ class CheckoutController extends BaseController
     {
         $payments->approve($request->user('web'), $checkout);
 
-        return redirect()->route('core.invoices.index')->with('status', 'Manual payment approved.');
+        return redirect()
+            ->route('core.invoices.index')
+            ->with('status', 'Manual payment approved.');
     }
 
     public function reject(PaymentReviewRequest $request, CheckoutAttempt $checkout, CheckoutService $payments): RedirectResponse
     {
         $payments->reject($request->user('web'), $checkout, $request->validated('reason'));
 
-        return redirect()->route('core.invoices.index')->with('status', 'Manual payment rejected.');
+        return redirect()
+            ->route('core.invoices.index')
+            ->with('status', 'Manual payment rejected.');
     }
 
     protected function redirectAfterWrite(?Model $record = null): RedirectResponse
     {
-        return filled($record->redirect_url) ? redirect()->away($record->redirect_url) : redirect()->to($record->return_url);
+        return filled($record->redirect_url) ? redirect()
+            ->away($record->redirect_url) : redirect()
+            ->to($record->return_url);
     }
 }

@@ -17,6 +17,7 @@ use Modules\Inventory\Models\Supplier;
 use Modules\Inventory\Models\Unit;
 use Modules\Inventory\Services\InventoryAccess;
 use Modules\Inventory\Services\ItemService;
+use Modules\Inventory\Services\PurchaseItemService;
 use Modules\Inventory\Services\PurchaseService;
 use Modules\TenantCore\Models\PaymentType;
 
@@ -32,9 +33,13 @@ class PurchaseController extends BaseController
 
     protected string $parameter = 'purchase';
 
-    protected array $routeFilters = ['product_type' => 'product_type'];
+    protected array $routeFilters = [
+        'product_type' => 'product_type',
+    ];
 
-    protected array $defaultFilters = ['product_type' => 'medicine'];
+    protected array $defaultFilters = [
+        'product_type' => 'medicine',
+    ];
 
     public function index(ListRequest $request): View
     {
@@ -61,16 +66,23 @@ class PurchaseController extends BaseController
         $actor = $request->user('web');
         $request->attributes->set('inventory_product_type', $purchase->product_type);
 
-        return view($this->views.'.show', $entries->invoiceData($actor, $purchase) + [
-            'routePrefix' => $this->routePrefix(), 'resourceParameter' => $this->parameter,
-            'canEditPurchase' => Gate::forUser($actor)->allows('update', $purchase),
-            'canDeletePurchase' => Gate::forUser($actor)->allows('delete', $purchase),
-        ]);
+        return view(
+            $this->views.'.show',
+            $entries->invoiceData($actor, $purchase) + [
+                'routePrefix' => $this->routePrefix(),
+                'resourceParameter' => $this->parameter,
+                'canEditPurchase' => Gate::forUser($actor)
+                    ->allows('update', $purchase),
+                'canDeletePurchase' => Gate::forUser($actor)
+                    ->allows('delete', $purchase),
+            ]
+        );
     }
 
     protected function formData(Account $actor, Model $record): array
     {
-        $productType = $record->exists ? $record->product_type : request()->query('product_type', 'medicine');
+        $productType = $record->exists ? $record->product_type : request()
+            ->query('product_type', 'medicine');
         $productType = in_array($productType, ['medicine', 'optic'], true) ? $productType : 'medicine';
         request()->attributes->set('inventory_product_type', $productType);
         if ($record->exists) {
@@ -78,35 +90,48 @@ class PurchaseController extends BaseController
                 'lines' => fn ($query) => $query->orderBy('id'),
                 'lines.productUnit:id,unit_id',
                 'lines.variant.product:id,name,type,purchase_price,sale_price',
-                'lines.variant.product.units' => fn ($query) => $query->orderBy('factor')->orderBy('id'),
+                'lines.variant.product.units' => fn ($query) => $query->orderBy('factor')
+                    ->orderBy('id'),
                 'lines.variant.product.units.unit:id,name,symbol',
             ]);
         }
-        $savedLines         = $record->exists ? $record->lines->keyBy('id') : collect();
-        $hasOldLines        = array_key_exists('lines', request()->session()->getOldInput());
-        $lineInputs         = $hasOldLines ? $this->oldRows('lines') : [];
-        $settings           = Setting::values('inventory', $record->getConnectionName());
-        $pharmacyPurchase   = $productType === 'medicine';
-        $defaultVatMode     = $settings['vat_enabled'] ? $settings['vat_mode'] : ($pharmacyPurchase ? 'exclusive' : 'none');
-        $vatMode            = getValue('vat_mode', null, $defaultVatMode);
-        $vatMode            = in_array($vatMode, ['none', 'inclusive', 'exclusive'], true) ? $vatMode : 'exclusive';
+        $savedLines = $record->exists ? $record->lines->keyBy('id') : collect();
+        $hasOldLines = array_key_exists(
+            'lines',
+            request()
+                ->session()
+                ->getOldInput()
+        );
+        $lineInputs = $hasOldLines ? $this->oldRows('lines') : [];
+        $settings = Setting::values('inventory', $record->getConnectionName());
+        $pharmacyPurchase = $productType === 'medicine';
+        $defaultVatMode = $settings['vat_enabled'] ? $settings['vat_mode'] : ($pharmacyPurchase ? 'exclusive' : 'none');
+        $vatMode = getValue('vat_mode', null, $defaultVatMode);
+        $vatMode = in_array($vatMode, ['none', 'inclusive', 'exclusive'], true) ? $vatMode : 'exclusive';
 
         return [
-            'document'              => $record,
-            'savedLines'            => $savedLines,
-            'hasOldLines'           => $hasOldLines,
-            'lineInputs'            => $lineInputs,
-            'variants'              => $hasOldLines ? app(ItemService::class)->selectedVariants($lineInputs) : collect(),
-            'itemFields'            => Purchase::visibleItemFields($settings, Purchase::TYPE, $productType),
-            'paymentTypes'          => PaymentType::query()->orderBy('ordering')->orderBy('id')->get(['id', 'name']),
-            'selectedSupplier'      => $this->selectedOption(Supplier::query(), getValue('supplier_id', $record)),
-            'pharmacyPurchase'      => $pharmacyPurchase,
-            'canUpdateProductPrices' => app(InventoryAccess::class)->allows($actor, 'inventory-products.update'),
-            'purchaseUnits'         => Unit::query()
+            'entry' => $record,
+            'savedLines' => $savedLines,
+            'hasOldLines' => $hasOldLines,
+            'lineInputs' => $lineInputs,
+            'variants' => $hasOldLines ? app(ItemService::class)
+                ->selectedVariants($lineInputs) : collect(),
+            'itemFields' => PurchaseItemService::itemFields($settings, $productType),
+            'paymentTypes' => PaymentType::query()
+                ->orderBy('ordering')
+                ->orderBy('id')
+                ->get(['id', 'name']),
+            'selectedSupplier' => $this->selectedOption(Supplier::query(), getValue('supplier_id', $record)),
+            'pharmacyPurchase' => $pharmacyPurchase,
+            'canUpdateProductPrices' => app(InventoryAccess::class)
+                ->allows($actor, 'inventory-products.update'),
+            'purchaseUnits' => Unit::query()
                 ->when(! $pharmacyPurchase, fn ($query) => $query->whereIn('symbol', ['Pcs', 'Pair', 'Box']))
-                ->orderBy('name')->orderBy('id')->get(['id', 'name', 'symbol']),
-            'purchaseVatMode'       => $vatMode,
-            'purchaseVatPercent'    => $settings['vat_enabled'] ? $settings['vat_percent'] : '0.00',
+                ->orderBy('name')
+                ->orderBy('id')
+                ->get(['id', 'name', 'symbol']),
+            'purchaseVatMode' => $vatMode,
+            'purchaseVatPercent' => $settings['vat_enabled'] ? $settings['vat_percent'] : '0.00',
         ];
     }
 
@@ -114,8 +139,11 @@ class PurchaseController extends BaseController
     {
         $entries->reverse($request->user('web'), $purchase);
 
-        return redirect()->route($this->routePrefix().'.show', [
-            'purchase' => $purchase, 'product_type' => $purchase->product_type,
-        ])->with('status', 'Entry voided. Stock and balances have been reversed.');
+        return redirect()
+            ->route($this->routePrefix().'.show', [
+                'purchase' => $purchase,
+                'product_type' => $purchase->product_type,
+            ])
+            ->with('status', 'Entry voided. Stock and balances have been reversed.');
     }
 }

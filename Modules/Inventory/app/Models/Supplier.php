@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['type', 'name', 'contact_no', 'address', 'active'])]
 class Supplier extends BaseModel
 {
-    protected $table = 'inventory_suppliers';
+    protected $table = 'inv_suppliers';
 
     protected string $crudPermission = 'inventory-suppliers';
 
@@ -30,9 +30,20 @@ class Supplier extends BaseModel
         return $this->hasMany(Product::class);
     }
 
+    public function purchases(): HasMany
+    {
+        return $this->hasMany(Purchase::class, 'supplier_id');
+    }
+
+    public function purchaseReturns(): HasMany
+    {
+        return $this->hasMany(PurchaseReturn::class, 'supplier_id');
+    }
+
     public function hasReferences(): bool
     {
         return $this->products()->exists()
-            || $this->getConnection()->table('inventory_documents')->where('supplier_id', $this->getKey())->exists();
+            || $this->purchases()->withoutGlobalScope('branch')->withTrashed()->exists()
+            || $this->purchaseReturns()->withoutGlobalScope('branch')->withTrashed()->exists();
     }
 }

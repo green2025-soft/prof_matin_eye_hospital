@@ -22,9 +22,13 @@ class ProductCategoryController extends BaseController
 
     protected string $parameter = 'product_category';
 
-    protected array $routeFilters = ['type' => 'type'];
+    protected array $routeFilters = [
+        'type' => 'type',
+    ];
 
-    protected array $defaultFilters = ['type' => 'medicine'];
+    protected array $defaultFilters = [
+        'type' => 'medicine',
+    ];
 
     protected bool $inlineForm = true;
 
@@ -46,7 +50,8 @@ class ProductCategoryController extends BaseController
 
     protected function formData(Account $actor, Model $record): array
     {
-        $type = $record->exists ? $record->type : request()->query('type', 'medicine');
+        $type = $record->exists ? $record->type : request()
+            ->query('type', 'medicine');
         if (! is_string($type) || ! array_key_exists($type, Product::types())) {
             $type = 'medicine';
         }

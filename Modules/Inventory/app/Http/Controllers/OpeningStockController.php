@@ -27,9 +27,13 @@ class OpeningStockController extends BaseController
 
     protected string $parameter = 'opening_stock';
 
-    protected array $routeFilters = ['product_type' => 'product_type'];
+    protected array $routeFilters = [
+        'product_type' => 'product_type',
+    ];
 
-    protected array $defaultFilters = ['product_type' => 'medicine'];
+    protected array $defaultFilters = [
+        'product_type' => 'medicine',
+    ];
 
     public function index(ListRequest $request): View
     {
@@ -38,7 +42,8 @@ class OpeningStockController extends BaseController
 
         return $view->with([
             'resourceParameter' => 'opening_stock',
-            'canCreate' => app(InventoryAccess::class)->allows($request->user('web'), 'inventory-opening-stock.create'),
+            'canCreate' => app(InventoryAccess::class)
+                ->allows($request->user('web'), 'inventory-opening-stock.create'),
         ]);
     }
 
@@ -51,22 +56,27 @@ class OpeningStockController extends BaseController
     {
         $request->attributes->set('inventory_product_type', $openingStock->product_type);
 
-        return view('inventory::opening-stock.show', $entries->invoiceData($request->user('web'), $openingStock) + [
-            'routePrefix' => $this->routePrefix(),
-            'resourceParameter' => 'opening_stock',
-        ]);
+        return view(
+            'inventory::opening-stock.show',
+            $entries->invoiceData($request->user('web'), $openingStock) + [
+                'routePrefix' => $this->routePrefix(),
+                'resourceParameter' => 'opening_stock',
+            ]
+        );
     }
 
     protected function formData(Account $actor, Model $record): array
     {
-        $productType = $record->exists ? $record->product_type : request()->query('product_type', 'medicine');
+        $productType = $record->exists ? $record->product_type : request()
+            ->query('product_type', 'medicine');
         $productType = in_array($productType, ['medicine', 'optic'], true) ? $productType : 'medicine';
         request()->attributes->set('inventory_product_type', $productType);
         $lineInputs = $this->oldRows('lines');
-        $variants = app(ItemService::class)->selectedVariants($lineInputs);
+        $variants = app(ItemService::class)
+            ->selectedVariants($lineInputs);
 
         return [
-            'document' => $record,
+            'entry' => $record,
             'lineInputs' => $lineInputs,
             'variants' => $variants,
         ];
@@ -76,9 +86,11 @@ class OpeningStockController extends BaseController
     {
         $entries->reverse($request->user('web'), $openingStock);
 
-        return redirect()->route('inventory.opening-stock.show', [
-            'opening_stock' => $openingStock,
-            'product_type' => $openingStock->product_type,
-        ])->with('status', 'Entry voided. Stock and balances have been reversed.');
+        return redirect()
+            ->route('inventory.opening-stock.show', [
+                'opening_stock' => $openingStock,
+                'product_type' => $openingStock->product_type,
+            ])
+            ->with('status', 'Entry voided. Stock and balances have been reversed.');
     }
 }

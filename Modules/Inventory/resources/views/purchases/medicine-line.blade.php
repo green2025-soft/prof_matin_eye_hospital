@@ -6,7 +6,7 @@
     $unitId = $lineValues['unit_id'] ?? ($hasOldLines ? $selectedProfile?->unit_id : $savedLine?->productUnit?->unit_id);
     $unitFactor = $lineValues['unit_factor'] ?? ($hasOldLines ? $selectedProfile?->factor : $savedLine?->factor);
     $quantity = $hasOldLines ? ($lineValues['quantity'] ?? '') : ($savedLine?->quantity ?? '');
-    $unitPrice = $hasOldLines ? ($lineValues['unit_price'] ?? '') : ($savedLine === null ? '' : \Modules\Core\Helpers\Money::decimal($savedLine->unit_price_minor));
+    $unitPrice = $hasOldLines ? ($lineValues['unit_price'] ?? '') : ($savedLine === null ? '' : moneyDecimal($savedLine->unit_price));
     $expiryDate = $itemFields['expiry'] && $hasOldLines ? ($lineValues['expiry_date'] ?? '') : $savedLine?->expiry_date?->toDateString();
 @endphp
 
@@ -16,25 +16,15 @@
     data-index="{{ $lineIndex }}"
     data-product-id="{{ $variant?->product_id }}"
     data-purchase-price="{{ $variant?->product?->purchase_price ?? '0.00' }}"
-    data-sale-price="{{ $variant?->product?->sale_price ?? '0.00' }}"
     data-unit-profiles="{{ $variant ? $variant->product->units->map(fn ($unit) => ['id' => $unit->id, 'unit_id' => $unit->unit_id, 'factor' => $unit->factor])->toJson() : '[]' }}"
 >
     <legend class="visually-hidden">Item details</legend>
     <div>
         <input name="lines[{{ $lineIndex }}][variant_id]" type="hidden" value="{{ $lineValues['variant_id'] ?? $variant?->id ?? '' }}">
-        @if (filled($originalLineId))
-            <input name="lines[{{ $lineIndex }}][original_line_id]" type="hidden" value="{{ $originalLineId }}">
-        @endif
-        <strong class="app-inventory-entry-name" data-inventory-product-name hidden>{{ $variant?->product?->name ?? 'Select an available product' }}</strong>
-        <small class="app-inventory-entry-code text-body-secondary" data-inventory-product-code hidden>
-            {{ $variant?->sku }}
-            @if ($variant?->name && $variant->name !== 'Default') / {{ $variant->name }} @endif
-            @if ($variant?->color) / {{ $variant->color }} @endif
-            @if ($variant?->size) / {{ $variant->size }} @endif
-            @if ($variant !== null && $variant->sph !== null) / SPH {{ $variant->sph }} @endif
-            @if ($variant !== null && $variant->cyl !== null) / CYL {{ $variant->cyl }} @endif
-        </small>
-        <small class="d-none text-body-secondary" data-inventory-product-stock hidden></small>
+        <input name="lines[{{ $lineIndex }}][original_line_id]" type="hidden" value="{{ $originalLineId }}">
+        <strong class="app-inventory-entry-name" hidden>{{ $variant?->product?->name ?? 'Select an available product' }}</strong>
+        <small class="app-inventory-entry-code text-body-secondary" hidden>{{ $variant?->description() }}</small>
+
         @error('lines.'.$lineIndex.'.variant_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         @error('lines.'.$lineIndex.'.original_line_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
     </div>
@@ -56,8 +46,8 @@
                     <i class="fa-solid fa-pencil" aria-hidden="true"></i>
                 </button>
             </div>
-            <input name="lines[{{ $lineIndex }}][unit_id]" type="hidden" value="{{ $unitId }}" data-inventory-unit-id>
-            <input name="lines[{{ $lineIndex }}][unit_factor]" type="hidden" value="{{ $unitFactor }}" data-inventory-unit-factor>
+            <input name="lines[{{ $lineIndex }}][unit_id]" type="hidden" value="{{ $unitId }}">
+            <input name="lines[{{ $lineIndex }}][unit_factor]" type="hidden" value="{{ $unitFactor }}">
             @error('lines.'.$lineIndex.'.unit_id')
                 <div class="invalid-feedback d-block" id="trade_{{ $lineIndex }}_unit-error">{{ $message }}</div>
             @enderror
@@ -80,7 +70,7 @@
         <div class="col-sm-6 col-lg-4 col-xl-2">
             <label class="form-label" for="trade_{{ $lineIndex }}_price">Rate <span class="text-danger" aria-hidden="true">*</span></label>
             <div class="input-group">
-                <input class="{{ inputClass('lines.'.$lineIndex.'.unit_price', 'form-control text-end') }}" id="trade_{{ $lineIndex }}_price" name="lines[{{ $lineIndex }}][unit_price]" type="number" inputmode="decimal" min="0" step="0.01" value="{{ $unitPrice }}" data-inventory-unit-price required {{ inputAttrs('lines.'.$lineIndex.'.unit_price', 'trade_'.$lineIndex.'_price', 'trade_'.$lineIndex.'_price-unit') }}>
+                <input class="{{ inputClass('lines.'.$lineIndex.'.unit_price', 'form-control text-end') }}" id="trade_{{ $lineIndex }}_price" name="lines[{{ $lineIndex }}][unit_price]" type="number" inputmode="decimal" min="0" step="0.01" value="{{ $unitPrice }}" required {{ inputAttrs('lines.'.$lineIndex.'.unit_price', 'trade_'.$lineIndex.'_price', 'trade_'.$lineIndex.'_price-unit') }}>
                 <span class="input-group-text" id="trade_{{ $lineIndex }}_price-unit">/ <span class="ms-1" data-inventory-rate-unit>Pcs</span></span>
             </div>
             @error('lines.'.$lineIndex.'.unit_price')<div class="invalid-feedback d-block" id="trade_{{ $lineIndex }}_price-error">{{ $message }}</div>@enderror
@@ -88,7 +78,7 @@
         @if ($showPurchaseSalePrice)
             <div class="col-sm-6 col-lg-4 col-xl-2">
                 <label class="form-label" for="trade_{{ $lineIndex }}_sale_price">Sale Price <span class="visually-hidden">per piece</span></label>
-                <input class="{{ inputClass('lines.'.$lineIndex.'.sale_price_per_piece', 'form-control text-end') }}" id="trade_{{ $lineIndex }}_sale_price" name="lines[{{ $lineIndex }}][sale_price_per_piece]" type="number" inputmode="decimal" min="0" step="0.01" placeholder="{{ $variant?->product?->sale_price > 0 ? $variant->product->sale_price : '0' }}" value="{{ $lineValues['sale_price_per_piece'] ?? '' }}" data-inventory-sale-price-per-piece {{ inputAttrs('lines.'.$lineIndex.'.sale_price_per_piece', 'trade_'.$lineIndex.'_sale_price') }}>
+                <input class="{{ inputClass('lines.'.$lineIndex.'.sale_price_per_piece', 'form-control text-end') }}" id="trade_{{ $lineIndex }}_sale_price" name="lines[{{ $lineIndex }}][sale_price_per_piece]" type="number" inputmode="decimal" min="0" step="0.01" placeholder="{{ $variant?->product?->sale_price > 0 ? $variant->product->sale_price : '0' }}" value="{{ $lineValues['sale_price_per_piece'] ?? '' }}" {{ inputAttrs('lines.'.$lineIndex.'.sale_price_per_piece', 'trade_'.$lineIndex.'_sale_price') }}>
                 @error('lines.'.$lineIndex.'.sale_price_per_piece')
                     <div class="invalid-feedback d-block" id="trade_{{ $lineIndex }}_sale_price-error">{{ $message }}</div>
                 @enderror

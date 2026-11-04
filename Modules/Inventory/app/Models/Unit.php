@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['name', 'symbol'])]
 class Unit extends BaseModel
 {
-    protected $table = 'inventory_units';
+    protected $table = 'inv_units';
 
     protected string $crudPermission = 'inventory-units';
 

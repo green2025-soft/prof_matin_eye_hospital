@@ -35,31 +35,48 @@ class DueCollectionController extends BaseController
 
     public function store(DueCollectionRequest $request, ClinicalEntryService $entries): RedirectResponse
     {
-        $collection = $entries->saveDueCollection($request->user('web'), $this->record($request), $request->payload(), (int) $request->attributes->get('branch_id'));
+        $collection = $entries->saveDueCollection(
+            $request->user('web'),
+            $this->record($request),
+            $request->payload(),
+            (int) $request->attributes->get('branch_id')
+        );
 
-        return $this->redirectAfterWrite($collection)->with('status', 'Due collection'.($this->isUpdate($request) ? ' updated.' : ' created.'));
+        return $this->redirectAfterWrite($collection)
+            ->with('status', 'Due collection'.($this->isUpdate($request) ? ' updated.' : ' created.'));
     }
 
     public function show(Request $request, ClinicalEntryService $entries): View
     {
-        return view('hospital::due-collections.invoice', $entries->invoiceData($request->user('web'), $this->record($request)));
+        return view(
+            'hospital::due-collections.invoice',
+            $entries->invoiceData($request->user('web'), $this->record($request))
+        );
     }
 
     public function invoices(DueCollectionRequest $request, ClinicalEntryService $entries): JsonResponse
     {
         $records = $entries->dueInvoices($request->user('web'), (int) $request->attributes->get('branch_id'), $request->validated());
 
-        return response()->json([
-            'results' => $records->getCollection()->values()->all(),
-            'pagination' => ['more' => $records->hasMorePages()],
-        ]);
+        return response()
+            ->json([
+                'results' => $records->getCollection()
+                    ->values()
+                    ->all(),
+                'pagination' => [
+                    'more' => $records->hasMorePages(),
+                ],
+            ]);
     }
 
     public function invoice(DueCollectionRequest $request, ClinicalEntryService $entries): JsonResponse
     {
-        return response()->json($entries->dueCollectionPreview(
-            $request->user('web'), $request->validated('invoice'), (int) $request->attributes->get('branch_id'),
-        ));
+        return response()
+            ->json($entries->dueCollectionPreview(
+                $request->user('web'),
+                $request->validated('invoice'),
+                (int) $request->attributes->get('branch_id'),
+            ));
     }
 
     protected function formData(Account $actor, Model $record): array
@@ -84,8 +101,12 @@ class DueCollectionController extends BaseController
             'selectedService' => $selectedService,
             'selectedInvoice' => $collectionPreview['invoice'] ?? null,
             'collectionPreview' => $collectionPreview,
-            'collectionDate' => $record->collection_date?->toDateString() ?? now(config('app.timezone'))->toDateString(),
-            'paymentTypes' => PaymentType::query()->orderBy('ordering')->orderBy('id')->get(['id', 'name']),
+            'collectionDate' => $record->collection_date?->toDateString() ?? now(config('app.timezone'))
+                ->toDateString(),
+            'paymentTypes' => PaymentType::query()
+                ->orderBy('ordering')
+                ->orderBy('id')
+                ->get(['id', 'name']),
         ];
     }
 }

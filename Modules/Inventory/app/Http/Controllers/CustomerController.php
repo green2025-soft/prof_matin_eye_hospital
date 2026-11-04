@@ -18,7 +18,11 @@ class CustomerController extends BaseController
         $filters = $request->validated();
         $records = $customers->paginate($request->user('web'), $filters);
 
-        return view('inventory::customers.index', ['pageTitle' => 'Customers / patients', 'filters' => $filters, 'records' => $records]);
+        return view('inventory::customers.index', [
+            'pageTitle' => 'Customers / patients',
+            'filters' => $filters,
+            'records' => $records,
+        ]);
     }
 
     public function choices(CustomerRequest $request, InventoryCustomers $customers): JsonResponse
@@ -27,13 +31,17 @@ class CustomerController extends BaseController
         $settings = Setting::values('inventory');
         $customersOnly = ! empty($filters['new_sale']) && $settings['customer_scope'] === 'customer';
 
-        return response()->json($customers->search($request->user('web'), $filters['search'] ?? '', $customersOnly, (int) ($filters['page'] ?? 1)));
+        return response()
+            ->json($customers->search($request->user('web'), $filters['search'] ?? '', $customersOnly, (int) ($filters['page'] ?? 1)));
     }
 
     public function store(CustomerRequest $request, InventoryCustomers $customers): JsonResponse
     {
         $customer = $customers->create($request->user('web'), $request->validated(), (int) $request->attributes->get('branch_id'));
 
-        return response()->json(['customer' => $customer], 201);
+        return response()
+            ->json([
+                'customer' => $customer,
+            ], 201);
     }
 }

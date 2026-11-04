@@ -1,34 +1,40 @@
+@php
+$productType = request()->attributes->get('inventory_product_type', 'medicine');
+ @endphp
 @extends('core::layouts.app')
 
-@section('title', ucfirst(request()->attributes->get('inventory_product_type', 'medicine')).' Sale')
+@section('title', ucfirst($productType).' Sale')
 
 @section('content')
     @php
-        $showDiscountColumn = $itemFields['discount'] || $document->exists;
+
+        $showDiscountColumn = $itemFields['discount'] || $entry->exists;
         $showVatColumn = $inventorySettings['vat_enabled'];
         $lineColumnCount = 5 + (int) $showDiscountColumn + (int) $showVatColumn;
+        $saleOptions = [
+            'type' => 'sale',
+            'revisionStock' => $revisionStock,
+            'allowWithoutStock' => (bool) $inventorySettings[$productType.'_sale_without_stock_enabled'],
+            'vatMode' => $showVatColumn ? $inventorySettings['vat_mode'] : 'none',
+            'vatPercent' => $inventorySettings['vat_percent'],
+        ];
     @endphp
 
-    @include('core::partials.heading', ['title' => ($document->exists ? 'Edit ' : 'New ').ucfirst(request()->attributes->get('inventory_product_type', 'medicine')).' Sale'.($document->exists ? ' — '.$document->number : '')])
+    @include('core::partials.heading', ['title' => ($entry->exists ? 'Edit ' : 'New ').ucfirst($productType).' Sale'.($entry->exists ? ' — '.$entry->number : '')])
 
     <form
         class="app-card p-3 p-md-4 app-inventory-entry"
         action="{{ $formAction }}"
         method="POST"
-        data-inventory-document
+        data-inventory-entry
         data-inventory-trade
-        data-type="sale"
-        data-inventory-revision-stock="{{ $revisionStock->toJson() }}"
-        data-allow-without-stock="{{ $inventorySettings[request()->attributes->get('inventory_product_type', 'medicine').'_sale_without_stock_enabled'] ? '1' : '0' }}"
-        data-vat-enabled="{{ $inventorySettings['vat_enabled'] ? '1' : '0' }}"
-        data-vat-mode="{{ $inventorySettings['vat_mode'] }}"
-        data-vat-percent="{{ $inventorySettings['vat_percent'] }}"
     >
         @csrf
         @if ($formMethod !== 'POST')
             @method($formMethod)
         @endif
-        <input id="inventory_product_type" name="product_type" type="hidden" value="{{ request()->attributes->get('inventory_product_type', 'medicine') }}">
+        <input id="inventory_product_type" name="product_type" type="hidden" value="{{ $productType }}">
+        <script type="application/json" id="inventory-sale-options">{!! htmlJson($saleOptions) !!}</script>
 
         <section class="app-form-section" aria-labelledby="sale-invoice-heading">
             <h2 class="app-form-section-title" id="sale-invoice-heading">

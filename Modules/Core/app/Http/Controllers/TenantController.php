@@ -41,27 +41,42 @@ class TenantController extends BaseController
     public function enter(Request $request, Tenant $tenant, AccessManager $access): RedirectResponse
     {
         return $access->transaction($request->user('web'), function (Account $actor) use ($request, $tenant): RedirectResponse {
-            $current = Tenant::query()->whereKey($tenant->getKey())->lockForUpdate()->firstOrFail();
-            Gate::forUser($actor)->authorize('enter', $current);
-            $domain = $current->domains()->orderBy('id')->value('domain');
+            $current = Tenant::query()
+                ->whereKey($tenant->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+            Gate::forUser($actor)
+                ->authorize('enter', $current);
+            $domain = $current->domains()
+                ->orderBy('id')
+                ->value('domain');
             abort_unless(is_string($domain) && $domain !== '', 404);
 
             $token = Str::random(64);
-            $expires = now()->addMinute();
-            $stored = Cache::store('tenant-handoff')->put('tenant-entry:'.hash('sha256', $token), [
-                'admin_id' => $actor->getKey(),
-                'tenant_id' => $current->getKey(),
-                'domain' => $domain,
-                'expires_at' => $expires->getTimestamp(),
-            ], $expires);
+            $expires = now()
+                ->addMinute();
+            $stored = Cache::store('tenant-handoff')
+                ->put('tenant-entry:'.hash('sha256', $token), [
+                    'admin_id' => $actor->getKey(),
+                    'tenant_id' => $current->getKey(),
+                    'domain' => $domain,
+                    'expires_at' => $expires->getTimestamp(),
+                ], $expires);
             abort_unless($stored, 503, 'Tenant access could not be prepared. Please try again.');
 
-            $path = URL::temporarySignedRoute('auth.tenant-entry', $expires, ['token' => $token], absolute: false);
-            $scheme = app()->isProduction() ? 'https' : $request->getScheme();
+            $path = URL::temporarySignedRoute('auth.tenant-entry', $expires, [
+                'token' => $token,
+            ], absolute: false);
+            $scheme = app()
+                ->isProduction() ? 'https' : $request->getScheme();
             $port = in_array($request->getPort(), [80, 443], true) ? '' : ':'.$request->getPort();
 
-            return redirect()->away($scheme.'://'.$domain.$port.$path)
-                ->withHeaders(['Cache-Control' => 'no-store', 'Referrer-Policy' => 'no-referrer']);
+            return redirect()
+                ->away($scheme.'://'.$domain.$port.$path)
+                ->withHeaders([
+                    'Cache-Control' => 'no-store',
+                    'Referrer-Policy' => 'no-referrer',
+                ]);
         });
     }
 }

@@ -33,7 +33,11 @@ class PatientController extends BaseController
 
     public function index(ListRequest $request): View
     {
-        return $this->listData($request)->with(['genders' => genders(), 'bloodGroups' => bloodGroups()]);
+        return $this->listData($request)
+            ->with([
+                'genders' => genders(),
+                'bloodGroups' => bloodGroups(),
+            ]);
     }
 
     public function options(SelectorRequest $request): JsonResponse
@@ -41,7 +45,9 @@ class PatientController extends BaseController
         $response = parent::options($request);
         $data = $response->getData(true);
         $data['results'] = array_map(
-            fn (array $patient): array => $patient + ['text' => $this->patientOptionText($patient)],
+            fn (array $patient): array => $patient + [
+                'text' => $this->patientOptionText($patient),
+            ],
             $data['results'],
         );
 
@@ -50,39 +56,57 @@ class PatientController extends BaseController
 
     public function store(PatientRequest $request, PatientService $patients): RedirectResponse|JsonResponse
     {
-        $patient = $patients->save($request->user('web'), $this->record($request), $request->payload(), (int) $request->attributes->get('branch_id'));
+        $patient = $patients->save(
+            $request->user('web'),
+            $this->record($request),
+            $request->payload(),
+            (int) $request->attributes->get('branch_id')
+        );
 
         if (! $this->isUpdate($request) && $request->expectsJson()) {
             $option = $patient->only(['id', 'name', 'patient_id', 'mobile_no']);
 
-            return response()->json($option + ['text' => $this->patientOptionText($option)], 201);
+            return response()
+                ->json(
+                    $option + [
+                        'text' => $this->patientOptionText($option),
+                    ],
+                    201
+                );
         }
 
-        return $this->redirectAfterWrite($patient)->with('status', 'Patient'.($this->isUpdate($request) ? ' updated.' : ' created.'));
+        return $this->redirectAfterWrite($patient)
+            ->with('status', 'Patient'.($this->isUpdate($request) ? ' updated.' : ' created.'));
     }
 
     public function modal(Request $request): View
     {
         $actor = $request->user('web');
-        Gate::forUser($actor)->authorize('create', Patient::class);
+        Gate::forUser($actor)
+            ->authorize('create', Patient::class);
         $patient = new Patient;
 
-        return view('hospital::patients.fields', [
-            ...$this->formData($actor, $patient),
-            'patient' => $patient,
-            'fieldPrefix' => 'modal_patient_',
-        ]);
+        return view(
+            'hospital::patients.fields',
+            [
+                ...$this->formData($actor, $patient),
+                'patient' => $patient,
+                'fieldPrefix' => 'modal_patient_',
+            ]
+        );
     }
 
     protected function formData(Account $actor, Model $record): array
     {
         $selectedDivision = $this->selectedOption(Division::query(), getValue('division_id', $record));
         $selectedDistrict = $selectedDivision === null ? null : $this->selectedOption(
-            District::query()->where('division_id', $selectedDivision->getKey()),
+            District::query()
+                ->where('division_id', $selectedDivision->getKey()),
             getValue('district_id', $record),
         );
         $selectedThana = $selectedDistrict === null ? null : $this->selectedOption(
-            Thana::query()->where('district_id', $selectedDistrict->getKey()),
+            Thana::query()
+                ->where('district_id', $selectedDistrict->getKey()),
             getValue('thana_id', $record),
         );
 

@@ -3,14 +3,23 @@
 namespace Modules\Inventory\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class StockAllocation extends BaseModel
 {
-    protected $table = 'inventory_stock_allocations';
+    protected $table = 'inv_stock_allocations';
 
     protected function casts(): array
     {
-        return ['document_line_id' => 'integer', 'lot_id' => 'integer', 'source_allocation_id' => 'integer', 'quantity' => 'integer', 'cost_minor' => 'integer', 'reversed_at' => 'datetime'];
+        return [
+            'stock_item_id' => 'integer',
+            'lot_id' => 'integer',
+            'source_allocation_id' => 'integer',
+            'quantity' => 'integer',
+            'cost' => 'integer',
+            'reversed_at' => 'datetime',
+        ];
     }
 
     public function lot(): BelongsTo
@@ -18,8 +27,18 @@ class StockAllocation extends BaseModel
         return $this->belongsTo(StockLot::class, 'lot_id');
     }
 
-    public function line(): BelongsTo
+    public function stockItem(): MorphTo
     {
-        return $this->belongsTo(DocumentLine::class, 'document_line_id');
+        return $this->morphTo();
+    }
+
+    public function returns(): HasMany
+    {
+        return $this->hasMany(self::class, 'source_allocation_id');
+    }
+
+    public function shortageSettlements(): HasMany
+    {
+        return $this->hasMany(StockShortageSettlement::class, 'allocation_id');
     }
 }

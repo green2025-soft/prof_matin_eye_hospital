@@ -6,13 +6,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Payment extends BaseModel
 {
-    protected $table = 'inventory_payments';
+    protected $table = 'inv_payments';
 
     protected string $crudPermission = 'inventory-payments';
 
     protected bool $branchScoped = true;
 
-    protected array $exposed = ['id', 'branch_id', 'number', 'direction', 'product_type', 'payment_date', 'customer_id', 'supplier_id', 'payment_type_id', 'amount_minor', 'discount_minor', 'notes', 'voided_at', 'created_at'];
+    protected array $exposed = [
+        'id', 'branch_id', 'number', 'direction', 'product_type', 'payment_date',
+        'customer_id', 'supplier_id', 'payment_type_id',
+        'amount', 'discount', 'notes', 'voided_at', 'created_at',
+    ];
 
     protected array $searchable = ['number'];
 
@@ -24,11 +28,25 @@ class Payment extends BaseModel
 
     protected function casts(): array
     {
-        return ['branch_id' => 'integer', 'customer_id' => 'integer', 'supplier_id' => 'integer', 'payment_type_id' => 'integer', 'payment_date' => 'date', 'amount_minor' => 'integer', 'discount_minor' => 'integer', 'voided_at' => 'datetime'];
+        return [
+            'branch_id' => 'integer',
+            'customer_id' => 'integer',
+            'supplier_id' => 'integer',
+            'payment_type_id' => 'integer',
+            'payment_date' => 'date',
+            'amount' => 'integer',
+            'discount' => 'integer',
+            'voided_at' => 'datetime',
+        ];
     }
 
-    public function allocations(): HasMany
+    public function purchaseAllocations(): HasMany
     {
-        return $this->hasMany(PaymentAllocation::class);
+        return $this->hasMany(PurchasePaymentAllocation::class, 'payment_id');
+    }
+
+    public function saleAllocations(): HasMany
+    {
+        return $this->hasMany(SalePaymentAllocation::class, 'payment_id');
     }
 }

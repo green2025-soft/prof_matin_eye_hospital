@@ -10,9 +10,13 @@ use Modules\Core\Models\Account;
 use Modules\Core\Models\Setting;
 use Modules\Core\Services\AccessManager;
 use Modules\Hospital\Contracts\InventoryCustomers;
-use Modules\Inventory\Models\Document;
+use Modules\Inventory\Models\InventorySequence;
 use Modules\Inventory\Models\Payment;
+use Modules\Inventory\Models\Purchase;
+use Modules\Inventory\Models\Sale;
+use Modules\Inventory\Models\StockEntry;
 use Modules\Inventory\Models\Supplier;
+use Modules\TenantCore\Models\PaymentType;
 
 class PaymentService
 {
@@ -29,7 +33,6 @@ class PaymentService
                     throw ValidationException::withMessages(['payment_date' => 'The payment date cannot be in the future.']);
                 }
                 $payment = new Payment;
-                $connection = $payment->getConnection();
                 $direction = $values['direction'];
                 $customerId = $direction === 'customer' ? (int) $values['customer_id'] : null;
                 $supplierId = $direction === 'supplier' ? (int) $values['supplier_id'] : null;
@@ -41,61 +44,25 @@ class PaymentService
                     throw ValidationException::withMessages(['supplier_id' => 'Select a valid supplier.']);
                 }
 
-                $allocations = collect($values['allocations'])->sortBy('document_id');
-                $ids = $allocations->pluck('document_id')->map(fn ($id): int => (int) $id)->all();
-                $documents = Document::query()->whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
-                $amount = 0;
-                $discount = 0;
-                $prepared = [];
-
-                foreach ($allocations as $index => $allocation) {
-                    $document = $documents->get((int) $allocation['document_id']);
-                    $allowedTypes = $direction === 'customer' ? ['sale', 'customer_opening'] : ['purchase', 'supplier_opening'];
-                    if ($document === null || ! in_array($document->type, $allowedTypes, true) || $document->voided_at !== null
-                        || $document->document_date->toDateString() > $values['payment_date']
-                        || $document->product_type !== $values['product_type']
-                        || ($customerId !== null && (int) $document->customer_id !== $customerId)
-                        || ($supplierId !== null && (int) $document->supplier_id !== $supplierId)) {
-                        throw ValidationException::withMessages(['allocations' => 'Choose outstanding invoices for this branch and party.']);
-                    }
-
-                    $lineAmount = Money::minor($allocation['amount'] ?? '0');
-                    $lineDiscount = Money::minor($allocation['discount'] ?? '0');
-                    if ($lineDiscount > 0) {
-                        $this->inventory->authorize($freshActor, 'inventory-payments.discount');
-                    }
-                    $due = $document->outstandingMinor();
-                    if ($lineAmount + $lineDiscount < 1 || $lineAmount + $lineDiscount > $due) {
-                        throw ValidationException::withMessages(["allocations.$index.amount" => 'Cash and discount must be positive and cannot exceed the outstanding amount.']);
-                    }
-                    $document->paid_minor += $lineAmount;
-                    $document->settlement_discount_minor += $lineDiscount;
-                    $document->save();
-                    $amount += $lineAmount;
-                    $discount += $lineDiscount;
-                    $prepared[] = ['document_id' => $document->id, 'amount_minor' => $lineAmount, 'discount_minor' => $lineDiscount];
-                }
-
-                if ($amount > 0 && empty($values['payment_type_id'])) {
-                    throw ValidationException::withMessages(['payment_type_id' => 'Choose a payment type for this payment.']);
-                }
-                if (! empty($values['payment_type_id']) && ! $connection->table('payment_types')->where('id', $values['payment_type_id'])->exists()) {
+                if (! empty($values['payment_type_id']) && ! PaymentType::query()->whereKey($values['payment_type_id'])->exists()) {
                     throw ValidationException::withMessages(['payment_type_id' => 'Choose a valid payment type.']);
                 }
                 $payment->forceFill([
                     'number' => $this->nextNumber((int) request()->attributes->get('branch_id'), $values['product_type'], $values['payment_date']),
                     'direction' => $direction, 'product_type' => $values['product_type'], 'payment_date' => $values['payment_date'],
                     'customer_id' => $customerId, 'supplier_id' => $supplierId, 'payment_type_id' => $values['payment_type_id'] ?? null,
-                    'amount_minor' => $amount, 'discount_minor' => $discount, 'notes' => $values['notes'] ?? null,
-                ])->save();
-                foreach ($prepared as $allocation) {
-                    $connection->table('inventory_payment_allocations')->insert(['payment_id' => $payment->id] + $allocation);
+                    'notes' => $values['notes'] ?? null,
+                ]);
+                if ($direction === 'customer') {
+                    $this->collectCustomerPayment($freshActor, $payment, $values);
+                } else {
+                    $this->paySupplier($freshActor, $payment, $values);
                 }
 
                 return $payment;
             });
         } catch (UniqueConstraintViolationException $exception) {
-            if (str_contains($exception->errorInfo[2] ?? '', 'inventory_payments_number_unique')) {
+            if (str_contains($exception->errorInfo[2] ?? '', 'inv_payments_number_unique')) {
                 throw ValidationException::withMessages(['record' => 'The generated payment number already exists. Choose a distinct Payment invoice pattern in Inventory settings.']);
             }
 
@@ -103,11 +70,76 @@ class PaymentService
         }
     }
 
+    private function collectCustomerPayment(Account $actor, Payment $payment, array $values): void
+    {
+        $ids = array_column($values['allocations'], 'sale_id');
+        $sales = Sale::query()->where('customer_id', $payment->customer_id)
+            ->where('product_type', $payment->product_type)->whereIn('id', $ids)
+            ->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+        $allocations = [];
+        foreach (collect($values['allocations'])->sortBy('sale_id') as $index => $allocation) {
+            $allocations[] = ['sale_id' => (int) $allocation['sale_id']] + $this->applyAllocation(
+                $actor, $sales->get((int) $allocation['sale_id']),
+                Money::minor($allocation['amount'] ?? '0'), Money::minor($allocation['discount'] ?? '0'),
+                $values['payment_date'], $index,
+            );
+        }
+        $this->saveTotals($payment, $allocations);
+        $payment->saleAllocations()->forceCreateMany($allocations);
+    }
+
+    private function paySupplier(Account $actor, Payment $payment, array $values): void
+    {
+        $ids = array_column($values['allocations'], 'purchase_id');
+        $purchases = Purchase::query()->where('supplier_id', $payment->supplier_id)
+            ->where('product_type', $payment->product_type)->whereIn('id', $ids)
+            ->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+        $allocations = [];
+        foreach (collect($values['allocations'])->sortBy('purchase_id') as $index => $allocation) {
+            $allocations[] = ['purchase_id' => (int) $allocation['purchase_id']] + $this->applyAllocation(
+                $actor, $purchases->get((int) $allocation['purchase_id']),
+                Money::minor($allocation['amount'] ?? '0'), Money::minor($allocation['discount'] ?? '0'),
+                $values['payment_date'], $index,
+            );
+        }
+        $this->saveTotals($payment, $allocations);
+        $payment->purchaseAllocations()->forceCreateMany($allocations);
+    }
+
+    private function applyAllocation(Account $actor, ?StockEntry $invoice, int $amount, int $discount, string $paymentDate, int|string $index): array
+    {
+        if ($invoice === null || $invoice->voided_at !== null || $invoice->posted_at === null
+            || $invoice->entry_date->toDateString() > $paymentDate) {
+            throw ValidationException::withMessages(['allocations' => 'Choose outstanding invoices for this branch and party.']);
+        }
+        if ($discount > 0) {
+            $this->inventory->authorize($actor, 'inventory-payments.discount');
+        }
+        if ($amount + $discount < 1 || $amount + $discount > $invoice->outstandingMinor()) {
+            throw ValidationException::withMessages(["allocations.$index.amount" => 'Cash and discount must be positive and cannot exceed the outstanding amount.']);
+        }
+        $invoice->paid += $amount;
+        $invoice->settlement_discount += $discount;
+        $invoice->save();
+
+        return ['amount' => $amount, 'discount' => $discount];
+    }
+
+    private function saveTotals(Payment $payment, array $allocations): void
+    {
+        $amount = array_sum(array_column($allocations, 'amount'));
+        $discount = array_sum(array_column($allocations, 'discount'));
+        if ($amount > 0 && $payment->payment_type_id === null) {
+            throw ValidationException::withMessages(['payment_type_id' => 'Choose a payment type for this payment.']);
+        }
+        $payment->forceFill(['amount' => $amount, 'discount' => $discount])->save();
+    }
+
     private function nextNumber(int $branchId, string $productType, string $paymentDate): string
     {
         $connection = (new Payment)->getConnection();
         $scope = 'payment:'.$branchId;
-        $sequences = $connection->table('inventory_sequences');
+        $sequences = InventorySequence::query();
         $sequences->insertOrIgnore(['scope' => $scope, 'last_number' => 0]);
         $sequence = (clone $sequences)->where('scope', $scope)->lockForUpdate()->first();
         $number = (int) $sequence->last_number + 1;
@@ -139,21 +171,45 @@ class PaymentService
             if ($payment->voided_at !== null) {
                 throw ValidationException::withMessages(['payment' => 'This payment has already been voided.']);
             }
-            $allocations = $payment->allocations()->orderBy('document_id')->get();
-            $documents = Document::query()->whereIn('id', $allocations->pluck('document_id'))->orderBy('id')->lockForUpdate()->get()->keyBy('id');
-            foreach ($allocations as $allocation) {
-                $document = $documents->get($allocation->document_id);
-                if ($document === null || $document->voided_at !== null
-                    || $document->paid_minor - $allocation->amount_minor < $document->refunded_minor
-                    || $document->settlement_discount_minor < $allocation->discount_minor) {
-                    throw ValidationException::withMessages(['payment' => 'A linked invoice has a refund. Reverse that return before voiding this payment.']);
-                }
-                $document->paid_minor -= $allocation->amount_minor;
-                $document->settlement_discount_minor -= $allocation->discount_minor;
-                $document->save();
+            if ($payment->direction === 'customer') {
+                $this->reverseCustomerPayment($payment);
+            } else {
+                $this->reverseSupplierPayment($payment);
             }
             $payment->voided_at = now();
             $payment->save();
         });
+    }
+
+    private function reverseCustomerPayment(Payment $payment): void
+    {
+        $allocations = $payment->saleAllocations()->orderBy('sale_id')->get();
+        $sales = Sale::query()->whereIn('id', $allocations->pluck('sale_id'))
+            ->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+        foreach ($allocations as $allocation) {
+            $this->reverseAllocation($sales->get($allocation->sale_id), $allocation->amount, $allocation->discount);
+        }
+    }
+
+    private function reverseSupplierPayment(Payment $payment): void
+    {
+        $allocations = $payment->purchaseAllocations()->orderBy('purchase_id')->get();
+        $purchases = Purchase::query()->whereIn('id', $allocations->pluck('purchase_id'))
+            ->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+        foreach ($allocations as $allocation) {
+            $this->reverseAllocation($purchases->get($allocation->purchase_id), $allocation->amount, $allocation->discount);
+        }
+    }
+
+    private function reverseAllocation(?StockEntry $invoice, int $amount, int $discount): void
+    {
+        if ($invoice === null || $invoice->voided_at !== null
+            || $invoice->paid - $amount < $invoice->refunded
+            || $invoice->settlement_discount < $discount) {
+            throw ValidationException::withMessages(['payment' => 'A linked invoice has a refund. Reverse that return before voiding this payment.']);
+        }
+        $invoice->paid -= $amount;
+        $invoice->settlement_discount -= $discount;
+        $invoice->save();
     }
 }

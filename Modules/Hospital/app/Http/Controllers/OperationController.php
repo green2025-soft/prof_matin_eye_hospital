@@ -26,7 +26,8 @@ class OperationController extends BaseController
 
     public function index(ListRequest $request): View
     {
-        return $this->listData($request)->with('commissionTypes', commissionTypes());
+        return $this->listData($request)
+            ->with('commissionTypes', commissionTypes());
     }
 
     public function store(OperationRequest $request): RedirectResponse

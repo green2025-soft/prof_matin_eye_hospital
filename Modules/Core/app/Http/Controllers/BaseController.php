@@ -64,10 +64,14 @@ abstract class BaseController extends Controller
         $model = $this->modelClass();
         $records = (new $model)->optionRecords($request->validated(), $this->selectorFields);
 
-        return response()->json([
-            'results' => $records->getCollection()->setVisible($this->selectorFields),
-            'pagination' => ['more' => $records->hasMorePages()],
-        ]);
+        return response()
+            ->json([
+                'results' => $records->getCollection()
+                    ->setVisible($this->selectorFields),
+                'pagination' => [
+                    'more' => $records->hasMorePages(),
+                ],
+            ]);
     }
 
     public function isUpdate(Request $request): bool
@@ -87,13 +91,23 @@ abstract class BaseController extends Controller
 
         // Inherited CRUD actions resolve their declared model without provider bindings.
         if (is_string($record) || is_int($record)) {
-            $record = $model->resolveRouteBinding($record, $request->route()->bindingFieldFor($this->parameter));
+            $record = $model->resolveRouteBinding(
+                $record,
+                $request->route()
+                    ->bindingFieldFor($this->parameter),
+            );
         }
 
-        abort_unless($record instanceof Model && get_class($record) === $modelClass && $record->exists
-            && $record->getConnection()->getName() === $model->getConnection()->getName(), 404);
+        abort_unless(
+            $record instanceof Model && get_class($record) === $modelClass && $record->exists
+                && $record->getConnection()
+                    ->getName() === $model->getConnection()
+                    ->getName(),
+            404,
+        );
 
-        $request->route()->setParameter($this->parameter, $record);
+        $request->route()
+            ->setParameter($this->parameter, $record);
 
         return $record;
     }
@@ -134,7 +148,8 @@ abstract class BaseController extends Controller
         unset($validatedFilters['page']);
         $validatedFilters['per_page'] = $size;
 
-        return $query->paginate($perPage, $serverColumns, 'page', $page)->appends($validatedFilters);
+        return $query->paginate($perPage, $serverColumns, 'page', $page)
+            ->appends($validatedFilters);
     }
 
     public function create(Request $request): View
@@ -160,17 +175,23 @@ abstract class BaseController extends Controller
         Gate::authorize('delete', $record);
         try {
             if ($this->service !== '') {
-                app($this->service)->delete($actor, $record);
+                app($this->service)
+                    ->delete($actor, $record);
             } else {
                 $record->writeTransaction($actor, function (Account $freshActor) use ($record): void {
-                    $target = $record->newQuery()->whereKey($record->getKey())->lockForUpdate()->firstOrFail();
-                    Gate::forUser($freshActor)->authorize('delete', $target);
+                    $target = $record->newQuery()
+                        ->whereKey($record->getKey())
+                        ->lockForUpdate()
+                        ->firstOrFail();
+                    Gate::forUser($freshActor)
+                        ->authorize('delete', $target);
                     $target->delete();
 
                     foreach ($this->uploads as $column) {
                         if ($path = $target->getAttribute($column)) {
                             $disk = Storage::disk('public');
-                            $target->getConnection()->afterCommit(fn () => $disk->delete($path));
+                            $target->getConnection()
+                                ->afterCommit(fn () => $disk->delete($path));
                         }
                     }
                 });
@@ -180,26 +201,36 @@ abstract class BaseController extends Controller
                 throw $exception;
             }
 
-            throw ValidationException::withMessages(['record' => 'This record is in use and cannot be deleted.']);
+            throw ValidationException::withMessages([
+                'record' => 'This record is in use and cannot be deleted.',
+            ]);
         }
 
-        return $this->redirectAfterWrite($record)->with('status', $this->title.' deleted.');
+        return $this->redirectAfterWrite($record)
+            ->with('status', $this->title.' deleted.');
     }
 
-    protected function saveData(BaseRequest $request): RedirectResponse
+    protected function saveData(BaseRequest $request, bool $jsonResponse = false): RedirectResponse|JsonResponse
     {
         $actor = $request->user('web');
         $record = $this->record($request);
 
         if ($this->service !== '') {
-            $record = app($this->service)->save($actor, $record, $request->payload());
+            $record = app($this->service)
+                ->save($actor, $record, $request->payload());
         } else {
             $model = $this->modelClass();
 
             try {
                 $record = (new $model)->writeTransaction($actor, function (Account $freshActor) use ($record, $model, $request): Model {
-                    $target = $record ? $record->newQuery()->whereKey($record->getKey())->lockForUpdate()->firstOrFail() : new $model;
-                    Gate::forUser($freshActor)->authorize($target->exists ? 'update' : 'create', $target->exists ? $target : $model);
+                    $target = $record
+                        ? $record->newQuery()
+                            ->whereKey($record->getKey())
+                            ->lockForUpdate()
+                            ->firstOrFail()
+                        : new $model;
+                    Gate::forUser($freshActor)
+                        ->authorize($target->exists ? 'update' : 'create', $target->exists ? $target : $model);
                     $values = $request->payload();
 
                     foreach ($this->uploads as $input => $column) {
@@ -214,10 +245,12 @@ abstract class BaseController extends Controller
                             throw new RuntimeException('The uploaded image could not be stored.');
                         }
 
-                        $target->getConnection()->afterRollBack(fn () => $disk->delete($path));
+                        $target->getConnection()
+                            ->afterRollBack(fn () => $disk->delete($path));
 
                         if ($previous = $target->getAttribute($column)) {
-                            $target->getConnection()->afterCommit(fn () => $disk->delete($previous));
+                            $target->getConnection()
+                                ->afterCommit(fn () => $disk->delete($previous));
                         }
 
                         $values[$column] = $path;
@@ -229,22 +262,34 @@ abstract class BaseController extends Controller
                     return $target;
                 });
             } catch (UniqueConstraintViolationException) {
-                throw ValidationException::withMessages(['record' => 'A record with these details already exists.']);
+                throw ValidationException::withMessages([
+                    'record' => 'A record with these details already exists.',
+                ]);
             } catch (QueryException $exception) {
                 if ((int) ($exception->errorInfo[1] ?? 0) !== 1451) {
                     throw $exception;
                 }
 
-                throw ValidationException::withMessages(['record' => 'This record is in use. Its referenced fields cannot be changed.']);
+                throw ValidationException::withMessages([
+                    'record' => 'This record is in use. Its referenced fields cannot be changed.',
+                ]);
             }
         }
 
         if ($record instanceof Account && $actor->is($record)) {
-            Auth::guard('web')->setUser($record);
-            $request->session()->regenerate();
+            Auth::guard('web')
+                ->setUser($record);
+            $request->session()
+                ->regenerate();
         }
 
-        return $this->redirectAfterWrite($record)->with('status', $this->title.($this->isUpdate($request) ? ' updated.' : ' created.'));
+        if ($jsonResponse) {
+            return response()
+                ->json($record->only($record->queryContract()['exposed']), $this->isUpdate($request) ? 200 : 201);
+        }
+
+        return $this->redirectAfterWrite($record)
+            ->with('status', $this->title.($this->isUpdate($request) ? ' updated.' : ' created.'));
     }
 
     private function form(Request $request, Model $record): View
@@ -275,7 +320,9 @@ abstract class BaseController extends Controller
             ...$data,
             $this->parameter => $record,
             'formAction' => $record->exists
-                ? route($this->routePrefix().'.update', [$this->parameter => $record] + $routeParameters)
+                ? route($this->routePrefix().'.update', [
+                    $this->parameter => $record,
+                ] + $routeParameters)
                 : route($this->routePrefix().'.store', $routeParameters),
             'formMethod' => $record->exists ? 'PUT' : 'POST',
             'pageTitle' => $data['pageTitle'] ?? ($record->exists ? 'Edit ' : 'Create ').Str::lower($this->title),
@@ -287,7 +334,10 @@ abstract class BaseController extends Controller
 
     protected function formData(Account $actor, Model $record): array
     {
-        return $this->service !== '' ? app($this->service)->formData($actor, $record) : [];
+        return $this->service !== ''
+            ? app($this->service)
+                ->formData($actor, $record)
+            : [];
     }
 
     protected function selectedOption(Builder $query, mixed $selectedId, array $columns = ['id', 'name']): ?Model
@@ -321,21 +371,27 @@ abstract class BaseController extends Controller
     protected function redirectAfterWrite(?Model $record = null): RedirectResponse
     {
         if (Gate::allows('viewAny', $this->modelClass())) {
-            return redirect()->route($this->routePrefix().'.index', $this->routeParameters($record));
+            return redirect()
+                ->route($this->routePrefix().'.index', $this->routeParameters($record));
         }
 
         if ($record && Gate::allows('update', $record)) {
-            return redirect()->route($this->routePrefix().'.edit', [$this->parameter => $record] + $this->routeParameters($record));
+            return redirect()
+                ->route($this->routePrefix().'.edit', [
+                    $this->parameter => $record,
+                ] + $this->routeParameters($record));
         }
 
-        return redirect()->route('home');
+        return redirect()
+            ->route('home');
     }
 
     protected function routeParameters(?Model $record = null): array
     {
         $parameters = [];
         foreach ($this->routeFilters as $queryKey => $column) {
-            $value = $record?->getAttribute($column) ?? request()->query($queryKey) ?? ($this->defaultFilters[$queryKey] ?? null);
+            $value = $record?->getAttribute($column) ?? request()
+                ->query($queryKey) ?? ($this->defaultFilters[$queryKey] ?? null);
             if ((is_string($value) || is_int($value)) && filled($value)) {
                 $parameters[$queryKey] = $value;
             }
@@ -346,6 +402,11 @@ abstract class BaseController extends Controller
 
     protected function routePrefix(): string
     {
-        return Str::beforeLast(request()->route()->getName(), '.');
+        return Str::beforeLast(
+            request()
+                ->route()
+                ->getName(),
+            '.',
+        );
     }
 }

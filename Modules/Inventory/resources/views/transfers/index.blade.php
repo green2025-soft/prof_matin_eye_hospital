@@ -33,9 +33,9 @@
                             <td>
                                 <a href="{{ route($routePrefix.'.show', [$resourceParameter => $record, 'product_type' => $record->product_type]) }}">{{ $record->number }}</a>
                             </td>
-                            <td class="text-nowrap">{{ $record->document_date->format('Y-m-d') }}</td>
+                            <td class="text-nowrap">{{ $record->entry_date->format('Y-m-d') }}</td>
                             <td>{{ $record->destinationBranch?->name ?? '—' }}</td>
-                            <td class="text-end">{{ \Modules\Core\Helpers\Money::decimal($record->cost_minor) }}</td>
+                            <td class="text-end">{{ moneyDecimal($record->cost) }}</td>
                             <td>
                                 @include('inventory::entries.partials.status')
                             </td>

@@ -64,7 +64,8 @@ class PaymentController extends BaseController
             'invoices' => Invoice::query()
                 ->whereIn('status', [Invoice::STATUS_ISSUED, Invoice::STATUS_PARTIALLY_PAID])
                 ->whereNotNull('issued_at')
-                ->orderByDesc('id')->limit(100)
+                ->orderByDesc('id')
+                ->limit(100)
                 ->get(['id', 'number', 'currency', 'total_minor', 'paid_minor']),
         ];
     }
@@ -72,7 +73,9 @@ class PaymentController extends BaseController
     protected function redirectAfterWrite(?Model $record = null): RedirectResponse
     {
         return $record && Gate::allows('view', $record)
-            ? redirect()->route('core.payments.show', $record)
-            : redirect()->route('home');
+            ? redirect()
+                ->route('core.payments.show', $record)
+            : redirect()
+                ->route('home');
     }
 }

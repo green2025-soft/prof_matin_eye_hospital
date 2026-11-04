@@ -80,7 +80,7 @@ class AccessManager
 
         if ($connection->getName() !== $actorConnection->getName()
             || $connection->getDatabaseName() !== $actorConnection->getDatabaseName()
-            || ! $subject->matchesBranchContext()) {
+            || ! $subject->matchesBranchContext() || ! $subject->isCrudEnabled()) {
             return null;
         }
 

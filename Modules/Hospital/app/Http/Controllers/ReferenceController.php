@@ -36,18 +36,27 @@ class ReferenceController extends BaseController
     {
         $response = parent::options($request);
         $data = $response->getData(true);
-        $data['results'] = array_map(fn (array $reference): array => $reference + [
-            'text' => $reference['reference_id'].' — '.$reference['name'].' ('.$reference['contact_no'].')',
-        ], $data['results']);
+        $data['results'] = array_map(
+            fn (array $reference): array => $reference + [
+                'text' => $reference['reference_id'].' — '.$reference['name'].' ('.$reference['contact_no'].')',
+            ],
+            $data['results']
+        );
 
         return $response->setData($data);
     }
 
     public function store(ReferenceRequest $request, ReferenceService $references): RedirectResponse
     {
-        $reference = $references->save($request->user('web'), $this->record($request), $request->payload(), (int) $request->attributes->get('branch_id'));
+        $reference = $references->save(
+            $request->user('web'),
+            $this->record($request),
+            $request->payload(),
+            (int) $request->attributes->get('branch_id')
+        );
 
-        return $this->redirectAfterWrite($reference)->with('status', 'Reference'.($this->isUpdate($request) ? ' updated.' : ' created.'));
+        return $this->redirectAfterWrite($reference)
+            ->with('status', 'Reference'.($this->isUpdate($request) ? ' updated.' : ' created.'));
     }
 
     protected function formData(Account $actor, Model $record): array

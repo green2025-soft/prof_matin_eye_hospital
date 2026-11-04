@@ -4,9 +4,9 @@ namespace Modules\Inventory\Services;
 
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
-use Modules\Inventory\Models\DocumentLine;
 use Modules\Inventory\Models\Product;
 use Modules\Inventory\Models\ProductUnit;
+use Modules\Inventory\Models\StockItem;
 use Modules\Inventory\Models\Unit;
 
 class PurchaseUnitService
@@ -30,7 +30,7 @@ class PurchaseUnitService
         return ['piece' => $piece, 'choices' => $choices, 'saved' => $savedUnits];
     }
 
-    public function resolve(Product $product, array $input, ?DocumentLine $previous, array $units, int|string $index): ProductUnit
+    public function resolve(Product $product, array $input, ?StockItem $previous, array $units, int|string $index): ProductUnit
     {
         $unit = filled($input['product_unit_id'] ?? null)
             ? $this->resolveSaved($product, $input, $units, $index)

@@ -27,7 +27,6 @@
             <div class="col-12 col-md-8 col-lg-5 col-xl-4">
                 <label class="form-label" id="inventory-product-picker-label" for="inventory_product_picker">Add product</label>
                 <select class="{{ inputClass('lines', 'form-select') }}" id="inventory_product_picker"
-                data-inventory-product-picker
                 data-ajax-select
                 data-url="{{
                 route('inventory.items.options',
@@ -36,16 +35,16 @@
                  aria-keyshortcuts="F2" {{ inputAttrs('lines', 'inventory_product_picker', 'inventory-product-feedback') }}>
                     <option value=""></option>
                 </select>
-                <p class="small text-body-secondary mt-2 mb-0" id="inventory-product-feedback" data-inventory-product-feedback role="status" aria-live="polite">Select a product to start.</p>
+                <p class="small text-body-secondary mt-2 mb-0" id="inventory-product-feedback" role="status" aria-live="polite">Select a product to start.</p>
                 @error('lines')
                     <div class="invalid-feedback d-block" id="inventory_product_picker-error">{{ $message }}</div>
                 @enderror
             </div>
             <div class="col-12 col-md-4 col-lg-7 col-xl-8 text-md-end text-break" data-inventory-active-product hidden>
-                <h3 class="small text-body-secondary mb-1" data-inventory-editor-title>Add item</h3>
-                <strong class="d-block app-inventory-entry-name" data-inventory-active-product-name></strong>
-                <small class="d-block text-body-secondary" data-inventory-active-product-code></small>
-                <small class="text-body-secondary" data-inventory-active-product-stock hidden></small>
+                <h3 class="small text-body-secondary mb-1">Add item</h3>
+                <strong class="d-block app-inventory-entry-name"></strong>
+                <small class="d-block text-body-secondary"></small>
+
             </div>
         </div>
         <div class="mt-2" data-inventory-editor-panel hidden>
@@ -75,7 +74,7 @@
         @endforeach
     </div>
     <div class="table-responsive app-inventory-entry-table border rounded mt-2" role="region" aria-label="Invoice items" tabindex="0">
-        <table class="table app-table align-middle mb-0" data-inventory-trade-table>
+        <table class="table app-table align-middle mb-0">
             <caption class="visually-hidden">Saved invoice items. Select Edit to change an item.</caption>
             <thead>
                 <tr>
@@ -112,8 +111,8 @@
     <template data-inventory-summary-template>
         <tr>
             <td class="app-inventory-entry-product" data-label="Product">
-                <strong class="app-inventory-entry-name" data-inventory-summary-name></strong>
-                <small class="app-inventory-entry-code" data-inventory-summary-code></small>
+                <strong class="app-inventory-entry-name"></strong>
+                <small class="app-inventory-entry-code"></small>
                 <div hidden data-inventory-item-payload></div>
             </td>
             <td class="text-end" data-label="Qty"><span data-inventory-summary-quantity></span></td>

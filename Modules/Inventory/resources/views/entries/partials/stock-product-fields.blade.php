@@ -1,9 +1,9 @@
 <div class="col-lg-4">
     <label class="form-label small" for="line_{{ $lineIndex }}_variant">Product / SKU</label>
-    <select class="{{ inputClass('lines.'.$lineIndex.'.variant_id', 'form-select') }}" id="line_{{ $lineIndex }}_variant" name="lines[{{ $lineIndex }}][variant_id]" data-inventory-variant data-ajax-select data-url="{{ route('inventory.items.options') }}" data-parent-select="inventory_product_type" data-parent-field="product_type" data-placeholder="Search product or SKU" required {{ inputAttrs('lines.'.$lineIndex.'.variant_id', 'line_'.$lineIndex.'_variant') }}>
+    <select class="{{ inputClass('lines.'.$lineIndex.'.variant_id', 'form-select') }}" id="line_{{ $lineIndex }}_variant" name="lines[{{ $lineIndex }}][variant_id]" data-ajax-select data-url="{{ route('inventory.items.options') }}" data-parent-select="inventory_product_type" data-parent-field="product_type" data-placeholder="Search product or SKU" required {{ inputAttrs('lines.'.$lineIndex.'.variant_id', 'line_'.$lineIndex.'_variant') }}>
         <option value=""></option>
         @if ($variant)
-            <option value="{{ $variant->id }}" data-units="{{ $variant->product->units->map(fn ($unit) => ['id' => $unit->id, 'name' => $unit->unit->symbol ?: $unit->unit->name, 'factor' => $unit->factor])->toJson() }}" data-purchase-price="{{ $variant->product->purchase_price }}" data-sale-price="{{ $variant->product->sale_price }}" selected>
+            <option value="{{ $variant->id }}" data-purchase-price="{{ $variant->product->purchase_price }}" selected>
                 {{ $variant->product->name }} / {{ $variant->sku }}
             </option>
         @endif
@@ -14,7 +14,7 @@
 </div>
 <div class="col-6 col-lg-2">
     <label class="form-label small" for="line_{{ $lineIndex }}_unit">Unit</label>
-    <select class="{{ inputClass('lines.'.$lineIndex.'.product_unit_id', 'form-select') }}" id="line_{{ $lineIndex }}_unit" name="lines[{{ $lineIndex }}][product_unit_id]" data-inventory-unit required {{ inputAttrs('lines.'.$lineIndex.'.product_unit_id', 'line_'.$lineIndex.'_unit') }}>
+    <select class="{{ inputClass('lines.'.$lineIndex.'.product_unit_id', 'form-select') }}" id="line_{{ $lineIndex }}_unit" name="lines[{{ $lineIndex }}][product_unit_id]" required {{ inputAttrs('lines.'.$lineIndex.'.product_unit_id', 'line_'.$lineIndex.'_unit') }}>
         <option value="">Unit</option>
         @if ($variant)
             @foreach ($variant->product->units as $unit)

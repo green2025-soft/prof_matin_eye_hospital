@@ -2,13 +2,20 @@
 
 namespace Modules\Inventory\Models;
 
-use Illuminate\Database\Eloquent\Attributes\UsePolicy;
-use Modules\Inventory\Policies\DocumentPolicy;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[UsePolicy(DocumentPolicy::class)]
-class Adjustment extends Document
+class Adjustment extends StockEntry
 {
     public const TYPE = 'adjustment';
 
+    protected $table = 'inv_adjustments';
+
     protected string $crudPermission = 'inventory-adjustments';
+
+    protected array $exposed = [...parent::COMMON_EXPOSED, 'reason', 'stock_method'];
+
+    public function lines(): HasMany
+    {
+        return $this->hasMany(AdjustmentItem::class);
+    }
 }

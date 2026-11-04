@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['type', 'name', 'ordering'])]
 class ProductCategory extends BaseModel
 {
-    protected $table = 'inventory_product_categories';
+    protected $table = 'inv_product_categories';
 
     protected string $crudPermission = 'inventory-categories';
 

@@ -38,11 +38,11 @@
                             <td>
                                 <a href="{{ route($routePrefix.'.show', [$resourceParameter => $record, 'product_type' => $record->product_type]) }}">{{ $record->number }}</a>
                             </td>
-                            <td class="text-nowrap">{{ $record->document_date->format('Y-m-d') }}</td>
+                            <td class="text-nowrap">{{ $record->entry_date->format('Y-m-d') }}</td>
                             <td>{{ $customers[$record->customer_id]['name'] ?? '—' }}</td>
-                            <td class="text-end">{{ \Modules\Core\Helpers\Money::decimal($record->total_minor) }}</td>
-                            <td class="text-end">{{ \Modules\Core\Helpers\Money::decimal($record->paid_minor) }}</td>
-                            <td class="text-end">{{ \Modules\Core\Helpers\Money::decimal($record->voided_at ? 0 : $record->outstandingMinor()) }}</td>
+                            <td class="text-end">{{ moneyDecimal($record->total) }}</td>
+                            <td class="text-end">{{ moneyDecimal($record->paid) }}</td>
+                            <td class="text-end">{{ moneyDecimal($record->voided_at ? 0 : $record->outstandingMinor()) }}</td>
                             <td>
                                 @include('inventory::entries.partials.status')
                             </td>
@@ -54,7 +54,7 @@
                                         </a>
                                     @endif
                                     @if ($canDeleteSales)
-                                        <form class="d-inline" action="{{ route($routePrefix.'.destroy', ['sale' => $record, 'product_type' => $record->product_type]) }}" method="POST" data-inventory-confirm="Delete this sale and reverse its stock and amounts?">
+                                        <form class="d-inline" action="{{ route($routePrefix.'.destroy', ['sale' => $record, 'product_type' => $record->product_type]) }}" method="POST" data-confirm="Delete this sale and reverse its stock and amounts?">
                                             @csrf
                                             @method('DELETE')
                                             <button class="btn btn-outline-danger btn-sm app-action-button" type="submit" aria-label="Delete {{ $record->number }}" title="Delete">

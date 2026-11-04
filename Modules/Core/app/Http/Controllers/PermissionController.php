@@ -24,7 +24,8 @@ class PermissionController extends BaseController
 
     public function index(PermissionPageRequest $request): View
     {
-        return $this->listData($request, app($this->service)->pageData($request->user('web'), $request->validated()));
+        return $this->listData($request, app($this->service)
+            ->pageData($request->user('web'), $request->validated()));
     }
 
     public function store(RolePermissionRequest $request): RedirectResponse
@@ -34,6 +35,9 @@ class PermissionController extends BaseController
 
     protected function redirectAfterWrite(?Model $record = null): RedirectResponse
     {
-        return redirect()->route($this->routePrefix().'.index', ['role' => $record->getKey()]);
+        return redirect()
+            ->route($this->routePrefix().'.index', [
+                'role' => $record->getKey(),
+            ]);
     }
 }

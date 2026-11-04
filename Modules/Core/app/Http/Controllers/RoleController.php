@@ -32,6 +32,8 @@ class RoleController extends BaseController
 
     protected function formData(Account $actor, Model $record): array
     {
-        return ['isReservedRole' => $record->isReserved()];
+        return [
+            'isReservedRole' => $record->isReserved(),
+        ];
     }
 }

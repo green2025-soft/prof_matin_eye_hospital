@@ -12,20 +12,15 @@
         $lineColumnCount = 5 + (int) $showDiscountColumn + (int) $showVatColumn + (int) $showExpiryColumn;
     @endphp
 
-    @include('core::partials.heading', ['title' => ($document->exists ? 'Edit ' : 'New ').ucfirst(request()->attributes->get('inventory_product_type', 'medicine')).' Purchase'.($document->exists ? ' — '.$document->number : '')])
+    @include('core::partials.heading', ['title' => ($entry->exists ? 'Edit ' : 'New ').ucfirst(request()->attributes->get('inventory_product_type', 'medicine')).' Purchase'.($entry->exists ? ' — '.$entry->number : '')])
 
     <form
         class="app-card p-3 p-md-4 app-inventory-entry"
         action="{{ $formAction }}"
         method="POST"
-        data-inventory-document
+        data-inventory-entry
         data-inventory-trade
-        @if ($pharmacyPurchase) data-inventory-pharmacy-purchase @endif
-        @if ($showPurchaseSalePrice) data-inventory-sale-price-entry @endif
         data-type="purchase"
-        data-vat-enabled="1"
-        data-vat-mode="{{ $purchaseVatMode }}"
-        data-vat-percent="{{ $pharmacyPurchase ? '0.00' : $purchaseVatPercent }}"
     >
         @csrf
         @if ($formMethod !== 'POST')
@@ -53,7 +48,7 @@
                 </div>
                 <div class="col-md-6 col-xl-3">
                     <label class="form-label" for="supplier_invoice_no">Supplier invoice no.</label>
-                    <input class="{{ inputClass('supplier_invoice_no') }}" id="supplier_invoice_no" name="supplier_invoice_no" type="text" maxlength="80" autocomplete="off" value="{{ getValue('supplier_invoice_no', $document) }}" {{ inputAttrs('supplier_invoice_no') }}>
+                    <input class="{{ inputClass('supplier_invoice_no') }}" id="supplier_invoice_no" name="supplier_invoice_no" type="text" maxlength="80" autocomplete="off" value="{{ getValue('supplier_invoice_no', $entry) }}" {{ inputAttrs('supplier_invoice_no') }}>
                     @error('supplier_invoice_no')
                         <div class="invalid-feedback d-block" id="supplier_invoice_no-error">{{ $message }}</div>
                     @enderror

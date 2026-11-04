@@ -48,8 +48,11 @@ class AuditLogController extends BaseController
         $selectedBranch = $this->selectedOption(Branch::query(), $branchId);
 
         if ($selectedBranch === null && filled($branchId)) {
-            $selectedBranch = AuditLog::query()->where('branch_id', $branchId)->latest('audit_logs.id')
-                ->toBase()->first(['branch_id as id', 'branch_name as name']);
+            $selectedBranch = AuditLog::query()
+                ->where('branch_id', $branchId)
+                ->latest('audit_logs.id')
+                ->toBase()
+                ->first(['branch_id as id', 'branch_name as name']);
         }
 
         return $this->listData($request, [
@@ -64,10 +67,15 @@ class AuditLogController extends BaseController
     {
         $records = (new Branch)->optionRecords($request->validated(), ['id', 'name']);
 
-        return response()->json([
-            'results' => $records->getCollection()->map(fn (Branch $branch): array => $branch->only(['id', 'name']))->all(),
-            'pagination' => ['more' => $records->hasMorePages()],
-        ]);
+        return response()
+            ->json([
+                'results' => $records->getCollection()
+                    ->map(fn (Branch $branch): array => $branch->only(['id', 'name']))
+                    ->all(),
+                'pagination' => [
+                    'more' => $records->hasMorePages(),
+                ],
+            ]);
     }
 
     public function show(Request $request): View

@@ -2,7 +2,7 @@
 @section('title', 'New '.ucfirst(request()->attributes->get('inventory_product_type', 'medicine')).' '.($direction === 'customer' ? 'Customer payment' : 'Supplier payment'))
 @section('content')
     @include('core::partials.heading', ['title' => ucfirst(request()->attributes->get('inventory_product_type', 'medicine')).' '.($direction === 'customer' ? 'Customer payment' : 'Supplier payment')])
-    <form class="app-card p-3 p-md-4" action="{{ $formAction }}" method="POST" data-inventory-payment data-invoices-url="{{ route('inventory.payments.invoices') }}" data-can-discount="{{ $canDiscount ? '1' : '0' }}">
+    <form class="app-card p-3 p-md-4" action="{{ $formAction }}" method="POST" data-inventory-payment data-invoices-url="{{ route('inventory.payments.invoices') }}">
         @csrf
         <input id="payment_product_type" name="product_type" type="hidden" value="{{ request()->attributes->get('inventory_product_type', 'medicine') }}">
         <input name="direction" type="hidden" value="{{ $direction }}">
@@ -96,24 +96,28 @@
                 </thead>
                 <tbody data-inventory-allocations>
                     @foreach($allocationInputs as $index => $allocation)
-                        @if($documents->has($allocation['document_id'] ?? null))
+                        @if($allocation['invoice'])
                             @php
-                                $document = $documents[$allocation['document_id']];
-                                $due = \Modules\Core\Helpers\Money::decimal($document->outstandingMinor());
+                                $invoice = $allocation['invoice'];
+                                $due = moneyDecimal($invoice->outstandingMinor());
                             @endphp
-                            <tr data-inventory-allocation data-document-id="{{ $document->id }}" data-due="{{ $due }}">
+                            <tr data-inventory-allocation data-invoice-id="{{ $invoice->id }}" data-due="{{ $due }}">
                                 <td>
-                                    <input class="form-check-input" type="checkbox" aria-label="Pay invoice {{ $document->number }}" data-inventory-allocation-select checked>
+                                    <input class="form-check-input" type="checkbox" aria-label="Pay invoice {{ $invoice->number }}" data-inventory-allocation-select checked>
                                 </td>
                                 <td>
-                                    {{ $document->number }}
-                                    <input name="allocations[{{ $index }}][document_id]" type="hidden" value="{{ $document->id }}">
+                                    {{ $invoice->number }}
+                                    @if($direction === 'customer')
+                                        <input name="allocations[{{ $index }}][sale_id]" type="hidden" value="{{ $invoice->id }}">
+                                    @else
+                                        <input name="allocations[{{ $index }}][purchase_id]" type="hidden" value="{{ $invoice->id }}">
+                                    @endif
                                 </td>
                                 <td class="text-end">
                                     {{ $due }}
                                 </td>
                                 <td>
-                                    <input class="{{ inputClass('allocations.'.$index.'.amount') }}" id="allocation-{{ $index }}-amount" name="allocations[{{ $index }}][amount]" aria-label="Cash for invoice {{ $document->number }}" type="number" min="0" max="{{ $due }}" step="0.01" value="{{ $allocation['amount'] ?? '0.00' }}" {{ inputAttrs('allocations.'.$index.'.amount', 'allocation-'.$index.'-amount') }}>
+                                    <input class="{{ inputClass('allocations.'.$index.'.amount') }}" id="allocation-{{ $index }}-amount" name="allocations[{{ $index }}][amount]" aria-label="Cash for invoice {{ $invoice->number }}" type="number" min="0" max="{{ $due }}" step="0.01" value="{{ $allocation['amount'] ?? '0.00' }}" {{ inputAttrs('allocations.'.$index.'.amount', 'allocation-'.$index.'-amount') }}>
                                     @error('allocations.'.$index.'.amount')
                                         <div class="invalid-feedback d-block" id="allocation-{{ $index }}-amount-error">
                                             {{ $message }}
@@ -122,7 +126,7 @@
                                 </td>
                                 @if($canDiscount)
                                     <td>
-                                        <input class="{{ inputClass('allocations.'.$index.'.discount') }}" id="allocation-{{ $index }}-discount" name="allocations[{{ $index }}][discount]" aria-label="Discount for invoice {{ $document->number }}" type="number" min="0" max="{{ $due }}" step="0.01" value="{{ $allocation['discount'] ?? '0.00' }}" {{ inputAttrs('allocations.'.$index.'.discount', 'allocation-'.$index.'-discount') }}>
+                                        <input class="{{ inputClass('allocations.'.$index.'.discount') }}" id="allocation-{{ $index }}-discount" name="allocations[{{ $index }}][discount]" aria-label="Discount for invoice {{ $invoice->number }}" type="number" min="0" max="{{ $due }}" step="0.01" value="{{ $allocation['discount'] ?? '0.00' }}" {{ inputAttrs('allocations.'.$index.'.discount', 'allocation-'.$index.'-discount') }}>
                                         @error('allocations.'.$index.'.discount')
                                             <div class="invalid-feedback d-block" id="allocation-{{ $index }}-discount-error">{{ $message }}</div>
                                         @enderror
@@ -134,6 +138,30 @@
                 </tbody>
             </table>
         </div>
+        <template data-inventory-allocation-template>
+            <tr data-inventory-allocation>
+                <td>
+                    <input class="form-check-input" type="checkbox" data-inventory-allocation-select checked>
+                </td>
+                <td>
+                    <span data-inventory-allocation-number></span>
+                    @if($direction === 'customer')
+                        <input name="allocations[__INDEX__][sale_id]" type="hidden">
+                    @else
+                        <input name="allocations[__INDEX__][purchase_id]" type="hidden">
+                    @endif
+                </td>
+                <td class="text-end" data-inventory-allocation-due></td>
+                <td>
+                    <input class="form-control" name="allocations[__INDEX__][amount]" type="number" min="0" step="0.01">
+                </td>
+                @if($canDiscount)
+                    <td>
+                        <input class="form-control" name="allocations[__INDEX__][discount]" type="number" min="0" step="0.01" value="0.00">
+                    </td>
+                @endif
+            </tr>
+        </template>
         <button class="btn btn-outline-secondary btn-sm d-none mb-3" type="button" data-inventory-more-invoices>
             Load more
         </button>

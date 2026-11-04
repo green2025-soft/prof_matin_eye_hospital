@@ -4,12 +4,14 @@ namespace Modules\Inventory\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Validation\ValidationException;
 
 #[Fillable(['product_id', 'sku', 'name', 'color', 'size', 'sph', 'cyl', 'active'])]
 class ProductVariant extends BaseModel
 {
-    protected $table = 'inventory_product_variants';
+    protected $table = 'inv_product_variants';
 
     protected string $crudPermission = 'inventory-products';
 
@@ -59,8 +61,50 @@ class ProductVariant extends BaseModel
         return $this->belongsTo(Product::class);
     }
 
+    public function stockBalance(): HasOne
+    {
+        return $this->hasOne(StockBalance::class, 'variant_id');
+    }
+
+    public function balances(): HasMany
+    {
+        return $this->hasMany(StockBalance::class, 'variant_id');
+    }
+
+    public function stockLots(): HasMany
+    {
+        return $this->hasMany(StockLot::class, 'variant_id');
+    }
+
+    public function movements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class, 'variant_id');
+    }
+
+    public function saleItems(): HasMany
+    {
+        return $this->hasMany(SaleItem::class, 'variant_id');
+    }
+
+    public function saleReturnItems(): HasMany
+    {
+        return $this->hasMany(SaleReturnItem::class, 'variant_id');
+    }
+
+    public function description(): string
+    {
+        return implode(' / ', array_filter([
+            $this->sku,
+            mb_strtolower(trim($this->name ?? '')) === 'default' ? null : $this->name,
+            $this->color,
+            $this->size,
+            $this->sph === null ? null : 'SPH '.$this->sph,
+            $this->cyl === null ? null : 'CYL '.$this->cyl,
+        ], static fn ($value): bool => filled($value)));
+    }
+
     public function hasReferences(): bool
     {
-        return $this->getConnection()->table('inventory_stock_balances')->where('variant_id', $this->getKey())->exists();
+        return $this->balances()->withoutGlobalScope('branch')->exists();
     }
 }

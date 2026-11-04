@@ -1,8 +1,20 @@
 <?php
 
+use Illuminate\Support\Js;
 use Illuminate\Support\Str;
 use Illuminate\Support\ViewErrorBag;
 use Illuminate\View\ComponentAttributeBag;
+use Modules\Core\Helpers\Money;
+
+function moneyDecimal(int|string $minor): string
+{
+    return Money::decimal($minor);
+}
+
+function htmlJson(mixed $value): string
+{
+    return Js::encode($value);
+}
 
 function commissionTypes(): array
 {

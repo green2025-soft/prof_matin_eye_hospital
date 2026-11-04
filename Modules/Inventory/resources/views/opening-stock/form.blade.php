@@ -5,7 +5,7 @@
 @section('content')
     @include('core::partials.heading', ['title' => 'New '.ucfirst(request()->attributes->get('inventory_product_type', 'medicine')).' Opening Stock'])
 
-    <form class="app-card p-3 p-md-4" action="{{ $formAction }}" method="POST" data-inventory-document data-type="opening" data-vat-enabled="0">
+    <form class="app-card p-3 p-md-4" action="{{ $formAction }}" method="POST" data-inventory-entry data-type="opening" data-vat-enabled="0">
         @csrf
         <input id="inventory_product_type" name="product_type" type="hidden" value="{{ request()->attributes->get('inventory_product_type', 'medicine') }}">
 

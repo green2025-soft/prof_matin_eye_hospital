@@ -35,9 +35,15 @@ class RefundController extends BaseController
 
     public function store(RefundRequest $request, ClinicalEntryService $entries): RedirectResponse
     {
-        $refund = $entries->saveRefund($request->user('web'), $this->record($request), $request->payload(), (int) $request->attributes->get('branch_id'));
+        $refund = $entries->saveRefund(
+            $request->user('web'),
+            $this->record($request),
+            $request->payload(),
+            (int) $request->attributes->get('branch_id')
+        );
 
-        return $this->redirectAfterWrite($refund)->with('status', 'Refund'.($this->isUpdate($request) ? ' updated.' : ' created.'));
+        return $this->redirectAfterWrite($refund)
+            ->with('status', 'Refund'.($this->isUpdate($request) ? ' updated.' : ' created.'));
     }
 
     public function show(Request $request, ClinicalEntryService $entries): View
@@ -47,19 +53,25 @@ class RefundController extends BaseController
 
     public function invoice(RefundRequest $request, ClinicalEntryService $entries): JsonResponse
     {
-        return response()->json($entries->refundPreview(
-            $request->user('web'), $request->validated('invoice'), (int) $request->attributes->get('branch_id'),
-        ));
+        return response()
+            ->json($entries->refundPreview(
+                $request->user('web'),
+                $request->validated('invoice'),
+                (int) $request->attributes->get('branch_id'),
+            ));
     }
 
     public function invoices(RefundRequest $request, ClinicalEntryService $entries): JsonResponse
     {
         $records = $entries->refundInvoices($request->user('web'), (int) $request->attributes->get('branch_id'), $request->validated());
 
-        return response()->json([
-            'results' => $records->items(),
-            'pagination' => ['more' => $records->hasMorePages()],
-        ]);
+        return response()
+            ->json([
+                'results' => $records->items(),
+                'pagination' => [
+                    'more' => $records->hasMorePages(),
+                ],
+            ]);
     }
 
     protected function formData(Account $actor, Model $record): array
@@ -89,10 +101,16 @@ class RefundController extends BaseController
             if ($record->exists) {
                 $selectedItemIds = $refundPreview['selected_item_ids'];
             } else {
-                $hasOldInvoice = request()->hasSession() && request()->session()->hasOldInput('invoice');
+                $hasOldInvoice = request()
+                    ->hasSession() && request()
+                    ->session()
+                    ->hasOldInput('invoice');
                 $selectedIds = $hasOldInvoice ? old('item_ids', []) : ($refundPreview['selected_item_ids'] ?: $availableIds);
-                $selectedIds = is_array($selectedIds) ? array_filter($selectedIds, fn ($id): bool => (is_int($id) && $id > 0)
-                    || (is_string($id) && ctype_digit($id) && strlen($id) <= 18 && (int) $id > 0)) : [];
+                $selectedIds = is_array($selectedIds) ? array_filter(
+                    $selectedIds,
+                    fn ($id): bool => (is_int($id) && $id > 0)
+                    || (is_string($id) && ctype_digit($id) && strlen($id) <= 18 && (int) $id > 0)
+                ) : [];
                 $selectedItemIds = array_values(array_intersect($availableIds, array_map('intval', $selectedIds)));
             }
         }
@@ -103,7 +121,10 @@ class RefundController extends BaseController
             'selectedInvoice' => $selectedInvoice,
             'refundPreview' => $refundPreview,
             'selectedItemIds' => $selectedItemIds,
-            'refundCauses' => RefundCause::query()->orderBy('ordering')->orderBy('id')->get(['id', 'name']),
+            'refundCauses' => RefundCause::query()
+                ->orderBy('ordering')
+                ->orderBy('id')
+                ->get(['id', 'name']),
         ];
     }
 }

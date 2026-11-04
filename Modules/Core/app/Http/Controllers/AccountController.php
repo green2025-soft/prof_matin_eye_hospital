@@ -39,11 +39,12 @@ class AccountController extends BaseController
         return $this->listData($request, [
             'records' => $model->paginateRecords($request->validated(), $query),
             'filterOptions' => $model->queryContract()['filterable'],
-        ])->with([
-            'pageTitle' => $isTenantUser ? 'Users' : 'Accounts',
-            'isTenantUser' => $isTenantUser,
-            'accountModel' => $modelClass,
-        ]);
+        ])
+            ->with([
+                'pageTitle' => $isTenantUser ? 'Users' : 'Accounts',
+                'isTenantUser' => $isTenantUser,
+                'accountModel' => $modelClass,
+            ]);
     }
 
     public function store(AccountRequest $request): RedirectResponse

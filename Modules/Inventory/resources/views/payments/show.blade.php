@@ -7,11 +7,11 @@
             <a class="btn btn-outline-secondary" href="{{ route('inventory.payments.index', ['product_type' => $payment->product_type, 'direction' => $payment->direction]) }}">
                 Back
             </a>
-            <button class="btn btn-outline-primary" type="button" data-inventory-print>
+            <button class="btn btn-outline-primary" type="button" data-print>
                 Print
             </button>
             @if($canVoid)
-                <form action="{{ route('inventory.payments.void', ['payment' => $payment, 'product_type' => $payment->product_type, 'direction' => $payment->direction]) }}" method="POST" data-inventory-confirm="Void this payment and restore the invoice dues?">
+                <form action="{{ route('inventory.payments.void', ['payment' => $payment, 'product_type' => $payment->product_type, 'direction' => $payment->direction]) }}" method="POST" data-confirm="Void this payment and restore the invoice dues?">
                     @csrf
                     <button class="btn btn-outline-danger" type="submit">
                         Void
@@ -56,16 +56,16 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($payment->allocations as $allocation)
+                    @foreach($allocations as $allocation)
                         <tr>
                             <td>
-                                {{ $allocation->document?->number }}
+                                {{ $allocation['number'] }}
                             </td>
                             <td class="text-end">
-                                {{ \Modules\Core\Helpers\Money::decimal($allocation->amount_minor) }}
+                                {{ moneyDecimal($allocation['amount']) }}
                             </td>
                             <td class="text-end">
-                                {{ \Modules\Core\Helpers\Money::decimal($allocation->discount_minor) }}
+                                {{ moneyDecimal($allocation['discount']) }}
                             </td>
                         </tr>
                     @endforeach
@@ -74,10 +74,10 @@
                     <tr>
                         <th>Total</th>
                         <th class="text-end">
-                            {{ \Modules\Core\Helpers\Money::decimal($payment->amount_minor) }}
+                            {{ moneyDecimal($payment->amount) }}
                         </th>
                         <th class="text-end">
-                            {{ \Modules\Core\Helpers\Money::decimal($payment->discount_minor) }}
+                            {{ moneyDecimal($payment->discount) }}
                         </th>
                     </tr>
                 </tfoot>

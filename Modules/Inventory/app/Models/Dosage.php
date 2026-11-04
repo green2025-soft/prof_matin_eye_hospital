@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['name', 'ordering'])]
 class Dosage extends BaseModel
 {
-    protected $table = 'inventory_dosages';
+    protected $table = 'inv_dosages';
 
     protected string $crudPermission = 'inventory-dosages';
 

@@ -32,17 +32,26 @@ class PaymentRequest extends BaseRequest
         $direction = $this->query('direction', 'customer');
         $direction = in_array($direction, ['customer', 'supplier'], true) ? $direction : 'customer';
 
-        return [
+        $rules = [
             'payment_date' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'], 'direction' => ['required', Rule::in([$direction])],
             'product_type' => ['required', Rule::in([$productType])],
             'customer_id' => $direction === 'customer' ? ['required', 'integer', 'min:1'] : ['prohibited'],
             'supplier_id' => $direction === 'supplier' ? ['required', 'integer', 'min:1'] : ['prohibited'],
             'payment_type_id' => ['nullable', 'integer', 'min:1'], 'notes' => ['nullable', 'string', 'max:2000'],
             'allocations' => ['required', 'array', 'min:1', 'max:200'],
-            'allocations.*' => ['required', 'array:document_id,amount,discount'],
-            'allocations.*.document_id' => ['required', 'integer', 'min:1', 'distinct'],
             'allocations.*.amount' => ['required', 'regex:/^\d{1,10}(?:\.\d{1,2})?$/D'],
             'allocations.*.discount' => ['nullable', 'regex:/^\d{1,10}(?:\.\d{1,2})?$/D'],
+        ];
+        if ($direction === 'customer') {
+            return $rules + [
+                'allocations.*' => ['required', 'array:sale_id,amount,discount'],
+                'allocations.*.sale_id' => ['required', 'integer', 'min:1', 'distinct'],
+            ];
+        }
+
+        return $rules + [
+            'allocations.*' => ['required', 'array:purchase_id,amount,discount'],
+            'allocations.*.purchase_id' => ['required', 'integer', 'min:1', 'distinct'],
         ];
     }
 }

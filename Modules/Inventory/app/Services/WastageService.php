@@ -5,33 +5,33 @@ namespace Modules\Inventory\Services;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Modules\Core\Models\Account;
-use Modules\Inventory\Models\Document;
+use Modules\Inventory\Models\StockEntry;
 use Modules\Inventory\Models\Wastage;
 
 class WastageService extends StockEntryService
 {
     protected string $model = Wastage::class;
 
-    protected function prepareEntry(Account $actor, Document $document, array $values, array $settings, Collection $previousLines): array
+    protected function prepareEntry(Account $actor, StockEntry $entry, array $values, array $settings, Collection $previousLines): array
     {
-        if (blank($document->reason)) {
+        $entry->reason = $values['reason'] ?? null;
+        $entry->stock_method = $settings['stock_method'];
+        if (blank($entry->reason)) {
             throw ValidationException::withMessages(['reason' => 'Enter a reason for this damage or wastage.']);
         }
-        $lines = $this->items->prepareLines($document, $values['lines'] ?? []);
+        $inputs = $values['lines'] ?? [];
+        $lines = $this->items->prepareQuantities($entry, $inputs);
         foreach ($lines as $index => $line) {
-            $lines[$index]['direction'] = null;
+            $line['stock_lot_id'] = $inputs[$index]['stock_lot_id'] ?? null;
+            $line['cost'] = 0;
+            $lines[$index] = $line;
         }
-
-        $document->vat_mode = 'none';
-        $document->vat_percent = '0.00';
-        $document->subtotal_minor = $this->items->sum(array_column($lines, 'subtotal_minor'));
-        $document->total_minor = $document->subtotal_minor;
 
         return $lines;
     }
 
-    protected function postStock(Document $document): int
+    protected function postStock(StockEntry $entry): int
     {
-        return $this->stock->issue($document, null, true);
+        return $this->stock->issueWastage($entry);
     }
 }

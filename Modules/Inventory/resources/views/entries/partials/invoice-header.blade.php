@@ -26,13 +26,13 @@
     </div>
     <div class="app-clinical-invoice-title-row">
         <div>
-            <h1 id="inventory-invoice-title">{{ $documentTitle }}</h1>
-            <p class="fw-semibold mb-0">{{ $document->number }}</p>
-            <p class="small mb-0">{{ ucfirst($document->product_type) }}</p>
+            <h1 id="inventory-invoice-title">{{ $invoiceTitle }}</h1>
+            <p class="fw-semibold mb-0">{{ $entry->number }}</p>
+            <p class="small mb-0">{{ ucfirst($entry->product_type) }}</p>
         </div>
         <span class="app-clinical-invoice-status app-inventory-invoice-status">{{ $invoiceStatus }}</span>
     </div>
-    @if ($document->voided_at)
-        <p class="small fw-semibold mb-3">Voided on {{ $document->voided_at->format('d-m-Y H:i') }}</p>
+    @if ($entry->voided_at)
+        <p class="small fw-semibold mb-3">Voided on {{ $entry->voided_at->format('d-m-Y H:i') }}</p>
     @endif
 </header>

@@ -14,11 +14,11 @@ class ProductUnitRequest extends BaseRequest
 
         return [
             'product_id' => [
-                'required', 'integer', $this->existsIn('inventory_products'),
+                'required', 'integer', $this->existsIn('inv_products'),
                 Rule::when($record !== null, fn () => Rule::in([$record->product_id])),
             ],
             'unit_id' => [
-                'required', 'integer', $this->existsIn('inventory_units'),
+                'required', 'integer', $this->existsIn('inv_units'),
                 $this->unique('unit_id')->where('product_id', $record?->product_id ?? $this->input('product_id'))
                     ->where('factor', $this->input('factor', $record?->factor)),
                 Rule::when($record !== null, fn () => Rule::in([$record->unit_id])),

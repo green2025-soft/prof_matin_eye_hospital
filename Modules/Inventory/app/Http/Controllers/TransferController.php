@@ -28,9 +28,13 @@ class TransferController extends BaseController
 
     protected string $parameter = 'transfer';
 
-    protected array $routeFilters = ['product_type' => 'product_type'];
+    protected array $routeFilters = [
+        'product_type' => 'product_type',
+    ];
 
-    protected array $defaultFilters = ['product_type' => 'medicine'];
+    protected array $defaultFilters = [
+        'product_type' => 'medicine',
+    ];
 
     public function index(ListRequest $request): View
     {
@@ -39,7 +43,8 @@ class TransferController extends BaseController
 
         return $view->with([
             'resourceParameter' => 'transfer',
-            'canCreate' => app(InventoryAccess::class)->allows($request->user('web'), 'inventory-transfers.create'),
+            'canCreate' => app(InventoryAccess::class)
+                ->allows($request->user('web'), 'inventory-transfers.create'),
         ]);
     }
 
@@ -52,26 +57,33 @@ class TransferController extends BaseController
     {
         $request->attributes->set('inventory_product_type', $transfer->product_type);
 
-        return view('inventory::transfers.show', $entries->invoiceData($request->user('web'), $transfer) + [
-            'routePrefix' => $this->routePrefix(),
-            'resourceParameter' => 'transfer',
-        ]);
+        return view(
+            'inventory::transfers.show',
+            $entries->invoiceData($request->user('web'), $transfer) + [
+                'routePrefix' => $this->routePrefix(),
+                'resourceParameter' => 'transfer',
+            ]
+        );
     }
 
     protected function formData(Account $actor, Model $record): array
     {
-        $productType = $record->exists ? $record->product_type : request()->query('product_type', 'medicine');
+        $productType = $record->exists ? $record->product_type : request()
+            ->query('product_type', 'medicine');
         $productType = in_array($productType, ['medicine', 'optic'], true) ? $productType : 'medicine';
         request()->attributes->set('inventory_product_type', $productType);
         $lineInputs = $this->oldRows('lines');
-        $variants = app(ItemService::class)->selectedVariants($lineInputs);
+        $variants = app(ItemService::class)
+            ->selectedVariants($lineInputs);
 
         return [
-            'document' => $record,
+            'entry' => $record,
             'lineInputs' => $lineInputs,
             'variants' => $variants,
-            'branches' => Branch::query()->where('id', '!=', request()->attributes->get('branch_id'))
-                ->orderBy('name')->get(['id', 'name']),
+            'branches' => Branch::query()
+                ->where('id', '!=', request()->attributes->get('branch_id'))
+                ->orderBy('name')
+                ->get(['id', 'name']),
         ];
     }
 
@@ -79,9 +91,11 @@ class TransferController extends BaseController
     {
         $entries->reverse($request->user('web'), $transfer);
 
-        return redirect()->route('inventory.transfers.show', [
-            'transfer' => $transfer,
-            'product_type' => $transfer->product_type,
-        ])->with('status', 'Entry voided. Stock and balances have been reversed.');
+        return redirect()
+            ->route('inventory.transfers.show', [
+                'transfer' => $transfer,
+                'product_type' => $transfer->product_type,
+            ])
+            ->with('status', 'Entry voided. Stock and balances have been reversed.');
     }
 }

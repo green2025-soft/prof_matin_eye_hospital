@@ -22,7 +22,9 @@ class ProductVariantController extends BaseController
 
     protected string $parameter = 'product_variant';
 
-    protected array $routeFilters = ['product_id' => 'product_id'];
+    protected array $routeFilters = [
+        'product_id' => 'product_id',
+    ];
 
     protected array $selectorFields = ['id', 'product_id', 'sku', 'name', 'product'];
 
@@ -46,7 +48,8 @@ class ProductVariantController extends BaseController
     {
         $productId = $record->exists ? $record->product_id : getValue('product_id', $record);
         if (! $record->exists && blank($productId)) {
-            $productId = request()->query('product_id');
+            $productId = request()
+                ->query('product_id');
         }
         $product = $this->selectedOption(Product::query(), $productId, ['id', 'name', 'type']);
         if ($product !== null) {

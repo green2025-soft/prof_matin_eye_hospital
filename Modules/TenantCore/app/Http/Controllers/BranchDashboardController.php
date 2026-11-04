@@ -33,16 +33,23 @@ class BranchDashboardController extends BaseController
     {
         $actor = $request->user('web');
         Gate::authorize('select', $branch);
-        $request->session()->put(['branch_id' => $branch->getKey(), 'branch_user_id' => $actor->getAuthIdentifier()]);
+        $request->session()
+            ->put([
+                'branch_id' => $branch->getKey(),
+                'branch_user_id' => $actor->getAuthIdentifier(),
+            ]);
 
-        return redirect()->intended($actor->redirect_url ?: route('home'));
+        return redirect()
+            ->intended($actor->redirect_url ?: route('home'));
     }
 
     public function destroy(Request $request): RedirectResponse
     {
         Gate::authorize('selectAny', Branch::class);
-        $request->session()->forget(['branch_id', 'branch_user_id', 'url.intended']);
+        $request->session()
+            ->forget(['branch_id', 'branch_user_id', 'url.intended']);
 
-        return redirect()->route('tenantcore.branch-dashboard.index');
+        return redirect()
+            ->route('tenantcore.branch-dashboard.index');
     }
 }

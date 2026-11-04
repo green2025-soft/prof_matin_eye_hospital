@@ -19,7 +19,9 @@ class BranchController extends BaseController
 
     protected string $parameter = 'branch';
 
-    protected array $uploads = ['logo' => 'logo_path'];
+    protected array $uploads = [
+        'logo' => 'logo_path',
+    ];
 
     protected string $uploadDirectory = 'branches';
 

@@ -3,13 +3,13 @@
 namespace Modules\Inventory\Http\Requests;
 
 use Modules\Core\Models\Setting;
-use Modules\Inventory\Models\Document;
+use Modules\Inventory\Services\SaleService;
 
 class SaleRequest extends StockEntryRequest
 {
     public function rules(): array
     {
-        $fields = Document::visibleItemFields(Setting::values('inventory'), 'sale', $this->productType());
+        $fields = SaleService::itemFields(Setting::values('inventory'), $this->productType());
 
         return array_replace($this->commonRules(), $this->lineRules([
             'variant_id', 'product_unit_id', 'original_line_id', 'quantity', 'unit_price', 'discount',

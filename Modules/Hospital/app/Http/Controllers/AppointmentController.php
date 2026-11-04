@@ -30,17 +30,33 @@ class AppointmentController extends BaseController
     {
         $branchId = max(0, (int) $request->attributes->get('branch_id', 0));
 
-        return $this->listData($request)->with([
-            'filterDoctor' => $this->selectedOption(Doctor::query()->where('branch_id', $branchId), $request->validated('filter_doctor_id'), ['id', 'doctor_id', 'name']),
-            'filterPatient' => $this->selectedOption(Patient::query(), $request->validated('filter_patient_id'), ['id', 'patient_id', 'name', 'mobile_no']),
-        ]);
+        return $this->listData($request)
+            ->with([
+                'filterDoctor' => $this->selectedOption(
+                    Doctor::query()
+                        ->where('branch_id', $branchId),
+                    $request->validated('filter_doctor_id'),
+                    ['id', 'doctor_id', 'name']
+                ),
+                'filterPatient' => $this->selectedOption(
+                    Patient::query(),
+                    $request->validated('filter_patient_id'),
+                    ['id', 'patient_id', 'name', 'mobile_no']
+                ),
+            ]);
     }
 
     public function store(AppointmentRequest $request, ClinicalEntryService $entries): RedirectResponse
     {
-        $appointment = $entries->saveAppointment($request->user('web'), $this->record($request), $request->payload(), (int) $request->attributes->get('branch_id'));
+        $appointment = $entries->saveAppointment(
+            $request->user('web'),
+            $this->record($request),
+            $request->payload(),
+            (int) $request->attributes->get('branch_id')
+        );
 
-        return $this->redirectAfterWrite($appointment)->with('status', 'Appointment'.($this->isUpdate($request) ? ' updated.' : ' created.'));
+        return $this->redirectAfterWrite($appointment)
+            ->with('status', 'Appointment'.($this->isUpdate($request) ? ' updated.' : ' created.'));
     }
 
     protected function formData(Account $actor, Model $record): array
@@ -48,9 +64,15 @@ class AppointmentController extends BaseController
         $branchId = max(0, (int) request()->attributes->get('branch_id', 0));
 
         return [
-            'selectedDoctor' => $this->selectedOption(Doctor::query()->where('branch_id', $branchId), getValue('doctor_id', $record), ['id', 'doctor_id', 'name']),
+            'selectedDoctor' => $this->selectedOption(
+                Doctor::query()
+                    ->where('branch_id', $branchId),
+                getValue('doctor_id', $record),
+                ['id', 'doctor_id', 'name']
+            ),
             'selectedPatient' => $this->selectedOption(Patient::query(), getValue('patient_id', $record), ['id', 'name', 'patient_id', 'mobile_no']),
-            'appointmentDate' => $record->appointment_date?->toDateString() ?? now(config('app.timezone'))->toDateString(),
+            'appointmentDate' => $record->appointment_date?->toDateString() ?? now(config('app.timezone'))
+                ->toDateString(),
             'appointmentTime' => $record->appointment_time === null ? null : substr($record->appointment_time, 0, 5),
         ];
     }

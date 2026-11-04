@@ -38,11 +38,11 @@
                             <td>
                                 <a href="{{ route($routePrefix.'.show', [$resourceParameter => $record, 'product_type' => $record->product_type]) }}">{{ $record->number }}</a>
                             </td>
-                            <td class="text-nowrap">{{ $record->document_date->format('Y-m-d') }}</td>
-                            <td>{{ $record->sourceDocument?->number ?? '—' }}</td>
+                            <td class="text-nowrap">{{ $record->entry_date->format('Y-m-d') }}</td>
+                            <td>{{ $record->purchase?->number ?? '—' }}</td>
                             <td>{{ $record->supplier?->name ?? '—' }}</td>
-                            <td class="text-end">{{ \Modules\Core\Helpers\Money::decimal($record->total_minor) }}</td>
-                            <td class="text-end">{{ \Modules\Core\Helpers\Money::decimal($record->initial_paid_minor) }}</td>
+                            <td class="text-end">{{ moneyDecimal($record->total) }}</td>
+                            <td class="text-end">{{ moneyDecimal($record->initial_paid) }}</td>
                             <td>
                                 @include('inventory::entries.partials.status')
                             </td>

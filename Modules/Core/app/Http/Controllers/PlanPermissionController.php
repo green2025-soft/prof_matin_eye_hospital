@@ -25,16 +25,22 @@ class PlanPermissionController extends BaseController
     {
         $filters = $request->validated();
         $search = $filters['plan_search'] ?? '';
-        $query = Plan::query()->select(['id', 'name']);
+        $query = Plan::query()
+            ->select(['id', 'name']);
 
         if ($search !== '') {
             $prefix = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search).'%';
             $query->whereRaw("name LIKE ? ESCAPE '!'", [$prefix]);
         }
 
-        $matches = $query->orderBy('name')->orderBy('id')->limit(101)->get();
-        $plans = $matches->take(100)->values();
-        $selected = empty($filters['plan']) ? null : Plan::query()->findOrFail($filters['plan'], ['id', 'name', 'route_permissions']);
+        $matches = $query->orderBy('name')
+            ->orderBy('id')
+            ->limit(101)
+            ->get();
+        $plans = $matches->take(100)
+            ->values();
+        $selected = empty($filters['plan']) ? null : Plan::query()
+            ->findOrFail($filters['plan'], ['id', 'name', 'route_permissions']);
 
         if ($selected !== null && ! $plans->contains('id', $selected->getKey())) {
             $plans->push($selected);
@@ -64,6 +70,9 @@ class PlanPermissionController extends BaseController
 
     protected function redirectAfterWrite(?Model $record = null): RedirectResponse
     {
-        return redirect()->route($this->routePrefix().'.index', ['plan' => $record->getKey()]);
+        return redirect()
+            ->route($this->routePrefix().'.index', [
+                'plan' => $record->getKey(),
+            ]);
     }
 }

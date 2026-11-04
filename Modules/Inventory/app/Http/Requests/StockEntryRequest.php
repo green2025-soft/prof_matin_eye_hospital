@@ -9,13 +9,6 @@ abstract class StockEntryRequest extends BaseRequest
 {
     protected bool $partialUpdates = false;
 
-    public function payload(): array
-    {
-        $model = $this->controller()->modelClass();
-
-        return $this->validated() + ['type' => $model::TYPE];
-    }
-
     protected function productType(): string
     {
         $type = $this->isUpdate() ? $this->record()?->product_type : $this->query('product_type', 'medicine');
@@ -26,7 +19,7 @@ abstract class StockEntryRequest extends BaseRequest
     protected function commonRules(): array
     {
         return [
-            'document_date' => ['required', 'date_format:Y-m-d'],
+            'entry_date' => ['required', 'date_format:Y-m-d'],
             'product_type' => ['required', Rule::in([$this->productType()])],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];

@@ -8,35 +8,46 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Modules\Core\Helpers\Money;
 use Modules\Core\Models\Account;
-use Modules\Inventory\Models\Document;
-use Modules\Inventory\Models\DocumentLine;
 use Modules\Inventory\Models\Product;
 use Modules\Inventory\Models\ProductUnit;
 use Modules\Inventory\Models\ProductVariant;
-use Modules\Inventory\Models\Purchase;
+use Modules\Inventory\Models\StockEntry;
+use Modules\Inventory\Models\StockItem;
 
 class PurchaseItemService
 {
+    public static function itemFields(array $settings, string $productType): array
+    {
+        $prefix = $productType.'_purchase_';
+
+        return [
+            'discount' => (bool) ($settings[$prefix.'discount_enabled'] ?? true),
+            'vat' => (bool) ($settings[$prefix.'vat_enabled'] ?? true),
+            'sale_price' => (bool) ($settings[$prefix.'sale_price_enabled'] ?? true),
+            'expiry' => $productType === 'medicine' && (bool) ($settings[$prefix.'expiry_enabled'] ?? true),
+        ];
+    }
+
     public function __construct(
         private ItemService $items,
         private PurchaseUnitService $units,
         private InventoryAccess $inventory,
     ) {}
 
-    public function prepare(Account $actor, Document $document, array $inputs, Collection $previousLines, array $settings): array
+    public function prepare(Account $actor, StockEntry $entry, array $inputs, Collection $previousLines, array $settings): array
     {
         $catalog = $this->items->loadCatalog($inputs);
         $units = $this->units->prepare($inputs, $catalog['products'], $catalog['units']);
-        $fields = Document::visibleItemFields($settings, Purchase::TYPE, $document->product_type);
+        $fields = self::itemFields($settings, $entry->product_type);
         $lines = [];
         $salePrices = [];
 
         foreach ($inputs as $index => $input) {
             $variant = $catalog['variants']->get((int) ($input['variant_id'] ?? 0));
-            $product = $this->purchaseProduct($variant, $catalog['products'], $document->product_type, $index);
+            $product = $this->purchaseProduct($variant, $catalog['products'], $entry->product_type, $index);
             $previous = $previousLines->get((int) ($input['original_line_id'] ?? 0));
             $unit = $this->units->resolve($product, $input, $previous, $units, $index);
-            $input = $this->preserveHiddenFields($document, $input, $previous, $fields, $unit->factor, $index);
+            $input = $this->preserveHiddenFields($input, $previous, $fields, $unit->factor, $index);
             $lines[$index] = $this->snapshot($variant, $unit, $input, $previous, $index);
             $salePrices = $this->rememberSalePrice($salePrices, $product->id, $input, $index);
         }
@@ -46,14 +57,11 @@ class PurchaseItemService
         return $lines;
     }
 
-    public function applyVat(Document $document, array $lines, array $weights): array
+    public function applyVat(array $lines, array $weights): array
     {
         foreach ($lines as $index => $line) {
-            $lines[$index]['vat_minor'] = $this->vatAmount($line, $weights[$index]);
+            $lines[$index]['vat'] = $this->vatAmount($line, $weights[$index]);
         }
-        $modes = array_values(array_unique(array_column($lines, 'vat_mode')));
-        $document->vat_mode = count($modes) === 1 ? $modes[0] : 'mixed';
-        $document->vat_percent = '0.00';
 
         return $lines;
     }
@@ -68,7 +76,7 @@ class PurchaseItemService
         return $product;
     }
 
-    private function snapshot(ProductVariant $variant, ProductUnit $unit, array $input, ?DocumentLine $previous, int|string $index): array
+    private function snapshot(ProductVariant $variant, ProductUnit $unit, array $input, ?StockItem $previous, int|string $index): array
     {
         $quantity = (int) ($input['quantity'] ?? 0);
         if ($quantity < 1 || $quantity > 1_000_000_000 || $unit->factor < 1) {
@@ -86,13 +94,12 @@ class PurchaseItemService
         return [
             'variant_id' => $variant->id, 'product_unit_id' => $unit->id,
             'quantity' => $quantity, 'factor' => $unit->factor, 'base_quantity' => $this->multiply($quantity, $unit->factor),
-            'unit_price_minor' => $price, 'subtotal_minor' => $subtotal,
+            'unit_price' => $price, 'subtotal' => $subtotal,
             ...$discount, ...$vat,
-            'sale_price_per_piece_minor' => $salePrice ?? $previous?->sale_price_per_piece_minor,
-            'invoice_discount_minor' => 0, 'total_minor' => $subtotal - $discount['discount_minor'],
-            'cost_minor' => $subtotal - $discount['discount_minor'],
+            'sale_price_per_piece' => $salePrice ?? $previous?->sale_price_per_piece,
+            'invoice_discount' => 0, 'total' => $subtotal - $discount['discount'],
+            'cost' => $subtotal - $discount['discount'],
             'batch_no' => $input['batch_no'] ?? null, 'expiry_date' => $input['expiry_date'] ?? null,
-            'direction' => null, 'stock_lot_id' => null,
         ];
     }
 
@@ -113,9 +120,9 @@ class PurchaseItemService
         }
 
         return [
-            'discount_minor' => $amount, 'discount_calculation' => $mode,
+            'discount' => $amount, 'discount_calculation' => $mode,
             'discount_percent' => $mode === 'percent' ? Money::decimal($value) : null,
-            'discount_unit_amount_minor' => $mode === 'unit' ? $value : null,
+            'discount_unit_amount' => $mode === 'unit' ? $value : null,
         ];
     }
 
@@ -129,19 +136,19 @@ class PurchaseItemService
         return [
             'vat_mode' => $mode, 'vat_percent' => (string) ($input['vat_percent'] ?? '0'),
             'vat_calculation' => $input['vat_input'] ?? 'percent',
-            'vat_unit_amount_minor' => ($input['vat_input'] ?? null) === 'unit' ? Money::minor($input['vat_amount'] ?? '0') : null,
-            'vat_minor' => Money::minor($input['vat_amount'] ?? '0'),
+            'vat_unit_amount' => ($input['vat_input'] ?? null) === 'unit' ? Money::minor($input['vat_amount'] ?? '0') : null,
+            'vat' => Money::minor($input['vat_amount'] ?? '0'),
         ];
     }
 
-    private function preserveHiddenFields(Document $document, array $input, ?DocumentLine $previous, array $fields, int $factor, int|string $index): array
+    private function preserveHiddenFields(array $input, ?StockItem $previous, array $fields, int $factor, int|string $index): array
     {
         $preserved = [];
         if (! $fields['discount']) {
             $preserved += $this->savedDiscount($previous, $factor);
         }
         if (! $fields['vat']) {
-            $preserved += $this->savedVat($document, $previous, $factor);
+            $preserved += $this->savedVat($previous, $factor);
         }
         if (! $fields['sale_price']) {
             $preserved['sale_price_per_piece'] = null;
@@ -154,30 +161,30 @@ class PurchaseItemService
         return array_replace($input, $preserved);
     }
 
-    private function savedDiscount(?DocumentLine $previous, int $factor): array
+    private function savedDiscount(?StockItem $previous, int $factor): array
     {
         $mode = $previous?->discount_calculation ?? 'amount';
         $value = match ($mode) {
             'percent' => $previous?->discount_percent ?? '0',
-            'unit' => Money::decimal($previous === null ? 0 : $this->items->roundedRatio($previous->discount_unit_amount_minor ?? 0, $factor, $previous->factor)),
-            default => Money::decimal($previous?->discount_minor ?? 0),
+            'unit' => Money::decimal($previous === null ? 0 : $this->items->roundedRatio($previous->discount_unit_amount ?? 0, $factor, $previous->factor)),
+            default => Money::decimal($previous?->discount ?? 0),
         };
 
         return ['discount' => $value, 'discount_input' => $mode];
     }
 
-    private function savedVat(Document $document, ?DocumentLine $previous, int $factor): array
+    private function savedVat(?StockItem $previous, int $factor): array
     {
         $calculation = $previous?->vat_calculation ?? 'amount';
-        $amount = $previous?->vat_minor ?? 0;
+        $amount = $previous?->vat ?? 0;
         if ($calculation === 'unit' && $previous !== null) {
-            $amount = $this->items->roundedRatio($previous->vat_unit_amount_minor ?? 0, $factor, $previous->factor);
+            $amount = $this->items->roundedRatio($previous->vat_unit_amount ?? 0, $factor, $previous->factor);
         }
 
         return [
-            'vat_mode' => $previous === null ? 'none' : ($previous->vat_mode ?? $document->getRawOriginal('vat_mode')),
+            'vat_mode' => $previous?->vat_mode ?? 'none',
             'vat_input' => $calculation,
-            'vat_percent' => $previous === null ? '0' : ($previous->vat_percent ?? $document->getRawOriginal('vat_percent')),
+            'vat_percent' => $previous?->vat_percent ?? '0',
             'vat_amount' => Money::decimal($amount),
         ];
     }
@@ -243,15 +250,15 @@ class PurchaseItemService
     {
         $rate = Money::minor((string) $line['vat_percent']);
         if ($line['vat_mode'] === 'none') {
-            if ($rate > 0 || $line['vat_minor'] > 0 || ($line['vat_unit_amount_minor'] ?? 0) > 0) {
+            if ($rate > 0 || $line['vat'] > 0 || ($line['vat_unit_amount'] ?? 0) > 0) {
                 throw ValidationException::withMessages(['lines' => 'Choose VAT added or VAT included to record item VAT.']);
             }
 
             return 0;
         }
         $tax = match ($line['vat_calculation']) {
-            'amount' => $line['vat_minor'],
-            'unit' => $this->multiply($line['vat_unit_amount_minor'], $line['quantity']),
+            'amount' => $line['vat'],
+            'unit' => $this->multiply($line['vat_unit_amount'], $line['quantity']),
             default => $this->items->roundedRatio($netAmount, $rate, $line['vat_mode'] === 'inclusive' ? 10000 + $rate : 10000),
         };
         if ($line['vat_mode'] === 'inclusive' && $tax > $netAmount) {

@@ -1,6 +1,7 @@
-import $ from 'jquery';
-import { Modal } from 'bootstrap';
+import $ from './jquery';
+import 'bootstrap';
 import { initializeTradeEditor } from './inventory-trade-editor';
+import { formatAmount, roundRatio } from './money';
 
 const inventoryQuantityFormatter = new Intl.NumberFormat('en-BD');
 
@@ -13,111 +14,102 @@ function inventoryInteger(value) {
     return /^\d{1,19}$/.test(String(value ?? '')) ? BigInt(value) : 0n;
 }
 
-function inventoryDecimal(value) {
-    return `${value / 100n}.${String(value % 100n).padStart(2, '0')}`;
-}
-
-function inventoryRoundRatio(numerator, denominator) {
-    return denominator > 0n ? (numerator * 2n + denominator) / (denominator * 2n) : 0n;
-}
-
 function tradeAmountError(input) {
-    if (!input || (input.value === '' && !input.required)) return '';
-    return /^\d{1,10}(?:\.\d{1,2})?$/.test(input.value)
-        ? '' : (input.value === '' ? 'Enter an amount.' : 'Enter a valid amount.');
+    const $input = $(input);
+    const value = $input.val();
+    if (!$input.length || (value === '' && !$input.prop('required'))) return '';
+    return /^\d{1,10}(?:\.\d{1,2})?$/.test(value)
+        ? '' : (value === '' ? 'Enter an amount.' : 'Enter a valid amount.');
 }
 
 function setTradeValidity(input, message) {
+    const $input = $(input);
     input.setCustomValidity(message);
-    input.dataset.validationMessage = message;
-    if (input.dataset.touched === '1') {
-        input.classList.toggle('is-invalid', Boolean(message));
-        if (message) input.setAttribute('aria-invalid', 'true');
-        else input.removeAttribute('aria-invalid');
+    $input.attr('data-validation-message', message);
+    if ($input.attr('data-touched') === '1') {
+        $input.toggleClass('is-invalid', Boolean(message));
+        if (message) $input.attr('aria-invalid', 'true');
+        else $input.removeAttr('aria-invalid');
     }
 }
 
-function refreshDocumentTotal(form) {
-    if (!form.querySelector('[data-inventory-total]')) return;
-    const trade = form.hasAttribute('data-inventory-trade');
-    const lineVat = trade && form.dataset.type === 'purchase';
-    const modeInput = form.querySelector('[data-inventory-vat-mode]');
-    const vatMode = modeInput ? modeInput.value : (form.dataset.vatEnabled === '1' ? form.dataset.vatMode : 'none');
-    const rows = Array.from(form.querySelectorAll('[data-inventory-line]')).filter(row => trade || !row.querySelector('fieldset')?.disabled);
-    const itemList = form.querySelector('[data-inventory-item-list]');
-    if (itemList) {
-        const order = new Map(Array.from(itemList.querySelectorAll('tr[data-index]'), (item, index) => [item.dataset.index, index]));
-        rows.sort((left, right) => (order.get(left.dataset.index) ?? -1) - (order.get(right.dataset.index) ?? -1));
+function validateTradeLine($row, options, values) {
+    const { quantity, amount, discountMode, rawDiscount, discount } = values;
+    const $quantity = $row.find('[name$="[quantity]"]');
+    const $price = $row.find('[name$="[unit_price]"]');
+    const $discount = $row.find('[name$="[discount]"]');
+    const $unit = $row.find('[data-inventory-purchase-unit], select[name$="[product_unit_id]"]');
+    let quantityError = /^\d+$/.test($quantity.val()) && quantity > 0n ? '' : 'Enter a positive whole quantity.';
+    if (!quantityError && options.type === 'sale' && !options.allowWithoutStock) {
+        const factor = inventoryInteger($unit.find('option:selected').attr('data-factor'));
+        const available = inventoryInteger($row.find('[data-inventory-product-stock]').val());
+        if (factor > 0n && quantity * factor > available) {
+            quantityError = 'Quantity exceeds the available stock.';
+        }
     }
-    let subtotal = 0n;
-    let lineDiscount = 0n;
-    const states = rows.map(row => {
-        const quantityInput = row.querySelector('[name$="[quantity]"]');
-        const priceInput = row.querySelector('[name$="[unit_price]"]');
-        const discountInput = row.querySelector('[name$="[discount]"]');
-        const quantity = inventoryInteger(quantityInput?.value);
-        const baseQuantity = row.querySelector('[data-inventory-base-quantity]');
-        if (baseQuantity) {
-            const factor = inventoryInteger(row.querySelector('[data-inventory-unit-factor]')?.value);
-            baseQuantity.textContent = quantity > 0n && factor > 0n
-                ? inventoryQuantityFormatter.format(quantity * factor) : '—';
-        }
-        const amount = quantity * inventoryMinor(priceInput?.value);
-        const discountMode = row.querySelector('[data-inventory-line-discount-input]')?.value || 'amount';
-        const rawDiscount = inventoryMinor(discountInput?.value);
-        const discount = discountMode === 'unit' ? rawDiscount * quantity
-            : (discountMode === 'percent' ? inventoryRoundRatio(amount * rawDiscount, 10000n) : rawDiscount);
-        const unit = row.querySelector('[data-inventory-purchase-unit], [data-inventory-unit]');
-        const unitName = unit?.selectedOptions[0]?.dataset.unitName || unit?.selectedOptions[0]?.textContent || row.dataset.fixedUnit || '';
-        row.dataset.summaryQuantity = `${inventoryQuantityFormatter.format(quantity)} ${unitName}`;
-        row.dataset.summaryRate = inventoryDecimal(inventoryMinor(priceInput?.value));
-        row.dataset.summaryDiscount = inventoryDecimal(discount);
-        const salePrice = row.querySelector('[data-inventory-sale-price-per-piece]');
-        row.dataset.summarySalePrice = salePrice?.value ? inventoryDecimal(inventoryMinor(salePrice.value)) : '—';
-        if (discountInput && trade) {
-            if (discountMode === 'percent') discountInput.max = '100';
-            else discountInput.removeAttribute('max');
-        }
-        subtotal += amount;
-        lineDiscount += discount > amount ? amount : discount;
-        if (trade) {
-            let quantityError = /^\d+$/.test(quantityInput.value) && quantity > 0n ? '' : 'Enter a positive whole quantity.';
-            if (!quantityError && form.dataset.type === 'sale' && form.dataset.allowWithoutStock !== '1') {
-                const factor = inventoryInteger(unit?.selectedOptions[0]?.dataset.factor);
-                const available = inventoryInteger(row.dataset.availableQuantity);
-                if (factor > 0n && quantity * factor > available) {
-                    quantityError = 'Quantity exceeds the available stock.';
-                }
-            }
-            let priceError = tradeAmountError(priceInput);
-            const discountError = tradeAmountError(discountInput)
-                || (discountMode === 'percent' && rawDiscount > 10000n ? 'Discount cannot exceed 100%.' : '')
-                || (discount > amount ? 'Discount exceeds the item amount.' : '');
-            const hiddenDiscount = discountInput?.closest('[data-inventory-hidden-item-field]');
-            if (hiddenDiscount && discountError && !priceError) {
-                priceError = 'Saved discount exceeds this item amount. Adjust Qty or Rate.';
-            }
-            setTradeValidity(quantityInput, quantityError);
-            setTradeValidity(priceInput, priceError);
-            setTradeValidity(discountInput, hiddenDiscount ? '' : discountError);
-            const salePriceInput = row.querySelector('[data-inventory-sale-price-per-piece]');
-            if (salePriceInput) setTradeValidity(salePriceInput, tradeAmountError(salePriceInput));
-            const factorInput = row.querySelector('[data-inventory-unit-factor]');
-            if (factorInput && unit) {
-                const factor = inventoryInteger(factorInput.value);
-                const factorError = /^\d+$/.test(factorInput.value) && factor > 0n && factor <= 1000000n
-                    ? '' : 'Choose a pack size.';
-                setTradeValidity(unit, factorError);
-            }
-        }
-        return { row, net: amount > discount ? amount - discount : 0n,
-            vatMode: lineVat ? row.querySelector('[data-inventory-line-vat-mode]')?.value || 'none' : vatMode };
-    });
-    const discountInput = form.querySelector('[name="discount"]');
-    const discount = inventoryMinor(discountInput?.value);
-    const beforeDiscount = subtotal - lineDiscount;
+    let priceError = tradeAmountError($price[0]);
+    const discountError = tradeAmountError($discount[0])
+        || (discountMode === 'percent' && rawDiscount > 10000n ? 'Discount cannot exceed 100%.' : '')
+        || (discount > amount ? 'Discount exceeds the item amount.' : '');
+    const hiddenDiscount = $discount.closest('[data-inventory-hidden-item-field]').length > 0;
+    if (hiddenDiscount && discountError && !priceError) {
+        priceError = 'Saved discount exceeds this item amount. Adjust Qty or Rate.';
+    }
+    setTradeValidity($quantity[0], quantityError);
+    setTradeValidity($price[0], priceError);
+    setTradeValidity($discount[0], hiddenDiscount ? '' : discountError);
+    const $salePrice = $row.find('input[name$="[sale_price_per_piece]"]');
+    if ($salePrice.length) setTradeValidity($salePrice[0], tradeAmountError($salePrice[0]));
+    const $factor = $row.find('input[name$="[unit_factor]"]');
+    if ($factor.length && $unit.length) {
+        const factor = inventoryInteger($factor.val());
+        const factorError = /^\d+$/.test($factor.val()) && factor > 0n && factor <= 1000000n
+            ? '' : 'Choose a pack size.';
+        setTradeValidity($unit[0], factorError);
+    }
+}
+
+function readEntryLine(row, trade, options, vatMode) {
+    const $row = $(row);
+    const $quantity = $row.find('[name$="[quantity]"]');
+    const $price = $row.find('[name$="[unit_price]"]');
+    const $discount = $row.find('[name$="[discount]"]');
+    const quantity = inventoryInteger($quantity.val());
+    const $baseQuantity = $row.find('[data-inventory-base-quantity]');
+    if ($baseQuantity.length) {
+        const factor = inventoryInteger($row.find('input[name$="[unit_factor]"]').val());
+        $baseQuantity.text(quantity > 0n && factor > 0n
+            ? inventoryQuantityFormatter.format(quantity * factor) : '—');
+    }
+    const amount = quantity * inventoryMinor($price.val());
+    const discountMode = $row.find('select[name$="[discount_input]"]').val() || 'amount';
+    const rawDiscount = inventoryMinor($discount.val());
+    const discount = discountMode === 'unit' ? rawDiscount * quantity
+        : (discountMode === 'percent' ? roundRatio(amount * rawDiscount, 10000n) : rawDiscount);
+    const $selectedUnit = $row.find('[data-inventory-purchase-unit] option:selected, select[name$="[product_unit_id]"] option:selected');
+    const unitName = $selectedUnit.attr('data-unit-name') || $selectedUnit.text() || $row.attr('data-inventory-fixed-unit') || '';
+    const $salePrice = $row.find('input[name$="[sale_price_per_piece]"]');
+    row._inventorySummary = {
+        quantity: `${inventoryQuantityFormatter.format(quantity)} ${unitName}`,
+        rate: formatAmount(inventoryMinor($price.val())),
+        discount: formatAmount(discount),
+        'sale-price': $salePrice.val() ? formatAmount(inventoryMinor($salePrice.val())) : '—',
+    };
+    if (trade) {
+        if (discountMode === 'percent') $discount.attr('max', '100');
+        else $discount.removeAttr('max');
+        validateTradeLine($row, options, { quantity, amount, discountMode, rawDiscount, discount });
+    }
+    return {
+        row, subtotal: amount, discount: discount > amount ? amount : discount,
+        net: amount > discount ? amount - discount : 0n,
+        vatMode: trade && options.type === 'purchase'
+            ? $row.find('select[name$="[vat_mode]"]').val() || 'none' : vatMode,
+    };
+}
+
+function applyInvoiceDiscount(states, beforeDiscount, discount) {
     const allowedDiscount = discount > beforeDiscount ? beforeDiscount : discount;
-    const net = beforeDiscount - allowedDiscount;
     let cumulative = 0n;
     let allocated = 0n;
     for (const state of states) {
@@ -126,49 +118,55 @@ function refreshDocumentTotal(form) {
         state.weight = state.net - (target - allocated);
         allocated = target;
     }
-    const headerPercent = form.querySelector('[data-inventory-invoice-vat-percent]');
-    const percent = inventoryMinor(headerPercent?.value ?? form.dataset.vatPercent);
+    return beforeDiscount - allowedDiscount;
+}
+
+function calculateLineVat($row, vatMode, weight) {
+    const $rate = $row.find('input[name$="[vat_percent]"]');
+    const $amount = $row.find('input[name$="[vat_amount]"]');
+    const $source = $row.find('select[name$="[vat_input]"]');
+    const noVat = vatMode === 'none';
+    const amountMode = $source.val() === 'amount' || $source.val() === 'unit';
+    $source.prop('disabled', noVat);
+    $rate.prop({ hidden: amountMode, disabled: noVat || amountMode });
+    $amount.prop({ hidden: !amountMode, disabled: noVat || !amountMode, required: !noVat && amountMode });
+    let tax = 0n;
+    let rateError = '';
+    let amountError = '';
+    if (!noVat) {
+        const rate = inventoryMinor($rate.val());
+        if ($source.val() === 'unit') {
+            tax = inventoryMinor($amount.val()) * inventoryInteger($row.find('[name$="[quantity]"]').val());
+        } else if ($source.val() === 'amount') tax = inventoryMinor($amount.val());
+        else tax = roundRatio(weight * rate, vatMode === 'inclusive' ? 10000n + rate : 10000n);
+        const includedError = vatMode === 'inclusive' && tax > weight ? 'VAT exceeds the item amount.' : '';
+        if (amountMode) amountError = tradeAmountError($amount[0]) || includedError;
+        else rateError = tradeAmountError($rate[0]) || (rate > 10000n ? 'VAT percentage cannot exceed 100.' : '') || includedError;
+    }
+    const hiddenVat = $source.closest('[data-inventory-hidden-item-field]').length > 0;
+    setTradeValidity($rate[0], hiddenVat ? '' : rateError);
+    setTradeValidity($amount[0], hiddenVat ? '' : amountError);
+    if (hiddenVat && (rateError || amountError)) {
+        const $price = $row.find('[name$="[unit_price]"]');
+        setTradeValidity($price[0], $price.attr('data-validation-message')
+            || 'Saved VAT exceeds this item amount. Adjust Qty or Rate.');
+    }
+    $row.find('[data-inventory-line-vat-total]').text(formatAmount(tax));
+    return tax;
+}
+
+function applyEntryVat(states, net, lineVat, vatMode, percent) {
     let tax = !lineVat && vatMode !== 'none'
-        ? inventoryRoundRatio(net * percent, vatMode === 'inclusive' ? 10000n + percent : 10000n) : 0n;
+        ? roundRatio(net * percent, vatMode === 'inclusive' ? 10000n + percent : 10000n) : 0n;
     let addedTax = 0n;
-    cumulative = 0n;
-    allocated = 0n;
+    let cumulative = 0n;
+    let allocated = 0n;
     for (const state of states) {
         const { row, vatMode: itemVatMode } = state;
+        const $row = $(row);
         let rowTax = 0n;
         if (lineVat) {
-            const rateInput = row.querySelector('[data-inventory-line-vat-percent]');
-            const amountInput = row.querySelector('[data-inventory-line-vat-amount]');
-            const sourceInput = row.querySelector('[data-inventory-line-vat-input]');
-            const noVat = itemVatMode === 'none';
-            const amountMode = sourceInput.value === 'amount' || sourceInput.value === 'unit';
-            sourceInput.disabled = noVat;
-            rateInput.hidden = amountMode;
-            rateInput.disabled = noVat || amountMode;
-            amountInput.hidden = !amountMode;
-            amountInput.disabled = noVat || !amountMode;
-            amountInput.required = !noVat && amountMode;
-            let rateError = '';
-            let amountError = '';
-            if (!noVat) {
-                const rate = inventoryMinor(rateInput.value);
-                if (sourceInput.value === 'unit') {
-                    rowTax = inventoryMinor(amountInput.value) * inventoryInteger(row.querySelector('[name$="[quantity]"]').value);
-                } else if (sourceInput.value === 'amount') rowTax = inventoryMinor(amountInput.value);
-                else rowTax = inventoryRoundRatio(state.weight * rate, itemVatMode === 'inclusive' ? 10000n + rate : 10000n);
-                const includedError = itemVatMode === 'inclusive' && rowTax > state.weight ? 'VAT exceeds the item amount.' : '';
-                if (amountMode) amountError = tradeAmountError(amountInput) || includedError;
-                else rateError = tradeAmountError(rateInput) || (rate > 10000n ? 'VAT percentage cannot exceed 100.' : '') || includedError;
-            }
-            const hiddenVat = sourceInput.closest('[data-inventory-hidden-item-field]');
-            setTradeValidity(rateInput, hiddenVat ? '' : rateError);
-            setTradeValidity(amountInput, hiddenVat ? '' : amountError);
-            if (hiddenVat && (rateError || amountError)) {
-                const priceInput = row.querySelector('[name$="[unit_price]"]');
-                setTradeValidity(priceInput, priceInput.dataset.validationMessage
-                    || 'Saved VAT exceeds this item amount. Adjust Qty or Rate.');
-            }
-            row.querySelector('[data-inventory-line-vat-total]').textContent = inventoryDecimal(rowTax);
+            rowTax = calculateLineVat($row, itemVatMode, state.weight);
             tax += rowTax;
         } else {
             cumulative += state.weight;
@@ -178,472 +176,496 @@ function refreshDocumentTotal(form) {
         }
         if (itemVatMode === 'exclusive') addedTax += rowTax;
         const itemAmount = state.weight + (itemVatMode === 'exclusive' ? rowTax : 0n);
-        row.dataset.summaryVat = `${inventoryDecimal(rowTax)}${itemVatMode === 'inclusive' ? ' · Included' : (itemVatMode === 'exclusive' ? ' · Added' : '')}`;
-        row.dataset.summaryAmount = inventoryDecimal(itemAmount);
-        const lineOutput = row.querySelector('[data-inventory-row-amount]');
-        if (lineOutput) lineOutput.textContent = inventoryDecimal(itemAmount);
+        row._inventorySummary.vat = `${formatAmount(rowTax)}${itemVatMode === 'inclusive' ? ' · Included' : (itemVatMode === 'exclusive' ? ' · Added' : '')}`;
+        row._inventorySummary.amount = formatAmount(itemAmount);
+        $row.find('[data-inventory-row-amount]').text(formatAmount(itemAmount));
     }
+    return { tax, addedTax };
+}
+
+function validateTradeEntry($form, amounts) {
+    const { discount, beforeDiscount, paid, total, vatMode, percent } = amounts;
+    const $discount = $form.find('[name="discount"]');
+    const $paid = $form.find('[name="paid_amount"]');
+    const $headerPercent = $form.find('[data-inventory-invoice-vat-percent]');
+    const discountError = tradeAmountError($discount[0]) || (discount > beforeDiscount ? 'Invoice discount exceeds the remaining amount.' : '');
+    const paidError = tradeAmountError($paid[0]) || (paid > total ? 'Paid amount cannot exceed the payable amount.' : '');
+    if ($headerPercent.length) {
+        $headerPercent.prop('disabled', vatMode === 'none');
+        const taxError = vatMode === 'none' ? '' : tradeAmountError($headerPercent[0]) || (percent > 10000n ? 'VAT percentage cannot exceed 100.' : '');
+        setTradeValidity($headerPercent[0], taxError);
+    }
+    setTradeValidity($discount[0], discountError);
+    setTradeValidity($paid[0], paidError);
+    $form.find('[name="payment_type_id"]').prop('required', paid > 0n);
+}
+
+function refreshEntryTotal(form) {
+    const $form = $(form);
+    if (!$form.find('[data-inventory-total]').length) return;
+    const trade = $form.is('[data-inventory-trade]');
+    const options = form._inventoryOptions;
+    const lineVat = trade && options.type === 'purchase';
+    const $modeInput = $form.find('[data-inventory-vat-mode]');
+    const vatMode = $modeInput.length ? $modeInput.val() : options.vatMode;
+    const rows = $form.find('[data-inventory-line]').filter(function () {
+        return trade || !$(this).find('fieldset').prop('disabled');
+    }).get();
+    const $itemList = $form.find('[data-inventory-item-list]');
+    if ($itemList.length) {
+        const order = new Map($itemList.find('tr[data-index]').get().map((item, index) => [$(item).attr('data-index'), index]));
+        rows.sort((left, right) => (order.get($(left).attr('data-index')) ?? -1) - (order.get($(right).attr('data-index')) ?? -1));
+    }
+    const states = [];
+    let subtotal = 0n;
+    let lineDiscount = 0n;
+    for (const row of rows) {
+        const state = readEntryLine(row, trade, options, vatMode);
+        subtotal += state.subtotal;
+        lineDiscount += state.discount;
+        states.push(state);
+    }
+    const discount = inventoryMinor($form.find('[name="discount"]').val());
+    const beforeDiscount = subtotal - lineDiscount;
+    const net = applyInvoiceDiscount(states, beforeDiscount, discount);
+    const percent = inventoryMinor($form.find('[data-inventory-invoice-vat-percent]').val() ?? options.vatPercent);
+    const { tax, addedTax } = applyEntryVat(states, net, lineVat, vatMode, percent);
     const total = net + addedTax;
-    const paidInput = form.querySelector('[name="paid_amount"]');
-    const paid = inventoryMinor(paidInput?.value);
+    const paid = inventoryMinor($form.find('[name="paid_amount"]').val());
     const due = total > paid ? total - paid : 0n;
     const amounts = { subtotal, 'line-discount': lineDiscount, 'invoice-discount': discount, vat: tax, total, paid, due };
     for (const [field, value] of Object.entries(amounts)) {
-        form.querySelectorAll(`[data-inventory-${field}]`).forEach(element => { element.textContent = inventoryDecimal(value); });
+        $form.find(`[data-inventory-${field}]`).text(formatAmount(value));
     }
-    form.querySelectorAll('[data-inventory-line-count]').forEach(element => { element.textContent = rows.length; });
-    if (trade) {
-        const discountError = tradeAmountError(discountInput) || (discount > beforeDiscount ? 'Invoice discount exceeds the remaining amount.' : '');
-        const paidError = tradeAmountError(paidInput) || (paid > total ? 'Paid amount cannot exceed the payable amount.' : '');
-        let taxError = '';
-        if (headerPercent) {
-            headerPercent.disabled = vatMode === 'none';
-            taxError = vatMode === 'none' ? '' : tradeAmountError(headerPercent) || (percent > 10000n ? 'VAT percentage cannot exceed 100.' : '');
-            setTradeValidity(headerPercent, taxError);
-        }
-        setTradeValidity(discountInput, discountError);
-        setTradeValidity(paidInput, paidError);
-        const feedback = form.querySelector('[data-inventory-payment-error]');
-        feedback.textContent = '';
-        feedback.classList.add('d-none');
-        form.querySelector('[name="payment_type_id"]').required = paid > 0n;
-    }
+    $form.find('[data-inventory-line-count]').text(rows.length);
+    if (trade) validateTradeEntry($form, { discount, beforeDiscount, paid, total, vatMode, percent });
 }
 
 function refreshReceiptFields(form) {
-    const medicine = form.querySelector('[name="product_type"]')?.value === 'medicine';
-    form.querySelectorAll('[data-inventory-line]').forEach(row => {
-        const decrease = row.querySelector('[name$="[direction]"]')?.value === 'decrease';
-        const receipt = form.dataset.type === 'opening' || (form.dataset.type === 'adjustment' && !decrease);
-        for (const field of ['expiry_date']) {
-            const input = row.querySelector(`[name$="[${field}]"]`);
-            if (input) input.required = medicine && receipt;
-        }
-        const lot = row.querySelector('[data-inventory-lot]');
-        if (lot && form.dataset.type === 'adjustment') {
-            lot.disabled = !decrease || !row.querySelector('[data-inventory-variant]')?.value;
+    const $form = $(form);
+    const medicine = $form.find('[name="product_type"]').val() === 'medicine';
+    $form.find('[data-inventory-line]').each(function () {
+        const $row = $(this);
+        const decrease = $row.find('[name$="[direction]"]').val() === 'decrease';
+        const receipt = form._inventoryOptions.type === 'opening' || (form._inventoryOptions.type === 'adjustment' && !decrease);
+        $row.find('[name$="[expiry_date]"]').prop('required', medicine && receipt);
+        if (form._inventoryOptions.type === 'adjustment') {
+            $row.find('[data-inventory-lot]').prop('disabled', !decrease || !$row.find('select[name$="[variant_id]"]').val());
         }
     });
 }
 
 function selectVariant(row, data) {
-    row.dataset.productId = data.product_id || '';
-    row.dataset.purchasePrice = data.purchase_price || '0';
-    row.dataset.salePrice = data.sale_price || '0';
-    const salePrice = row.querySelector('[data-inventory-sale-price-per-piece]');
-    if (salePrice) salePrice.placeholder = inventoryMinor(data.sale_price) > 0n ? data.sale_price : '0';
-    const purchaseUnit = row.querySelector('[data-inventory-purchase-unit]');
-    if (purchaseUnit || row.hasAttribute('data-inventory-fixed-unit')) {
-        if (purchaseUnit) populatePurchaseUnits(row, Array.isArray(data.units) ? data.units : []);
-        const factor = inventoryInteger(row.querySelector('[data-inventory-unit-factor]').value);
-        const basePrice = inventoryMinor(row.dataset.purchasePrice);
-        row.querySelector('[name$="[unit_price]"]').value = basePrice > 0n && factor > 0n ? inventoryDecimal(basePrice * factor) : '';
-        refreshDocumentTotal(row.closest('[data-inventory-document]'));
+    const $row = $(row);
+    row._inventoryProduct = {
+        id: String(data.product_id || ''),
+        purchasePrice: data.purchase_price || '0',
+        salePrice: data.sale_price || '0',
+    };
+    $row.find('input[name$="[sale_price_per_piece]"]').attr('placeholder', inventoryMinor(data.sale_price) > 0n ? data.sale_price : '0');
+    const $purchaseUnit = $row.find('[data-inventory-purchase-unit]');
+    if ($purchaseUnit.length || $row.is('[data-inventory-fixed-unit]')) {
+        if ($purchaseUnit.length) populatePurchaseUnits(row, Array.isArray(data.units) ? data.units : []);
+        const factor = inventoryInteger($row.find('input[name$="[unit_factor]"]').val());
+        const basePrice = inventoryMinor(row._inventoryProduct.purchasePrice);
+        $row.find('[name$="[unit_price]"]').val(basePrice > 0n && factor > 0n ? formatAmount(basePrice * factor) : '');
+        refreshEntryTotal($row.closest('[data-inventory-entry]')[0]);
         return;
     }
-    const unit = row.querySelector('[data-inventory-unit]');
-    if (!unit) return;
-    unit.replaceChildren(new Option('Select unit', ''));
+    const $unit = $row.find('select[name$="[product_unit_id]"]');
+    if (!$unit.length) return;
+    $unit.empty().append($('<option>', { text: 'Select unit', value: '' }));
     for (const choice of data.units || []) {
-        const option = new Option(`${choice.name} × ${choice.factor}`, choice.id);
-        option.dataset.factor = choice.factor;
-        option.dataset.unitName = choice.name;
-        option.dataset.symbol = choice.symbol;
-        unit.append(option);
+        $unit.append($('<option>', {
+            text: `${choice.name} × ${choice.factor}`, value: choice.id,
+            'data-factor': choice.factor, 'data-unit-name': choice.name, 'data-symbol': choice.symbol,
+        }));
     }
-    const piece = Array.from(unit.options).find(option => option.dataset.factor === '1'
-        && option.dataset.symbol?.trim().toLowerCase() === 'pcs');
-    const base = Array.from(unit.options).find(option => option.dataset.factor === '1');
-    unit.value = piece?.value || base?.value || '';
+    const $base = $unit.find('option[data-factor="1"]');
+    const $piece = $base.filter(function () {
+        return $(this).attr('data-symbol')?.trim().toLowerCase() === 'pcs';
+    });
+    $unit.val($piece.first().val() || $base.first().val() || '');
     setDefaultPrice(row);
 }
 
 function setDefaultPrice(row) {
-    const form = row.closest('[data-inventory-document]');
-    const unit = row.querySelector('[data-inventory-unit]');
-    const price = row.querySelector('[name$="[unit_price]"]');
-    if (!unit || !price || ['damage', 'transfer'].includes(form.dataset.type)) return;
-    const basePrice = form.dataset.type === 'sale' ? row.dataset.salePrice : row.dataset.purchasePrice;
-    const factor = inventoryInteger(unit.selectedOptions[0]?.dataset.factor || 1);
+    const $row = $(row);
+    const form = $row.closest('[data-inventory-entry]')[0];
+    const $unit = $row.find('select[name$="[product_unit_id]"]');
+    const $price = $row.find('[name$="[unit_price]"]');
+    if (!$unit.length || !$price.length || ['damage', 'transfer'].includes(form._inventoryOptions.type)) return;
+    const basePrice = form._inventoryOptions.type === 'sale' ? row._inventoryProduct.salePrice : row._inventoryProduct.purchasePrice;
+    const factor = inventoryInteger($unit.find('option:selected').attr('data-factor') || 1);
     const minor = inventoryMinor(basePrice);
-    price.value = minor > 0n ? inventoryDecimal(minor * factor) : '';
-    refreshDocumentTotal(form);
+    $price.val(minor > 0n ? formatAmount(minor * factor) : '');
+    refreshEntryTotal(form);
 }
 
 function rescaleHiddenUnitAmount(row, input, basis, previousFactor, nextFactor) {
-    if (!input || basis !== 'unit' || nextFactor < 1n
-        || !input.closest('[data-inventory-hidden-item-field]')
-        || !row.querySelector('[name$="[original_line_id]"]')?.value) return;
+    const $input = $(input);
+    if (!$input.length || basis !== 'unit' || nextFactor < 1n
+        || !$input.closest('[data-inventory-hidden-item-field]').length
+        || !$(row).find('[name$="[original_line_id]"]').val()) return;
 
-    let originalFactor = inventoryInteger(input.dataset.originalUnitFactor);
-    if (originalFactor < 1n || input.dataset.originalUnitAmount === undefined || input.dataset.originalUnitAmount === '') {
+    let originalFactor = inventoryInteger($input.attr('data-original-unit-factor'));
+    if (originalFactor < 1n || !$input.attr('data-original-unit-amount')) {
         if (previousFactor < 1n || previousFactor === nextFactor) return;
-        input.dataset.originalUnitFactor = String(previousFactor);
-        input.dataset.originalUnitAmount = input.value || '0';
+        $input.attr({ 'data-original-unit-factor': String(previousFactor), 'data-original-unit-amount': $input.val() || '0' });
         originalFactor = previousFactor;
     }
 
-    const originalAmount = inventoryMinor(input.dataset.originalUnitAmount);
-    input.value = inventoryDecimal(inventoryRoundRatio(originalAmount * nextFactor, originalFactor));
+    const originalAmount = inventoryMinor($input.attr('data-original-unit-amount'));
+    $input.val(formatAmount(roundRatio(originalAmount * nextFactor, originalFactor)));
 }
 
 function applyPurchaseUnit(row, option, clearPrice = false) {
-    if (!option?.dataset.factor) return;
-    const unitId = row.querySelector('[data-inventory-unit-id]');
-    const factor = row.querySelector('[data-inventory-unit-factor]');
-    const changed = unitId.value !== option.dataset.unitId || factor.value !== option.dataset.factor;
-    const previousFactor = inventoryInteger(factor.value);
-    const nextFactor = inventoryInteger(option.dataset.factor);
+    const $row = $(row);
+    const $option = $(option);
+    if (!$option.attr('data-factor')) return;
+    const $unitId = $row.find('input[name$="[unit_id]"]');
+    const $factor = $row.find('input[name$="[unit_factor]"]');
+    const unitName = $option.attr('data-unit-name');
+    const changed = $unitId.val() !== $option.attr('data-unit-id') || $factor.val() !== $option.attr('data-factor');
+    const previousFactor = inventoryInteger($factor.val());
+    const nextFactor = inventoryInteger($option.attr('data-factor'));
     rescaleHiddenUnitAmount(row,
-        row.querySelector('[data-inventory-line-discount-value]'),
-        row.querySelector('[data-inventory-line-discount-input]')?.value,
+        $row.find('input[name$="[discount]"]')[0],
+        $row.find('select[name$="[discount_input]"]').val(),
         previousFactor, nextFactor);
     rescaleHiddenUnitAmount(row,
-        row.querySelector('[data-inventory-line-vat-amount]'),
-        row.querySelector('[data-inventory-line-vat-input]')?.value,
+        $row.find('input[name$="[vat_amount]"]')[0],
+        $row.find('select[name$="[vat_input]"]').val(),
         previousFactor, nextFactor);
-    unitId.value = option.dataset.unitId;
-    factor.value = option.dataset.factor;
-    row.dataset.selectedPurchaseUnit = option.value;
-    const select = row.querySelector('[data-inventory-purchase-unit]');
-    setTradeValidity(select, '');
-    const edit = row.querySelector('[data-inventory-edit-unit]');
-    if (edit) edit.disabled = option.dataset.fixed === '1';
-    row.querySelectorAll('[data-inventory-quantity-unit], [data-inventory-rate-unit]').forEach(label => {
-        label.textContent = option.dataset.unitName;
-    });
-    row.querySelectorAll('[data-inventory-line-vat-input] option[value="unit"], [data-inventory-line-discount-input] option[value="unit"]')
-        .forEach(unitOption => { unitOption.textContent = `/ ${option.dataset.unitName}`; });
-    const quantity = row.querySelector('[name$="[quantity]"]');
-    const name = row.querySelector('[data-inventory-product-name]').textContent;
-    quantity.setAttribute('aria-label', `Number of ${option.dataset.unitName} for ${name}`);
-    const price = row.querySelector('[name$="[unit_price]"]');
-    price.setAttribute('aria-label', `Rate per ${option.dataset.unitName}`);
-    if (clearPrice && changed) price.value = '';
+    $unitId.val($option.attr('data-unit-id'));
+    $factor.val($option.attr('data-factor'));
+    $row.attr('data-selected-purchase-unit', $option.val());
+    setTradeValidity($row.find('[data-inventory-purchase-unit]')[0], '');
+    $row.find('[data-inventory-edit-unit]').prop('disabled', $option.attr('data-fixed') === '1');
+    $row.find('[data-inventory-quantity-unit], [data-inventory-rate-unit]').text(unitName);
+    $row.find('select[name$="[vat_input]"] option[value="unit"], select[name$="[discount_input]"] option[value="unit"]')
+        .text(`/ ${unitName}`);
+    const name = $row.find('.app-inventory-entry-name').text();
+    $row.find('[name$="[quantity]"]').attr('aria-label', `Number of ${unitName} for ${name}`);
+    const $price = $row.find('[name$="[unit_price]"]').attr('aria-label', `Rate per ${unitName}`);
+    if (clearPrice && changed) $price.val('');
 }
 
 function populatePurchaseUnits(row, profiles) {
-    const select = row.querySelector('[data-inventory-purchase-unit]');
-    const form = row.closest('[data-inventory-trade]');
+    const $row = $(row);
+    const $select = $row.find('[data-inventory-purchase-unit]');
+    const $form = $row.closest('[data-inventory-trade]');
+    const form = $form[0];
     if (!row._purchaseUnits) {
-        row._purchaseUnits = Array.from(select.options).filter(option => option.dataset.unitId).map(option => ({
-            id: option.dataset.unitId, name: option.textContent, symbol: option.dataset.symbol?.toLowerCase() || '',
+        row._purchaseUnits = $select.find('option[data-unit-id]').get().map(option => ({
+            id: $(option).attr('data-unit-id'), name: $(option).text(), symbol: $(option).attr('data-symbol')?.toLowerCase() || '',
         }));
     }
-    const remembered = form._purchasePacks?.get(row.dataset.productId) || [];
-    const unitId = row.querySelector('[data-inventory-unit-id]').value;
-    const factor = row.querySelector('[data-inventory-unit-factor]').value;
-    const optic = form.querySelector('[name="product_type"]').value === 'optic';
+    const remembered = form._purchasePacks?.get(row._inventoryProduct.id) || [];
+    const unitId = $row.find('input[name$="[unit_id]"]').val();
+    const factor = $row.find('input[name$="[unit_factor]"]').val();
+    const optic = $form.find('[name="product_type"]').val() === 'optic';
     const allProfiles = [...profiles, ...remembered];
     if (/^\d+$/.test(unitId) && /^[1-9]\d{0,6}$/.test(factor) && Number(factor) <= 1000000) {
         allProfiles.push({ unit_id: unitId, factor });
     }
     const pieces = row._purchaseUnits.find(unit => unit.symbol === 'pcs');
-    select.replaceChildren(new Option('Unit', ''));
+    $select.empty().append($('<option>', { text: 'Unit', value: '' }));
     for (const unit of row._purchaseUnits) {
         const fixed = unit.symbol === 'pcs' ? 1 : (optic && unit.symbol === 'pair' ? 2 : null);
         const factors = fixed === null
             ? allProfiles.filter(profile => String(profile.unit_id) === unit.id).map(profile => Number(profile.factor)) : [fixed];
         for (const size of [...new Set(factors)].filter(size => Number.isInteger(size) && size > 0 && size <= 1000000).sort((a, b) => a - b)) {
             const label = fixed !== null ? unit.name : `${unit.name} · ${size} Pcs`;
-            const option = new Option(label, `pack:${unit.id}:${size}`);
-            Object.assign(option.dataset, { unitId: unit.id, factor: String(size), unitName: unit.name,
-                fixed: fixed !== null ? '1' : '0' });
-            select.append(option);
+            $select.append($('<option>', {
+                text: label, value: `pack:${unit.id}:${size}`, 'data-unit-id': unit.id, 'data-factor': String(size),
+                'data-unit-name': unit.name, 'data-fixed': fixed !== null ? '1' : '0',
+            }));
         }
         if (fixed === null) {
-            const option = new Option(`${unit.name} (new size)`, `unit:${unit.id}`);
-            Object.assign(option.dataset, { unitId: unit.id, unitName: unit.name });
-            select.append(option);
+            $select.append($('<option>', {
+                text: `${unit.name} (new size)`, value: `unit:${unit.id}`, 'data-unit-id': unit.id, 'data-unit-name': unit.name,
+            }));
         }
     }
     const selected = `pack:${unitId}:${factor}`;
     const hasOldSelection = unitId !== '' || factor !== '';
-    select.value = Array.from(select.options).some(option => option.value === selected)
-        ? selected : (!hasOldSelection && pieces ? `pack:${pieces.id}:1` : '');
+    const hasSelectedPack = $select.find('option').get().some(option => $(option).val() === selected);
+    $select.val(hasSelectedPack ? selected : (!hasOldSelection && pieces ? `pack:${pieces.id}:1` : ''));
     row._unitProfiles = allProfiles;
-    applyPurchaseUnit(row, select.selectedOptions[0]);
+    applyPurchaseUnit(row, $select.find('option:selected')[0]);
 }
 
 function refreshReturnUnit(row) {
-    const unit = row.querySelector('[data-inventory-return-unit]');
-    if (!unit) return;
-    const factor = inventoryInteger(unit.selectedOptions[0]?.dataset.factor || 1);
-    const quantity = row.querySelector('[name$="[quantity]"]');
-    const remaining = inventoryInteger(row.dataset.returnRemaining);
-    quantity.max = String(factor > 0n ? remaining / factor : 0n);
-    row.querySelector('[data-inventory-return-remaining]').textContent = inventoryQuantityFormatter.format(remaining);
-    const price = inventoryDecimal(inventoryRoundRatio(inventoryMinor(row.dataset.originalPrice) * factor, inventoryInteger(row.dataset.originalFactor)));
-    row.querySelector('[data-inventory-return-rate-input]').value = price;
-    row.querySelector('[data-inventory-return-rate]').textContent = price;
+    const $row = $(row);
+    const $unit = $row.find('[data-inventory-return-unit]');
+    if (!$unit.length) return;
+    const factor = inventoryInteger($unit.find('option:selected').attr('data-factor') || 1);
+    const remaining = inventoryInteger($row.attr('data-return-remaining'));
+    $row.find('[name$="[quantity]"]').attr('max', String(factor > 0n ? remaining / factor : 0n));
+    $row.find('[data-inventory-return-remaining]').text(inventoryQuantityFormatter.format(remaining));
+    const price = formatAmount(roundRatio(inventoryMinor($row.attr('data-original-price')) * factor, inventoryInteger($row.attr('data-original-factor'))));
+    $row.find('[data-inventory-return-rate-input]').val(price);
+    $row.find('[data-inventory-return-rate]').text(price);
 }
 
 function initializeReturn(form) {
-    const rows = Array.from(form.querySelectorAll('[data-inventory-line]'));
-    const firstQuantity = form.querySelector('[data-inventory-return-quantity]');
-    const paymentType = form.querySelector('[name="payment_type_id"]');
-    const remainingTotal = inventoryInteger(form.dataset.returnSourceTotal)
-        - inventoryInteger(form.dataset.returnSourceReturned) + inventoryInteger(form.dataset.returnEditTotal);
-    const settlementDiscount = inventoryInteger(form.dataset.returnSourceDiscount);
-    const dueBeforeReturn = remainingTotal - inventoryInteger(form.dataset.returnSourcePaid)
-        + inventoryInteger(form.dataset.returnSourceRefunded) - inventoryInteger(form.dataset.returnEditCash) - settlementDiscount;
+    const $form = $(form);
+    const $rows = $form.find('[data-inventory-line]');
+    const $firstQuantity = $form.find('[data-inventory-return-quantity]').first();
+    const $paymentType = $form.find('[name="payment_type_id"]');
+    const remainingTotal = inventoryInteger($form.attr('data-return-source-total'))
+        - inventoryInteger($form.attr('data-return-source-returned')) + inventoryInteger($form.attr('data-return-edit-total'));
+    const settlementDiscount = inventoryInteger($form.attr('data-return-source-discount'));
+    const dueBeforeReturn = remainingTotal - inventoryInteger($form.attr('data-return-source-paid'))
+        + inventoryInteger($form.attr('data-return-source-refunded')) - inventoryInteger($form.attr('data-return-edit-cash')) - settlementDiscount;
 
     function refreshSelection() {
         let selected = 0;
         let total = 0n;
-        for (const row of rows) {
-            const quantity = row.querySelector('[data-inventory-return-quantity]');
-            const value = inventoryInteger(quantity.value);
+        $rows.each(function () {
+            const $row = $(this);
+            const value = inventoryInteger($row.find('[data-inventory-return-quantity]').val());
             const positive = value > 0n;
-            row.querySelectorAll('[data-inventory-return-field]').forEach(input => { input.disabled = !positive; });
+            $row.find('[data-inventory-return-field]').prop('disabled', !positive);
             if (positive) selected++;
-            const factor = inventoryInteger(row.querySelector('[data-inventory-return-unit]').selectedOptions[0]?.dataset.factor || 1);
-            const remaining = inventoryInteger(row.dataset.returnRemaining);
-            const amount = remaining > 0n ? inventoryInteger(row.dataset.returnAmountMinor) * value * factor / remaining : 0n;
-            row.querySelector('[data-inventory-return-amount]').textContent = inventoryDecimal(amount);
+            const factor = inventoryInteger($row.find('[data-inventory-return-unit] option:selected').attr('data-factor') || 1);
+            const remaining = inventoryInteger($row.attr('data-return-remaining'));
+            const amount = remaining > 0n ? inventoryInteger($row.attr('data-return-amount-minor')) * value * factor / remaining : 0n;
+            $row.find('[data-inventory-return-amount]').text(formatAmount(amount));
             total += amount;
-        }
+        });
         let selectionError = selected > 0 ? '' : 'Enter a return quantity for at least one item.';
         if (selected > 0 && total > remainingTotal - settlementDiscount) {
             selectionError = 'Void the settlement discount payment before returning this amount.';
         }
-        firstQuantity?.setCustomValidity(selectionError);
+        $firstQuantity[0]?.setCustomValidity(selectionError);
 
         const cash = selected > 0 && total > dueBeforeReturn ? total - dueBeforeReturn : 0n;
         const dueAdjusted = total > cash ? total - cash : 0n;
-        const totalOutput = form.querySelector('[data-inventory-return-total]');
-        const dueOutput = form.querySelector('[data-inventory-return-due]');
-        const cashOutput = form.querySelector('[data-inventory-return-cash]');
-        const countOutput = form.querySelector('[data-inventory-return-count]');
-        if (totalOutput) totalOutput.textContent = inventoryDecimal(total);
-        if (dueOutput) dueOutput.textContent = inventoryDecimal(dueAdjusted);
-        if (cashOutput) cashOutput.textContent = inventoryDecimal(cash);
-        if (countOutput) countOutput.textContent = String(selected);
-        if (paymentType) paymentType.required = cash > 0n;
-        const paymentNote = form.querySelector('[data-inventory-return-payment-note]');
-        if (paymentNote) paymentNote.hidden = cash === 0n;
+        $form.find('[data-inventory-return-total]').text(formatAmount(total));
+        $form.find('[data-inventory-return-due]').text(formatAmount(dueAdjusted));
+        $form.find('[data-inventory-return-cash]').text(formatAmount(cash));
+        $form.find('[data-inventory-return-count]').text(String(selected));
+        $paymentType.prop('required', cash > 0n);
+        $form.find('[data-inventory-return-payment-note]').prop('hidden', cash === 0n);
     }
-    for (const row of rows) refreshReturnUnit(row);
-    form.addEventListener('input', event => {
-        if (event.target.matches('[data-inventory-return-quantity]')) refreshSelection();
+    $rows.each(function () { refreshReturnUnit(this); });
+    $form.on('input.inventory', '[data-inventory-return-quantity]', refreshSelection);
+    $form.on('change.inventory', '[data-inventory-return-unit]', function () {
+        refreshReturnUnit($(this).closest('[data-inventory-line]')[0]);
     });
-    form.addEventListener('change', event => {
-        if (event.target.matches('[data-inventory-return-unit]')) refreshReturnUnit(event.target.closest('[data-inventory-line]'));
-        refreshSelection();
-    });
-    for (const eventName of ['focusin', 'click']) {
-        form.addEventListener(eventName, event => {
-            if (event.target.matches('input[type="number"]')) event.target.select();
-        });
-    }
-    const submit = form.querySelector('[type="submit"]');
-    if (submit && rows.length === 0) submit.disabled = true;
+    $form.on('change.inventory', refreshSelection);
+    $form.on('focusin.inventory click.inventory', 'input[type="number"]', function () { $(this).trigger('select'); });
+    if (!$rows.length) $form.find('[type="submit"]').prop('disabled', true);
     refreshSelection();
 }
 
-function initializeDocument(form) {
-    if (form.hasAttribute('data-inventory-trade')) {
+function initializeStockEntry(form) {
+    const $form = $(form);
+    form._inventoryOptions = {
+        type: $form.attr('data-type'),
+        vatMode: $form.attr('data-vat-enabled') === '1' ? $form.attr('data-vat-mode') : 'none',
+        vatPercent: $form.attr('data-vat-percent') || '0',
+        allowWithoutStock: $form.attr('data-allow-without-stock') === '1',
+        revisionStock: {},
+        ...JSON.parse($form.find('#inventory-sale-options').text() || '{}'),
+    };
+    $form.find('[data-inventory-line]').each(function () {
+        const $row = $(this);
+        this._inventoryProduct = {
+            id: $row.attr('data-product-id'),
+            purchasePrice: $row.attr('data-purchase-price') || '0',
+            salePrice: $row.attr('data-sale-price') || '0',
+        };
+    });
+    if ($form.is('[data-inventory-trade]')) {
         initializeTradeEditor(form, {
-            selectVariant, applyPurchaseUnit, populatePurchaseUnits, setDefaultPrice, refreshDocumentTotal,
+            selectVariant, applyPurchaseUnit, populatePurchaseUnits, setDefaultPrice, refreshEntryTotal,
             parseInteger: inventoryInteger,
         });
         return;
     }
-    if (form.hasAttribute('data-inventory-return')) {
+    if ($form.is('[data-inventory-return]')) {
         initializeReturn(form);
         return;
     }
-    const rows = form.querySelector('[data-inventory-lines]');
-    form.querySelectorAll('[data-inventory-variant]').forEach(select => {
-        const row = select.closest('[data-inventory-line]');
-        row.dataset.purchasePrice = select.selectedOptions[0]?.dataset.purchasePrice || '0';
-        row.dataset.salePrice = select.selectedOptions[0]?.dataset.salePrice || '0';
+    const $rows = $form.find('[data-inventory-lines]');
+    $form.find('select[name$="[variant_id]"]').each(function () {
+        const row = $(this).closest('[data-inventory-line]')[0];
+        const $selected = $(this).find('option:selected');
+        row._inventoryProduct.purchasePrice = $selected.attr('data-purchase-price') || '0';
+        row._inventoryProduct.salePrice = $selected.attr('data-sale-price') || '0';
     });
-    let nextIndex = Math.max(-1, ...Array.from(form.querySelectorAll('[data-inventory-line]'), row => Number(row.dataset.index) || 0)) + 1;
-    form.querySelector('[data-inventory-add-line]')?.addEventListener('click', () => {
-        if (rows.children.length >= 100) return;
-        const template = form.querySelector('[data-inventory-line-template]');
-        const fragment = document.createElement('template');
-        fragment.innerHTML = template.innerHTML.replaceAll('__INDEX__', String(nextIndex++));
-        const row = fragment.content.firstElementChild;
-        rows.append(row);
+    let nextIndex = Math.max(-1, ...$form.find('[data-inventory-line]').get().map(row => Number($(row).attr('data-index')) || 0)) + 1;
+    $form.on('click.inventory', '[data-inventory-add-line]', () => {
+        if ($rows.children().length >= 100) return;
+        const $row = $($form.find('[data-inventory-line-template]').html().replaceAll('__INDEX__', String(nextIndex++)).trim())
+            .filter('[data-inventory-line]').first();
+        const row = $row.get(0);
+        row._inventoryProduct = { id: '', purchasePrice: '0', salePrice: '0' };
+        $rows.append($row);
         window.initAjaxSelects(row);
         window.initDateTimePickers(row);
         refreshReceiptFields(form);
-        $(row).find('[data-inventory-variant]').select2('open');
+        $(row).find('select[name$="[variant_id]"]').select2('open');
     });
-    $(form).on('select2:select', '[data-inventory-variant]', event => {
-        selectVariant(event.target.closest('[data-inventory-line]'), event.params.data);
+    $form.on('select2:select.inventory', 'select[name$="[variant_id]"]', event => {
+        selectVariant($(event.target).closest('[data-inventory-line]')[0], event.params.data);
         refreshReceiptFields(form);
     });
-    form.addEventListener('change', event => {
-        const row = event.target.closest('[data-inventory-line]');
-        if (event.target.matches('[data-inventory-unit]')) setDefaultPrice(row);
-        refreshReceiptFields(form);
-        refreshDocumentTotal(form);
+    $form.on('change.inventory', 'select[name$="[product_unit_id]"]', function () {
+        setDefaultPrice($(this).closest('[data-inventory-line]')[0]);
     });
-    form.addEventListener('input', () => refreshDocumentTotal(form));
-    form.addEventListener('click', event => {
-        const remove = event.target.closest('[data-inventory-remove-line]');
-        if (!remove) return;
-        const row = remove.closest('[data-inventory-line]');
-        $(row).find('.select2-hidden-accessible').select2('destroy');
-        row.querySelectorAll('[data-datepicker], [data-timepicker]').forEach(picker => picker._flatpickr?.destroy());
-        row.remove();
-        refreshDocumentTotal(form);
+    $form.on('change.inventory', () => {
+        refreshReceiptFields(form);
+        refreshEntryTotal(form);
+    });
+    $form.on('input.inventory', () => refreshEntryTotal(form));
+    $form.on('click.inventory', '[data-inventory-remove-line]', function () {
+        const $row = $(this).closest('[data-inventory-line]');
+        $row.find('.select2-hidden-accessible').select2('destroy');
+        $row.find('[data-datepicker], [data-timepicker]').each(function () { this._flatpickr?.destroy(); });
+        $row.remove();
+        refreshEntryTotal(form);
     });
     refreshReceiptFields(form);
-    refreshDocumentTotal(form);
+    refreshEntryTotal(form);
 }
 
 function initializeProductForm(form) {
-    const type = form.querySelector('#type');
-    const refresh = () => form.querySelectorAll('[data-inventory-medicine-field]').forEach(field => {
-        field.hidden = type.value !== 'medicine';
-        field.querySelectorAll('input, select, textarea').forEach(input => { input.disabled = field.hidden; });
-    });
-    type.addEventListener('change', refresh);
+    const $form = $(form);
+    const $type = $form.find('#type');
+    const $fields = $form.find('[data-inventory-medicine-field]');
+    const refresh = () => {
+        const hidden = $type.val() !== 'medicine';
+        $fields.prop('hidden', hidden).find('input, select, textarea').prop('disabled', hidden);
+    };
+    $type.on('change.inventory', refresh);
     refresh();
 }
 
 function initializeVariantForm(form) {
-    const product = form.querySelector('#product_id');
-    const refresh = type => form.querySelectorAll('[data-inventory-optic-field]').forEach(field => {
-        field.hidden = type !== 'optic';
-        field.querySelectorAll('input, select, textarea').forEach(input => { input.disabled = field.hidden; });
-    });
-    $(product).on('select2:select', event => refresh(event.params.data.type));
-    $(product).on('select2:clear', () => refresh(null));
-    refresh(form.dataset.productType);
+    const $form = $(form);
+    const $product = $form.find('#product_id');
+    const $fields = $form.find('[data-inventory-optic-field]');
+    const refresh = type => {
+        const hidden = type !== 'optic';
+        $fields.prop('hidden', hidden).find('input, select, textarea').prop('disabled', hidden);
+    };
+    $product.on('select2:select.inventory', event => refresh(event.params.data.type));
+    $product.on('select2:clear.inventory', () => refresh(null));
+    refresh($form.attr('data-product-type'));
 }
 
 function initializeCustomerModal(form) {
-    form.addEventListener('submit', async event => {
+    const $form = $(form);
+    const $button = $form.find('[type="submit"]');
+    const $error = $form.find('[data-inventory-customer-errors]');
+    $form.on('submit.inventory', async event => {
         event.preventDefault();
-        const button = form.querySelector('[type="submit"]');
-        const error = form.querySelector('[data-inventory-customer-errors]');
-        button.disabled = true;
-        error.classList.add('d-none');
+        $button.prop('disabled', true);
+        $error.addClass('d-none');
         try {
-            const response = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
-            const data = await response.json();
-            if (!response.ok) {
-                if (response.status === 422) {
-                    error.textContent = Object.values(data.errors || {}).flat().join(' ') || data.message || 'Check the customer details.';
-                    error.classList.remove('d-none');
-                } else {
-                    window.showToast(data.message || 'Customer could not be saved.', 'error');
-                }
-                return;
-            }
+            const data = await $.ajax({
+                url: $form.attr('action'), method: 'POST', data: $form.serialize(), dataType: 'json',
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            });
             const customer = data.customer;
-            const select = document.querySelector('#inventory_customer');
-            select.append(new Option(customer.text || customer.name, customer.id, true, true));
-            $(select).trigger('change');
-            Modal.getInstance(form.closest('.modal'))?.hide();
-            form.reset();
+            $('#inventory_customer').append($('<option>', {
+                text: customer.text || customer.name, value: customer.id,
+            }).prop({ defaultSelected: true, selected: true })).trigger('change');
+            $form.closest('.modal').modal('hide');
+            $form.trigger('reset');
             window.showToast('Customer created.', 'success');
-        } catch {
-            window.showToast('Customer could not be saved. Please try again.', 'error');
+        } catch (xhr) {
+            const data = xhr.responseJSON || {};
+            if (xhr.status === 422) {
+                $error.text(Object.values(data.errors || {}).flat().join(' ') || data.message || 'Check the customer details.')
+                    .removeClass('d-none');
+            } else {
+                window.showToast(data.message || 'Customer could not be saved. Please try again.', 'error');
+            }
         } finally {
-            button.disabled = false;
+            $button.prop('disabled', false);
         }
     });
 }
 
-function allocationRow(invoice, index, canDiscount) {
-    const row = document.createElement('tr');
-    row.dataset.inventoryAllocation = '';
-    row.dataset.documentId = invoice.id;
-    row.dataset.due = invoice.due;
-    const selectionCell = row.insertCell();
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = 'form-check-input';
-    checkbox.dataset.inventoryAllocationSelect = '';
-    checkbox.checked = true;
-    checkbox.setAttribute('aria-label', `Pay invoice ${invoice.number}`);
-    selectionCell.append(checkbox);
-    const invoiceCell = row.insertCell();
-    invoiceCell.textContent = invoice.number;
-    const id = document.createElement('input');
-    id.type = 'hidden';
-    id.name = `allocations[${index}][document_id]`;
-    id.value = invoice.id;
-    invoiceCell.append(id);
-    const dueCell = row.insertCell();
-    dueCell.className = 'text-end';
-    dueCell.textContent = invoice.due;
-    for (const field of canDiscount ? ['amount', 'discount'] : ['amount']) {
-        const input = document.createElement('input');
-        input.className = 'form-control';
-        input.type = 'number';
-        input.name = `allocations[${index}][${field}]`;
-        input.min = '0';
-        input.step = '0.01';
-        input.max = invoice.due;
-        input.value = field === 'amount' ? invoice.due : '0.00';
-        input.setAttribute('aria-label', `${field === 'amount' ? 'Cash' : 'Discount'} for invoice ${invoice.number}`);
-        row.insertCell().append(input);
-    }
-    return row;
+function allocationRow($template, invoice, index) {
+    const $row = $template.contents().filter('tr').clone();
+    $row.attr({ 'data-invoice-id': invoice.id, 'data-due': invoice.due });
+    $row.find('[name]').each(function () {
+        const $input = $(this);
+        $input.attr('name', $input.attr('name').replace('__INDEX__', String(index)));
+    });
+    $row.find('[data-inventory-allocation-select]').attr('aria-label', `Pay invoice ${invoice.number}`);
+    $row.find('[data-inventory-allocation-number]').text(invoice.number);
+    $row.find('[data-inventory-allocation-due]').text(invoice.due);
+    $row.find('input[type="hidden"]').val(invoice.id);
+    $row.find('[name$="[amount]"]').val(invoice.due).attr({
+        max: invoice.due, 'aria-label': `Cash for invoice ${invoice.number}`,
+    });
+    $row.find('[name$="[discount]"]').attr({
+        max: invoice.due, 'aria-label': `Discount for invoice ${invoice.number}`,
+    });
+    return $row;
 }
 
 function initializePayment(form) {
-    const table = form.querySelector('[data-inventory-allocations]');
-    const more = form.querySelector('[data-inventory-more-invoices]');
-    const error = form.querySelector('[data-inventory-payment-error]');
-    const loading = form.querySelector('[data-inventory-payment-loading]');
-    const direction = form.querySelector('[name="direction"]');
-    const party = form.querySelector('[data-inventory-payment-party]');
+    const $form = $(form);
+    const $table = $form.find('[data-inventory-allocations]');
+    const $template = $form.find('[data-inventory-allocation-template]');
+    const $more = $form.find('[data-inventory-more-invoices]');
+    const $error = $form.find('[data-inventory-payment-error]');
+    const $loading = $form.find('[data-inventory-payment-loading]');
+    const $direction = $form.find('[name="direction"]');
+    const $party = $form.find('[data-inventory-payment-party]');
     let page = 1;
-    let nextIndex = Math.max(-1, ...Array.from(table.querySelectorAll('[name]'), input => Number(input.name.match(/^allocations\[(\d+)\]/)?.[1]) || 0)) + 1;
+    let nextIndex = Math.max(-1, ...$table.find('[name]').get().map(input => Number($(input).attr('name').match(/^allocations\[(\d+)\]/)?.[1]) || 0)) + 1;
     let pending = null;
     function refreshCash() {
         let total = 0n;
-        table.querySelectorAll('[name$="[amount]"]:enabled').forEach(input => { total += inventoryMinor(input.value); });
-        form.querySelector('[data-inventory-cash-total]').textContent = inventoryDecimal(total);
+        $table.find('[name$="[amount]"]:enabled').each(function () { total += inventoryMinor($(this).val()); });
+        $form.find('[data-inventory-cash-total]').text(formatAmount(total));
     }
     function clearInvoices() {
         const previous = pending;
         pending = null;
         previous?.abort();
-        table.replaceChildren();
+        $table.empty();
         page = 1;
         nextIndex = 0;
-        more.classList.add('d-none');
-        more.textContent = 'Load more';
-        more.disabled = false;
-        loading.hidden = true;
-        error.classList.add('d-none');
+        $more.addClass('d-none').text('Load more').prop('disabled', false);
+        $loading.prop('hidden', true);
+        $error.addClass('d-none');
         refreshCash();
     }
     async function loadInvoices(append) {
-        if (!party.value) {
+        if (!$party.val()) {
             window.showToast('Select a customer or supplier first.', 'warning');
             return;
         }
         if (!append) clearInvoices();
-        const partyId = party.value;
-        const params = { direction: direction.value, product_type: form.querySelector('[name="product_type"]').value, page };
-        params[party.name] = partyId;
-        more.disabled = true;
-        loading.hidden = false;
-        error.classList.add('d-none');
-        const request = $.ajax({ url: form.dataset.invoicesUrl, data: params, dataType: 'json', timeout: 15000 });
+        const partyId = $party.val();
+        const params = { direction: $direction.val(), product_type: $form.find('[name="product_type"]').val(), page };
+        params[$party.attr('name')] = partyId;
+        $more.prop('disabled', true);
+        $loading.prop('hidden', false);
+        $error.addClass('d-none');
+        const request = $.ajax({ url: $form.attr('data-invoices-url'), data: params, dataType: 'json', timeout: 15000 });
         pending = request;
         try {
             const data = await request;
-            if (pending !== request || party.value !== partyId) return;
-            const existing = new Set(Array.from(table.children, row => row.dataset.documentId));
+            if (pending !== request || $party.val() !== partyId) return;
+            const existing = new Set($table.children().get().map(row => $(row).attr('data-invoice-id')));
             for (const invoice of data.results) {
-                if (!existing.has(String(invoice.id))) table.append(allocationRow(invoice, nextIndex++, form.dataset.canDiscount === '1'));
+                if (!existing.has(String(invoice.id))) $table.append(allocationRow($template, invoice, nextIndex++));
             }
             refreshCash();
-            more.textContent = 'Load more';
-            more.classList.toggle('d-none', !data.pagination.more);
+            $more.text('Load more').toggleClass('d-none', !data.pagination.more);
             page += 1;
-            if (table.children.length === 0) {
+            if (!$table.children().length) {
                 window.showToast('No outstanding invoices found.', 'info');
             }
         } catch (xhr) {
@@ -651,53 +673,45 @@ function initializePayment(form) {
             if (xhr.statusText !== 'abort') {
                 const message = xhr.responseJSON?.message || 'Invoices could not be loaded. Please try again.';
                 if (xhr.status === 422) {
-                    error.textContent = message;
-                    error.classList.remove('d-none');
+                    $error.text(message).removeClass('d-none');
                 } else {
                     window.showToast(message, 'error');
                 }
-                more.textContent = 'Retry loading';
-                more.classList.remove('d-none');
+                $more.text('Retry loading').removeClass('d-none');
             }
         } finally {
             if (pending === request) {
                 pending = null;
-                loading.hidden = true;
-                more.disabled = false;
+                $loading.prop('hidden', true);
+                $more.prop('disabled', false);
             }
         }
     }
-    more.addEventListener('click', () => loadInvoices(true));
-    $(party).on('change', () => {
-        if (party.value) loadInvoices(false);
+    $more.on('click.inventory', () => loadInvoices(true));
+    $party.on('change.inventory', () => {
+        if ($party.val()) loadInvoices(false);
         else clearInvoices();
     });
-    form.addEventListener('change', event => {
-        if (event.target.matches('[data-inventory-allocation-select]')) {
-            const row = event.target.closest('[data-inventory-allocation]');
-            row.querySelectorAll('[name]').forEach(input => { input.disabled = !event.target.checked; });
-            const amount = row.querySelector('[name$="[amount]"]');
-            if (event.target.checked && !Number(amount.value)) amount.value = row.dataset.due || '0.00';
-        }
-        refreshCash();
+    $form.on('change.inventory', '[data-inventory-allocation-select]', function () {
+        const checked = $(this).prop('checked');
+        const $row = $(this).closest('[data-inventory-allocation]');
+        $row.find('[name]').prop('disabled', !checked);
+        const $amount = $row.find('[name$="[amount]"]');
+        if (checked && !Number($amount.val())) $amount.val($row.attr('data-due') || '0.00');
     });
-    form.addEventListener('input', refreshCash);
+    $form.on('change.inventory input.inventory', refreshCash);
     refreshCash();
-    if (party.value && table.children.length === 0) loadInvoices(false);
+    if ($party.val() && !$table.children().length) loadInvoices(false);
 }
 
 $(function () {
-    document.querySelectorAll('form[data-inventory-return-source]').forEach(form => {
-        const source = form.elements.namedItem('source_document_id');
-        if (source instanceof HTMLSelectElement) $(source).on('change', () => form.requestSubmit());
+    const $returnSourceForm = $('#inventory-return-source-form');
+    $('select[form="inventory-return-source-form"]').on('change.inventory', () => {
+        $returnSourceForm[0].requestSubmit();
     });
-    document.querySelectorAll('[data-inventory-document]').forEach(initializeDocument);
-    document.querySelectorAll('[data-inventory-product-form]').forEach(initializeProductForm);
-    document.querySelectorAll('[data-inventory-variant-form]').forEach(initializeVariantForm);
-    document.querySelectorAll('[data-inventory-customer-create]').forEach(initializeCustomerModal);
-    document.querySelectorAll('[data-inventory-payment]').forEach(initializePayment);
-    document.querySelectorAll('[data-inventory-print]').forEach(button => button.addEventListener('click', () => window.print()));
-    document.querySelectorAll('[data-inventory-confirm]').forEach(form => form.addEventListener('submit', event => {
-        if (!window.confirm(form.dataset.inventoryConfirm)) event.preventDefault();
-    }));
+    $('[data-inventory-entry]').each(function () { initializeStockEntry(this); });
+    $('[data-inventory-product-form]').each(function () { initializeProductForm(this); });
+    $('[data-inventory-variant-form]').each(function () { initializeVariantForm(this); });
+    $('[data-inventory-customer-create]').each(function () { initializeCustomerModal(this); });
+    $('[data-inventory-payment]').each(function () { initializePayment(this); });
 });

@@ -29,9 +29,13 @@ class WastageController extends BaseController
 
     protected string $parameter = 'wastage';
 
-    protected array $routeFilters = ['product_type' => 'product_type'];
+    protected array $routeFilters = [
+        'product_type' => 'product_type',
+    ];
 
-    protected array $defaultFilters = ['product_type' => 'medicine'];
+    protected array $defaultFilters = [
+        'product_type' => 'medicine',
+    ];
 
     public function index(ListRequest $request): View
     {
@@ -40,7 +44,8 @@ class WastageController extends BaseController
 
         return $view->with([
             'resourceParameter' => 'wastage',
-            'canCreate' => app(InventoryAccess::class)->allows($request->user('web'), 'inventory-damage.create'),
+            'canCreate' => app(InventoryAccess::class)
+                ->allows($request->user('web'), 'inventory-damage.create'),
         ]);
     }
 
@@ -53,26 +58,37 @@ class WastageController extends BaseController
     {
         $request->attributes->set('inventory_product_type', $wastage->product_type);
 
-        return view('inventory::wastage.show', $entries->invoiceData($request->user('web'), $wastage) + [
-            'routePrefix' => $this->routePrefix(),
-            'resourceParameter' => 'wastage',
-        ]);
+        return view(
+            'inventory::wastage.show',
+            $entries->invoiceData($request->user('web'), $wastage) + [
+                'routePrefix' => $this->routePrefix(),
+                'resourceParameter' => 'wastage',
+            ]
+        );
     }
 
     protected function formData(Account $actor, Model $record): array
     {
-        $productType = $record->exists ? $record->product_type : request()->query('product_type', 'medicine');
+        $productType = $record->exists ? $record->product_type : request()
+            ->query('product_type', 'medicine');
         $productType = in_array($productType, ['medicine', 'optic'], true) ? $productType : 'medicine';
         request()->attributes->set('inventory_product_type', $productType);
         $lineInputs = $this->oldRows('lines');
-        $variants = app(ItemService::class)->selectedVariants($lineInputs);
+        $variants = app(ItemService::class)
+            ->selectedVariants($lineInputs);
 
-        $lotIds = collect($lineInputs)->pluck('stock_lot_id')
-            ->filter(fn ($id): bool => is_scalar($id) && ctype_digit((string) $id))->unique()->all();
-        $stockLots = $lotIds === [] ? collect() : StockLot::query()->whereIn('id', $lotIds)->get()->keyBy('id');
+        $lotIds = collect($lineInputs)
+            ->pluck('stock_lot_id')
+            ->filter(fn ($id): bool => is_scalar($id) && ctype_digit((string) $id))
+            ->unique()
+            ->all();
+        $stockLots = $lotIds === [] ? collect() : StockLot::query()
+            ->whereIn('id', $lotIds)
+            ->get()
+            ->keyBy('id');
 
         return [
-            'document' => $record,
+            'entry' => $record,
             'lineInputs' => $lineInputs,
             'variants' => $variants,
             'inventorySettings' => Setting::values('inventory'),
@@ -84,9 +100,11 @@ class WastageController extends BaseController
     {
         $entries->reverse($request->user('web'), $wastage);
 
-        return redirect()->route('inventory.damage.show', [
-            'wastage' => $wastage,
-            'product_type' => $wastage->product_type,
-        ])->with('status', 'Entry voided. Stock and balances have been reversed.');
+        return redirect()
+            ->route('inventory.damage.show', [
+                'wastage' => $wastage,
+                'product_type' => $wastage->product_type,
+            ])
+            ->with('status', 'Entry voided. Stock and balances have been reversed.');
     }
 }

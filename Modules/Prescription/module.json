@@ -1,0 +1,18 @@
+{
+    "name": "Prescription",
+    "alias": "prescription",
+    "description": "General and glass prescriptions.",
+    "requires": ["Hospital", "Inventory"],
+    "tenant_dashboard": {
+        "label": "Prescription",
+        "icon": "prescription",
+        "route": "prescription.dashboard",
+        "permission": "prescription.view"
+    },
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Prescription\\Providers\\PrescriptionServiceProvider"
+    ],
+    "files": []
+}

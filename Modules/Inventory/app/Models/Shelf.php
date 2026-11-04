@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['type', 'name', 'number'])]
 class Shelf extends BaseModel
 {
-    protected $table = 'inventory_shelves';
+    protected $table = 'inv_shelves';
 
     protected string $crudPermission = 'inventory-shelves';
 

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['product_id', 'unit_id', 'factor'])]
 class ProductUnit extends BaseModel
 {
-    protected $table = 'inventory_product_units';
+    protected $table = 'inv_product_units';
 
     protected string $crudPermission = 'inventory-products';
 
@@ -45,6 +45,13 @@ class ProductUnit extends BaseModel
 
     public function hasReferences(): bool
     {
-        return $this->getConnection()->table('inventory_document_lines')->where('product_unit_id', $this->getKey())->exists();
+        return PurchaseItem::query()->where('product_unit_id', $this->getKey())->exists()
+            || SaleItem::query()->where('product_unit_id', $this->getKey())->exists()
+            || PurchaseReturnItem::query()->where('product_unit_id', $this->getKey())->exists()
+            || SaleReturnItem::query()->where('product_unit_id', $this->getKey())->exists()
+            || AdjustmentItem::query()->where('product_unit_id', $this->getKey())->exists()
+            || OpeningStockItem::query()->where('product_unit_id', $this->getKey())->exists()
+            || WastageItem::query()->where('product_unit_id', $this->getKey())->exists()
+            || TransferItem::query()->where('product_unit_id', $this->getKey())->exists();
     }
 }

@@ -9,13 +9,13 @@ class PurchaseReturnRequest extends StockEntryRequest
     public function rules(): array
     {
         return array_replace($this->commonRules(), $this->lineRules([
-            'variant_id', 'product_unit_id', 'source_line_id', 'quantity', 'unit_price',
+            'variant_id', 'product_unit_id', 'purchase_item_id', 'quantity', 'unit_price',
         ]), [
-            'source_document_id' => $this->isUpdate()
-                ? ['required', 'integer', Rule::in([$this->record()->source_document_id])]
+            'purchase_id' => $this->isUpdate()
+                ? ['required', 'integer', Rule::in([$this->record()->purchase_id])]
                 : ['required', 'integer', 'min:1'],
             'payment_type_id' => ['nullable', 'integer', 'min:1'],
-            'lines.*.source_line_id' => ['required', 'integer', 'min:1', 'distinct'],
+            'lines.*.purchase_item_id' => ['required', 'integer', 'min:1', 'distinct'],
             'lines.*.unit_price' => $this->moneyRules(),
         ]);
     }

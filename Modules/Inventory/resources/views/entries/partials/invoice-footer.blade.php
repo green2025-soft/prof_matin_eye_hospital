@@ -7,5 +7,5 @@
         <p class="mb-1">Printed by: {{ $printedBy }}</p>
         <p class="mb-0">Printed at: {{ $printedAt }}</p>
     </div>
-    <p class="small mb-0">{{ $document->number }}</p>
+    <p class="small mb-0">{{ $entry->number }}</p>
 </footer>

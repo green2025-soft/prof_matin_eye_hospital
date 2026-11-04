@@ -37,28 +37,48 @@ class PatientInvestigationController extends BaseController
         $view = $this->listData($request);
 
         return $view->with([
-            'invoiceBalances' => app(ClinicalEntryService::class)->listInvoiceBalances($request->user('web'), new PatientInvestigation, $view->getData()['records']->modelKeys(), $branchId),
-            'filterDoctor' => $this->selectedOption(Doctor::query()->where('branch_id', $branchId), $request->validated('filter_doctor_id'), ['id', 'doctor_id', 'name']),
-            'filterPatient' => $this->selectedOption(Patient::query(), $request->validated('filter_patient_id'), ['id', 'patient_id', 'name', 'mobile_no']),
+            'invoiceBalances' => app(ClinicalEntryService::class)
+                ->listInvoiceBalances($request->user('web'), new PatientInvestigation, $view->getData()['records']->modelKeys(), $branchId),
+            'filterDoctor' => $this->selectedOption(
+                Doctor::query()
+                    ->where('branch_id', $branchId),
+                $request->validated('filter_doctor_id'),
+                ['id', 'doctor_id', 'name']
+            ),
+            'filterPatient' => $this->selectedOption(
+                Patient::query(),
+                $request->validated('filter_patient_id'),
+                ['id', 'patient_id', 'name', 'mobile_no']
+            ),
         ]);
     }
 
     public function show(Request $request, ClinicalEntryService $entries): View
     {
-        return view('hospital::patient-investigations.invoice', $entries->invoiceData($request->user('web'), $this->record($request)));
+        return view(
+            'hospital::patient-investigations.invoice',
+            $entries->invoiceData($request->user('web'), $this->record($request))
+        );
     }
 
     public function store(PatientInvestigationRequest $request, ClinicalEntryService $entries): RedirectResponse
     {
-        $investigation = $entries->saveInvestigation($request->user('web'), $this->record($request), $request->payload(), (int) $request->attributes->get('branch_id'));
+        $investigation = $entries->saveInvestigation(
+            $request->user('web'),
+            $this->record($request),
+            $request->payload(),
+            (int) $request->attributes->get('branch_id')
+        );
 
-        return $this->redirectAfterWrite($investigation)->with('status', 'Patient investigation'.($this->isUpdate($request) ? ' updated.' : ' created.'));
+        return $this->redirectAfterWrite($investigation)
+            ->with('status', 'Patient investigation'.($this->isUpdate($request) ? ' updated.' : ' created.'));
     }
 
     protected function formData(Account $actor, Model $record): array
     {
         $branchId = max(0, (int) request()->attributes->get('branch_id', 0));
-        $today = now(config('app.timezone'))->toDateString();
+        $today = now(config('app.timezone'))
+            ->toDateString();
         $referenceEnabled = (bool) Setting::values('hospital', $record->getConnectionName())['investigation_reference_enabled'];
         $selectedIds = array_filter(
             getValue('investigation_ids', null, $record->investigations->modelKeys()),
@@ -72,21 +92,34 @@ class PatientInvestigationController extends BaseController
         } elseif (array_diff($selectedIds, $savedIds) === [] && array_diff($savedIds, $selectedIds) === []) {
             $selectedInvestigations = $record->investigations;
         } else {
-            $selectedInvestigations = Investigation::query()->with('category:id,name')->whereIn('id', $selectedIds)
+            $selectedInvestigations = Investigation::query()
+                ->with('category:id,name')
+                ->whereIn('id', $selectedIds)
                 ->get(['id', 'name', 'category_id', 'single_rate', 'both_rate']);
         }
         $selectedInvestigations = $selectedInvestigations
-            ->sortBy(fn (Investigation $investigation): int => $positions[$investigation->getKey()] ?? PHP_INT_MAX)->values();
+            ->sortBy(fn (Investigation $investigation): int => $positions[$investigation->getKey()] ?? PHP_INT_MAX)
+            ->values();
 
         return [
             'referenceEnabled' => $referenceEnabled,
             'selectedReference' => $referenceEnabled ? $this->selectedOption(Reference::query(), getValue('reference_id', $record), ['id', 'reference_id', 'name', 'contact_no']) : null,
             'selectedPatient' => $this->selectedOption(Patient::query(), getValue('patient_id', $record), ['id', 'name', 'patient_id', 'mobile_no']),
-            'selectedDoctor' => $this->selectedOption(Doctor::query()->where('branch_id', $branchId), getValue('doctor_id', $record), ['id', 'doctor_id', 'name', 'consultation_fee', 'follow_up_fee']),
-            'paymentTypes' => PaymentType::query()->orderBy('ordering')->orderBy('id')->get(['id', 'name']),
+            'selectedDoctor' => $this->selectedOption(
+                Doctor::query()
+                    ->where('branch_id', $branchId),
+                getValue('doctor_id', $record),
+                ['id', 'doctor_id', 'name', 'consultation_fee', 'follow_up_fee']
+            ),
+            'paymentTypes' => PaymentType::query()
+                ->orderBy('ordering')
+                ->orderBy('id')
+                ->get(['id', 'name']),
             'selectedInvestigations' => $selectedInvestigations,
-            'investigationRates' => $record->investigations->pluck('pivot.rate', 'id')->all(),
-            'investigationEyes' => $record->investigations->pluck('pivot.eye_type', 'id')->all(),
+            'investigationRates' => $record->investigations->pluck('pivot.rate', 'id')
+                ->all(),
+            'investigationEyes' => $record->investigations->pluck('pivot.eye_type', 'id')
+                ->all(),
             'eyeTypes' => eyeTypes(),
             'entryDate' => $record->entry_date?->toDateString() ?? $today,
             'dueDate' => $record->due_date?->toDateString() ?? $today,

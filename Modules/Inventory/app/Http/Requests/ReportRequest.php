@@ -8,17 +8,6 @@ use Modules\Inventory\Services\InventoryAccess;
 
 class ReportRequest extends BaseRequest
 {
-    protected function prepareForValidation(): void
-    {
-        parent::prepareForValidation();
-        if ($this->routeIs('inventory.reports.index') && in_array($this->route('report', 'stock'), ['stock', 'profit-loss'], true)) {
-            $this->merge([
-                'from_date' => $this->input('from_date') ?? now()->startOfMonth()->toDateString(),
-                'to_date' => $this->input('to_date') ?? now()->toDateString(),
-            ]);
-        }
-    }
-
     public function authorize(): bool
     {
         return app(InventoryAccess::class)->allows($this->user('web'), 'inventory-reports.view');
@@ -27,7 +16,6 @@ class ReportRequest extends BaseRequest
     public function rules(): array
     {
         return [
-            'from_date' => ['nullable', 'date_format:Y-m-d'], 'to_date' => ['nullable', 'date_format:Y-m-d', Rule::when($this->filled('from_date'), ['after_or_equal:from_date'])],
             'product_type' => ['nullable', 'in:medicine,optic'], 'variant_id' => ['nullable', 'integer', 'min:1'],
             'category_id' => ['nullable', 'integer', 'min:1'], 'shelf_id' => ['nullable', 'integer', 'min:1'],
             'stock_status' => ['nullable', Rule::in(['all', 'available', 'out', 'low', 'expired', 'future', 'negative'])],
@@ -36,5 +24,15 @@ class ReportRequest extends BaseRequest
             'low_stock' => ['nullable', 'boolean'], 'page' => ['sometimes', 'integer', 'min:1'],
             'per_page' => ['nullable', Rule::in(config('pagination.options'))],
         ];
+    }
+
+    public function filters(array $defaults = []): array
+    {
+        $filters = array_filter($this->validated(), fn ($value): bool => $value !== null && $value !== '')
+            + $defaults + ['product_type' => 'medicine'];
+
+        $this->attributes->set('inventory_product_type', $filters['product_type']);
+
+        return $filters;
     }
 }

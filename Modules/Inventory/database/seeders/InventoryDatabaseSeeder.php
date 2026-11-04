@@ -36,17 +36,17 @@ class InventoryDatabaseSeeder extends Seeder
         try {
             $connection->transaction(function () use ($connection, $manifest, $snapshot, $checksum): void {
                 // A completed run never overwrites tenant-maintained catalog data.
-                if ($connection->table('inventory_seed_runs')->exists()) {
+                if ($connection->table('inv_seed_runs')->exists()) {
                     return;
                 }
 
                 $now = now();
                 $tables = [
-                    'categories' => 'inventory_product_categories',
-                    'dosages' => 'inventory_dosages',
-                    'suppliers' => 'inventory_suppliers',
-                    'shelves' => 'inventory_shelves',
-                    'units' => 'inventory_units',
+                    'categories' => 'inv_product_categories',
+                    'dosages' => 'inv_dosages',
+                    'suppliers' => 'inv_suppliers',
+                    'shelves' => 'inv_shelves',
+                    'units' => 'inv_units',
                 ];
                 $ids = [];
 
@@ -99,8 +99,8 @@ class InventoryDatabaseSeeder extends Seeder
                         ];
                     }
 
-                    $connection->table('inventory_products')->insert($rows);
-                    $productIds = $connection->table('inventory_products')->whereIn('source_key', array_column($chunk, 'source_key'))->pluck('id', 'source_key');
+                    $connection->table('inv_products')->insert($rows);
+                    $productIds = $connection->table('inv_products')->whereIn('source_key', array_column($chunk, 'source_key'))->pluck('id', 'source_key');
                     $variants = [];
                     $units = [];
 
@@ -123,11 +123,11 @@ class InventoryDatabaseSeeder extends Seeder
                         ];
                     }
 
-                    $connection->table('inventory_product_variants')->insert($variants);
-                    $connection->table('inventory_product_units')->insert($units);
+                    $connection->table('inv_product_variants')->insert($variants);
+                    $connection->table('inv_product_units')->insert($units);
                 }
 
-                $connection->table('inventory_seed_runs')->insert([
+                $connection->table('inv_seed_runs')->insert([
                     'version' => $manifest['version'],
                     'checksum' => $checksum,
                     'counts' => json_encode($manifest['counts'], JSON_THROW_ON_ERROR),

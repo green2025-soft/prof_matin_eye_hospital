@@ -157,12 +157,12 @@ trait HandlesModelQueries
 
     protected function applySearch(Builder $query, string $search, array $fields, array $containsSearch): void
     {
-        $escaped = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search);
+        $escaped = addcslashes($search, '\\%_');
         $query->where(function (Builder $searchQuery) use ($fields, $escaped, $containsSearch): void {
             foreach ($fields as $field) {
-                $column = $searchQuery->getGrammar()->wrap($searchQuery->getModel()->qualifyColumn($field));
+                $column = $searchQuery->getModel()->qualifyColumn($field);
                 $pattern = in_array($field, $containsSearch, true) ? '%'.$escaped.'%' : $escaped.'%';
-                $searchQuery->orWhereRaw($column." LIKE ? ESCAPE '!'", [$pattern]);
+                $searchQuery->orWhereLike($column, $pattern);
             }
         });
     }

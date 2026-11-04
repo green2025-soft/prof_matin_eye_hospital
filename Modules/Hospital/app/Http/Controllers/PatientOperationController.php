@@ -37,38 +37,71 @@ class PatientOperationController extends BaseController
         $view = $this->listData($request);
 
         return $view->with([
-            'invoiceBalances' => app(ClinicalEntryService::class)->listInvoiceBalances($request->user('web'), new PatientOperation, $view->getData()['records']->modelKeys(), $branchId),
-            'filterDoctor' => $this->selectedOption(Doctor::query()->where('branch_id', $branchId), $request->validated('filter_doctor_id'), ['id', 'doctor_id', 'name']),
-            'filterPatient' => $this->selectedOption(Patient::query(), $request->validated('filter_patient_id'), ['id', 'patient_id', 'name', 'mobile_no']),
+            'invoiceBalances' => app(ClinicalEntryService::class)
+                ->listInvoiceBalances($request->user('web'), new PatientOperation, $view->getData()['records']->modelKeys(), $branchId),
+            'filterDoctor' => $this->selectedOption(
+                Doctor::query()
+                    ->where('branch_id', $branchId),
+                $request->validated('filter_doctor_id'),
+                ['id', 'doctor_id', 'name']
+            ),
+            'filterPatient' => $this->selectedOption(
+                Patient::query(),
+                $request->validated('filter_patient_id'),
+                ['id', 'patient_id', 'name', 'mobile_no']
+            ),
         ]);
     }
 
     public function show(Request $request, ClinicalEntryService $entries): View
     {
-        return view('hospital::patient-operations.invoice', $entries->invoiceData($request->user('web'), $this->record($request)));
+        return view(
+            'hospital::patient-operations.invoice',
+            $entries->invoiceData($request->user('web'), $this->record($request))
+        );
     }
 
     public function store(PatientOperationRequest $request, ClinicalEntryService $entries): RedirectResponse
     {
-        $operation = $entries->saveOperation($request->user('web'), $this->record($request), $request->payload(), (int) $request->attributes->get('branch_id'));
+        $operation = $entries->saveOperation(
+            $request->user('web'),
+            $this->record($request),
+            $request->payload(),
+            (int) $request->attributes->get('branch_id')
+        );
 
-        return $this->redirectAfterWrite($operation)->with('status', 'Patient operation'.($this->isUpdate($request) ? ' updated.' : ' created.'));
+        return $this->redirectAfterWrite($operation)
+            ->with('status', 'Patient operation'.($this->isUpdate($request) ? ' updated.' : ' created.'));
     }
 
     protected function formData(Account $actor, Model $record): array
     {
         $branchId = max(0, (int) request()->attributes->get('branch_id', 0));
-        $today = now(config('app.timezone'))->toDateString();
+        $today = now(config('app.timezone'))
+            ->toDateString();
         $referenceEnabled = (bool) Setting::values('hospital', $record->getConnectionName())['operation_reference_enabled'];
 
         return [
             'referenceEnabled' => $referenceEnabled,
             'selectedReference' => $referenceEnabled ? $this->selectedOption(Reference::query(), getValue('reference_id', $record), ['id', 'reference_id', 'name', 'contact_no']) : null,
             'selectedPatient' => $this->selectedOption(Patient::query(), getValue('patient_id', $record), ['id', 'name', 'patient_id', 'mobile_no']),
-            'selectedDoctor' => $this->selectedOption(Doctor::query()->where('branch_id', $branchId), getValue('doctor_id', $record), ['id', 'doctor_id', 'name', 'consultation_fee', 'follow_up_fee']),
-            'paymentTypes' => PaymentType::query()->orderBy('ordering')->orderBy('id')->get(['id', 'name']),
+            'selectedDoctor' => $this->selectedOption(
+                Doctor::query()
+                    ->where('branch_id', $branchId),
+                getValue('doctor_id', $record),
+                ['id', 'doctor_id', 'name', 'consultation_fee', 'follow_up_fee']
+            ),
+            'paymentTypes' => PaymentType::query()
+                ->orderBy('ordering')
+                ->orderBy('id')
+                ->get(['id', 'name']),
             'selectedOperation' => $this->selectedOption(Operation::query(), getValue('operation_id', $record), ['id', 'name', 'single_rate', 'both_rate']),
-            'selectedConsultant' => $this->selectedOption(Doctor::query()->where('branch_id', $branchId), getValue('consultant_id', $record), ['id', 'doctor_id', 'name']),
+            'selectedConsultant' => $this->selectedOption(
+                Doctor::query()
+                    ->where('branch_id', $branchId),
+                getValue('consultant_id', $record),
+                ['id', 'doctor_id', 'name']
+            ),
             'patientTypes' => patientTypes(),
             'eyeTypes' => eyeTypes(),
             'entryDate' => $record->entry_date?->toDateString() ?? $today,

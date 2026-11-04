@@ -13,7 +13,7 @@ class ProductVariantRequest extends BaseRequest
 
         return [
             'product_id' => [
-                'required', 'integer', $this->existsIn('inventory_products'),
+                'required', 'integer', $this->existsIn('inv_products'),
                 Rule::when($record !== null, fn () => Rule::in([$record->product_id])),
             ],
             'sku' => ['required', 'string', 'max:100', $this->unique('sku')],

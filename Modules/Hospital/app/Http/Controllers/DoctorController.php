@@ -42,7 +42,9 @@ class DoctorController extends BaseController
         $response = parent::options($request);
         $data = $response->getData(true);
         $data['results'] = array_map(
-            fn (array $doctor): array => $doctor + ['text' => ($doctor['doctor_id'] ?: $doctor['id']).' — '.$doctor['name']],
+            fn (array $doctor): array => $doctor + [
+                'text' => ($doctor['doctor_id'] ?: $doctor['id']).' — '.$doctor['name'],
+            ],
             $data['results'],
         );
 
@@ -54,27 +56,34 @@ class DoctorController extends BaseController
         $actor = $request->user('web');
         $doctor = $doctors->save($actor, $this->record($request), $request->payload(), (int) $request->attributes->get('branch_id'));
         if ($actor->is($doctor)) {
-            Auth::guard('web')->setUser($doctor);
-            $request->session()->regenerate();
+            Auth::guard('web')
+                ->setUser($doctor);
+            $request->session()
+                ->regenerate();
         }
 
-        return $this->redirectAfterWrite($doctor)->with('status', 'Doctor'.($this->isUpdate($request) ? ' updated.' : ' created.'));
+        return $this->redirectAfterWrite($doctor)
+            ->with('status', 'Doctor'.($this->isUpdate($request) ? ' updated.' : ' created.'));
     }
 
     public function show(Request $request): View
     {
         $doctor = $this->record($request);
-        Gate::forUser($request->user('web'))->authorize('view', $doctor);
+        Gate::forUser($request->user('web'))
+            ->authorize('view', $doctor);
         $doctor->loadMissing('department:id,name');
         $doctor->setRawAttributes($doctor->only($doctor->queryContract()['exposed']), true);
 
-        return view('hospital::doctors.show', [
-            'pageTitle' => "$this->title details",
-            'doctor' => $doctor,
-            'genderLabel' => genders()[$doctor->gender] ?? $doctor->gender,
-            'bloodGroupLabel' => bloodGroups()[$doctor->blood_group] ?? '-',
-            'routePrefix' => $this->routePrefix(),
-        ]);
+        return view(
+            'hospital::doctors.show',
+            [
+                'pageTitle' => "$this->title details",
+                'doctor' => $doctor,
+                'genderLabel' => genders()[$doctor->gender] ?? $doctor->gender,
+                'bloodGroupLabel' => bloodGroups()[$doctor->blood_group] ?? '-',
+                'routePrefix' => $this->routePrefix(),
+            ]
+        );
     }
 
     public function permissions(DoctorRequest $request, DoctorService $doctors): View
@@ -86,16 +95,18 @@ class DoctorController extends BaseController
     {
         $doctors->savePermissions($request->user('web'), $request->validated('permissions'));
 
-        return redirect()->route('hospital.doctors.permissions')->with('status', 'Doctor permissions updated.');
+        return redirect()
+            ->route('hospital.doctors.permissions')
+            ->with('status', 'Doctor permissions updated.');
     }
 
     protected function formData(Account $actor, Model $record): array
     {
         return [
-            'selectedDepartment'    => $this->selectedOption(Department::query(), getValue('department_id', $record)),
-            'genders'               => genders(),
-            'bloodGroups'           => bloodGroups(),
-            'passwordMinLength'     => config('auth.password_min_length', 5),
+            'selectedDepartment' => $this->selectedOption(Department::query(), getValue('department_id', $record)),
+            'genders' => genders(),
+            'bloodGroups' => bloodGroups(),
+            'passwordMinLength' => config('auth.password_min_length', 5),
         ];
     }
 }

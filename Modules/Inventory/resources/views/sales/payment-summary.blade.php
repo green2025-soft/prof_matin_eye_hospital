@@ -8,27 +8,26 @@
             <div class="row g-3">
                 <div class="col-sm-6">
                     <label class="form-label" for="discount">Invoice discount</label>
-                    <input class="{{ inputClass('discount') }}" id="discount" name="discount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" value="{{ getValue('discount', null, $document->exists ? \Modules\Core\Helpers\Money::decimal($document->discount_minor - $document->lines->sum('discount_minor')) : '') }}" {{ inputAttrs('discount') }}>
+                    <input class="{{ inputClass('discount') }}" id="discount" name="discount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" value="{{ getValue('discount', null, $entry->exists ? moneyDecimal($entry->discount - $entry->lines->sum('discount')) : '') }}" {{ inputAttrs('discount') }}>
                     @error('discount')
                         <div class="invalid-feedback d-block" id="discount-error">{{ $message }}</div>
                     @enderror
                 </div>
                 <div class="col-sm-6">
                     <label class="form-label" for="paid_amount">Paid amount</label>
-                    <input class="{{ inputClass('paid_amount') }}" id="paid_amount" name="paid_amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" value="{{ getValue('paid_amount', null, $document->exists ? \Modules\Core\Helpers\Money::decimal($document->initial_paid_minor) : '') }}" {{ inputAttrs('paid_amount') }}>
+                    <input class="{{ inputClass('paid_amount') }}" id="paid_amount" name="paid_amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" value="{{ getValue('paid_amount', null, $entry->exists ? moneyDecimal($entry->initial_paid) : '') }}" {{ inputAttrs('paid_amount') }}>
                     @error('paid_amount')
                         <div class="invalid-feedback d-block" id="paid_amount-error">{{ $message }}</div>
                     @enderror
                 </div>
                 <div class="col-12">
                     <label class="form-label" for="notes">Notes</label>
-                    <textarea class="{{ inputClass('notes') }}" id="notes" name="notes" rows="2" maxlength="2000" {{ inputAttrs('notes') }}>{{ getValue('notes', $document) }}</textarea>
+                    <textarea class="{{ inputClass('notes') }}" id="notes" name="notes" rows="2" maxlength="2000" {{ inputAttrs('notes') }}>{{ getValue('notes', $entry) }}</textarea>
                     @error('notes')
                         <div class="invalid-feedback d-block" id="notes-error">{{ $message }}</div>
                     @enderror
                 </div>
             </div>
-            <p class="small text-danger d-none mt-2 mb-0" data-inventory-payment-error role="alert"></p>
         </div>
         <div class="col-lg-5">
             <div class="app-inventory-entry-summary">

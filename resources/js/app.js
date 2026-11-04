@@ -1,11 +1,12 @@
-import { Modal, Offcanvas } from 'bootstrap';
-import $ from 'jquery';
-import flatpickr from 'flatpickr';
+import $ from './jquery';
+import 'bootstrap';
+import 'flatpickr';
 import attachSelect2 from 'select2';
 import toastr from 'toastr';
+import { formatAmount, roundRatio } from './money';
 import './inventory';
+import './prescription';
 
-window.$ = window.jQuery = $;
 attachSelect2(window, $);
 
 toastr.options = {
@@ -31,51 +32,45 @@ window.showToast = function (message, type = 'info') {
     return toastr[toastType](text);
 };
 
-$(() => {
-    document.querySelectorAll('[data-toast-message]').forEach(element => {
-        window.showToast(element.dataset.toastMessage, element.dataset.toastType);
-        element.remove();
-    });
-});
-
 window.initAjaxSelects = function (root = document) {
     $(root).find('select[data-ajax-select]').addBack('select[data-ajax-select]').each(function () {
-        const select = this;
-        const $select = $(select);
+        const $select = $(this);
         if ($select.hasClass('select2-hidden-accessible')) {
             return;
         }
 
-        const valueField = select.dataset.valueField || 'id';
-        const labelField = select.dataset.labelField || 'name';
-        const parent = select.dataset.parentSelect ? document.getElementById(select.dataset.parentSelect) : null;
+        const valueField = $select.attr('data-value-field') || 'id';
+        const labelField = $select.attr('data-label-field') || 'name';
+        const parentId = $select.attr('data-parent-select');
+        const $parent = parentId ? $('#' + $.escapeSelector(parentId)) : $();
+        const parentField = $select.attr('data-parent-field');
         const $modal = $select.closest('.modal');
         $select.select2({
             width: '100%',
-            dropdownParent: $modal.length ? $modal : $(document.body),
-            placeholder: select.dataset.placeholder || 'Select',
-            allowClear: select.dataset.allowClear !== 'false',
-            minimumInputLength: Number(select.dataset.minimumInputLength || 0),
+            dropdownParent: $modal.length ? $modal : $('body'),
+            placeholder: $select.attr('data-placeholder') || 'Select',
+            allowClear: $select.attr('data-allow-clear') !== 'false',
+            minimumInputLength: Number($select.attr('data-minimum-input-length') || 0),
             maximumInputLength: 80,
             language: {
-                noResults: () => select.dataset.noResultsText || 'No results found',
+                noResults: () => $select.attr('data-no-results-text') || 'No results found',
             },
             ajax: {
-                url: () => select.dataset.url,
+                url: () => $select.attr('data-url'),
                 dataType: 'json',
                 delay: 250,
                 timeout: 15000,
                 data: params => {
                     const data = { search: params.term || '', page: params.page || 1 };
-                    if (parent && select.dataset.parentField) {
-                        data[select.dataset.parentField] = parent.value;
+                    if ($parent.length && parentField) {
+                        data[parentField] = $parent.val();
                     }
                     return data;
                 },
                 transport(params, success, failure) {
-                    const parentValue = parent && select.dataset.parentField
-                        ? String(params.data?.[select.dataset.parentField] ?? '') : null;
-                    const parentUnchanged = () => parentValue === null || parent.value === parentValue;
+                    const parentValue = $parent.length && parentField
+                        ? String(params.data?.[parentField] ?? '') : null;
+                    const parentUnchanged = () => parentValue === null || $parent.val() === parentValue;
                     const request = $.ajax(params);
                     request.done(data => {
                         if (parentUnchanged()) {
@@ -99,25 +94,26 @@ window.initAjaxSelects = function (root = document) {
             },
         });
 
-        if (parent) {
-            $select.prop('disabled', !parent.value);
-            $(parent).on('change', () => {
+        if ($parent.length) {
+            $select.prop('disabled', !$parent.val());
+            $parent.on('change.ajaxSelect', () => {
                 $select.select2('close');
                 $select.find('option').not('[value=""]').remove();
-                $select.val(null).prop('disabled', !parent.value).trigger('change');
+                $select.val(null).prop('disabled', !$parent.val()).trigger('change');
             });
         }
 
         const $selection = $select.next('.select2-container').find('.select2-selection');
         for (const attribute of ['aria-invalid', 'aria-describedby']) {
-            const value = select.getAttribute(attribute);
-            if (value !== null) {
+            const value = $select.attr(attribute);
+            if (value !== undefined) {
                 $selection.attr(attribute, value);
             }
         }
 
-        select.addEventListener('invalid', event => {
-            if (select.form?.querySelector(':invalid') === select) {
+        $select.on('invalid.ajaxSelect', event => {
+            const firstInvalid = $select.closest('form').find(':invalid').first().get(0);
+            if (firstInvalid === this) {
                 event.preventDefault();
                 $select.select2('open');
             }
@@ -125,73 +121,69 @@ window.initAjaxSelects = function (root = document) {
     });
 };
 
-$(() => window.initAjaxSelects());
-
 const desktopNavigation = window.matchMedia('(min-width: 992px)');
 
 function updateNavigationState() {
-    const sidebar = document.getElementById('appSidebar');
+    const $sidebar = $('#appSidebar');
 
-    if (!sidebar) {
+    if (!$sidebar.length) {
         return;
     }
 
     const expanded = desktopNavigation.matches
-        ? !document.body.classList.contains('sidebar-collapsed')
-        : sidebar.classList.contains('show');
+        ? !$('body').hasClass('sidebar-collapsed')
+        : $sidebar.hasClass('show');
 
     $('[data-sidebar-toggle]').attr('aria-expanded', String(expanded))
         .attr('aria-label', expanded ? 'Collapse navigation' : 'Expand navigation');
 }
 
-$(() => {
+function initializeNavigation() {
     try {
-        document.body.classList.toggle('sidebar-collapsed', localStorage.getItem('admin.sidebar.collapsed') === '1');
+        $('body').toggleClass('sidebar-collapsed', localStorage.getItem('admin.sidebar.collapsed') === '1');
     } catch {
         // Navigation remains usable when browser storage is unavailable.
     }
 
     updateNavigationState();
-    desktopNavigation.addEventListener('change', updateNavigationState);
-
-    const sidebar = document.getElementById('appSidebar');
-    sidebar?.addEventListener('shown.bs.offcanvas', updateNavigationState);
-    sidebar?.addEventListener('hidden.bs.offcanvas', updateNavigationState);
+    $(desktopNavigation).on('change.navigation', updateNavigationState);
+    $('#appSidebar').on('shown.bs.offcanvas.navigation hidden.bs.offcanvas.navigation', updateNavigationState);
 
     if (!document.fullscreenEnabled) {
         $('[data-fullscreen-toggle]').remove();
     }
-});
+}
 
-$(document).on('click', '[data-sidebar-toggle]', function () {
-    const sidebar = document.getElementById('appSidebar');
+$(document).on('click.navigation', '[data-sidebar-toggle]', function () {
+    const $sidebar = $('#appSidebar');
+    const $body = $('body');
 
-    if (!sidebar) {
+    if (!$sidebar.length) {
         return;
     }
 
     if (desktopNavigation.matches) {
-        document.body.classList.toggle('sidebar-collapsed');
+        $body.toggleClass('sidebar-collapsed');
 
         try {
-            localStorage.setItem('admin.sidebar.collapsed', document.body.classList.contains('sidebar-collapsed') ? '1' : '0');
+            localStorage.setItem('admin.sidebar.collapsed', $body.hasClass('sidebar-collapsed') ? '1' : '0');
         } catch {
             // The current page still remembers the chosen state.
         }
 
         updateNavigationState();
     } else {
-        Offcanvas.getOrCreateInstance(sidebar).toggle();
+        $sidebar.offcanvas('toggle');
     }
 });
 
-$(document).on('click', '#appSidebar a', function () {
+$(document).on('click.navigation', '#appSidebar a', function () {
     if (!desktopNavigation.matches) {
-        Offcanvas.getInstance(document.getElementById('appSidebar'))?.hide();
+        $('#appSidebar').offcanvas('hide');
     }
 });
 
-$(document).on('click', '[data-fullscreen-toggle]', async function () {
+$(document).on('click.navigation', '[data-fullscreen-toggle]', async function () {
     try {
         if (document.fullscreenElement) {
             await document.exitFullscreen();
@@ -203,7 +195,7 @@ $(document).on('click', '[data-fullscreen-toggle]', async function () {
     }
 });
 
-document.addEventListener('fullscreenchange', () => {
+$(document).on('fullscreenchange.navigation', () => {
     const active = Boolean(document.fullscreenElement);
     $('[data-fullscreen-toggle]').attr('aria-pressed', String(active))
         .attr('aria-label', active ? 'Exit fullscreen' : 'Enter fullscreen')
@@ -211,16 +203,18 @@ document.addEventListener('fullscreenchange', () => {
         .find('i').toggleClass('fa-expand', !active).toggleClass('fa-compress', active);
 });
 
-$(document).on('click', '[data-password-toggle]', function () {
-    const input = document.getElementById($(this).attr('aria-controls'));
+$(document).on('click.password', '[data-password-toggle]', function () {
+    const $button = $(this);
+    const inputId = $button.attr('aria-controls');
+    const $input = inputId ? $('#' + $.escapeSelector(inputId)) : $();
 
-    if (!input) {
+    if (!$input.length) {
         return;
     }
 
-    const visible = input.type === 'password';
-    input.type = visible ? 'text' : 'password';
-    $(this).attr('aria-pressed', String(visible))
+    const visible = $input.prop('type') === 'password';
+    $input.prop('type', visible ? 'text' : 'password');
+    $button.attr('aria-pressed', String(visible))
         .attr('aria-label', visible ? 'Hide password' : 'Show password')
         .attr('title', visible ? 'Hide password' : 'Show password')
         .find('i').toggleClass('fa-eye', !visible).toggleClass('fa-eye-slash', visible);
@@ -239,15 +233,15 @@ function resetFormSubmission(form) {
     $(form).removeAttr('aria-busy');
 
     if (state.loading) {
-        state.buttons.forEach(button => { button.disabled = false; });
+        state.$buttons.prop('disabled', false);
 
-        if (state.button) {
-            $(state.button).removeAttr('aria-busy');
+        if (state.$button.length) {
+            state.$button.removeAttr('aria-busy');
 
-            if (state.button.tagName === 'BUTTON') {
-                state.button.innerHTML = state.content;
+            if (state.$button.is('button')) {
+                state.$button.html(state.content);
             } else {
-                state.button.value = state.value;
+                state.$button.val(state.value);
             }
         }
     }
@@ -260,16 +254,17 @@ function startFormSubmission(form, submitter, event = null) {
         return false;
     }
 
-    const confirmation = form.getAttribute('data-confirm');
+    const $form = $(form);
+    const confirmation = $form.attr('data-confirm');
     if (confirmation && !window.confirm(confirmation)) {
         return false;
     }
 
-    const buttons = Array.from(form.elements).filter(button => button.type === 'submit' && !button.disabled);
-    const button = buttons.includes(submitter) ? submitter : buttons[0];
-    const state = { buttons, button, content: button?.innerHTML, value: button?.value };
+    const $buttons = $(form.elements).filter(':submit:enabled');
+    const $button = $buttons.is(submitter) ? $(submitter) : $buttons.first();
+    const state = { $buttons, $button, content: $button.html(), value: $button.val() };
     submittingForms.set(form, state);
-    $(form).attr('aria-busy', 'true');
+    $form.attr('aria-busy', 'true');
 
     // Keep named button values in the native payload before changing or disabling controls.
     state.timer = window.setTimeout(() => {
@@ -279,16 +274,16 @@ function startFormSubmission(form, submitter, event = null) {
         }
 
         state.loading = true;
-        buttons.forEach(control => { control.disabled = true; });
+        $buttons.prop('disabled', true);
 
-        if (button) {
-            $(button).attr('aria-busy', 'true');
+        if ($button.length) {
+            $button.attr('aria-busy', 'true');
 
-            if (button.tagName === 'BUTTON') {
-                const textClass = button.textContent.trim() ? '' : ' class="visually-hidden"';
-                button.innerHTML = `<span class="d-inline-flex align-items-center gap-2 m-auto"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span><span${textClass}>Loading...</span></span>`;
+            if ($button.is('button')) {
+                const textClass = $button.text().trim() ? '' : ' class="visually-hidden"';
+                $button.html(`<span class="d-inline-flex align-items-center gap-2 m-auto"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span><span${textClass}>Loading...</span></span>`);
             } else {
-                button.value = 'Loading...';
+                $button.val('Loading...');
             }
         }
     }, 0);
@@ -296,8 +291,8 @@ function startFormSubmission(form, submitter, event = null) {
     return true;
 }
 
-$(document).on('submit', 'form', function (event) {
-    if (event.isDefaultPrevented() || this.matches('[data-patient-create-form]')) {
+$(document).on('submit.submission', 'form', function (event) {
+    if (event.isDefaultPrevented() || $(this).is('[data-patient-create-form]')) {
         return;
     }
 
@@ -306,22 +301,24 @@ $(document).on('submit', 'form', function (event) {
     }
 });
 
-$(window).on('pageshow', () => {
+$(window).on('pageshow.submission', () => {
     submittingForms.forEach((_, form) => resetFormSubmission(form));
 });
 
 function clearPatientModalErrors(form) {
-    $(form).find('[data-patient-field-error]').remove();
-    $(form).find('[data-patient-invalid]').each((_, field) => {
-        const attributes = $(field).data('patientErrorAttributes');
-        $(field).removeClass('is-invalid').removeAttr('data-patient-invalid');
+    const $form = $(form);
+    $form.find('[data-patient-field-error]').remove();
+    $form.find('[data-patient-invalid]').each((_, field) => {
+        const $field = $(field);
+        const attributes = $field.data('patientErrorAttributes');
+        $field.removeClass('is-invalid').removeAttr('data-patient-invalid');
         for (const attribute of ['aria-invalid', 'aria-describedby']) {
-            $(field).attr(attribute, attributes?.[attribute] ?? null);
-            $(field).next('.select2-container').find('.select2-selection').attr(attribute, attributes?.[attribute] ?? null);
+            $field.attr(attribute, attributes?.[attribute] ?? null);
+            $field.next('.select2-container').find('.select2-selection').attr(attribute, attributes?.[attribute] ?? null);
         }
-        $(field).removeData('patientErrorAttributes');
+        $field.removeData('patientErrorAttributes');
     });
-    $(form).closest('.modal').find('[data-patient-modal-error]').prop('hidden', true).text('');
+    $form.closest('.modal').find('[data-patient-modal-error]').prop('hidden', true).text('');
 }
 
 function patientRequestError(status) {
@@ -350,20 +347,21 @@ function showPatientValidationErrors(form, errors) {
             continue;
         }
 
-        const field = Array.from(form.elements).find(input => input.name === name && input.type !== 'hidden'
-            && ($(input).is(':visible') || $(input).hasClass('select2-hidden-accessible')));
-        if (!field) {
+        const $field = $(form.elements).filter(function () {
+            return this.name === name && $(this).is(':not([type="hidden"])')
+                && ($(this).is(':visible') || $(this).hasClass('select2-hidden-accessible'));
+        }).first();
+        if (!$field.length) {
             messages.push(text);
             continue;
         }
 
-        const errorId = (field.id || 'patient-modal-' + name.replace(/[^a-z0-9_-]/gi, '-')) + '-ajax-error';
-        const $field = $(field);
+        const errorId = ($field.attr('id') || 'patient-modal-' + name.replace(/[^a-z0-9_-]/gi, '-')) + '-ajax-error';
         $field.data('patientErrorAttributes', {
-            'aria-invalid': field.getAttribute('aria-invalid'),
-            'aria-describedby': field.getAttribute('aria-describedby'),
+            'aria-invalid': $field.attr('aria-invalid'),
+            'aria-describedby': $field.attr('aria-describedby'),
         }).addClass('is-invalid').attr({ 'data-patient-invalid': '', 'aria-invalid': 'true' });
-        const describedBy = [field.getAttribute('aria-describedby'), errorId].filter(Boolean).join(' ');
+        const describedBy = [$field.attr('aria-describedby'), errorId].filter(Boolean).join(' ');
         $field.attr('aria-describedby', describedBy);
         let $anchor = $field;
         if ($field.hasClass('select2-hidden-accessible')) {
@@ -373,18 +371,18 @@ function showPatientValidationErrors(form, errors) {
             $anchor = $field.closest('.app-input-wrap');
         }
         $('<div>', { id: errorId, class: 'invalid-feedback d-block', 'data-patient-field-error': '' }).text(text).insertAfter($anchor);
-        if (!firstField && !field.disabled) {
-            firstField = field;
+        if (!firstField && !$field.prop('disabled')) {
+            firstField = $field.get(0);
         }
     }
 
-    const modal = form.closest('.modal');
-    showPatientModalError(modal, ['Check the highlighted patient fields.', ...messages].join(' '));
+    const $modal = $(form).closest('.modal');
+    showPatientModalError($modal, ['Check the highlighted patient fields.', ...messages].join(' '));
     if (firstField) {
         if ($(firstField).hasClass('select2-hidden-accessible')) {
             $(firstField).select2('open');
         } else {
-            firstField.focus();
+            $(firstField).trigger('focus');
         }
     }
 }
@@ -397,44 +395,49 @@ function clearPatientModal(modal) {
         patientFieldsRequest.abort();
         patientFieldsRequest = null;
     }
-    const form = modal.querySelector('[data-patient-create-form]');
+    const $modal = $(modal);
+    const form = $modal.find('[data-patient-create-form]').get(0);
     if (form) {
         resetFormSubmission(form);
         clearPatientModalErrors(form);
     }
-    $(modal).find('[data-patient-modal-content] select.select2-hidden-accessible').each(function () {
+    $modal.find('[data-patient-modal-content] select.select2-hidden-accessible').each(function () {
         $(this).select2('close').select2('destroy');
     });
-    $(modal).find('[data-patient-modal-content]').empty();
-    $(modal).find('[data-patient-modal-save]').prop('disabled', true);
+    $modal.find('[data-patient-modal-content]').empty();
+    $modal.find('[data-patient-modal-save]').prop('disabled', true);
 }
 
-$(document).on('click', '[data-patient-target]', function (event) {
+$(document).on('click.patientModal', '[data-patient-target]', function (event) {
     event.preventDefault();
-    const select = document.getElementById(this.dataset.patientTarget);
-    const modal = document.getElementById('patient-create-modal');
-    if (!select?.matches('select[data-patient-select]') || !modal) {
+    const $button = $(this);
+    const selectId = $button.attr('data-patient-target');
+    const $select = selectId ? $('#' + $.escapeSelector(selectId)) : $();
+    const $modal = $('#patient-create-modal');
+    if (!$select.is('select[data-patient-select]') || !$modal.length) {
         return;
     }
 
-    if (this.dataset.bsToggle !== 'modal') {
-        Modal.getOrCreateInstance(modal).show(this);
+    if ($button.attr('data-bs-toggle') !== 'modal') {
+        $modal.modal('show', this);
     }
 });
 
-$(document).on('show.bs.modal', '#patient-create-modal', function (event) {
+$(document).on('show.bs.modal.patientModal', '#patient-create-modal', function (event) {
     const modal = this;
-    const select = document.getElementById(event.relatedTarget?.dataset.patientTarget);
-    if (!select?.matches('select[data-patient-select]')) {
+    const $modal = $(modal);
+    const selectId = $(event.relatedTarget).attr('data-patient-target');
+    const $select = selectId ? $('#' + $.escapeSelector(selectId)) : $();
+    if (!$select.is('select[data-patient-select]')) {
         event.preventDefault();
         return;
     }
-    patientTargetSelect = select;
+    patientTargetSelect = $select.get(0);
     clearPatientModal(modal);
-    const $content = $(modal).find('[data-patient-modal-content]');
+    const $content = $modal.find('[data-patient-modal-content]');
     $content.text('Loading patient form...');
     const request = $.ajax({
-        url: modal.dataset.fieldsUrl,
+        url: $modal.attr('data-fields-url'),
         method: 'GET',
         dataType: 'html',
         headers: { Accept: 'application/json' },
@@ -447,7 +450,7 @@ $(document).on('show.bs.modal', '#patient-create-modal', function (event) {
         }
         $content.html(html);
         window.initAjaxSelects($content[0]);
-        $(modal).find('[data-patient-modal-save]').prop('disabled', false);
+        $modal.find('[data-patient-modal-save]').prop('disabled', false);
         $content.find(':input:visible').first().trigger('focus');
     }).fail((xhr, status) => {
         if (status !== 'abort') {
@@ -461,46 +464,45 @@ $(document).on('show.bs.modal', '#patient-create-modal', function (event) {
     });
 });
 
-$(document).on('shown.bs.modal', '#patient-create-modal', function () {
+$(document).on('shown.bs.modal.patientModal', '#patient-create-modal', function () {
     $(this).find('[data-patient-modal-content] :input:visible').first().trigger('focus');
 });
 
-$(document).on('hide.bs.modal', '#patient-create-modal', function (event) {
-    const form = this.querySelector('[data-patient-create-form]');
+$(document).on('hide.bs.modal.patientModal', '#patient-create-modal', function (event) {
+    const form = $(this).find('[data-patient-create-form]').get(0);
     if (form && submittingForms.has(form)) {
         event.preventDefault();
     }
 });
 
-$(document).on('hidden.bs.modal', '#patient-create-modal', function () {
+$(document).on('hidden.bs.modal.patientModal', '#patient-create-modal', function () {
     clearPatientModal(this);
     patientTargetSelect = null;
 });
 
-$(document).on('submit', '[data-patient-create-form]', function (event) {
+$(document).on('submit.patientModal', '[data-patient-create-form]', function (event) {
     event.preventDefault();
     const form = this;
-    const modal = form.closest('.modal');
+    const $form = $(form);
+    const $modal = $form.closest('.modal');
     const select = patientTargetSelect;
     const submitter = event.originalEvent?.submitter;
     if (!select || submittingForms.has(form) || !form.reportValidity()) {
         return;
     }
 
-    const values = new FormData(form);
+    const values = $form.serializeArray();
     if (submitter?.name && !submitter.disabled) {
-        values.append(submitter.name, submitter.value);
+        values.push({ name: submitter.name, value: submitter.value });
     }
     if (!startFormSubmission(form, submitter)) {
         return;
     }
     clearPatientModalErrors(form);
     $.ajax({
-        url: form.action,
+        url: $form.attr('action'),
         method: 'POST',
         data: values,
-        processData: false,
-        contentType: false,
         dataType: 'json',
         headers: { Accept: 'application/json' },
         timeout: 30000,
@@ -523,7 +525,7 @@ $(document).on('submit', '[data-patient-create-form]', function (event) {
         }
         $select.trigger({ type: 'select2:select', params: { data } });
         resetFormSubmission(form);
-        Modal.getOrCreateInstance(modal).hide();
+        $modal.modal('hide');
         window.showToast('Patient created.', 'success');
     }).fail((xhr, status) => {
         if (status === 'abort') return;
@@ -535,7 +537,7 @@ $(document).on('submit', '[data-patient-create-form]', function (event) {
     }).always(() => resetFormSubmission(form));
 });
 
-$(document).on('change', '[data-page-size]', function () {
+$(document).on('change.pagination', '[data-page-size]', function () {
     this.form?.requestSubmit();
 });
 
@@ -543,10 +545,11 @@ function updateDomainRows($editor) {
     const $rows = $editor.find('[data-domain-row]');
 
     $rows.each(function (index) {
+        const $row = $(this);
         const id = `tenant-domain-${index}`;
-        $(this).find('input').attr('id', id);
-        $(this).find('[data-domain-label]').attr('for', id).text(`Domain ${index + 1}`);
-        $(this).find('[data-domain-remove]').prop('disabled', $rows.length === 1).attr('aria-label', `Remove domain ${index + 1}`);
+        $row.find('input').attr('id', id);
+        $row.find('[data-domain-label]').attr('for', id).text(`Domain ${index + 1}`);
+        $row.find('[data-domain-remove]').prop('disabled', $rows.length === 1).attr('aria-label', `Remove domain ${index + 1}`);
     });
 
     $editor.find('[data-domain-add]').prop('disabled', $rows.length >= 20);
@@ -586,14 +589,14 @@ function initializeTenantForm(form) {
         }
     }
 
-    $name.on('input', updatePreview);
-    $form.on('input', '[name="domains[]"]', function () {
+    $name.on('input.tenantForm', updatePreview);
+    $form.on('input.tenantForm', '[name="domains[]"]', function () {
         if (this === firstDomain()[0]) {
-            automaticDomain = this.value.trim() === '';
+            automaticDomain = String($(this).val()).trim() === '';
             $automatic.val(automaticDomain ? '1' : '0');
         }
     });
-    $form.on('click', '[data-domain-remove]', function () {
+    $form.on('click.tenantForm', '[data-domain-remove]', function () {
         automaticDomain = false;
         $automatic.val('0');
     });
@@ -601,29 +604,19 @@ function initializeTenantForm(form) {
     updatePreview();
 }
 
-$(() => {
-    $('[data-domain-editor]').each(function () {
-        updateDomainRows($(this));
-    });
-    $('[data-tenant-form]').each(function () {
-        initializeTenantForm(this);
-    });
-});
-
-$(document).on('click', '[data-domain-add]', function () {
+$(document).on('click.tenantDomains', '[data-domain-add]', function () {
     const $editor = $(this).closest('[data-domain-editor]');
 
     if ($editor.find('[data-domain-row]').length >= 20) {
         return;
     }
 
-    const template = $editor.find('[data-domain-template]')[0];
-    $editor.find('[data-domain-list]').append(template.content.cloneNode(true));
+    $editor.find('[data-domain-list]').append($editor.find('[data-domain-template]').html());
     updateDomainRows($editor);
     $editor.find('[data-domain-row]').last().find('input').trigger('focus');
 });
 
-$(document).on('click', '[data-domain-remove]', function () {
+$(document).on('click.tenantDomains', '[data-domain-remove]', function () {
     const $editor = $(this).closest('[data-domain-editor]');
 
     if ($editor.find('[data-domain-row]').length <= 1) {
@@ -657,18 +650,17 @@ function initializePermissionEditor(editor) {
     let dirty = false;
 
     function selectedIds() {
-        return new Set($items.filter(':checked').map((_, item) => item.value).get());
+        return new Set($items.filter(':checked').map((_, item) => $(item).val()).get());
     }
 
     function visibleItems() {
-        return $rows.filter((_, row) => !row.hidden).find('[data-permission-item]').filter((_, item) => {
-            const option = item.closest('.app-permission-option');
-            return !option || !option.hidden;
+        return $rows.filter((_, row) => !$(row).prop('hidden')).find('[data-permission-item]').filter((_, item) => {
+            return !$(item).closest('.app-permission-option').prop('hidden');
         });
     }
 
     function matchingItems($visible, attribute, key) {
-        return $visible.filter((_, item) => item.getAttribute(attribute) === key);
+        return $visible.filter((_, item) => $(item).attr(attribute) === key);
     }
 
     function updateToggle(toggle, $matching) {
@@ -694,10 +686,10 @@ function initializePermissionEditor(editor) {
 
         $editor.find('[data-permission-visible-toggle]').each((_, toggle) => updateToggle(toggle, $visible));
         $editor.find('[data-permission-group-toggle]').each((_, toggle) => {
-            updateToggle(toggle, matchingItems($visible, 'data-group-key', toggle.getAttribute('data-group-key')));
+            updateToggle(toggle, matchingItems($visible, 'data-group-key', $(toggle).attr('data-group-key')));
         });
         $editor.find('[data-permission-area-toggle]').each((_, toggle) => {
-            updateToggle(toggle, matchingItems($visible, 'data-area-key', toggle.getAttribute('data-area-key')));
+            updateToggle(toggle, matchingItems($visible, 'data-area-key', $(toggle).attr('data-area-key')));
         });
 
         $editor.find('[data-permission-count]').text(`${selected.size} of ${total} selected`);
@@ -714,25 +706,28 @@ function initializePermissionEditor(editor) {
         let visibleRows = 0;
 
         $rows.each((_, row) => {
-            const matchesScope = (!area || row.getAttribute('data-permission-area-key') === area)
-                && (!group || row.getAttribute('data-permission-group-key') === group);
+            const $row = $(row);
+            const matchesScope = (!area || $row.attr('data-permission-area-key') === area)
+                && (!group || $row.attr('data-permission-group-key') === group);
             const context = [
-                row.querySelector('.app-permission-area span')?.textContent ?? '',
-                row.querySelector('.app-permission-group span')?.textContent ?? '',
+                $row.find('.app-permission-area span').text(),
+                $row.find('.app-permission-group span').text(),
             ].join(' ');
             let matches = false;
 
-            $(row).find('.app-permission-option').each((_, option) => {
-                const text = `${context} ${option.getAttribute('title') ?? ''} ${option.textContent}`
+            $row.find('.app-permission-option').each((_, option) => {
+                const $option = $(option);
+                const text = `${context} ${$option.attr('title') ?? ''} ${$option.text()}`
                     .replace(/\s+/g, ' ').trim().toLocaleLowerCase();
-                option.hidden = !matchesScope || (search !== '' && !text.includes(search));
+                const hidden = !matchesScope || (search !== '' && !text.includes(search));
+                $option.prop('hidden', hidden);
 
-                if (!option.hidden) {
+                if (!hidden) {
                     matches = true;
                 }
             });
 
-            row.hidden = !matches;
+            $row.prop('hidden', !matches);
             visibleRows += Number(matches);
         });
 
@@ -744,88 +739,88 @@ function initializePermissionEditor(editor) {
     function updateGroupOptions() {
         const area = String($area.val() ?? '');
         const availableGroups = new Set($rows.filter((_, row) => !area
-            || row.getAttribute('data-permission-area-key') === area)
-            .map((_, row) => row.getAttribute('data-permission-group-key')).get());
+            || $(row).attr('data-permission-area-key') === area)
+            .map((_, row) => $(row).attr('data-permission-group-key')).get());
 
         $group.find('option').each((_, option) => {
-            const optionArea = option.getAttribute('data-area-key');
+            const $option = $(option);
+            const optionArea = $option.attr('data-area-key');
             const matchesArea = !area || !optionArea || optionArea === area;
-            option.hidden = option.value !== '' && (!availableGroups.has(option.value) || !matchesArea);
+            const value = $option.val();
+            $option.prop('hidden', value !== '' && (!availableGroups.has(value) || !matchesArea));
         });
     }
 
-    $search.on('input', filterRows);
-    $search.on('keydown', event => {
+    $search.on('input.permissions', filterRows);
+    $search.on('keydown.permissions', event => {
         if (event.key === 'Enter') {
             event.preventDefault();
         }
     });
-    $group.on('change', filterRows);
-    $area.on('change', () => {
+    $group.on('change.permissions', filterRows);
+    $area.on('change.permissions', () => {
         $group.val('');
         updateGroupOptions();
         filterRows();
     });
-    $unrestricted.on('change', function () {
+    $unrestricted.on('change.permissions', function () {
         if (readOnly) {
             return;
         }
 
-        if (this.checked) {
+        if ($(this).prop('checked')) {
             $items.filter(':enabled').prop('checked', true);
         }
 
         updateState();
     });
-    $editor.on('change', '[data-permission-item]', () => updateState(true));
-    $editor.on('change', '[data-permission-visible-toggle], [data-permission-group-toggle], [data-permission-area-toggle]', function () {
+    $editor.on('change.permissions', '[data-permission-item]', () => updateState(true));
+    $editor.on('change.permissions', '[data-permission-visible-toggle], [data-permission-group-toggle], [data-permission-area-toggle]', function () {
         if (readOnly) {
             return;
         }
 
         let $matching = visibleItems();
 
-        if (this.hasAttribute('data-permission-group-toggle')) {
-            $matching = matchingItems($matching, 'data-group-key', this.getAttribute('data-group-key'));
-        } else if (this.hasAttribute('data-permission-area-toggle')) {
-            $matching = matchingItems($matching, 'data-area-key', this.getAttribute('data-area-key'));
+        const $toggle = $(this);
+        if ($toggle.is('[data-permission-group-toggle]')) {
+            $matching = matchingItems($matching, 'data-group-key', $toggle.attr('data-group-key'));
+        } else if ($toggle.is('[data-permission-area-toggle]')) {
+            $matching = matchingItems($matching, 'data-area-key', $toggle.attr('data-area-key'));
         }
 
-        $matching.filter(':enabled').prop('checked', this.checked);
+        $matching.filter(':enabled').prop('checked', $toggle.prop('checked'));
         updateState(true);
     });
 
-    $recordSelect.on('change', function () {
+    $recordSelect.on('change.permissions', function () {
         this.form?.requestSubmit();
     });
-    $editor.on('submit', '[data-permission-picker]', function (event) {
+    $editor.on('submit.permissions', '[data-permission-picker]', function (event) {
         if (dirty && !window.confirm('Discard unsaved permission changes?')) {
             event.preventDefault();
             $recordSelect.val(originalRecord);
         }
     });
-    $editor.on('submit', '[data-permission-form]', event => {
+    $editor.on('submit.permissions', '[data-permission-form]', event => {
         if (readOnly) {
             event.preventDefault();
         }
     });
-    window.addEventListener('beforeunload', event => {
+    $(window).on('beforeunload.permissions', event => {
         const formPending = $editor.find('form').toArray().some(form => submittingForms.has(form));
 
         if (dirty && !formPending) {
             event.preventDefault();
-            event.returnValue = '';
+            event.originalEvent.returnValue = '';
+            return '';
         }
     });
-    window.addEventListener('pageshow', () => updateState());
+    $(window).on('pageshow.permissions', () => updateState());
 
     updateGroupOptions();
     filterRows();
 }
-
-$(() => {
-    $('[data-permission-editor]').each((_, editor) => initializePermissionEditor(editor));
-});
 
 function parseClinicalDecimal(value, maxWholeDigits = 10) {
     const match = String(value ?? '').trim().match(/^([0-9]+)(?:\.([0-9]{1,2}))?$/);
@@ -842,18 +837,11 @@ function parseClinicalPercent(value) {
     return percent !== null && percent <= 10000n ? percent : null;
 }
 
-function formatClinicalDecimal(value) {
-    return (value / 100n).toString() + '.' + (value % 100n).toString().padStart(2, '0');
-}
-
-function roundClinicalRatio(numerator, denominator) {
-    return denominator === 0n ? 0n : (numerator + denominator / 2n) / denominator;
-}
-
 function initializeRefundForm(form) {
     const $form = $(form);
-    const invoice = form.querySelector('[data-refund-invoice]');
-    const service = form.elements.namedItem('service');
+    const $invoice = $form.find('[data-refund-invoice]');
+    const $service = $(form.elements.namedItem('service'));
+    const invoice = $invoice.get(0);
     const $items = $form.find('[data-refund-items]');
     const $itemsSection = $form.find('[data-refund-items-section]');
     const $error = $form.find('[data-refund-error]');
@@ -864,14 +852,14 @@ function initializeRefundForm(form) {
     let selectedInvoice = '';
 
     function showAmounts(credit, dueAdjustment, cash) {
-        $form.find('[data-refund-credit]').val(formatClinicalDecimal(credit));
-        $form.find('[data-refund-due-adjustment]').val(formatClinicalDecimal(dueAdjustment));
-        $form.find('[data-refund-amount]').val(formatClinicalDecimal(cash));
+        $form.find('[data-refund-credit]').val(formatAmount(credit));
+        $form.find('[data-refund-due-adjustment]').val(formatAmount(dueAdjustment));
+        $form.find('[data-refund-amount]').val(formatAmount(cash));
     }
 
-    if (form.dataset.recordExists === '1') {
-        const cash = parseClinicalDecimal(form.dataset.fixedAmount, 18) ?? 0n;
-        const dueAdjustment = parseClinicalDecimal(form.dataset.fixedDueAdjustment, 18) ?? 0n;
+    if ($form.attr('data-record-exists') === '1') {
+        const cash = parseClinicalDecimal($form.attr('data-fixed-amount'), 18) ?? 0n;
+        const dueAdjustment = parseClinicalDecimal($form.attr('data-fixed-due-adjustment'), 18) ?? 0n;
         showAmounts(cash + dueAdjustment, dueAdjustment, cash);
 
         return;
@@ -891,11 +879,11 @@ function initializeRefundForm(form) {
 
         let credit = parseClinicalDecimal(preview.remaining_amount, 18) ?? 0n;
         if (preview.service === 'investigation') {
-            const choices = $items.find('[data-refund-item]').toArray();
-            const checked = choices.filter(choice => choice.checked);
-            choices.forEach(choice => choice.setCustomValidity(''));
-            choices[0]?.setCustomValidity(checked.length ? '' : 'Select at least one investigation item.');
-            credit = checked.reduce((total, choice) => total + (parseClinicalDecimal(choice.dataset.amount, 18) ?? 0n), 0n);
+            const $choices = $items.find('[data-refund-item]');
+            const checked = $choices.filter(':checked').get();
+            $choices.each((_, choice) => choice.setCustomValidity(''));
+            $choices.get(0)?.setCustomValidity(checked.length ? '' : 'Select at least one investigation item.');
+            credit = checked.reduce((total, choice) => total + (parseClinicalDecimal($(choice).attr('data-amount'), 18) ?? 0n), 0n);
         }
 
         const remainingDue = parseClinicalDecimal(preview.remaining_due, 18) ?? 0n;
@@ -949,8 +937,8 @@ function initializeRefundForm(form) {
     }
 
     function loadPreview() {
-        const encodedInvoice = invoice.value;
-        const selectedService = service?.value ?? '';
+        const encodedInvoice = $invoice.val();
+        const selectedService = $service.val() ?? '';
         if (encodedInvoice && encodedInvoice === selectedInvoice) {
             return;
         }
@@ -973,9 +961,9 @@ function initializeRefundForm(form) {
         $form.attr('aria-busy', 'true');
         invoice.setCustomValidity('Wait for the invoice details to finish loading.');
         const currentSelection = () => version === requestVersion
-            && invoice.value === encodedInvoice && (service?.value ?? '') === selectedService;
+            && $invoice.val() === encodedInvoice && ($service.val() ?? '') === selectedService;
         request = $.ajax({
-            url: form.dataset.previewUrl,
+            url: $form.attr('data-preview-url'),
             data: { invoice: encodedInvoice },
             dataType: 'json',
             headers: { Accept: 'application/json' },
@@ -1000,13 +988,13 @@ function initializeRefundForm(form) {
         });
     }
 
-    $items.on('change', '[data-refund-item]', updateAmounts);
-    $(invoice).on('change', loadPreview);
+    $items.on('change.refund', '[data-refund-item]', updateAmounts);
+    $invoice.on('change.refund', loadPreview);
     try {
-        const initialPreview = JSON.parse(form.dataset.initialPreview ?? 'null');
-        const selectedIds = JSON.parse(form.dataset.selectedItemIds ?? '[]');
-        if (invoice.value && initialPreview) {
-            selectedInvoice = invoice.value;
+        const initialPreview = JSON.parse($form.attr('data-initial-preview') ?? 'null');
+        const selectedIds = JSON.parse($form.attr('data-selected-item-ids') ?? '[]');
+        if ($invoice.val() && initialPreview) {
+            selectedInvoice = $invoice.val();
             renderPreview(initialPreview, Array.isArray(selectedIds) ? selectedIds : []);
 
             return;
@@ -1020,22 +1008,24 @@ function initializeRefundForm(form) {
 
 function initializeDueCollectionForm(form) {
     const $form = $(form);
-    const invoice = form.querySelector('[data-due-collection-invoice]');
-    const service = form.elements.namedItem('service');
-    const amount = form.querySelector('[data-due-collection-amount]');
+    const $invoice = $form.find('[data-due-collection-invoice]');
+    const $service = $(form.elements.namedItem('service'));
+    const $amount = $form.find('[data-due-collection-amount]');
+    const invoice = $invoice.get(0);
+    const amount = $amount.get(0);
     const $currentDue = $form.find('[data-due-collection-current-due]');
     const $error = $form.find('[data-due-collection-error]');
     const $amountError = $form.find('[data-due-collection-amount-error]');
     const $status = $form.find('[data-due-collection-status]');
-    let amountServerInvalid = amount.getAttribute('aria-invalid') === 'true';
-    let invoiceServerInvalid = invoice.getAttribute('aria-invalid') === 'true';
+    let amountServerInvalid = $amount.attr('aria-invalid') === 'true';
+    let invoiceServerInvalid = $invoice.attr('aria-invalid') === 'true';
     let availableDue = null;
     let selectedInvoice = '';
     let request = null;
     let requestVersion = 0;
 
     function updateAmountValidity() {
-        const value = amount.value.trim();
+        const value = String($amount.val()).trim();
         const received = parseClinicalDecimal(value);
         let message = '';
         if (value && (received === null || received < 1n)) {
@@ -1043,11 +1033,11 @@ function initializeDueCollectionForm(form) {
         } else if (value && availableDue === null) {
             message = 'Wait until the invoice due is available before saving.';
         } else if (received !== null && availableDue !== null && received > availableDue) {
-            message = 'The amount cannot exceed the current due of ' + formatClinicalDecimal(availableDue) + '.';
+            message = 'The amount cannot exceed the current due of ' + formatAmount(availableDue) + '.';
         }
 
         amount.setCustomValidity(message);
-        $(amount).attr('aria-invalid', String(amountServerInvalid || Boolean(message)))
+        $amount.attr('aria-invalid', String(amountServerInvalid || Boolean(message)))
             .toggleClass('is-invalid', amountServerInvalid || Boolean(message));
         $amountError.text(message);
     }
@@ -1056,7 +1046,7 @@ function initializeDueCollectionForm(form) {
         $error.text(message).prop('hidden', !message);
         invoice.setCustomValidity(message);
         const invalid = invoiceServerInvalid || Boolean(message);
-        $(invoice).attr('aria-invalid', String(invalid)).toggleClass('is-invalid', invalid)
+        $invoice.attr('aria-invalid', String(invalid)).toggleClass('is-invalid', invalid)
             .next('.select2-container').find('.select2-selection').attr('aria-invalid', String(invalid));
     }
 
@@ -1065,16 +1055,16 @@ function initializeDueCollectionForm(form) {
         if (availableDue === null) {
             showError('The invoice due is unavailable. Reload the page to try again.');
         } else {
-            $currentDue.val(formatClinicalDecimal(availableDue));
-            amount.dataset.maxAmount = formatClinicalDecimal(availableDue);
+            $currentDue.val(formatAmount(availableDue));
+            $amount.attr('data-max-amount', formatAmount(availableDue));
             showError('');
         }
         updateAmountValidity();
     }
 
     function loadPreview(clearAmount = false) {
-        const encodedInvoice = invoice.value;
-        const selectedService = service?.value ?? '';
+        const encodedInvoice = $invoice.val();
+        const selectedService = $service.val() ?? '';
         if (encodedInvoice && encodedInvoice === selectedInvoice) {
             return;
         }
@@ -1083,11 +1073,11 @@ function initializeDueCollectionForm(form) {
         request?.abort();
         selectedInvoice = encodedInvoice;
         availableDue = null;
-        delete amount.dataset.maxAmount;
+        $amount.removeAttr('data-max-amount');
         if (clearAmount) {
-            amount.value = '';
+            $amount.val('');
             amountServerInvalid = false;
-            $form.find('#' + amount.id + '-error').empty();
+            $form.find('#' + $.escapeSelector($amount.attr('id') + '-error')).empty();
         }
         $currentDue.val('0.00');
         $status.prop('hidden', true).text('');
@@ -1102,9 +1092,9 @@ function initializeDueCollectionForm(form) {
         $form.attr('aria-busy', 'true');
         invoice.setCustomValidity('Wait for the invoice due to finish loading.');
         const currentSelection = () => version === requestVersion
-            && invoice.value === encodedInvoice && (service?.value ?? '') === selectedService;
+            && $invoice.val() === encodedInvoice && ($service.val() ?? '') === selectedService;
         request = $.ajax({
-            url: form.dataset.previewUrl,
+            url: $form.attr('data-preview-url'),
             data: { invoice: encodedInvoice },
             dataType: 'json',
             headers: { Accept: 'application/json' },
@@ -1129,22 +1119,22 @@ function initializeDueCollectionForm(form) {
         });
     }
 
-    $(amount).on('input change', () => {
+    $amount.on('input.dueCollection change.dueCollection', () => {
         amountServerInvalid = false;
-        $form.find('#' + amount.id + '-error').empty();
+        $form.find('#' + $.escapeSelector($amount.attr('id') + '-error')).empty();
         updateAmountValidity();
     });
     try {
-        const initialPreview = JSON.parse(form.dataset.initialPreview ?? 'null');
-        if (invoice.value && initialPreview) {
-            selectedInvoice = invoice.value;
+        const initialPreview = JSON.parse($form.attr('data-initial-preview') ?? 'null');
+        if ($invoice.val() && initialPreview) {
+            selectedInvoice = $invoice.val();
             applyPreview(initialPreview);
         }
     } catch {
         // A new collection can still load the selected invoice from the server.
     }
 
-    if (form.dataset.recordExists === '1') {
+    if ($form.attr('data-record-exists') === '1') {
         if (availableDue === null) {
             showError('The invoice due is unavailable. Reload the page before saving.');
             updateAmountValidity();
@@ -1153,9 +1143,9 @@ function initializeDueCollectionForm(form) {
         return;
     }
 
-    $(invoice).on('change', () => {
+    $invoice.on('change.dueCollection', () => {
         invoiceServerInvalid = false;
-        $form.find('#' + invoice.id + '-error').empty();
+        $form.find('#' + $.escapeSelector($invoice.attr('id') + '-error')).empty();
         showError($error.text());
         loadPreview(true);
     });
@@ -1164,50 +1154,52 @@ function initializeDueCollectionForm(form) {
     }
 }
 
-$(document).on('select2:selecting', '[data-refund-invoice], [data-due-collection-invoice]', function (event) {
-    const service = this.form?.elements.namedItem('service')?.value;
+$(document).on('select2:selecting.clinicalInvoice', '[data-refund-invoice], [data-due-collection-invoice]', function (event) {
+    const service = $(this.form?.elements.namedItem('service')).val();
     const invoice = event.params?.args?.data;
     if (service !== 'all' && invoice?.service !== service) {
         event.preventDefault();
     }
 });
 
-function selectedClinicalItems(select) {
-    if (!select) {
+function selectedClinicalItems($select) {
+    if (!$select.length) {
         return [];
     }
-    const selectedData = $(select).hasClass('select2-hidden-accessible') ? $(select).select2('data') : [];
+    const selectedData = $select.hasClass('select2-hidden-accessible') ? $select.select2('data') : [];
     const dataById = new Map(selectedData.map(item => [String(item.id), item]));
 
-    return Array.from(select.selectedOptions).filter(option => option.value).map(option => {
-        const item = dataById.get(option.value) ?? {};
+    return $select.find('option:selected').get().filter(option => $(option).val()).map(option => {
+        const $option = $(option);
+        const id = $option.val();
+        const item = dataById.get(id) ?? {};
 
         return {
-            id: option.value,
-            name: item.name ?? option.textContent,
-            categoryName: item.category?.name ?? option.dataset.categoryName ?? '-',
-            consultationFee: item.consultation_fee ?? option.dataset.consultationFee,
-            followUpFee: item.follow_up_fee ?? option.dataset.followUpFee,
-            singleRate: item.single_rate ?? option.dataset.singleRate,
-            bothRate: item.both_rate ?? option.dataset.bothRate,
-            entryRate: option.dataset.entryRate,
-            entryEye: option.dataset.entryEye,
+            id,
+            name: item.name ?? $option.text(),
+            categoryName: item.category?.name ?? $option.attr('data-category-name') ?? '-',
+            consultationFee: item.consultation_fee ?? $option.attr('data-consultation-fee'),
+            followUpFee: item.follow_up_fee ?? $option.attr('data-follow-up-fee'),
+            singleRate: item.single_rate ?? $option.attr('data-single-rate'),
+            bothRate: item.both_rate ?? $option.attr('data-both-rate'),
+            entryRate: $option.attr('data-entry-rate'),
+            entryEye: $option.attr('data-entry-eye'),
         };
     });
 }
 
-function clinicalSourceState(form, kind, select) {
+function clinicalSourceState($form, kind, $select) {
     return {
-        ids: Array.from(select?.selectedOptions ?? []).map(option => option.value).filter(Boolean).sort(),
-        patientType: kind === 'consultation' ? (form.elements.namedItem('patient_type')?.value ?? '') : '',
-        eyeType: kind === 'consultation' ? '' : (form.elements.namedItem('eye_type')?.value ?? ''),
+        ids: $select.find('option:selected').map((_, option) => $(option).val()).get().filter(Boolean).sort(),
+        patientType: kind === 'consultation' ? ($form.find('[name="patient_type"]').val() ?? '') : '',
+        eyeType: kind === 'consultation' ? '' : ($form.find('[name="eye_type"]').val() ?? ''),
     };
 }
 
-function originalClinicalSourceState(form, current) {
+function originalClinicalSourceState($form, current) {
     let ids = current.ids;
     try {
-        const originalIds = JSON.parse(form.dataset.originalSourceIds ?? 'null');
+        const originalIds = JSON.parse($form.attr('data-original-source-ids') ?? 'null');
         if (Array.isArray(originalIds)) {
             ids = originalIds.filter(id => id !== null && id !== '').map(String).sort();
         }
@@ -1217,41 +1209,47 @@ function originalClinicalSourceState(form, current) {
 
     return {
         ids,
-        patientType: form.dataset.clinicalEntry === 'consultation' ? (form.dataset.originalPatientType ?? current.patientType) : '',
-        eyeType: form.dataset.originalEyeType ?? current.eyeType,
+        patientType: $form.attr('data-clinical-entry') === 'consultation' ? ($form.attr('data-original-patient-type') ?? current.patientType) : '',
+        eyeType: $form.attr('data-original-eye-type') ?? current.eyeType,
     };
 }
 
 function initializeClinicalEntry(form) {
-    const kind = form.dataset.clinicalEntry;
+    const $form = $(form);
+    const kind = $form.attr('data-clinical-entry');
     if (!['consultation', 'investigation', 'operation'].includes(kind)) {
         return;
     }
 
-    const $form = $(form);
-    const source = kind === 'consultation' ? form.querySelector('select[name="doctor_id"]')
-        : kind === 'investigation' ? form.querySelector('[data-investigation-items]')
-            : form.querySelector('select[name="operation_id"]');
-    const doctorSelect = form.querySelector('select[name="doctor_id"]');
-    const investigationPicker = form.querySelector('[data-investigation-picker]');
-    const discountPercent = form.querySelector('[name="discount_percent"]');
-    const discountAmount = form.querySelector('[name="discount_amount"]');
-    const discountModeField = form.querySelector('[name="discount_mode"]');
-    const extraDiscountPercent = form.querySelector('[name="extra_discount_percent"]');
-    const paidAmount = form.querySelector('[name="paid_amount"]');
-    let discountMode = kind === 'operation' || discountModeField?.value === 'amount' ? 'amount' : 'percent';
-    let items = selectedClinicalItems(source);
+    const sourceSelectors = {
+        consultation: 'select[name="doctor_id"]',
+        investigation: '[data-investigation-items]',
+        operation: 'select[name="operation_id"]',
+    };
+    const $source = $form.find(sourceSelectors[kind]);
+    const $doctorSelect = $form.find('select[name="doctor_id"]');
+    const $investigationPicker = $form.find('[data-investigation-picker]');
+    const $discountPercent = $form.find('[name="discount_percent"]');
+    const $discountAmount = $form.find('[name="discount_amount"]');
+    const $discountModeField = $form.find('[name="discount_mode"]');
+    const $extraDiscountPercent = $form.find('[name="extra_discount_percent"]');
+    const $paidAmount = $form.find('[name="paid_amount"]');
+    const recordExists = $form.attr('data-record-exists') === '1';
+    const initialAmount = $form.attr('data-initial-amount');
+    const originalEyeType = $form.attr('data-original-eye-type') || 'left';
+    let discountMode = kind === 'operation' || $discountModeField.val() === 'amount' ? 'amount' : 'percent';
+    let items = selectedClinicalItems($source);
     const investigationRows = new Map();
-    const original = originalClinicalSourceState(form, clinicalSourceState(form, kind, source));
+    const original = originalClinicalSourceState($form, clinicalSourceState($form, kind, $source));
     const originalIds = new Set(original.ids);
     let presetEyes = {};
     let originalInvestigationEyes = {};
     let originalInvestigationRates = {};
     if (kind === 'investigation') {
         try {
-            presetEyes = JSON.parse(form.dataset.investigationEyes ?? '{}') ?? {};
-            originalInvestigationEyes = JSON.parse(form.dataset.originalInvestigationEyes ?? '{}') ?? {};
-            originalInvestigationRates = JSON.parse(form.dataset.originalInvestigationRates ?? '{}') ?? {};
+            presetEyes = JSON.parse($form.attr('data-investigation-eyes') ?? '{}') ?? {};
+            originalInvestigationEyes = JSON.parse($form.attr('data-original-investigation-eyes') ?? '{}') ?? {};
+            originalInvestigationRates = JSON.parse($form.attr('data-original-investigation-rates') ?? '{}') ?? {};
         } catch {
             presetEyes = {};
             originalInvestigationEyes = {};
@@ -1260,7 +1258,7 @@ function initializeClinicalEntry(form) {
     }
 
     function syncInvestigationRows(initial = false) {
-        const selected = selectedClinicalItems(source);
+        const selected = selectedClinicalItems($source);
         const selectedById = new Map(selected.map(item => [item.id, item]));
         for (const id of investigationRows.keys()) {
             if (!selectedById.has(id)) {
@@ -1269,22 +1267,22 @@ function initializeClinicalEntry(form) {
         }
         for (const item of selected) {
             if (!investigationRows.has(item.id)) {
-                const defaultEye = form.elements.namedItem('eye_type')?.value || 'left';
+                const defaultEye = $form.find('[name="eye_type"]').val() || 'left';
                 const eye = initial ? (presetEyes[item.id] ?? item.entryEye ?? originalInvestigationEyes[item.id] ?? defaultEye) : defaultEye;
                 investigationRows.set(item.id, { eye, editing: false });
             }
         }
         items = Array.from(investigationRows.keys()).map(id => selectedById.get(id));
         for (const item of items) {
-            const option = Array.from(source.options).find(option => option.value === item.id);
-            if (option) {
-                source.append(option);
+            const $option = $source.find('option').filter((_, option) => $(option).val() === item.id);
+            if ($option.length) {
+                $source.append($option);
             }
         }
     }
 
     function sourceState() {
-        const current = clinicalSourceState(form, kind, source);
+        const current = clinicalSourceState($form, kind, $source);
         if (kind === 'investigation') {
             current.eyeType = '';
             current.investigationEyes = current.ids.map(id => [id, investigationRows.get(id)?.eye]);
@@ -1299,16 +1297,16 @@ function initializeClinicalEntry(form) {
         original.investigationEyes = original.ids.map(id => {
             const item = items.find(item => item.id === id);
 
-            return [id, originalInvestigationEyes[id] || item?.entryEye || form.dataset.originalEyeType || 'left'];
+            return [id, originalInvestigationEyes[id] || item?.entryEye || originalEyeType];
         });
     }
     let state = sourceState();
     let stateKey = JSON.stringify(state);
-    let preserveSnapshot = form.dataset.recordExists === '1' && stateKey === JSON.stringify(original);
+    let preserveSnapshot = recordExists && stateKey === JSON.stringify(original);
 
     function itemRate(item) {
         const eye = kind === 'investigation' ? investigationRows.get(item.id)?.eye : state.eyeType;
-        const savedEye = originalInvestigationEyes[item.id] || item.entryEye || form.dataset.originalEyeType || 'left';
+        const savedEye = originalInvestigationEyes[item.id] || item.entryEye || originalEyeType;
         if (kind === 'investigation' && originalIds.has(item.id) && eye === savedEye) {
             const savedRate = parseClinicalDecimal(originalInvestigationRates[item.id] ?? item.entryRate, 18);
             if (savedRate !== null) {
@@ -1345,12 +1343,12 @@ function initializeClinicalEntry(form) {
     }
 
     // Editing unrelated fields keeps the saved price until its source actually changes.
-    let amount = preserveSnapshot ? (parseClinicalDecimal(form.dataset.initialAmount, 18) ?? 0n) : currentAmount();
+    let amount = preserveSnapshot ? (parseClinicalDecimal(initialAmount, 18) ?? 0n) : currentAmount();
 
     function updateInvestigationPicker() {
-        const hasDoctor = Boolean(doctorSelect?.value);
-        investigationPicker.disabled = !hasDoctor || items.length >= 100;
-        investigationPicker.setCustomValidity(items.length === 0 ? 'Select at least one investigation.' : '');
+        const hasDoctor = Boolean($doctorSelect.val());
+        $investigationPicker.prop('disabled', !hasDoctor || items.length >= 100);
+        $investigationPicker.get(0).setCustomValidity(items.length === 0 ? 'Select at least one investigation.' : '');
         $form.find('[data-investigation-doctor-help]').prop('hidden', hasDoctor);
         $form.find('[data-investigation-picker-help]').text(items.length >= 100
             ? 'The maximum is 100 tests. Remove a test to add another.'
@@ -1370,7 +1368,7 @@ function initializeClinicalEntry(form) {
         }
 
         const eyeLabels = { left: 'Left', right: 'Right', both: 'Both' };
-        const doctorName = doctorSelect?.value ? doctorSelect.selectedOptions[0]?.textContent.trim() : '-';
+        const doctorName = $doctorSelect.val() ? $doctorSelect.find('option:selected').text().trim() : '-';
         for (const item of items) {
             const row = investigationRows.get(item.id);
             const $eye = $('<select>', {
@@ -1404,33 +1402,29 @@ function initializeClinicalEntry(form) {
                 .append($('<td>', { class: 'small text-break' }).text(item.name))
                 .append($('<td>', { class: 'small text-break' }).text(item.categoryName))
                 .append($eyeCell)
-                .append($('<td>', { class: 'text-end text-nowrap', 'data-investigation-row-rate': '' }).text(formatClinicalDecimal(itemRate(item) ?? 0n)))
+                .append($('<td>', { class: 'text-end text-nowrap', 'data-investigation-row-rate': '' }).text(formatAmount(itemRate(item) ?? 0n)))
                 .append($('<td>', { class: 'text-end text-nowrap' }).append($edit, ' ', $remove)));
         }
     }
 
     function renderPayment() {
-        $form.find('[data-clinical-amount]').val(formatClinicalDecimal(amount));
+        $form.find('[data-clinical-amount]').val(formatAmount(amount));
         $form.find('[data-clinical-payable], [data-clinical-due]').val('0.00');
         let discount;
 
         if (discountMode === 'percent') {
-            const percent = parseClinicalPercent(discountPercent?.value);
+            const percent = parseClinicalPercent($discountPercent.val());
             if (percent === null) {
                 return;
             }
-            discount = roundClinicalRatio(amount * percent, 10000n);
-            if (discountAmount) {
-                discountAmount.value = formatClinicalDecimal(discount);
-            }
+            discount = roundRatio(amount * percent, 10000n);
+            $discountAmount.val(formatAmount(discount));
         } else {
-            discount = parseClinicalDecimal(discountAmount?.value);
+            discount = parseClinicalDecimal($discountAmount.val());
             if (discount === null) {
                 return;
             }
-            if (discountPercent) {
-                discountPercent.value = formatClinicalDecimal(roundClinicalRatio(discount * 10000n, amount));
-            }
+            $discountPercent.val(formatAmount(roundRatio(discount * 10000n, amount)));
         }
         if (discount > amount) {
             return;
@@ -1438,20 +1432,20 @@ function initializeClinicalEntry(form) {
 
         let payable = amount - discount;
         if (kind === 'investigation') {
-            const extraPercent = parseClinicalPercent(extraDiscountPercent?.value);
+            const extraPercent = parseClinicalPercent($extraDiscountPercent.val());
             if (extraPercent === null) {
                 return;
             }
-            payable -= roundClinicalRatio(payable * extraPercent, 10000n);
+            payable -= roundRatio(payable * extraPercent, 10000n);
         }
-        $form.find('[data-clinical-payable]').val(formatClinicalDecimal(payable));
-        const paid = parseClinicalDecimal(paidAmount?.value);
+        $form.find('[data-clinical-payable]').val(formatAmount(payable));
+        const paid = parseClinicalDecimal($paidAmount.val());
         if (paid !== null && paid <= payable) {
-            $form.find('[data-clinical-due]').val(formatClinicalDecimal(payable - paid));
+            $form.find('[data-clinical-due]').val(formatAmount(payable - paid));
         }
     }
 
-    $form.on('change', '[name="doctor_id"], [name="patient_type"], [name="eye_type"], [name="investigation_ids[]"], [name="operation_id"]', function () {
+    $form.on('change.clinicalEntry', '[name="doctor_id"], [name="patient_type"], [name="eye_type"], [name="investigation_ids[]"], [name="operation_id"]', function () {
         if (kind === 'investigation') {
             if (this.name === 'doctor_id') {
                 updateInvestigationPicker();
@@ -1461,8 +1455,8 @@ function initializeClinicalEntry(form) {
                 return;
             }
             const currentIds = new Set(items.map(item => item.id));
-            if (!doctorSelect?.value && Array.from(source.selectedOptions).some(option => !currentIds.has(option.value))) {
-                $(source).val(items.map(item => item.id)).trigger('change.select2');
+            if (!$doctorSelect.val() && $source.find('option:selected').get().some(option => !currentIds.has($(option).val()))) {
+                $source.val(items.map(item => item.id)).trigger('change.select2');
                 return;
             }
             syncInvestigationRows();
@@ -1474,69 +1468,69 @@ function initializeClinicalEntry(form) {
         }
         state = nextState;
         stateKey = nextKey;
-        preserveSnapshot = form.dataset.recordExists === '1' && stateKey === JSON.stringify(original);
+        preserveSnapshot = recordExists && stateKey === JSON.stringify(original);
         if (kind !== 'investigation') {
-            items = selectedClinicalItems(source);
+            items = selectedClinicalItems($source);
         }
-        amount = preserveSnapshot ? (parseClinicalDecimal(form.dataset.initialAmount, 18) ?? 0n) : currentAmount();
+        amount = preserveSnapshot ? (parseClinicalDecimal(initialAmount, 18) ?? 0n) : currentAmount();
         if (kind === 'investigation') {
             updateInvestigationPicker();
         }
         renderPayment();
     });
-    $form.on('input change', '[name="discount_percent"], [name="discount_amount"], [name="extra_discount_percent"], [name="paid_amount"]', function () {
+    $form.on('input.clinicalEntry change.clinicalEntry', '[name="discount_percent"], [name="discount_amount"], [name="extra_discount_percent"], [name="paid_amount"]', function () {
         if (this.name === 'discount_percent' || this.name === 'discount_amount') {
             discountMode = this.name === 'discount_percent' ? 'percent' : 'amount';
-            if (discountModeField) {
-                discountModeField.value = discountMode;
-            }
+            $discountModeField.val(discountMode);
         }
         renderPayment();
     });
-    $form.on('click', '[data-remove-investigation]', function () {
-        const remaining = Array.from(source.selectedOptions).map(option => option.value)
-            .filter(id => id !== this.dataset.removeInvestigation);
-        $(source).val(remaining).trigger('change');
-        const nextRemove = $form.find('[data-remove-investigation]')[0];
-        if (nextRemove) {
-            nextRemove.focus();
+    $form.on('click.clinicalEntry', '[data-remove-investigation]', function () {
+        const removedId = $(this).attr('data-remove-investigation');
+        const remaining = $source.find('option:selected').map((_, option) => $(option).val()).get()
+            .filter(id => id !== removedId);
+        $source.val(remaining).trigger('change');
+        const $nextRemove = $form.find('[data-remove-investigation]').first();
+        if ($nextRemove.length) {
+            $nextRemove.trigger('focus');
         } else {
-            $(doctorSelect?.value ? investigationPicker : doctorSelect).next('.select2-container').find('.select2-selection').trigger('focus');
+            const $nextSelect = $doctorSelect.val() ? $investigationPicker : $doctorSelect;
+            $nextSelect.next('.select2-container').find('.select2-selection').trigger('focus');
         }
     });
-    $form.on('click', '[data-edit-investigation]', function () {
-        const row = investigationRows.get(this.dataset.editInvestigation);
+    $form.on('click.clinicalEntry', '[data-edit-investigation]', function () {
+        const id = $(this).attr('data-edit-investigation');
+        const row = investigationRows.get(id);
         if (row) {
             row.editing = !row.editing;
             renderInvestigationItems();
             if (row.editing) {
-                $form.find('[data-investigation-eye]').filter((_, select) => select.dataset.investigationEye === this.dataset.editInvestigation).trigger('focus');
+                $form.find('[data-investigation-eye]').filter((_, select) => $(select).attr('data-investigation-eye') === id).trigger('focus');
             } else {
-                $form.find('[data-edit-investigation]').filter((_, button) => button.dataset.editInvestigation === this.dataset.editInvestigation).trigger('focus');
+                $form.find('[data-edit-investigation]').filter((_, button) => $(button).attr('data-edit-investigation') === id).trigger('focus');
             }
         }
     });
-    $form.on('change', '[data-investigation-eye]', function () {
-        const id = this.dataset.investigationEye;
+    $form.on('change.clinicalEntry', '[data-investigation-eye]', function () {
+        const id = $(this).attr('data-investigation-eye');
         const row = investigationRows.get(id);
         if (!row) {
             return;
         }
-        row.eye = this.value;
+        row.eye = $(this).val();
         state = sourceState();
         stateKey = JSON.stringify(state);
-        preserveSnapshot = form.dataset.recordExists === '1' && stateKey === JSON.stringify(original);
-        amount = preserveSnapshot ? (parseClinicalDecimal(form.dataset.initialAmount, 18) ?? 0n) : currentAmount();
+        preserveSnapshot = recordExists && stateKey === JSON.stringify(original);
+        amount = preserveSnapshot ? (parseClinicalDecimal(initialAmount, 18) ?? 0n) : currentAmount();
         const $row = $(this).closest('tr');
         $row.find('[data-investigation-eye-value]').val(row.eye);
-        $row.find('[data-investigation-row-rate]').text(formatClinicalDecimal(itemRate(items.find(item => item.id === id)) ?? 0n));
+        $row.find('[data-investigation-row-rate]').text(formatAmount(itemRate(items.find(item => item.id === id)) ?? 0n));
         renderPayment();
     });
 
     if (kind === 'investigation') {
-        const $picker = $(investigationPicker);
-        $picker.on('select2:opening select2:selecting', event => {
-            if (!doctorSelect?.value || items.length >= 100) {
+        $investigationPicker.on('select2:opening.clinicalEntry select2:selecting.clinicalEntry', event => {
+            if (!$doctorSelect.val() || items.length >= 100) {
                 event.preventDefault();
                 return;
             }
@@ -1546,29 +1540,29 @@ function initializeClinicalEntry(form) {
                 $form.find('[data-investigation-picker-help]').text('This test is already in the list. Select another test.');
             }
         });
-        $picker.on('select2:select', event => {
+        $investigationPicker.on('select2:select.clinicalEntry', event => {
             const test = event.params?.data;
             const id = String(test?.id ?? '');
-            if (!doctorSelect?.value || items.length >= 100 || !/^[1-9][0-9]*$/.test(id)
+            if (!$doctorSelect.val() || items.length >= 100 || !/^[1-9][0-9]*$/.test(id)
                 || items.some(item => item.id === id)) {
                 return;
             }
 
-            let option = Array.from(source.options).find(option => option.value === id);
-            if (!option) {
-                option = new Option(test.name ?? test.text, id);
-                source.append(option);
+            let $option = $source.find('option').filter((_, option) => $(option).val() === id);
+            if (!$option.length) {
+                $option = $('<option>', { value: id }).text(test.name ?? test.text).appendTo($source);
             }
-            option.dataset.singleRate = test.single_rate ?? '';
-            option.dataset.bothRate = test.both_rate ?? '';
-            option.dataset.categoryName = test.category?.name ?? '-';
-            option.selected = true;
-            $(source).trigger('change');
-            $picker.val(null).trigger('change.select2');
+            $option.attr({
+                'data-single-rate': test.single_rate ?? '',
+                'data-both-rate': test.both_rate ?? '',
+                'data-category-name': test.category?.name ?? '-',
+            }).prop('selected', true);
+            $source.trigger('change');
+            $investigationPicker.val(null).trigger('change.select2');
 
             window.setTimeout(() => {
-                if (investigationPicker.isConnected && !investigationPicker.disabled && doctorSelect?.value) {
-                    $picker.select2('open');
+                if ($investigationPicker.prop('isConnected') && !$investigationPicker.prop('disabled') && $doctorSelect.val()) {
+                    $investigationPicker.select2('open');
                 }
             }, 0);
         });
@@ -1602,7 +1596,7 @@ function initializeInvoiceEditor(editor) {
         $items.find('[data-invoice-remove]').prop('disabled', count <= 1);
     }
 
-    $editor.on('click', '[data-invoice-add]', () => {
+    $editor.on('click.invoiceEditor', '[data-invoice-add]', () => {
         if ($items.children('[data-invoice-item]').length >= 100) {
             return;
         }
@@ -1613,7 +1607,7 @@ function initializeInvoiceEditor(editor) {
         $items.children('[data-invoice-item]').last().find('input').first().trigger('focus');
     });
 
-    $editor.on('click', '[data-invoice-remove]', function () {
+    $editor.on('click.invoiceEditor', '[data-invoice-remove]', function () {
         if ($items.children('[data-invoice-item]').length <= 1) {
             return;
         }
@@ -1626,76 +1620,84 @@ function initializeInvoiceEditor(editor) {
 }
 
 function initializePaymentProvider(select) {
-    const $fields = $(select.form).find('[data-manual-payment-fields]');
+    const $select = $(select);
+    const $form = $(select.form);
+    const $fields = $form.find('[data-manual-payment-fields]');
     const requiredInputs = new Set($fields.find(':input[required]').toArray());
 
     function updateFields() {
-        const manual = select.value === 'manual';
-        const method = select.selectedOptions[0];
-        $(select.form).find('[data-payment-extra-charge]').text(method?.dataset.extraCharge ?? '0.00');
-        $(select.form).find('[data-payment-total]').text(method?.dataset.total ?? '0.00');
+        const manual = $select.val() === 'manual';
+        const $method = $select.find('option:selected');
+        $form.find('[data-payment-extra-charge]').text($method.attr('data-extra-charge') ?? '0.00');
+        $form.find('[data-payment-total]').text($method.attr('data-total') ?? '0.00');
         $fields.prop('hidden', !manual);
         $fields.find(':input').each(function () {
-            this.disabled = !manual;
-            this.required = manual && requiredInputs.has(this);
+            $(this).prop({ disabled: !manual, required: manual && requiredInputs.has(this) });
         });
     }
 
-    $(select).on('change', updateFields);
+    $select.on('change.paymentProvider', updateFields);
     updateFields();
 }
 
-$(document).on('click', '[data-print]', () => window.print());
+$(document).on('click.print', '[data-print]', () => window.print());
+
+function prepareTimeInput(_, __, picker) {
+    const $input = $(picker.input);
+    const $altInput = $(picker.altInput);
+    $input.before($altInput);
+    $altInput.attr({ id: $input.attr('id'), autocomplete: 'off' });
+    $input.attr('id', $input.attr('id') + '_value');
+    for (const attribute of ['aria-invalid', 'aria-describedby']) {
+        const value = $input.attr(attribute);
+        if (value !== undefined) $altInput.attr(attribute, value);
+    }
+}
 
 window.initDateTimePickers = function (root = document) {
-    $(root).find('[data-datepicker]').addBack('[data-datepicker]').each((_, element) => {
-        if (element._flatpickr || element.querySelector('[data-input]')?._flatpickr) return;
+    const selector = '[data-datepicker], [data-timepicker]';
+    const timeOptions = {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: 'H:i',
+        altInput: true,
+        altFormat: 'G:i K',
+        time_24hr: false,
+        onReady: prepareTimeInput,
+    };
 
-        flatpickr(element, {
+    $(root).find(selector).addBack(selector).each(function () {
+        const $picker = $(this);
+        if (this._flatpickr || $picker.find('[data-input]').get(0)?._flatpickr) return;
+
+        $picker.flatpickr({
             wrap: true,
-            dateFormat: 'Y-m-d',
             allowInput: true,
             disableMobile: true,
-        });
-    });
-    $(root).find('[data-timepicker]').addBack('[data-timepicker]').each((_, element) => {
-        if (element._flatpickr || element.querySelector('[data-input]')?._flatpickr) return;
-
-        flatpickr(element, {
-            wrap: true,
-            enableTime: true,
-            noCalendar: true,
-            dateFormat: 'H:i',
-            altInput: true,
-            altFormat: 'G:i K',
-            time_24hr: false,
-            allowInput: true,
-            disableMobile: true,
-            onReady(_, __, picker) {
-                const { input, altInput } = picker;
-                input.before(altInput);
-                altInput.id = input.id;
-                input.id += '_value';
-                altInput.autocomplete = 'off';
-                for (const attribute of ['aria-invalid', 'aria-describedby']) {
-                    const value = input.getAttribute(attribute);
-                    if (value !== null) {
-                        altInput.setAttribute(attribute, value);
-                    }
-                }
-            },
+            ...($picker.is('[data-timepicker]') ? timeOptions : { dateFormat: 'Y-m-d' }),
         });
     });
 };
 
 $(() => {
-    const saleInvoicePaper = document.getElementById('inventory-sale-invoice-paper');
-    const salePosWidth = document.querySelector('[data-inventory-pos-width]');
-    if (saleInvoicePaper && salePosWidth) {
+    $('[data-toast-message]').each(function () {
+        const $message = $(this);
+        window.showToast($message.attr('data-toast-message'), $message.attr('data-toast-type'));
+        $message.remove();
+    });
+    window.initAjaxSelects();
+    initializeNavigation();
+    $('[data-domain-editor]').each((_, editor) => updateDomainRows($(editor)));
+    $('[data-tenant-form]').each((_, form) => initializeTenantForm(form));
+    $('[data-permission-editor]').each((_, editor) => initializePermissionEditor(editor));
+
+    const $saleInvoicePaper = $('#inventory-sale-invoice-paper');
+    const $salePosWidth = $('[data-inventory-pos-width]');
+    if ($saleInvoicePaper.length && $salePosWidth.length) {
         const updatePosWidth = () => {
-            salePosWidth.hidden = saleInvoicePaper.value !== 'pos' && !salePosWidth.querySelector('.is-invalid');
+            $salePosWidth.prop('hidden', $saleInvoicePaper.val() !== 'pos' && !$salePosWidth.find('.is-invalid').length);
         };
-        saleInvoicePaper.addEventListener('change', updatePosWidth);
+        $saleInvoicePaper.on('change.inventorySettings', updatePosWidth);
         updatePosWidth();
     }
     window.initDateTimePickers();
