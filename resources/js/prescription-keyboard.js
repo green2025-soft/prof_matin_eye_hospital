@@ -22,10 +22,12 @@ function bindPaletteNavigation($menu) {
     });
 }
 
-export function initializePrescriptionKeyboard($modal, $search, $rows, editor) {
+export function initializePrescriptionKeyboard($modal, $search, $rows) {
+    let $activeRow = $rows.children('.prescription-medicine-row').first();
+
     function currentRow() {
-        const $visible = $rows.children('.prescription-medicine-row:visible').first();
-        return $visible.length ? $visible : $rows.children('.prescription-medicine-row').first();
+        if (!$activeRow.parent().is($rows)) $activeRow = $rows.children('.prescription-medicine-row').first();
+        return $activeRow;
     }
 
     function focusSearch() {
@@ -54,12 +56,6 @@ export function initializePrescriptionKeyboard($modal, $search, $rows, editor) {
         }
         if (!$modal.hasClass('show')) return;
 
-        if (key === 'F6' && !event.altKey) {
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            $('#prescription-rx-set-doses:enabled').trigger('click');
-            return;
-        }
         if (key === 'F8' && !event.altKey) {
             event.preventDefault();
             event.stopImmediatePropagation();
@@ -73,9 +69,7 @@ export function initializePrescriptionKeyboard($modal, $search, $rows, editor) {
             event.preventDefault();
             event.stopImmediatePropagation();
             $modal.find('select.select2-hidden-accessible').select2('close');
-            const $row = currentRow();
-            $row.trigger('prescription:edit-medicine');
-            $row.find('.prescription-unit-toggle').trigger('focus').trigger('click');
+            currentRow().find('.prescription-unit-toggle').trigger('focus').trigger('click');
         }
     }
 
@@ -84,7 +78,7 @@ export function initializePrescriptionKeyboard($modal, $search, $rows, editor) {
         $modal.find('.select2-search__field')
             .off('.prescriptionKeyboard').on('keydown.prescriptionKeyboard', handleShortcut)
             .on('keyup.prescriptionKeyboard', event => {
-                if (['F2', 'F4', 'F6', 'F8'].includes(event.key) || (event.altKey && event.key.toLowerCase() === 'm')) {
+                if (['F2', 'F4', 'F8'].includes(event.key) || (event.altKey && event.key.toLowerCase() === 'm')) {
                     event.preventDefault();
                     event.stopImmediatePropagation();
                 }
@@ -97,18 +91,21 @@ export function initializePrescriptionKeyboard($modal, $search, $rows, editor) {
     bindPaletteNavigation($('#prescription-dose-palette'));
     bindPaletteNavigation($('#prescription-unit-palette'));
 
+    $rows.on('focusin.prescriptionKeyboard', '.prescription-medicine-row', function () {
+        $activeRow = $(this);
+    });
     $rows.on('keydown.prescriptionKeyboard', '[name$="[medicine_name]"]', function (event) {
         const $row = $(this).closest('.prescription-medicine-row');
-        const $schedule = $row.find('.prescription-schedule-dose:visible, .prescription-frequency-value:visible').first();
-        moveOnEnter(event, $schedule);
+        moveOnEnter(event, $row.find('.prescription-frequency-value'));
     });
     $rows.on('keydown.prescriptionKeyboard', '.prescription-frequency-value', function (event) {
         moveOnEnter(event, $(this).closest('.prescription-medicine-row').find('.prescription-unit-toggle'));
     });
-    $rows.on('keydown.prescriptionKeyboard', '.prescription-duration-count, .prescription-duration-value', event => {
-        if (event.key !== 'Enter' || event.altKey || event.ctrlKey || event.metaKey || event.originalEvent?.isComposing) return;
-
-        event.preventDefault();
-        editor.nextMedicine();
+    $rows.on('keydown.prescriptionKeyboard', '.prescription-duration-count', function (event) {
+        moveOnEnter(event, $(this).siblings('.prescription-duration-unit'));
+    });
+    $rows.on('keydown.prescriptionKeyboard', '.prescription-duration-value', function (event) {
+        const $row = $(this).closest('.prescription-medicine-row');
+        moveOnEnter(event, $row.find('.prescription-instruction-search').next('.select2-container').find('.select2-selection'));
     });
 }

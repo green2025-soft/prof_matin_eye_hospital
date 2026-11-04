@@ -12,56 +12,24 @@
                 <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div class="app-prescription-rx-options" id="prescription-rx-options"
+                    aria-label="Medicine suggestions">
+                    <p class="small text-body-secondary mb-0">Search or select a medicine above.</p>
+                </div>
                 @error('medicines')
                     <div class="invalid-feedback d-block mb-3">{{ $message }}</div>
                 @enderror
-                <section id="prescription-rx-selection" aria-label="Choose medicines">
-                    <div class="app-prescription-rx-options" id="prescription-rx-options"
-                        aria-label="Medicine suggestions">
-                        <p class="small text-body-secondary mb-0">Search and select all medicines above.</p>
-                    </div>
-                    <div class="d-flex align-items-center gap-2 mt-3 mb-2">
-                        <h3 class="h6 mb-0">Selected medicines</h3>
-                        <span class="badge text-bg-light" id="prescription-rx-selected-count" aria-live="polite">0</span>
-                    </div>
-                    <p class="small text-body-secondary mb-0" id="prescription-rx-selected-empty">No medicines selected.</p>
-                    <ul class="app-prescription-selected-medicines" id="prescription-rx-selected"></ul>
-                </section>
-                <section class="d-none" id="prescription-rx-editor" aria-label="Medicine dose and duration">
-                    <div class="app-prescription-medicine-navigation">
-                        <label class="visually-hidden" for="prescription-rx-medicine-jump">Medicine to edit</label>
-                        <select class="form-select form-select-sm" id="prescription-rx-medicine-jump"></select>
-                        <span class="small text-body-secondary text-nowrap" id="prescription-rx-position"
-                            aria-live="polite"></span>
-                    </div>
-                    <ol class="app-prescription-editor-medicines" id="prescription-medicines">
-                        @foreach ($medicineRows as $medicineIndex => $medicine)
-                            @include('prescription::prescriptions.medicine-row', [
-                                'medicineIndex' => $medicineIndex,
-                                'medicine' => $medicine,
-                            ])
-                        @endforeach
-                    </ol>
-                </section>
+                <ol class="app-prescription-editor-medicines" id="prescription-medicines">
+                    @foreach ($medicineRows as $medicineIndex => $medicine)
+                        @include('prescription::prescriptions.medicine-row', [
+                            'medicineIndex' => $medicineIndex,
+                            'medicine' => $medicine,
+                        ])
+                    @endforeach
+                </ol>
             </div>
-            <div class="modal-footer gap-2 py-2">
-                <div class="d-flex align-items-center gap-2 flex-grow-1" id="prescription-rx-selection-actions">
-                    <small class="text-body-secondary">Select medicines · F6 Set doses</small>
-                    <button class="btn btn-primary btn-sm ms-auto" id="prescription-rx-set-doses" type="button"
-                        aria-keyshortcuts="F6" disabled>
-                        Set doses
-                    </button>
-                </div>
-                <div class="d-none d-flex align-items-center gap-2 flex-grow-1" id="prescription-rx-editor-actions">
-                    <button class="btn btn-outline-secondary btn-sm" id="prescription-rx-choose-medicines" type="button">
-                        Medicines
-                    </button>
-                    <small class="text-body-secondary d-none d-sm-block">0–6 Dose · Enter Next</small>
-                    <button class="btn btn-outline-primary btn-sm ms-auto" id="prescription-rx-previous" type="button">
-                        Previous
-                    </button>
-                    <button class="btn btn-primary btn-sm" id="prescription-rx-next" type="button">Next medicine</button>
-                </div>
+            <div class="modal-footer justify-content-between py-2">
+                <small class="text-body-secondary">F2 Search · F4 Unit · F8 Done</small>
                 <button class="btn btn-primary btn-sm" type="button" data-bs-dismiss="modal"
                     aria-keyshortcuts="F8" title="Close medicines (F8)">Done</button>
             </div>

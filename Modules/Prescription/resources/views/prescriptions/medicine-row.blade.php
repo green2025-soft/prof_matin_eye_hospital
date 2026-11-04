@@ -39,6 +39,14 @@
 
     <div class="app-prescription-rx-card-controls">
         <div class="prescription-frequency-field">
+            <label class="form-label" for="{{ $errorId }}-frequency">Dose</label>
+            <input id="{{ $errorId }}-frequency" name="{{ $name }}[frequency]" form="prescription-form"
+                type="text" maxlength="100" placeholder="1+0+1" autocomplete="off"
+                class="{{ inputClass($field.'.frequency', $controlClass) }} prescription-frequency-value mb-2"
+                value="{{ data_get($medicine, 'frequency') }}" {{ inputAttrs($field.'.frequency') }}>
+            @error($field.'.frequency')
+                <div class="invalid-feedback d-block" id="{{ $errorId }}-frequency-error">{{ $message }}</div>
+            @enderror
             <div class="dropdown prescription-schedule-menu">
                 <button class="btn btn-sm dropdown-toggle prescription-frequency-mode" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false" value="3">Schedule</button>
@@ -58,14 +66,6 @@
                 </ul>
             </div>
             <div class="prescription-schedule-controls" role="group" aria-label="Daily schedule"></div>
-            <label class="visually-hidden" for="{{ $errorId }}-frequency">Frequency</label>
-            <input id="{{ $errorId }}-frequency" name="{{ $name }}[frequency]" form="prescription-form"
-                maxlength="100" hidden
-                class="{{ inputClass($field.'.frequency', $controlClass) }} prescription-frequency-value"
-                value="{{ data_get($medicine, 'frequency') }}" {{ inputAttrs($field.'.frequency') }}>
-            @error($field.'.frequency')
-                <div class="invalid-feedback d-block" id="{{ $errorId }}-frequency-error">{{ $message }}</div>
-            @enderror
             <div class="app-prescription-food-options" role="group" aria-label="Food instructions">
                 <button class="prescription-food-instruction" type="button" aria-pressed="false">
                     খাওয়ার আগে
