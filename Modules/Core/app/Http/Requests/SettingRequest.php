@@ -20,7 +20,7 @@ class SettingRequest extends BaseRequest
             'provider' => $isPayment ? $group : null,
             'section' => match ($group) {
                 'hospital' => $this->hospitalSection(),
-                'inventory' => $this->inventorySection(),
+                'pharmacy' => $this->pharmacySection(),
                 default => null,
             },
         ]);
@@ -44,8 +44,8 @@ class SettingRequest extends BaseRequest
             $values['data']['invoice_prefix'] = strtoupper($values['data']['invoice_prefix']);
         } elseif ($group === 'company' && array_key_exists('email', $values['data'])) {
             $values['data']['email'] = normalizeEmail($values['data']['email']) ?? '';
-        } elseif ($group === 'inventory') {
-            foreach (array_merge(['vat_enabled', 'medicine_sale_without_stock_enabled', 'optic_sale_without_stock_enabled'], config('settings.inventory_sections.items')) as $field) {
+        } elseif ($group === 'pharmacy') {
+            foreach (array_merge(['vat_enabled', 'medicine_sale_without_stock_enabled', 'optic_sale_without_stock_enabled'], config('settings.pharmacy_sections.items')) as $field) {
                 if (array_key_exists($field, $values['data'])) {
                     $values['data'][$field] = $this->boolean('data.'.$field);
                 }
@@ -81,9 +81,9 @@ class SettingRequest extends BaseRequest
         if ($setting->group === 'hospital') {
             $fields = Arr::only($fields, config('settings.hospital_sections')[$this->hospitalSection()]);
             $sections = array_keys(config('settings.hospital_sections'));
-        } elseif ($setting->group === 'inventory') {
-            $fields = Arr::only($fields, config('settings.inventory_sections')[$this->inventorySection()]);
-            $sections = array_keys(config('settings.inventory_sections'));
+        } elseif ($setting->group === 'pharmacy') {
+            $fields = Arr::only($fields, config('settings.pharmacy_sections')[$this->pharmacySection()]);
+            $sections = array_keys(config('settings.pharmacy_sections'));
         }
         $credentials = config('settings.credentials.'.$setting->group, []);
         $configured = $setting->configuredCredentials();
@@ -128,13 +128,13 @@ class SettingRequest extends BaseRequest
                     $this->validateHospitalNumberPattern($prefix, $value, $fail);
                 };
             }
-        } elseif ($setting->group === 'inventory') {
-            foreach (config('settings.inventory_sections.numbering') as $field) {
+        } elseif ($setting->group === 'pharmacy') {
+            foreach (config('settings.pharmacy_sections.numbering') as $field) {
                 if (! isset($rules['data.'.$field])) {
                     continue;
                 }
                 $rules['data.'.$field][] = function (string $attribute, mixed $value, \Closure $fail) use ($field): void {
-                    $this->validateInventoryNumberPattern($value, $field === 'payment_invoice_pattern' ? 40 : 80, $fail);
+                    $this->validatePharmacyNumberPattern($value, $field === 'payment_invoice_pattern' ? 40 : 80, $fail);
                 };
             }
         }
@@ -180,14 +180,14 @@ class SettingRequest extends BaseRequest
         return is_string($section) && array_key_exists($section, config('settings.hospital_sections')) ? $section : 'patient';
     }
 
-    private function inventorySection(): string
+    private function pharmacySection(): string
     {
         $section = $this->input('section', 'general');
 
-        return is_string($section) && array_key_exists($section, config('settings.inventory_sections')) ? $section : 'general';
+        return is_string($section) && array_key_exists($section, config('settings.pharmacy_sections')) ? $section : 'general';
     }
 
-    private function validateInventoryNumberPattern(string $pattern, int $maximumLength, \Closure $fail): void
+    private function validatePharmacyNumberPattern(string $pattern, int $maximumLength, \Closure $fail): void
     {
         if (! preg_match('/\A(?:[\p{L}\p{N} ._\/-]|\{(?:YYYY|MM|DD|BRANCH|PRODUCT|SEQ(?::(?:[1-9]|1[0-2]))?)\})+\z/u', $pattern)) {
             $fail('Use letters, numbers, spaces, . _ / -, and supported numbering tokens only.');

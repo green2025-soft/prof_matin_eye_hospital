@@ -90,7 +90,7 @@
                             aria-labelledby="history-drug-tab" tabindex="0">
                             <label class="form-label" for="prescription-history-medicine-search">Add medicine</label>
                             <select class="form-select" id="prescription-history-medicine-search"
-                                data-url="{{ route('inventory.products.options', ['type' => 'medicine']) }}">
+                                data-url="{{ route('pharmacy.products.options', ['type' => 'medicine']) }}">
                                 <option value=""></option>
                             </select>
                             <div class="app-prescription-history-selection">

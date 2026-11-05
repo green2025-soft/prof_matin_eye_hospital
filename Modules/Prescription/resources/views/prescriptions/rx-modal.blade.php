@@ -7,7 +7,7 @@
                 <div class="app-prescription-rx-search">
                     <label class="visually-hidden" for="prescription-medicine-search">Search / Add medicine</label>
                     <select id="prescription-medicine-search" multiple
-                        data-url="{{ route('inventory.products.options', ['type' => 'medicine']) }}"></select>
+                        data-url="{{ route('pharmacy.products.options', ['type' => 'medicine']) }}"></select>
                 </div>
                 <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

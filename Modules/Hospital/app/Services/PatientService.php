@@ -18,23 +18,23 @@ use Modules\Core\Models\Setting;
 use Modules\Core\Models\Subscription;
 use Modules\Core\Models\Tenant;
 use Modules\Core\Services\AccessManager;
-use Modules\Hospital\Contracts\InventoryCustomers;
+use Modules\Hospital\Contracts\PharmacyCustomers;
 use Modules\Hospital\Models\Patient;
 
-class PatientService implements InventoryCustomers
+class PatientService implements PharmacyCustomers
 {
     public function __construct(private AccessManager $access) {}
 
     public function paginate(Account $actor, array $filters): LengthAwarePaginator
     {
-        $this->authorizeInventoryCustomers($actor);
+        $this->authorizePharmacyCustomers($actor);
         $size = $filters['per_page'] ?? config('pagination.default');
         $all = $size === 'all';
         $size = $all ? 'all' : (int) $size;
         if (! in_array($size, config('pagination.options'), true)) {
             $size = config('pagination.default');
         }
-        $records = $this->inventoryCustomerQuery($filters['search'] ?? '', false)
+        $records = $this->pharmacyCustomerQuery($filters['search'] ?? '', false)
             ->orderBy('name')->orderBy('id')
             ->paginate($all ? fn (int $total): int => max(1, $total) : $size, ['*'], 'page', $all ? 1 : max(1, (int) ($filters['page'] ?? 1)))
             ->appends(['search' => $filters['search'] ?? '', 'per_page' => $size]);
@@ -45,8 +45,8 @@ class PatientService implements InventoryCustomers
 
     public function search(Account $actor, string $search, bool $customersOnly, int $page = 1, ?QueryBuilder $eligibleIds = null): array
     {
-        $this->authorizeInventoryCustomers($actor);
-        $query = $this->inventoryCustomerQuery($search, $customersOnly);
+        $this->authorizePharmacyCustomers($actor);
+        $query = $this->pharmacyCustomerQuery($search, $customersOnly);
         if ($eligibleIds !== null) {
             $query->whereIn('id', $eligibleIds);
         }
@@ -55,7 +55,7 @@ class PatientService implements InventoryCustomers
         return ['results' => $records->getCollection()->map($this->customerOption(...))->all(), 'pagination' => ['more' => $records->hasMorePages()]];
     }
 
-    private function inventoryCustomerQuery(string $search, bool $customersOnly): Builder
+    private function pharmacyCustomerQuery(string $search, bool $customersOnly): Builder
     {
         $query = Patient::withoutGlobalScope('branch')->select(['id', 'patient_id', 'name', 'mobile_no', 'type']);
 
@@ -78,7 +78,7 @@ class PatientService implements InventoryCustomers
         if ($ids === []) {
             return [];
         }
-        $this->authorizeInventoryCustomers($actor);
+        $this->authorizePharmacyCustomers($actor);
 
         $customers = [];
         foreach (array_chunk(array_unique($ids), 500) as $chunk) {
@@ -104,7 +104,7 @@ class PatientService implements InventoryCustomers
 
         try {
             return $this->access->transaction($actor, function (Account $freshActor) use ($values, $branchId): array {
-                $this->authorizeInventoryCustomers($freshActor, creating: true);
+                $this->authorizePharmacyCustomers($freshActor, creating: true);
                 if ($branchId < 1 || $branchId !== (int) request()->attributes->get('branch_id')) {
                     throw new AuthorizationException('Select a branch before creating a customer.');
                 }
@@ -126,22 +126,22 @@ class PatientService implements InventoryCustomers
         }
     }
 
-    private function authorizeInventoryCustomers(Account $actor, bool $creating = false): void
+    private function authorizePharmacyCustomers(Account $actor, bool $creating = false): void
     {
         $this->access->assertActorContext($actor);
         $tenant = Tenant::current();
         $subscription = $tenant === null ? null : Subscription::forTenant($tenant);
         $plan = $subscription?->plan;
-        if (! $subscription?->isUsable() || ! $plan->allowsRoutePermission('inventory.view')
-            || (! $this->access->isOwner($actor) && ! $actor->can('inventory.view'))) {
-            throw new AuthorizationException('Inventory access is required.');
+        if (! $subscription?->isUsable() || ! $plan->allowsRoutePermission('pharmacy.view')
+            || (! $this->access->isOwner($actor) && ! $actor->can('pharmacy.view'))) {
+            throw new AuthorizationException('Pharmacy access is required.');
         }
 
-        $permissions = $creating ? ['inventory-sales.create', 'inventory-customers.create'] : [
-            'inventory-sales.view', 'inventory-sales.create', 'inventory-sales.update',
-            'inventory-sale-returns.view', 'inventory-sale-returns.create', 'inventory-sale-returns.update',
-            'inventory-customers.view', 'inventory-payments.view', 'inventory-payments.create',
-            'inventory-reports.view',
+        $permissions = $creating ? ['pharmacy-sales.create', 'pharmacy-customers.create'] : [
+            'pharmacy-sales.view', 'pharmacy-sales.create', 'pharmacy-sales.update',
+            'pharmacy-sale-returns.view', 'pharmacy-sale-returns.create', 'pharmacy-sale-returns.update',
+            'pharmacy-customers.view', 'pharmacy-payments.view', 'pharmacy-payments.create',
+            'pharmacy-reports.view',
         ];
         $allowed = array_map(fn (string $permission): bool => $plan->allowsRoutePermission($permission)
             && ($this->access->isOwner($actor) || $actor->can($permission)), $permissions);

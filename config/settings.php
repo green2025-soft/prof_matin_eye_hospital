@@ -9,8 +9,8 @@ $gatewayRules = [
 ];
 
 return [
-    'tenant_groups' => ['company', 'branding', 'general', 'email', 'hospital', 'inventory', 'prescription'],
-    'tenant_only_groups' => ['hospital', 'inventory', 'prescription'],
+    'tenant_groups' => ['company', 'branding', 'general', 'email', 'hospital', 'pharmacy', 'prescription'],
+    'tenant_only_groups' => ['hospital', 'pharmacy', 'prescription'],
     'group_aliases' => ['patients' => 'hospital'],
     'payment_groups' => ['manual', 'sslcommerz', 'bkash', 'nagad', 'eps'],
     'reference_discount_modes' => [
@@ -41,7 +41,7 @@ return [
         'refund' => ['refund_invoice_scope', 'refund_invoice_reset', 'refund_invoice_pattern'],
         'due_collection' => ['due_collection_invoice_scope', 'due_collection_invoice_reset', 'due_collection_invoice_pattern'],
     ],
-    'inventory_sections' => [
+    'pharmacy_sections' => [
         'general' => ['stock_method', 'medicine_sale_without_stock_enabled', 'optic_sale_without_stock_enabled', 'customer_scope', 'sale_invoice_paper', 'sale_pos_width_mm', 'vat_enabled', 'vat_mode', 'vat_percent'],
         'numbering' => [
             'purchase_invoice_pattern', 'sale_invoice_pattern', 'purchase_return_invoice_pattern', 'sale_return_invoice_pattern',
@@ -61,7 +61,7 @@ return [
         'general' => ['label' => 'General', 'description' => 'Workspace timezone and language preferences.', 'icon' => 'sliders'],
         'email' => ['label' => 'Email', 'description' => 'SMTP delivery and sender identity for this workspace.', 'icon' => 'envelope'],
         'hospital' => ['label' => 'Hospital', 'description' => 'Patient, Doctor and Reference IDs, commissions, serials, and invoice numbering.', 'icon' => 'hospital'],
-        'inventory' => ['label' => 'Inventory', 'description' => 'Stock, numbering and item fields.', 'icon' => 'boxes-stacked'],
+        'pharmacy' => ['label' => 'Pharmacy', 'description' => 'Stock, numbering and item fields.', 'icon' => 'boxes-stacked'],
         'sms' => ['label' => 'SMS', 'description' => 'Configure an HTTP SMS provider and map its API fields.', 'icon' => 'comment-sms'],
         'manual' => ['label' => 'Manual payment', 'description' => 'Manual payment availability, customer instructions, and a fixed extra charge.', 'icon' => 'money-bill-transfer'],
         'sslcommerz' => ['label' => 'SSLCommerz', 'description' => 'Store credentials and payment environment.', 'icon' => 'credit-card'],
@@ -124,7 +124,7 @@ return [
             'glass_paper' => 'a5',
             'glass_header_enabled' => true,
         ],
-        'inventory' => [
+        'pharmacy' => [
             'stock_method' => 'fifo',
             'medicine_sale_without_stock_enabled' => false,
             'optic_sale_without_stock_enabled' => false,
@@ -242,7 +242,7 @@ return [
             'glass_paper' => ['required', 'in:a4,a5'],
             'glass_header_enabled' => ['required', 'boolean'],
         ],
-        'inventory' => [
+        'pharmacy' => [
             'stock_method' => ['required', 'in:fifo,lifo'],
             'medicine_sale_without_stock_enabled' => ['required', 'boolean'],
             'optic_sale_without_stock_enabled' => ['required', 'boolean'],

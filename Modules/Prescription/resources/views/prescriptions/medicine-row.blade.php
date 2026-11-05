@@ -68,10 +68,10 @@
             <div class="prescription-schedule-controls" role="group" aria-label="Daily schedule"></div>
             <div class="app-prescription-food-options" role="group" aria-label="Food instructions">
                 <button class="prescription-food-instruction" type="button" aria-pressed="false">
-                    খাওয়ার আগে
-                </button>
-                <button class="prescription-food-instruction" type="button" aria-pressed="false">
                     খাওয়ার পরে
+                </button>
+                <button class="prescription-food-instruction" type="button" aria-pressed="false" tabindex="-1">
+                    খাওয়ার আগে
                 </button>
             </div>
             <div class="prescription-instruction-selection" aria-live="polite"></div>

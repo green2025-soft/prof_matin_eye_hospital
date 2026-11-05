@@ -2589,35 +2589,35 @@
     }
 }
 
-.app-inventory-invoice .app-inventory-invoice-parties {
+.app-pharmacy-invoice .app-pharmacy-invoice-parties {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
     margin-bottom: 1.25rem;
 }
 
-.app-inventory-invoice-parties > div {
+.app-pharmacy-invoice-parties > div {
     min-width: 0;
     padding: 0.75rem 1rem;
     border: 1px solid var(--app-border);
     overflow-wrap: anywhere;
 }
 
-.app-inventory-invoice-parties p {
+.app-pharmacy-invoice-parties p {
     margin-bottom: 0.25rem;
 }
 
-.app-inventory-invoice-parties p:last-child {
+.app-pharmacy-invoice-parties p:last-child {
     margin-bottom: 0;
 }
 
-.app-inventory-invoice-parties .app-clinical-invoice-meta {
+.app-pharmacy-invoice-parties .app-clinical-invoice-meta {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.5rem 1rem;
     margin-bottom: 0;
 }
 
-.app-inventory-invoice .app-inventory-invoice-status {
+.app-pharmacy-invoice .app-pharmacy-invoice-status {
     max-width: 14rem;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -2625,68 +2625,68 @@
     white-space: normal;
 }
 
-.app-inventory-invoice .app-inventory-invoice-table {
+.app-pharmacy-invoice .app-pharmacy-invoice-table {
     min-width: 44rem;
     table-layout: auto;
     font-variant-numeric: tabular-nums;
 }
 
-.app-inventory-invoice-table > thead > tr > th,
-.app-inventory-invoice-table > tbody > tr > td {
+.app-pharmacy-invoice-table > thead > tr > th,
+.app-pharmacy-invoice-table > tbody > tr > td {
     padding: 0.5rem 0.375rem;
     overflow-wrap: anywhere;
     white-space: normal;
 }
 
-.app-inventory-invoice-table > thead > tr > th {
+.app-pharmacy-invoice-table > thead > tr > th {
     font-size: 0.75rem;
 }
 
-.app-inventory-invoice-table .app-inventory-invoice-product {
+.app-pharmacy-invoice-table .app-pharmacy-invoice-product {
     width: 26%;
 }
 
-.app-inventory-invoice-table small {
+.app-pharmacy-invoice-table small {
     font-size: 0.75rem;
 }
 
-.app-inventory-invoice .app-inventory-invoice-summary {
+.app-pharmacy-invoice .app-pharmacy-invoice-summary {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(14rem, 0.8fr);
     gap: 1.5rem;
     align-items: start;
 }
 
-.app-inventory-invoice-summary > div {
+.app-pharmacy-invoice-summary > div {
     min-width: 0;
 }
 
-.app-inventory-invoice .app-inventory-invoice-words {
+.app-pharmacy-invoice .app-pharmacy-invoice-words {
     margin-bottom: 1rem;
     padding-block: 0.625rem;
     border-block: 1px solid var(--app-border);
     overflow-wrap: anywhere;
 }
 
-.app-inventory-invoice .app-inventory-invoice-note {
+.app-pharmacy-invoice .app-pharmacy-invoice-note {
     overflow-wrap: anywhere;
     white-space: pre-line;
 }
 
-.app-inventory-invoice .app-inventory-invoice-signatures {
+.app-pharmacy-invoice .app-pharmacy-invoice-signatures {
     display: flex;
     justify-content: space-between;
     gap: 1.5rem;
     margin-top: 2rem;
 }
 
-.app-inventory-invoice-signatures .app-clinical-invoice-signature {
+.app-pharmacy-invoice-signatures .app-clinical-invoice-signature {
     flex: 0 1 12rem;
     min-width: 0;
     overflow-wrap: anywhere;
 }
 
-.app-inventory-invoice .app-inventory-invoice-print-meta {
+.app-pharmacy-invoice .app-pharmacy-invoice-print-meta {
     margin-top: 1rem;
     color: var(--app-muted);
     font-size: 0.75rem;
@@ -2694,79 +2694,79 @@
 }
 
 @media screen and (max-width: 575.98px) {
-    .app-inventory-invoice .app-inventory-invoice-parties,
-    .app-inventory-invoice .app-inventory-invoice-summary {
+    .app-pharmacy-invoice .app-pharmacy-invoice-parties,
+    .app-pharmacy-invoice .app-pharmacy-invoice-summary {
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .app-inventory-invoice-parties > div {
+    .app-pharmacy-invoice-parties > div {
         padding: 0.75rem;
     }
 
-    .app-inventory-invoice .app-clinical-invoice-title-row {
+    .app-pharmacy-invoice .app-clinical-invoice-title-row {
         flex-wrap: wrap;
     }
 }
 
 @media print {
-    .app-inventory-invoice .app-inventory-invoice-parties {
+    .app-pharmacy-invoice .app-pharmacy-invoice-parties {
         gap: 3mm;
         margin-bottom: 3mm;
     }
 
-    .app-inventory-invoice-parties > div {
+    .app-pharmacy-invoice-parties > div {
         padding: 2mm;
     }
 
-    .app-inventory-invoice-parties .app-clinical-invoice-meta {
+    .app-pharmacy-invoice-parties .app-clinical-invoice-meta {
         gap: 2mm;
     }
 
-    .app-inventory-invoice .app-inventory-invoice-table {
+    .app-pharmacy-invoice .app-pharmacy-invoice-table {
         width: 100%;
         min-width: 0;
         table-layout: auto;
     }
 
-    .app-inventory-invoice-table > thead > tr > th,
-    .app-inventory-invoice-table > tbody > tr > td {
+    .app-pharmacy-invoice-table > thead > tr > th,
+    .app-pharmacy-invoice-table > tbody > tr > td {
         padding: 1.25mm 0.75mm;
         font-size: 11pt;
     }
 
-    .app-inventory-invoice-table .app-clinical-invoice-number,
-    .app-inventory-invoice-table .app-clinical-invoice-amount,
-    .app-inventory-invoice-table .app-inventory-invoice-product {
+    .app-pharmacy-invoice-table .app-clinical-invoice-number,
+    .app-pharmacy-invoice-table .app-clinical-invoice-amount,
+    .app-pharmacy-invoice-table .app-pharmacy-invoice-product {
         width: auto;
     }
 
-    .app-inventory-invoice-table small,
-    .app-inventory-invoice .app-inventory-invoice-status,
-    .app-inventory-invoice .app-inventory-invoice-print-meta {
+    .app-pharmacy-invoice-table small,
+    .app-pharmacy-invoice .app-pharmacy-invoice-status,
+    .app-pharmacy-invoice .app-pharmacy-invoice-print-meta {
         font-size: 10pt;
     }
 
-    .app-inventory-invoice .app-inventory-invoice-summary {
+    .app-pharmacy-invoice .app-pharmacy-invoice-summary {
         grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
         gap: 3mm;
     }
 
-    .app-inventory-invoice .app-inventory-invoice-words {
+    .app-pharmacy-invoice .app-pharmacy-invoice-words {
         margin-bottom: 2mm;
         padding-block: 2mm;
     }
 
-    .app-inventory-invoice .app-inventory-invoice-signatures {
+    .app-pharmacy-invoice .app-pharmacy-invoice-signatures {
         gap: 5mm;
         margin-top: 8mm;
         break-inside: avoid;
     }
 
-    .app-inventory-invoice-signatures .app-clinical-invoice-signature {
+    .app-pharmacy-invoice-signatures .app-clinical-invoice-signature {
         flex-basis: 40mm;
     }
 
-    .app-inventory-invoice .app-inventory-invoice-print-meta {
+    .app-pharmacy-invoice .app-pharmacy-invoice-print-meta {
         margin-top: 3mm;
         color: var(--app-text);
     }
@@ -2807,24 +2807,24 @@
     font-size: 10pt;
 }
 
-.app-sale-invoice-pos .app-inventory-invoice-parties,
-.app-sale-invoice-pos .app-inventory-invoice-summary {
+.app-sale-invoice-pos .app-pharmacy-invoice-parties,
+.app-sale-invoice-pos .app-pharmacy-invoice-summary {
     grid-template-columns: minmax(0, 1fr);
     gap: 2mm;
     margin-bottom: 3mm;
 }
 
-.app-sale-invoice-pos .app-inventory-invoice-parties > div {
+.app-sale-invoice-pos .app-pharmacy-invoice-parties > div {
     padding: 2mm;
 }
 
-.app-sale-invoice-pos .app-inventory-invoice-table {
+.app-sale-invoice-pos .app-pharmacy-invoice-table {
     display: block;
     min-width: 0;
     margin-bottom: 3mm;
 }
 
-.app-sale-invoice-pos .app-inventory-invoice-table > thead {
+.app-sale-invoice-pos .app-pharmacy-invoice-table > thead {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -2833,11 +2833,11 @@
     white-space: nowrap;
 }
 
-.app-sale-invoice-pos .app-inventory-invoice-table > tbody {
+.app-sale-invoice-pos .app-pharmacy-invoice-table > tbody {
     display: block;
 }
 
-.app-sale-invoice-pos .app-inventory-invoice-table > tbody > tr {
+.app-sale-invoice-pos .app-pharmacy-invoice-table > tbody > tr {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1mm 3mm;
@@ -2845,18 +2845,18 @@
     border-bottom: 1px dashed var(--app-border);
 }
 
-.app-sale-invoice-pos .app-inventory-invoice-table > tbody > tr > td {
+.app-sale-invoice-pos .app-pharmacy-invoice-table > tbody > tr > td {
     width: auto;
     padding: 0;
     border: 0;
     font-size: inherit;
 }
 
-.app-sale-invoice-pos .app-inventory-invoice-table > tbody > tr > td:first-child {
+.app-sale-invoice-pos .app-pharmacy-invoice-table > tbody > tr > td:first-child {
     display: none;
 }
 
-.app-sale-invoice-pos .app-inventory-invoice-product,
+.app-sale-invoice-pos .app-pharmacy-invoice-product,
 .app-sale-invoice-pos [data-label="Amount"] {
     grid-column: 1 / -1;
 }
@@ -2871,14 +2871,14 @@
 .app-sale-invoice-pos .app-clinical-invoice-contact,
 .app-sale-invoice-pos .app-clinical-invoice-meta dt,
 .app-sale-invoice-pos .app-clinical-invoice-section-title,
-.app-sale-invoice-pos .app-inventory-invoice-table small,
-.app-sale-invoice-pos .app-inventory-invoice-status,
-.app-sale-invoice-pos .app-inventory-invoice-print-meta,
+.app-sale-invoice-pos .app-pharmacy-invoice-table small,
+.app-sale-invoice-pos .app-pharmacy-invoice-status,
+.app-sale-invoice-pos .app-pharmacy-invoice-print-meta,
 .app-sale-invoice-pos .small {
     font-size: 8pt;
 }
 
-.app-sale-invoice-pos .app-inventory-invoice-signatures {
+.app-sale-invoice-pos .app-pharmacy-invoice-signatures {
     gap: 3mm;
     margin-top: 5mm;
 }
@@ -2892,7 +2892,7 @@
     font-size: 8pt;
 }
 
-.app-sale-invoice-pos .app-inventory-invoice-print-meta {
+.app-sale-invoice-pos .app-pharmacy-invoice-print-meta {
     flex-direction: column;
     align-items: stretch;
     gap: 2mm;
@@ -2901,9 +2901,9 @@
 
 @media print {
     .app-sale-invoice-a5,
-    .app-sale-invoice-a5 .app-inventory-invoice-table > thead > tr > th,
-    .app-sale-invoice-a5 .app-inventory-invoice-table > tbody > tr > td,
-    .app-sale-invoice-a5 .app-inventory-invoice-table small {
+    .app-sale-invoice-a5 .app-pharmacy-invoice-table > thead > tr > th,
+    .app-sale-invoice-a5 .app-pharmacy-invoice-table > tbody > tr > td,
+    .app-sale-invoice-a5 .app-pharmacy-invoice-table small {
         font-size: 9pt;
     }
 
@@ -2936,64 +2936,64 @@
     border-color: var(--app-primary);
 }
 
-.app-inventory-item-editor {
+.app-pharmacy-item-editor {
     min-width: 0;
     background: var(--app-surface-muted);
 }
 
-.app-inventory-item-editor [data-inventory-line] {
+.app-pharmacy-item-editor [data-pharmacy-line] {
     min-width: 0;
     margin: 0;
 }
 
-.app-inventory-item-editor .input-group > .form-control,
-.app-inventory-item-editor .input-group > .form-select {
+.app-pharmacy-item-editor .input-group > .form-control,
+.app-pharmacy-item-editor .input-group > .form-select {
     min-width: 0;
 }
 
-.app-inventory-item-editor [data-inventory-line-vat-input],
-.app-inventory-item-editor [data-inventory-line-discount-input] {
+.app-pharmacy-item-editor [data-pharmacy-line-vat-input],
+.app-pharmacy-item-editor [data-pharmacy-line-discount-input] {
     flex: 0 0 4.5rem;
     width: 4.5rem;
     padding-left: 0.5rem;
     padding-right: 1.5rem;
 }
 
-.app-inventory-item-editor .app-inventory-price-vat {
+.app-pharmacy-item-editor .app-pharmacy-price-vat {
     flex: 0 0 auto;
     width: auto;
 }
 
-.app-inventory-item-editor [data-inventory-quantity-unit] {
+.app-pharmacy-item-editor [data-pharmacy-quantity-unit] {
     max-width: 50%;
     overflow-wrap: anywhere;
     white-space: normal;
 }
 
-.app-inventory-item-editor .app-inventory-entry-expiry .btn,
-.app-inventory-item-editor [data-inventory-edit-unit] {
+.app-pharmacy-item-editor .app-pharmacy-entry-expiry .btn,
+.app-pharmacy-item-editor [data-pharmacy-edit-unit] {
     flex-shrink: 0;
     min-width: 2.5rem;
 }
 
-.app-inventory-entry-table {
+.app-pharmacy-entry-table {
     min-width: 0;
     max-height: min(55vh, 36rem);
     overflow: auto;
     scrollbar-gutter: stable;
 }
 
-.app-inventory-entry-table .table {
+.app-pharmacy-entry-table .table {
     min-width: 48rem;
     table-layout: auto;
     font-variant-numeric: tabular-nums;
 }
 
-.app-inventory-entry-table .app-table > :not(caption) > * > * {
+.app-pharmacy-entry-table .app-table > :not(caption) > * > * {
     padding: 0.5rem;
 }
 
-.app-inventory-entry-table .app-table thead th {
+.app-pharmacy-entry-table .app-table thead th {
     position: sticky;
     top: 0;
     z-index: 2;
@@ -3003,61 +3003,61 @@
     text-transform: none;
 }
 
-.app-inventory-entry-table .app-table thead th:first-child {
+.app-pharmacy-entry-table .app-table thead th:first-child {
     width: 26%;
 }
 
-.app-inventory-entry-table .app-table thead th:last-child {
+.app-pharmacy-entry-table .app-table thead th:last-child {
     width: 5rem;
 }
 
-.app-inventory-entry-table .app-inventory-entry-product {
+.app-pharmacy-entry-table .app-pharmacy-entry-product {
     min-width: 12rem;
     max-width: 24rem;
     white-space: normal;
     overflow-wrap: anywhere;
 }
 
-.app-inventory-entry .app-inventory-entry-name,
-.app-inventory-entry .app-inventory-entry-code {
+.app-pharmacy-entry .app-pharmacy-entry-name,
+.app-pharmacy-entry .app-pharmacy-entry-code {
     display: block;
     line-height: 1.4;
     overflow-wrap: anywhere;
 }
 
-.app-inventory-entry .app-inventory-entry-code {
+.app-pharmacy-entry .app-pharmacy-entry-code {
     margin-top: 0.125rem;
     color: var(--app-muted);
     font-size: 0.75rem;
 }
 
-.app-inventory-entry-table .app-inventory-entry-actions {
+.app-pharmacy-entry-table .app-pharmacy-entry-actions {
     white-space: nowrap;
 }
 
-.app-inventory-entry-table .app-action-button {
+.app-pharmacy-entry-table .app-action-button {
     width: 2rem;
     min-height: 2rem;
     padding: 0;
 }
 
-.app-inventory-entry-table [aria-current="true"] > * {
+.app-pharmacy-entry-table [aria-current="true"] > * {
     background: var(--app-primary-soft);
 }
 
 @media (max-width: 575.98px) {
-    .app-inventory-item-editor .form-control,
-    .app-inventory-item-editor .form-select,
-    .app-inventory-item-editor .btn {
+    .app-pharmacy-item-editor .form-control,
+    .app-pharmacy-item-editor .form-select,
+    .app-pharmacy-item-editor .btn {
         min-height: 2.75rem;
     }
 
-    .app-inventory-item-editor .form-control,
-    .app-inventory-item-editor .form-select {
+    .app-pharmacy-item-editor .form-control,
+    .app-pharmacy-item-editor .form-select {
         font-size: 1rem;
     }
 
-    .app-inventory-entry-table {
+    .app-pharmacy-entry-table {
         max-height: min(65vh, 36rem);
         padding: 0.5rem;
         overflow-x: hidden;
@@ -3065,30 +3065,30 @@
         background: var(--app-surface-muted);
     }
 
-    .app-inventory-entry-table .table,
-    .app-inventory-entry-table .table tbody,
-    .app-inventory-entry-table .table tbody tr {
+    .app-pharmacy-entry-table .table,
+    .app-pharmacy-entry-table .table tbody,
+    .app-pharmacy-entry-table .table tbody tr {
         display: block;
         width: 100%;
         min-width: 0;
     }
 
-    .app-inventory-entry-table .table thead {
+    .app-pharmacy-entry-table .table thead {
         display: none;
     }
 
-    .app-inventory-entry-table .table tbody tr {
+    .app-pharmacy-entry-table .table tbody tr {
         overflow: hidden;
         border: 1px solid var(--app-border);
         border-radius: var(--app-radius);
         background: var(--app-surface);
     }
 
-    .app-inventory-entry-table .table tbody tr + tr {
+    .app-pharmacy-entry-table .table tbody tr + tr {
         margin-top: 0.75rem;
     }
 
-    .app-inventory-entry-table .app-table tbody tr > td {
+    .app-pharmacy-entry-table .app-table tbody tr > td {
         display: flex;
         align-items: baseline;
         justify-content: space-between;
@@ -3101,7 +3101,7 @@
         overflow-wrap: anywhere;
     }
 
-    .app-inventory-entry-table .app-table tbody td[data-label]::before {
+    .app-pharmacy-entry-table .app-table tbody td[data-label]::before {
         content: attr(data-label);
         flex-shrink: 0;
         color: var(--app-muted);
@@ -3109,7 +3109,7 @@
         text-align: start;
     }
 
-    .app-inventory-entry-table .app-table tbody tr > .app-inventory-entry-product {
+    .app-pharmacy-entry-table .app-table tbody tr > .app-pharmacy-entry-product {
         display: block;
         max-width: none;
         padding-block: 0.75rem;
@@ -3117,78 +3117,78 @@
         text-align: start;
     }
 
-    .app-inventory-entry-table .app-table tbody .app-inventory-entry-product::before {
+    .app-pharmacy-entry-table .app-table tbody .app-pharmacy-entry-product::before {
         display: none;
     }
 
-    .app-inventory-entry-table .app-table tbody tr > .app-inventory-entry-actions {
+    .app-pharmacy-entry-table .app-table tbody tr > .app-pharmacy-entry-actions {
         align-items: center;
         padding-block: 0.625rem;
     }
 
-    .app-inventory-entry-table .app-action-button {
+    .app-pharmacy-entry-table .app-action-button {
         width: 2.75rem;
         min-height: 2.75rem;
     }
 }
 
-.app-inventory-return-table {
+.app-pharmacy-return-table {
     max-height: none;
 }
 
-.app-inventory-return-table .table {
+.app-pharmacy-return-table .table {
     min-width: 42rem;
 }
 
-.app-inventory-return-table .app-table thead th:first-child {
+.app-pharmacy-return-table .app-table thead th:first-child {
     width: 5rem;
 }
 
-.app-inventory-return-table .app-table thead th:last-child {
+.app-pharmacy-return-table .app-table thead th:last-child {
     width: auto;
 }
 
-.app-inventory-return-table [data-inventory-return-quantity] {
+.app-pharmacy-return-table [data-pharmacy-return-quantity] {
     max-width: 5rem;
 }
 
-.app-inventory-return-table [data-inventory-return-unit] {
+.app-pharmacy-return-table [data-pharmacy-return-unit] {
     width: 8rem;
     max-width: 100%;
 }
 
 @media (max-width: 575.98px) {
-    .app-inventory-return-table .table {
+    .app-pharmacy-return-table .table {
         min-width: 0;
     }
 
-    .app-inventory-return-table .table tbody tr[data-inventory-line] {
+    .app-pharmacy-return-table .table tbody tr[data-pharmacy-line] {
         display: grid;
         grid-template-columns: minmax(0, 1fr) minmax(0, 1.75fr);
         gap: 0.5rem 0.75rem;
         padding: 0.75rem;
     }
 
-    .app-inventory-return-table .app-table tbody tr > td {
+    .app-pharmacy-return-table .app-table tbody tr > td {
         display: block;
         min-width: 0;
         padding: 0;
         text-align: start !important;
     }
 
-    .app-inventory-return-table .app-table tbody td[data-label]::before {
+    .app-pharmacy-return-table .app-table tbody td[data-label]::before {
         display: block;
         margin-bottom: 0.125rem;
         font-size: 0.75rem;
     }
 
-    .app-inventory-return-table .app-table tbody tr > .app-inventory-entry-product {
+    .app-pharmacy-return-table .app-table tbody tr > .app-pharmacy-entry-product {
         min-width: 0;
         padding: 0;
         border: 0;
     }
 
-    .app-inventory-return-table .app-table tbody tr > td:last-child {
+    .app-pharmacy-return-table .app-table tbody tr > td:last-child {
         grid-column: 1 / -1;
         display: flex;
         justify-content: space-between;
@@ -3196,33 +3196,33 @@
         border-top: 1px solid var(--app-border);
     }
 
-    .app-inventory-return-table .form-control,
-    .app-inventory-return-table .form-select {
+    .app-pharmacy-return-table .form-control,
+    .app-pharmacy-return-table .form-select {
         min-height: 2.75rem;
         font-size: 1rem;
     }
 }
 
-.app-inventory-shortcuts summary {
+.app-pharmacy-shortcuts summary {
     color: var(--app-muted);
     font-size: 0.75rem;
     cursor: pointer;
 }
 
-.app-inventory-shortcuts li {
+.app-pharmacy-shortcuts li {
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
-.app-inventory-entry-summary {
+.app-pharmacy-entry-summary {
     padding: 1rem;
     border: 1px solid var(--app-border);
     border-radius: var(--app-radius);
     background: var(--app-surface-muted);
 }
 
-.app-inventory-entry-summary dl > div {
+.app-pharmacy-entry-summary dl > div {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -3230,42 +3230,235 @@
     padding-block: 0.375rem;
 }
 
-.app-inventory-entry-summary dt {
+.app-pharmacy-entry-summary dt {
     color: var(--app-muted);
     font-size: 0.875rem;
     font-weight: 400;
 }
 
-.app-inventory-entry-summary dd {
+.app-pharmacy-entry-summary dd {
     margin: 0;
     font-variant-numeric: tabular-nums;
     font-weight: 600;
 }
 
-.app-inventory-entry-summary .app-inventory-entry-payable {
+.app-pharmacy-entry-summary .app-pharmacy-entry-payable {
     margin-top: 0.375rem;
     padding-top: 0.75rem;
     border-top: 1px solid var(--app-border);
 }
 
-.app-inventory-entry-payable dt,
-.app-inventory-entry-payable dd {
+.app-pharmacy-entry-payable dt,
+.app-pharmacy-entry-payable dd {
     color: var(--app-text);
     font-size: 1rem;
     font-weight: 600;
 }
 
-.app-inventory-entry-summary .app-inventory-entry-due {
+.app-pharmacy-entry-summary .app-pharmacy-entry-due {
     margin: 0.5rem -0.5rem -0.5rem;
     padding: 0.625rem 0.5rem;
     border-radius: var(--app-radius);
     background: var(--app-primary-soft);
 }
 
-.app-inventory-entry-due dt,
-.app-inventory-entry-due dd {
+.app-pharmacy-entry-due dt,
+.app-pharmacy-entry-due dd {
     color: var(--app-primary);
     font-weight: 600;
+}
+
+.app-pharmacy-trade-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 1rem;
+}
+
+.app-pharmacy-trade-main,
+.app-pharmacy-trade-sidebar {
+    min-width: 0;
+}
+
+.app-pharmacy-trade-sidebar {
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--app-border);
+}
+
+.app-pharmacy-trade-sidebar > .app-form-section {
+    margin-top: 0 !important;
+}
+
+.app-pharmacy-trade-layout .form-label {
+    margin-bottom: 0.2rem;
+    font-size: 0.75rem;
+    line-height: 1.35;
+}
+
+.app-pharmacy-trade-layout .app-form-section-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.75rem;
+}
+
+.app-pharmacy-trade-layout .app-pharmacy-item-editor {
+    padding: 0.625rem !important;
+}
+
+.app-pharmacy-trade-layout [data-pharmacy-line] > .row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.app-pharmacy-trade-layout [data-pharmacy-line] > .row > * {
+    min-width: 0;
+    width: auto;
+    max-width: none;
+    padding: 0;
+    margin: 0;
+}
+
+.app-pharmacy-trade-layout #pharmacy-product-feedback {
+    margin-top: 0.25rem !important;
+    line-height: 1.35;
+}
+
+.app-pharmacy-trade-layout .app-pharmacy-entry-table {
+    max-height: clamp(9.5rem, 26dvh, 15rem);
+}
+
+.app-pharmacy-trade-layout .app-pharmacy-entry-table .table {
+    min-width: 40rem;
+}
+
+.app-pharmacy-trade-layout .app-pharmacy-entry-table .app-table > :not(caption) > * > * {
+    padding: 0.375rem 0.5rem;
+}
+
+.app-pharmacy-trade-layout .app-pharmacy-entry-table .app-pharmacy-entry-name,
+.app-pharmacy-trade-layout .app-pharmacy-entry-table .app-pharmacy-entry-code {
+    display: inline;
+}
+
+.app-pharmacy-trade-layout .app-pharmacy-entry-table .app-pharmacy-entry-code {
+    margin: 0 0 0 0.375rem;
+}
+
+.app-pharmacy-trade-layout [data-pharmacy-empty] > td {
+    padding-block: 0.75rem !important;
+}
+
+.app-pharmacy-trade-sidebar .app-pharmacy-entry-summary {
+    padding: 0.625rem;
+}
+
+.app-pharmacy-trade-sidebar .app-pharmacy-entry-summary dl > div {
+    gap: 0.5rem;
+    padding-block: 0.25rem;
+}
+
+.app-pharmacy-trade-sidebar .app-pharmacy-entry-summary dt {
+    font-size: 0.75rem;
+}
+
+.app-pharmacy-trade-sidebar .app-pharmacy-entry-payable dt,
+.app-pharmacy-trade-sidebar .app-pharmacy-entry-payable dd {
+    font-size: 0.875rem;
+}
+
+.app-pharmacy-entry-notes > summary {
+    color: var(--app-muted);
+    font-size: 0.8125rem;
+    cursor: pointer;
+}
+
+.app-pharmacy-entry-notes[open] > summary {
+    margin-bottom: 0.5rem;
+}
+
+.app-pharmacy-trade-sidebar .app-form-actions {
+    gap: 0.5rem !important;
+    padding-top: 0.75rem !important;
+    margin-top: 0.75rem !important;
+}
+
+.app-pharmacy-trade-sidebar .app-form-actions > .btn {
+    flex: 1;
+}
+
+@media (min-width: 576px) {
+    .app-pharmacy-trade-layout .form-control:not(textarea),
+    .app-pharmacy-trade-layout .form-select,
+    .app-pharmacy-trade-layout .input-group-text,
+    .app-pharmacy-trade-layout .btn {
+        min-height: 2rem;
+        font-size: 0.8125rem;
+    }
+
+    .app-pharmacy-trade-layout .form-control:not(textarea),
+    .app-pharmacy-trade-layout .form-select {
+        height: 2rem;
+        padding-block: 0.25rem;
+    }
+
+    .app-pharmacy-trade-layout .input-group-text {
+        padding: 0.25rem 0.375rem;
+    }
+
+    .app-pharmacy-trade-layout .btn:not(.app-action-button) {
+        padding: 0.25rem 0.625rem;
+    }
+
+    .app-pharmacy-trade-layout .select2-container .select2-selection--single {
+        min-height: 2rem;
+        height: 2rem;
+    }
+
+    .app-pharmacy-trade-layout .select2-container .select2-selection__rendered {
+        line-height: 1.875rem;
+        font-size: 0.8125rem;
+    }
+
+    .app-pharmacy-trade-layout .select2-container .select2-selection__arrow {
+        height: 1.875rem;
+    }
+}
+
+@media (min-width: 1200px) {
+    .app-pharmacy-trade-layout {
+        grid-template-columns: minmax(0, 1fr) 15rem;
+    }
+
+    .app-pharmacy-trade-sidebar {
+        padding-top: 0;
+        padding-left: 0.875rem;
+        border-top: 0;
+        border-left: 1px solid var(--app-border);
+    }
+}
+
+@media (min-width: 1200px) and (min-height: 700px) {
+    .app-pharmacy-trade-sidebar {
+        position: sticky;
+        top: calc(var(--app-header-height) + 0.75rem);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .app-pharmacy-trade-layout .app-pharmacy-entry-table .table {
+        min-width: 0;
+    }
+
+    .app-pharmacy-trade-layout .app-pharmacy-entry-table .app-action-button {
+        width: 2.75rem;
+        min-height: 2.75rem;
+    }
+
+    .app-pharmacy-trade-layout .app-pharmacy-entry-table .app-table tbody tr > td {
+        padding: 0.25rem 0;
+    }
 }
 
 #toast-container > .app-toast {
@@ -3296,7 +3489,7 @@
     white-space: pre-line;
 }
 
-.app-inventory-report {
+.app-pharmacy-report {
     padding: 1.5rem;
     background: var(--app-surface);
 }
@@ -4467,6 +4660,11 @@ ul.app-prescription-section-preview {
     background: var(--prescription-accent);
 }
 
+.prescription-food-instruction:focus-visible {
+    outline: 2px solid var(--prescription-accent);
+    outline-offset: 2px;
+}
+
 .prescription-instruction-badge {
     display: inline-flex;
     align-items: center;
@@ -5172,7 +5370,7 @@ ul.app-prescription-section-preview {
 }
 
 @media screen and (max-width: 575.98px) {
-    .app-inventory-report {
+    .app-pharmacy-report {
         padding: 1rem;
     }
 
@@ -5183,18 +5381,18 @@ ul.app-prescription-section-preview {
 }
 
 @media print {
-    @page inventory-report {
+    @page pharmacy-report {
         size: A4 portrait;
         margin: 12mm 10mm 14mm;
     }
 
-    @page inventory-report-wide {
+    @page pharmacy-report-wide {
         size: A4 landscape;
         margin: 10mm;
     }
 
-    .app-inventory-report {
-        page: inventory-report;
+    .app-pharmacy-report {
+        page: pharmacy-report;
         width: 100%;
         margin: 0;
         padding: 0;
@@ -5207,7 +5405,7 @@ ul.app-prescription-section-preview {
     }
 
     .app-report-wide {
-        page: inventory-report-wide;
+        page: pharmacy-report-wide;
     }
 
     .app-report-letterhead,
@@ -5245,7 +5443,7 @@ ul.app-prescription-section-preview {
         font-size: 9pt;
     }
 
-    .app-inventory-report .table-responsive {
+    .app-pharmacy-report .table-responsive {
         overflow: visible;
     }
 
@@ -5289,12 +5487,12 @@ ul.app-prescription-section-preview {
         width: 20%;
     }
 
-    .app-inventory-report a {
+    .app-pharmacy-report a {
         color: inherit;
         text-decoration: none;
     }
 
-    .app-inventory-report .text-nowrap {
+    .app-pharmacy-report .text-nowrap {
         white-space: normal !important;
     }
 

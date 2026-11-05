@@ -11,7 +11,7 @@
         <button class="nav-link{{ $activeGroup === 'email' ? ' active' : '' }}" type="submit" name="group" value="email" aria-pressed="{{ $activeGroup === 'email' ? 'true' : 'false' }}">Email</button>
         @if (! $isPlatform)
             <button class="nav-link{{ $activeGroup === 'hospital' ? ' active' : '' }}" type="submit" name="group" value="hospital" aria-pressed="{{ $activeGroup === 'hospital' ? 'true' : 'false' }}">Hospital</button>
-            <button class="nav-link{{ $activeGroup === 'inventory' ? ' active' : '' }}" type="submit" name="group" value="inventory" aria-pressed="{{ $activeGroup === 'inventory' ? 'true' : 'false' }}">Inventory</button>
+            <button class="nav-link{{ $activeGroup === 'pharmacy' ? ' active' : '' }}" type="submit" name="group" value="pharmacy" aria-pressed="{{ $activeGroup === 'pharmacy' ? 'true' : 'false' }}">Pharmacy</button>
         @endif
         @if ($isPlatform)
             <button class="nav-link{{ $activeGroup === 'billing' ? ' active' : '' }}" type="submit" name="group" value="billing" aria-pressed="{{ $activeGroup === 'billing' ? 'true' : 'false' }}">Billing</button>
@@ -35,12 +35,12 @@
         </form>
     @endif
 
-    @if ($activeGroup === 'inventory')
-        <form class="d-flex flex-wrap gap-2 mb-3" action="{{ route($routePrefix.'.index') }}" method="GET" aria-label="Inventory settings sections">
-            <input name="group" type="hidden" value="inventory">
-            <button class="btn btn-sm {{ $activeInventorySection === 'general' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="general" aria-pressed="{{ $activeInventorySection === 'general' ? 'true' : 'false' }}">General</button>
-            <button class="btn btn-sm {{ $activeInventorySection === 'numbering' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="numbering" aria-pressed="{{ $activeInventorySection === 'numbering' ? 'true' : 'false' }}">Numbering</button>
-            <button class="btn btn-sm {{ $activeInventorySection === 'items' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="items" aria-pressed="{{ $activeInventorySection === 'items' ? 'true' : 'false' }}">Item fields</button>
+    @if ($activeGroup === 'pharmacy')
+        <form class="d-flex flex-wrap gap-2 mb-3" action="{{ route($routePrefix.'.index') }}" method="GET" aria-label="Pharmacy settings sections">
+            <input name="group" type="hidden" value="pharmacy">
+            <button class="btn btn-sm {{ $activePharmacySection === 'general' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="general" aria-pressed="{{ $activePharmacySection === 'general' ? 'true' : 'false' }}">General</button>
+            <button class="btn btn-sm {{ $activePharmacySection === 'numbering' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="numbering" aria-pressed="{{ $activePharmacySection === 'numbering' ? 'true' : 'false' }}">Numbering</button>
+            <button class="btn btn-sm {{ $activePharmacySection === 'items' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="items" aria-pressed="{{ $activePharmacySection === 'items' ? 'true' : 'false' }}">Item fields</button>
         </form>
     @endif
 

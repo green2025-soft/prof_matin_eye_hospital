@@ -99,7 +99,49 @@ export function initializePrescriptionKeyboard($modal, $search, $rows) {
         moveOnEnter(event, $row.find('.prescription-frequency-value'));
     });
     $rows.on('keydown.prescriptionKeyboard', '.prescription-frequency-value', function (event) {
-        moveOnEnter(event, $(this).closest('.prescription-medicine-row').find('.prescription-unit-toggle'));
+        if (event.altKey || event.ctrlKey || event.metaKey || event.originalEvent?.isComposing) return;
+
+        const $row = $(this).closest('.prescription-medicine-row');
+        if (event.key === 'ArrowDown' && !event.shiftKey) {
+            const $picker = $row.find('.prescription-schedule-dose:visible').first();
+            if ($picker.length) {
+                event.preventDefault();
+                $picker.trigger('focus');
+            }
+            return;
+        }
+
+        const $food = $row.find('.prescription-food-instruction:enabled').first();
+        const $next = $food.length ? $food : $row.find('.prescription-unit-toggle');
+        if (event.key === 'Tab' && !event.shiftKey) {
+            event.preventDefault();
+            $next.trigger('focus');
+            return;
+        }
+        moveOnEnter(event, $next);
+    });
+    $rows.on('focusin.prescriptionKeyboard', '.prescription-food-instruction', function () {
+        $(this).siblings('.prescription-food-instruction').attr('tabindex', '-1');
+        $(this).attr('tabindex', '0');
+    });
+    $rows.on('keydown.prescriptionKeyboard', '.prescription-food-instruction', function (event) {
+        if (event.altKey || event.ctrlKey || event.metaKey) return;
+
+        const $row = $(this).closest('.prescription-medicine-row');
+        if (event.key === 'Tab' && !event.shiftKey) {
+            event.preventDefault();
+            $row.find('.prescription-unit-toggle').trigger('focus');
+            return;
+        }
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+
+        event.preventDefault();
+        const $choices = $row.find('.prescription-food-instruction:enabled');
+        const current = $choices.index(this);
+        let next = current + (event.key === 'ArrowLeft' ? -1 : 1);
+        if (event.key === 'Home') next = 0;
+        if (event.key === 'End') next = $choices.length - 1;
+        $choices.eq((next + $choices.length) % $choices.length).trigger('focus');
     });
     $rows.on('keydown.prescriptionKeyboard', '.prescription-duration-count', function (event) {
         moveOnEnter(event, $(this).siblings('.prescription-duration-unit'));

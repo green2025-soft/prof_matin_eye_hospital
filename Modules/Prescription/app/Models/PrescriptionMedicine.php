@@ -4,7 +4,7 @@ namespace Modules\Prescription\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Inventory\Models\Product;
+use Modules\Pharmacy\Models\Product;
 
 #[Fillable(['product_id', 'medicine_name', 'dose', 'frequency', 'duration', 'instructions', 'ordering'])]
 class PrescriptionMedicine extends BaseModel

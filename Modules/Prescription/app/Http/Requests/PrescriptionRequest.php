@@ -161,7 +161,7 @@ class PrescriptionRequest extends BaseRequest
             'section_details.*.*.notes' => ['nullable', 'string', 'max:1000'],
             'medicines' => ['array', 'max:100'],
             'medicines.*' => ['array:product_id,medicine_name,dose,frequency,duration,instructions'],
-            'medicines.*.product_id' => ['bail', 'nullable', 'integer', 'min:1', $this->existsIn('inv_products')->where('type', 'medicine')],
+            'medicines.*.product_id' => ['bail', 'nullable', 'integer', 'min:1', $this->existsIn('phr_products')->where('type', 'medicine')],
             'medicines.*.medicine_name' => ['required', 'string', 'max:255'],
             'medicines.*.dose' => ['nullable', 'string', 'max:100'],
             'medicines.*.frequency' => ['nullable', 'string', 'max:100'],

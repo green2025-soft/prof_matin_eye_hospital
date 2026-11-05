@@ -10,7 +10,7 @@ use Modules\Core\Models\Account;
 use Modules\Core\Services\AccessManager;
 use Modules\Hospital\Models\Doctor;
 use Modules\Hospital\Models\Patient;
-use Modules\Inventory\Models\Product;
+use Modules\Pharmacy\Models\Product;
 use Modules\Prescription\Models\Prescription;
 
 class PrescriptionService

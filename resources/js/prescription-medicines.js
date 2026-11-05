@@ -285,6 +285,14 @@ export function initializePrescriptionMedicines() {
         $row.find('.prescription-frequency-value').val(frequency).trigger('input');
     }
 
+    function nextDoseControl($row, position) {
+        const $nextDose = $row.find('.prescription-schedule-dose').eq(position + 1);
+        if ($nextDose.length) return $nextDose;
+
+        const $food = $row.find('.prescription-food-instruction:enabled').first();
+        return $food.length ? $food : $row.find('.prescription-unit-toggle');
+    }
+
     function readSchedule(frequency) {
         const values = String(frequency).split('+').map(value => value.trim());
         const validDose = /^(?:\d+(?:\.\d+)?|\.\d+|\d*[\u00bc\u00bd\u00be\u2153\u2154])$/;
@@ -569,10 +577,7 @@ export function initializePrescriptionMedicines() {
             $row.data('scheduleValues')[position] = event.key;
             $(this).text(event.key);
             updateFrequency($row);
-            const $nextDose = $row.find('.prescription-schedule-dose').eq(position + 1);
-            const $nextControl = $nextDose.length ? $nextDose
-                : $row.find('.prescription-duration-count:visible, .prescription-duration-value:visible').first();
-            $nextControl.trigger('focus');
+            nextDoseControl($row, position).trigger('focus');
             return;
         }
         if (!['ArrowDown', 'ArrowUp', 'Enter', ' ', 'Escape'].includes(event.key)) return;
@@ -596,7 +601,7 @@ export function initializePrescriptionMedicines() {
         $row.data('scheduleValues')[position] = value;
         $activeDose.text(value);
         updateFrequency($row);
-        const $focus = $activeDose;
+        const $focus = nextDoseControl($row, position);
         closeDosePalette();
         $focus.trigger('focus');
     });
@@ -630,7 +635,8 @@ export function initializePrescriptionMedicines() {
     });
     $unitPalette.on('click.prescriptionUnit', '.prescription-unit-choice', function () {
         const $row = $activeUnit.closest('.prescription-medicine-row');
-        const $focus = $activeUnit;
+        const $duration = $row.find('.prescription-duration-count:visible, .prescription-duration-value:visible').first();
+        const $focus = $duration.length ? $duration : $row.find('.prescription-duration-unit');
         $row.find('[name$="[dose]"]').val($(this).val()).trigger('input');
         closeUnitPalette();
         $focus.trigger('focus');

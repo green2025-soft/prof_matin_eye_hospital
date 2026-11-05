@@ -7,11 +7,14 @@ export function initializePrescriptionInstructions($modal, $rows) {
     function updateRow($row) {
         const instruction = String($row.find('[name$="[instructions]"]').val() || '').trim();
         let isFoodChoice = false;
-        $row.find('.prescription-food-instruction').each(function () {
+        const $foodChoices = $row.find('.prescription-food-instruction').attr('tabindex', '-1');
+        $foodChoices.each(function () {
             const selected = $(this).text().trim() === instruction;
             $(this).toggleClass('active', selected).attr('aria-pressed', String(selected));
             if (selected) isFoodChoice = true;
         });
+        const $selectedFood = $foodChoices.filter('[aria-pressed="true"]');
+        ($selectedFood.length ? $selectedFood : $foodChoices.first()).attr('tabindex', '0');
         const $selection = $row.find('.prescription-instruction-selection').empty();
         if (!instruction || isFoodChoice) return;
 
@@ -203,7 +206,9 @@ export function initializePrescriptionInstructions($modal, $rows) {
     }
 
     $rows.on('click.prescriptionInstruction', '.prescription-food-instruction', function () {
-        selectInstruction($(this).closest('.prescription-medicine-row'), $(this).text().trim());
+        const $row = $(this).closest('.prescription-medicine-row');
+        selectInstruction($row, $(this).text().trim());
+        $row.find('.prescription-unit-toggle').trigger('focus');
     });
     $rows.on('input.prescriptionInstruction change.prescriptionInstruction', '[name$="[instructions]"]', function () {
         updateRow($(this).closest('.prescription-medicine-row'));

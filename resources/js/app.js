@@ -4,7 +4,7 @@ import 'flatpickr';
 import attachSelect2 from 'select2';
 import toastr from 'toastr';
 import { formatAmount, roundRatio } from './money';
-import './inventory';
+import './pharmacy';
 import './prescription';
 
 attachSelect2(window, $);
@@ -1691,13 +1691,13 @@ $(() => {
     $('[data-tenant-form]').each((_, form) => initializeTenantForm(form));
     $('[data-permission-editor]').each((_, editor) => initializePermissionEditor(editor));
 
-    const $saleInvoicePaper = $('#inventory-sale-invoice-paper');
-    const $salePosWidth = $('[data-inventory-pos-width]');
+    const $saleInvoicePaper = $('#pharmacy-sale-invoice-paper');
+    const $salePosWidth = $('[data-pharmacy-pos-width]');
     if ($saleInvoicePaper.length && $salePosWidth.length) {
         const updatePosWidth = () => {
             $salePosWidth.prop('hidden', $saleInvoicePaper.val() !== 'pos' && !$salePosWidth.find('.is-invalid').length);
         };
-        $saleInvoicePaper.on('change.inventorySettings', updatePosWidth);
+        $saleInvoicePaper.on('change.pharmacySettings', updatePosWidth);
         updatePosWidth();
     }
     window.initDateTimePickers();

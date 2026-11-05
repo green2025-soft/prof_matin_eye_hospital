@@ -1,0 +1,11 @@
+{
+    "name": "prof-matin/pharmacy",
+    "description": "Pharmacy module",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Modules\\Pharmacy\\": "app/",
+            "Modules\\Pharmacy\\Database\\Seeders\\": "database/seeders/"
+        }
+    }
+}

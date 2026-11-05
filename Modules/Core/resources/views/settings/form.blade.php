@@ -97,8 +97,8 @@
                     @error('data.address')<div class="invalid-feedback d-block" id="company-address-error">{{ $message }}</div>@enderror
                 </div>
             </div>
-        @elseif ($setting->group === 'inventory')
-            @include('core::settings.inventory')
+        @elseif ($setting->group === 'pharmacy')
+            @include('core::settings.pharmacy')
         @elseif ($setting->group === 'branding')
             <div class="row g-3">
                 <div class="col-md-6">

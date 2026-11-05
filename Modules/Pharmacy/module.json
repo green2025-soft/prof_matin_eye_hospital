@@ -1,0 +1,17 @@
+{
+    "name": "Pharmacy",
+    "alias": "pharmacy",
+    "description": "Medicine and optic pharmacy, purchasing, sales and stock movements.",
+    "tenant_dashboard": {
+        "label": "Pharmacy",
+        "icon": "boxes-stacked",
+        "route": "pharmacy.dashboard",
+        "permission": "pharmacy.view"
+    },
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Pharmacy\\Providers\\PharmacyServiceProvider"
+    ],
+    "files": []
+}

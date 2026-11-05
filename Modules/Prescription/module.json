@@ -2,7 +2,7 @@
     "name": "Prescription",
     "alias": "prescription",
     "description": "General and glass prescriptions.",
-    "requires": ["Hospital", "Inventory"],
+    "requires": ["Hospital", "Pharmacy"],
     "tenant_dashboard": {
         "label": "Prescription",
         "icon": "prescription",
