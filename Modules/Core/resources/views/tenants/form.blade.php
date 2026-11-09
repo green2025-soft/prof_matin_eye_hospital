@@ -1,10 +1,11 @@
 @extends('core::layouts.app')
 
-@section('title', $pageTitle)
+@section('title', ucwords($pageTitle))
+
 
 @section('content')
     @php($domainValues = array_slice(array_values(getValue('domains', null, $domains)), 0, 20) ?: [''])
-    @include('core::partials.heading', ['title' => $pageTitle, 'description' => $tenant->exists ? 'Update workspace details and domain access.' : 'Set up a workspace and its administrator.'])
+    @include('core::partials.heading', ['title' => ucwords($pageTitle), 'description' => $tenant->exists ? 'Update workspace details and domain access.' : 'Set up a workspace and its administrator.'])
     <form
         class="app-card p-3 p-md-4"
         action="{{ $formAction }}"
@@ -23,9 +24,9 @@
             <div class="col-lg-7">
                 <section class="app-form-section" aria-labelledby="tenant-details-heading">
                     <h2 class="app-form-section-title" id="tenant-details-heading"><span class="app-form-section-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span>Workspace details</h2>
-                    <p class="app-form-section-note">The workspace name and its unique identifier.</p>
+                    <p class="app-form-section-note">The organization name and its unique identifier.</p>
                     <div class="mb-3">
-                        <label class="form-label" for="tenant-name">Workspace name <span class="text-danger" aria-hidden="true">*</span></label>
+                        <label class="form-label" for="tenant-name">Organization Name <span class="text-danger" aria-hidden="true">*</span></label>
                         <input class="{{ inputClass('name') }}" id="tenant-name" name="name" type="text" value="{{ getValue('name', $tenant) }}" maxlength="255" required autofocus {{ inputAttrs('name', 'tenant-name') }}>
                         @error('name')
                             <div class="invalid-feedback d-block" id="tenant-name-error">{{ $message }}</div>
@@ -117,6 +118,42 @@
                 </section>
             </div>
             <div class="col-lg-5">
+                <section class="app-form-section" aria-labelledby="tenant-database-heading">
+                    <h2 class="app-form-section-title" id="tenant-database-heading"><span class="app-form-section-icon"><i class="fa-solid fa-database" aria-hidden="true"></i></span>Database</h2>
+                    <p class="app-form-section-note">{{ $tenant->exists ? 'Database connection for this workspace.' : 'Create an empty database and user in hosting panel first. Tables/default data are added automatically.' }}</p>
+                    @error('credentials')
+                        <div class="invalid-feedback d-block mb-2">{{ $message }}</div>
+                    @enderror
+                    <fieldset class="row g-3" aria-labelledby="tenant-database-heading" @disabled($tenant->exists)>
+                        <div class="col-12">
+                            <label class="form-label" for="tenant-database">DB_DATABASE <span class="text-danger" aria-hidden="true">*</span></label>
+                            <input class="{{ inputClass('credentials.database') }}" id="tenant-database" name="credentials[database]" type="text"
+                                value="{{ $databaseCredentials['database'] }}" maxlength="64" autocomplete="off" autocapitalize="none" spellcheck="false"
+                                required {{ inputAttrs('credentials.database', 'tenant-database') }}>
+                            @error('credentials.database')
+                                <div class="invalid-feedback d-block" id="tenant-database-error">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="tenant-database-username">DB_USERNAME <span class="text-danger" aria-hidden="true">*</span></label>
+                            <input class="{{ inputClass('credentials.username') }}" id="tenant-database-username" name="credentials[username]" type="text"
+                                value="{{ $databaseCredentials['username'] }}" maxlength="128" autocomplete="off" autocapitalize="none" spellcheck="false"
+                                required {{ inputAttrs('credentials.username', 'tenant-database-username') }}>
+                            @error('credentials.username')
+                                <div class="invalid-feedback d-block" id="tenant-database-username-error">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="tenant-database-password">DB_PASSWORD</label>
+                            <input class="{{ inputClass('credentials.password') }}" id="tenant-database-password" name="credentials[password]" type="text"
+                                value="{{ $databaseCredentials['password'] }}" maxlength="4096" autocomplete="off"
+                                {{ inputAttrs('credentials.password', 'tenant-database-password') }}>
+                            @error('credentials.password')
+                                <div class="invalid-feedback d-block" id="tenant-database-password-error">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </fieldset>
+                </section>
                 <section class="app-form-section" aria-labelledby="tenant-account-heading">
                     <h2 class="app-form-section-title" id="tenant-account-heading"><span class="app-form-section-icon"><i class="fa-solid fa-user-shield" aria-hidden="true"></i></span>Administrator</h2>
                     <p class="app-form-section-note">{{ $tenant->exists ? 'The administrator email is fixed for this workspace.' : 'Create the first administrator for this workspace.' }}</p>
@@ -130,7 +167,7 @@
                         </div>
                     @else
                         <div class="mb-3">
-                            <label class="form-label" for="owner-name">Full name <span class="text-danger" aria-hidden="true">*</span></label>
+                            <label class="form-label" for="owner-name">Responsible Person Name <span class="text-danger" aria-hidden="true">*</span></label>
                             <input class="{{ inputClass('owner_name') }}" id="owner-name" name="owner_name" type="text" value="{{ getValue('owner_name') }}" maxlength="255" autocomplete="name" required {{ inputAttrs('owner_name', 'owner-name') }}>
                             @error('owner_name')
                                 <div class="invalid-feedback d-block" id="owner-name-error">{{ $message }}</div>

@@ -1,9 +1,23 @@
-# Inventory catalog snapshot
+# Pharmacy catalog snapshots
 
-`manifest.json` selects the versioned UTF-8 snapshot and its SHA-256 checksum. New tenant provisioning runs the native root database seeder after migrations and owner creation. Inventory inserts the complete catalog and its completion marker in one tenant transaction. Any completed Inventory seed run prevents later snapshots from changing that tenant's catalog.
+`manifest.json` identifies the bundled UTF-8 snapshots and their SHA-256 checksums. Fresh tenant provisioning calls the native root database seeder after migrations and owner creation. It initializes 460 Optic products, then exactly 325 Medicine products. The source SQL files and legacy database are not required on the receiving server.
 
-The 2026-10-31 snapshot contains 1,225 Medicine and 460 Optic products. It maps `drug_generic` and referenced fallback `generic_names` to categories/generics, `drug_dosage` to dosages, `drug_manufacturer` to suppliers, and `shelf` to shelves. Source keys identify the source table and numeric ID; destination foreign keys use newly allocated IDs.
+## Optic base: 2026-11-07-v2
 
-Every product gets a default SKU and one Piece unit with conversion factor 1. Source pack ratios and structured optical dimensions were unavailable; lens powers remain null. The snapshot retains all products and flags 1400 for missing category/supplier mappings, blank/duplicate product codes, or unavailable default prices. Their `review` entries preserve the reasons. An operator resolves the catalog data before marking those products ready.
+This snapshot retains the original 460 Optic products and parent catalogs for categories, dosages, suppliers, shelves and units. It contains no Medicine products. Source keys identify source records; destination foreign keys use local IDs. Existing tenants keep their Optic catalog unchanged.
 
-Purchase and sale prices are default catalog prices. The 1,222 products without source prices use 0.00 and remain Needs setup until an operator supplies valid prices. This snapshot contains no stock quantities, opening balances, dues, transactions, patients, users, audit actors, credentials, or drug monograph text. Existing and adopted tenants are not seeded by provisioning.
+Every product receives a default variant and a Piece unit with factor 1. Missing source prices remain zero; missing optical dimensions remain null. The historical `review` and `needs_setup` metadata record unavailable information.
+
+## Medicine replacement: medicine-2026-11-07-v2
+
+The replacement contains exactly 325 `Medicine` records from `inv_product (2).sql`, their `inv_product_basic.sql` details, and 94 referenced category names from the legacy `prof_matin_eye_hospital.inv_category` table. Source file hashes and lookup provenance are included in the snapshot. Optics, OT and orphan basic rows are excluded.
+
+The tenant-wide catalog uses branch 1's basic information, selecting the latest effective timestamp and then highest ID for duplicate rows. `sales_price` becomes Sale Price; `reminder_level` becomes Re-order Level. All source units are Pcs. No purchase price, supplier, dosage or shelf is inferred. `Virux 200 mg tab` (source ID 506, code M-0298) has no basic row, so its Sale Price and Re-order Level start at zero.
+
+The one-time replacement keeps matching IDs and generated codes, writes the source names and basic information, and assigns canonical `inv_product:<id>` source keys to all 325 medicines. `existing_source_key` identifies the 259 safe aliases from the historical catalog; it is only used to adopt those existing identities. Other old Medicine products and their own units/variants are removed. Restrictive foreign keys prevent silently deleting referenced transaction or prescription data; any necessary history cleanup requires separate explicit authorization.
+
+New records receive native generated product codes, default variants and Pcs units. A source code becomes the optional barcode when no other product or variant owns it. Existing transaction quantities are not imported from these snapshots.
+
+The replacement locks the tenant's product identifier counter and commits catalog changes with its own `phr_seed_runs` version marker. Repeating a completed version does nothing, preserving subsequent operator edits and additions. Existing tenants require an explicit seeding run in their native tenant context; adoption and `tenants:migrate` do not seed catalogs. The earlier base and Medicine v1 snapshots are retained only as immutable history and are not selected by the manifest.
+
+Snapshots contain no stock, opening balances, dues, transactions, patients, users or credentials.

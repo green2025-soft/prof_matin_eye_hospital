@@ -22,7 +22,7 @@ class ProductController extends BaseController
 {
     protected string $model = Product::class;
 
-    protected string $title = 'Product';
+    protected string $title = 'Medicine/Product';
 
     protected string $views = 'pharmacy::products';
 
@@ -38,7 +38,7 @@ class ProductController extends BaseController
 
     protected array $selectorFields = [
         'id', 'name', 'type', 'code', 'barcode', 'purchase_price', 'sale_price',
-        'dosage_id', 'supplier_id', 'dosage', 'supplier',
+        'category_id', 'dosage_id', 'supplier_id', 'category', 'dosage', 'supplier',
     ];
 
     public function index(ListRequest $request): View

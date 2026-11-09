@@ -14,15 +14,54 @@
             <input class="{{ inputClass('father_husband_name') }}" id="{{ $fieldPrefix.'father_husband_name' }}" name="father_husband_name" type="text" value="{{ getValue('father_husband_name', $patient) }}" maxlength="255" {{ inputAttrs('father_husband_name', $fieldPrefix.'father_husband_name') }}>
             @error('father_husband_name')<div class="invalid-feedback d-block" id="{{ $fieldPrefix.'father_husband_name-error' }}">{{ $message }}</div>@enderror
         </div>
-        <div class="col-md-6">
-            <label class="form-label" for="{{ $fieldPrefix.'patient_id' }}">Patient ID</label>
-            <input class="form-control" id="{{ $fieldPrefix.'patient_id' }}" type="text" value="{{ $patient->patient_id }}" placeholder="Auto generated" readonly>
-        </div>
-        <div class="col-md-6">
-            <label class="form-label" for="{{ $fieldPrefix.'age' }}">Age (years) <span class="text-danger" aria-hidden="true">*</span></label>
-            <input class="{{ inputClass('age') }}" id="{{ $fieldPrefix.'age' }}" name="age" type="number" inputmode="numeric" value="{{ getValue('age', $patient) }}" min="0" max="150" step="1" required {{ inputAttrs('age', $fieldPrefix.'age') }}>
-            @error('age')<div class="invalid-feedback d-block" id="{{ $fieldPrefix.'age-error' }}">{{ $message }}</div>@enderror
-        </div>
+        <fieldset class="col-12 patient-age-fields">
+            <legend class="form-label">Age <span class="text-danger" aria-hidden="true">*</span></legend>
+            <div class="d-flex flex-wrap gap-3 mb-2">
+                <div class="form-check">
+                    <input class="form-check-input" id="{{ $fieldPrefix.'age_input_age' }}" name="age_input" type="radio" value="age" @checked($ageInput === 'age')>
+                    <label class="form-check-label" for="{{ $fieldPrefix.'age_input_age' }}">Age</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" id="{{ $fieldPrefix.'age_input_birth' }}" name="age_input" type="radio" value="date_of_birth" @checked($ageInput === 'date_of_birth')>
+                    <label class="form-check-label" for="{{ $fieldPrefix.'age_input_birth' }}">Date of birth</label>
+                </div>
+            </div>
+            @error('age_input')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+
+            <div class="row g-3 patient-age-parts" @if ($ageInput === 'date_of_birth') hidden @endif>
+                <div class="col-4">
+                    <label class="form-label" for="{{ $fieldPrefix.'age' }}">Years</label>
+                    <input class="{{ inputClass('age') }}" id="{{ $fieldPrefix.'age' }}" name="age" type="number" inputmode="numeric"
+                        value="{{ getValue('age', $patient) }}" min="0" max="150" step="1" @disabled($ageInput === 'date_of_birth') {{ inputAttrs('age', $fieldPrefix.'age') }}>
+                    @error('age')<div class="invalid-feedback d-block" id="{{ $fieldPrefix.'age-error' }}">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-4">
+                    <label class="form-label" for="{{ $fieldPrefix.'age_months' }}">Months</label>
+                    <input class="{{ inputClass('age_months') }}" id="{{ $fieldPrefix.'age_months' }}" name="age_months" type="number" inputmode="numeric"
+                        value="{{ getValue('age_months', $patient) }}" min="0" max="11" step="1" @disabled($ageInput === 'date_of_birth') {{ inputAttrs('age_months', $fieldPrefix.'age_months') }}>
+                    @error('age_months')<div class="invalid-feedback d-block" id="{{ $fieldPrefix.'age_months-error' }}">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-4">
+                    <label class="form-label" for="{{ $fieldPrefix.'age_days' }}">Days</label>
+                    <input class="{{ inputClass('age_days') }}" id="{{ $fieldPrefix.'age_days' }}" name="age_days" type="number" inputmode="numeric"
+                        value="{{ getValue('age_days', $patient) }}" min="0" max="30" step="1" @disabled($ageInput === 'date_of_birth') {{ inputAttrs('age_days', $fieldPrefix.'age_days') }}>
+                    @error('age_days')<div class="invalid-feedback d-block" id="{{ $fieldPrefix.'age_days-error' }}">{{ $message }}</div>@enderror
+                </div>
+            </div>
+
+            <div class="patient-birth-date" @if ($ageInput !== 'date_of_birth') hidden @endif>
+                <label class="form-label" for="{{ $fieldPrefix.'date_of_birth' }}">Date of birth</label>
+                <div class="input-group" data-datepicker data-max-date="today" data-min-date="{{ now()->subYears(150)->toDateString() }}">
+                    <input class="{{ inputClass('date_of_birth') }}" id="{{ $fieldPrefix.'date_of_birth' }}" name="date_of_birth" type="text" inputmode="numeric"
+                        value="{{ $birthDate }}" placeholder="YYYY-MM-DD" autocomplete="off" data-input
+                        @required($ageInput === 'date_of_birth') @disabled($ageInput !== 'date_of_birth') {{ inputAttrs('date_of_birth', $fieldPrefix.'date_of_birth') }}>
+                    <button class="btn btn-outline-secondary" type="button" data-toggle aria-label="Choose date of birth" @disabled($ageInput !== 'date_of_birth')>
+                        <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+                    </button>
+                </div>
+                @error('date_of_birth')<div class="invalid-feedback d-block" id="{{ $fieldPrefix.'date_of_birth-error' }}">{{ $message }}</div>@enderror
+            </div>
+        </fieldset>
         <div class="col-md-6">
             <label class="form-label" for="{{ $fieldPrefix.'gender' }}">Gender <span class="text-danger" aria-hidden="true">*</span></label>
             <select class="{{ inputClass('gender', 'form-select') }}" id="{{ $fieldPrefix.'gender' }}" name="gender" required {{ inputAttrs('gender', $fieldPrefix.'gender') }}>
@@ -44,8 +83,8 @@
             @error('blood_group')<div class="invalid-feedback d-block" id="{{ $fieldPrefix.'blood_group-error' }}">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6">
-            <label class="form-label" for="{{ $fieldPrefix.'mobile_no' }}">Mobile no. <span class="text-danger" aria-hidden="true">*</span></label>
-            <input class="{{ inputClass('mobile_no') }}" id="{{ $fieldPrefix.'mobile_no' }}" name="mobile_no" type="tel" value="{{ getValue('mobile_no', $patient) }}" maxlength="30" autocomplete="tel" required {{ inputAttrs('mobile_no', $fieldPrefix.'mobile_no') }}>
+            <label class="form-label" for="{{ $fieldPrefix.'mobile_no' }}">Mobile no.</label>
+            <input class="{{ inputClass('mobile_no') }}" id="{{ $fieldPrefix.'mobile_no' }}" name="mobile_no" type="tel" value="{{ getValue('mobile_no', $patient) }}" maxlength="30" autocomplete="tel" {{ inputAttrs('mobile_no', $fieldPrefix.'mobile_no') }}>
             @error('mobile_no')<div class="invalid-feedback d-block" id="{{ $fieldPrefix.'mobile_no-error' }}">{{ $message }}</div>@enderror
         </div>
     </div>
@@ -86,10 +125,16 @@
             </select>
             @error('thana_id')<div class="invalid-feedback d-block" id="{{ $fieldPrefix.'thana_id-error' }}">{{ $message }}</div>@enderror
         </div>
-        <div class="col-12">
+        <div class="col-6">
             <label class="form-label" for="{{ $fieldPrefix.'address' }}">Address</label>
-            <textarea class="{{ inputClass('address') }}" id="{{ $fieldPrefix.'address' }}" name="address" rows="3" maxlength="2000" autocomplete="street-address" {{ inputAttrs('address', $fieldPrefix.'address') }}>{{ getValue('address', $patient) }}</textarea>
+            <textarea class="{{ inputClass('address') }}" id="{{ $fieldPrefix.'address' }}" name="address" rows="2" maxlength="2000" autocomplete="street-address" {{ inputAttrs('address', $fieldPrefix.'address') }}>{{ getValue('address', $patient) }}</textarea>
             @error('address')<div class="invalid-feedback d-block" id="{{ $fieldPrefix.'address-error' }}">{{ $message }}</div>@enderror
         </div>
+        <div class="col-md-6">
+        <label class="form-label" for="{{ $fieldPrefix.'patient_id' }}">Patient ID</label>
+        <input class="form-control" id="{{ $fieldPrefix.'patient_id' }}" type="text" value="{{ $patient->patient_id }}" placeholder="Auto generated" readonly>
+    </div>
     </div>
 </section>
+
+

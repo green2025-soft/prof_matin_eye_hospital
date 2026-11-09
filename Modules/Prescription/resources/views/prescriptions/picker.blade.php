@@ -1,6 +1,7 @@
 <div class="app-prescription-picker" id="{{ $pickerField }}-picker"
     data-url="{{ $pickerUrl }}" data-search="#{{ $pickerField }}-search">
-    <div class="app-prescription-picker-options" aria-label="Available items" aria-live="polite"></div>
+    <div class="app-prescription-picker-options d-flex flex-wrap align-content-start gap-2 p-3 overflow-auto"
+        aria-label="Available items" aria-live="polite"></div>
     <textarea class="{{ inputClass($pickerField, 'prescription-picker-value') }}" hidden
         id="{{ $pickerField }}" name="{{ $pickerField }}" form="prescription-form">{{ $pickerValue }}</textarea>
     @error($pickerField)

@@ -1,5 +1,6 @@
 @extends('core::layouts.app')
 
+@php $pageTitle = 'Create Medicine/Product Variant' @endphp
 @section('title', $pageTitle)
 
 @section('content')

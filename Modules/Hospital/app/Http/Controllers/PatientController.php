@@ -29,7 +29,7 @@ class PatientController extends BaseController
 
     protected string $parameter = 'patient';
 
-    protected array $selectorFields = ['id', 'patient_id', 'name', 'mobile_no'];
+    protected array $selectorFields = ['id', 'patient_id', 'name', 'mobile_no', 'age', 'age_months', 'age_days', 'date_of_birth'];
 
     public function index(ListRequest $request): View
     {
@@ -64,7 +64,7 @@ class PatientController extends BaseController
         );
 
         if (! $this->isUpdate($request) && $request->expectsJson()) {
-            $option = $patient->only(['id', 'name', 'patient_id', 'mobile_no']);
+            $option = $patient->only(['id', 'name', 'patient_id', 'mobile_no', 'age', 'age_months', 'age_days', 'date_of_birth']);
 
             return response()
                 ->json(
@@ -113,6 +113,8 @@ class PatientController extends BaseController
         return [
             'genders' => genders(),
             'bloodGroups' => bloodGroups(),
+            'ageInput' => getValue('age_input', null, $record->date_of_birth === null ? 'age' : 'date_of_birth'),
+            'birthDate' => getValue('date_of_birth', null, $record->date_of_birth?->toDateString()),
             'selectedDivision' => $selectedDivision,
             'selectedDistrict' => $selectedDistrict,
             'selectedThana' => $selectedThana,

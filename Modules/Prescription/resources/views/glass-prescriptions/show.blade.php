@@ -49,7 +49,7 @@
         @if ($settings['glass_lens_options_enabled'] && ! empty($record->lens_options))
             <section aria-labelledby="glass-print-lens-heading">
                 <h3 class="h6" id="glass-print-lens-heading">Glasses and use</h3>
-                <ul class="app-prescription-lens-list">
+                <ul class="app-prescription-lens-list list-unstyled d-flex flex-wrap column-gap-3 row-gap-1">
                     @foreach ($record->lens_options as $option)
                         <li>{{ $lensOptions[$option] ?? $option }}</li>
                     @endforeach

@@ -6,10 +6,12 @@ export function createEmptySearchGuard($select) {
     let currentQuery = null;
     let emptyQuery = null;
 
+    // Refresh the caller's Create control when search eligibility changes.
     function notify() {
         $select.trigger('prescription:searchEligibility');
     }
 
+    // Forget the previous result as soon as the user types a different name.
     function setTerm(value) {
         const next = String(value || '').trim();
         if (next === term) return;
@@ -20,6 +22,7 @@ export function createEmptySearchGuard($select) {
         notify();
     }
 
+    // Attach this exact search/page to its request so stale results can be identified.
     function begin(params) {
         term = String(params.term || '').trim();
         currentQuery = { term, page: Number(params.page || 1) };
@@ -28,6 +31,7 @@ export function createEmptySearchGuard($select) {
         notify();
     }
 
+    // Allow creation only when the current first page has no matches or later pages.
     function complete(params, resultCount, more) {
         const query = params.creationQuery;
         if (!query || query !== currentQuery || query.term !== term) return false;
@@ -37,10 +41,12 @@ export function createEmptySearchGuard($select) {
         return true;
     }
 
+    // Confirm the requested new name still belongs to the completed empty search.
     function canCreate(value) {
         return Boolean(term && emptyQuery && term === String(value || '').trim());
     }
 
+    // Track typing in both Select2 inputs without registering duplicate handlers.
     function bindSearch() {
         const picker = $select.data('select2');
         picker.$container.add(picker.$dropdown).find('.select2-search__field')

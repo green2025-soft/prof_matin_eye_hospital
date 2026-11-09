@@ -108,6 +108,7 @@ class PrescriptionService
             $rows[] = [
                 'product_id' => $product?->id,
                 'medicine_name' => $product?->name ?? trim($input['medicine_name']),
+                'dosage_type' => $input['dosage_type'] ?? 'other',
                 'dose' => $input['dose'] ?? null,
                 'frequency' => $input['frequency'] ?? null,
                 'duration' => $input['duration'] ?? null,

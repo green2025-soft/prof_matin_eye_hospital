@@ -1,11 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Prescription\Http\Controllers\DashboardController;
 use Modules\Prescription\Http\Controllers\GlassPrescriptionController;
 use Modules\Prescription\Http\Controllers\PrescriptionController;
 use Modules\Prescription\Http\Controllers\PrescriptionOptionController;
 use Modules\Prescription\Http\Controllers\SettingController;
-use Modules\TenantCore\Http\Controllers\ModuleDashboardController;
 
 Route::middleware(['web', 'auth', 'tenant', 'subscribed', 'permission:prescription.view'])
     ->prefix('prescription')
@@ -20,8 +20,7 @@ Route::middleware(['web', 'auth', 'tenant', 'subscribed', 'permission:prescripti
         Route::put('settings/{setting}', [SettingController::class, 'store'])->name('settings.update');
 
         Route::middleware('branch:required')->group(function (): void {
-            Route::get('/', [ModuleDashboardController::class, 'show'])
-                ->defaults('module', 'Prescription')
+            Route::get('/', [DashboardController::class, 'index'])
                 ->name('dashboard');
 
             Route::resource('prescriptions', PrescriptionController::class);

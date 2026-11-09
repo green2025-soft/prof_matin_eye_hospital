@@ -2,6 +2,7 @@
 
 namespace Modules\Hospital\Http\Requests;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Modules\Core\Http\Requests\BaseRequest;
 
@@ -22,18 +23,54 @@ class PatientRequest extends BaseRequest
         $record = $this->record();
         $divisionId = $this->integer('division_id', $record?->division_id ?? 0);
         $districtId = $this->integer('district_id', $record?->district_id ?? 0);
+        $ageRequired = $this->input('age_input') !== 'date_of_birth'
+            && (! $this->isUpdate() || $this->input('age_input') === 'age')
+            && ! $this->filled('age_months') && ! $this->filled('age_days');
 
         return [
             'name' => ['required', 'string', 'max:255'],
             'father_husband_name' => ['nullable', 'string', 'max:255'],
-            'age' => ['required', 'integer', 'between:0,150'],
+            'age_input' => ['nullable', Rule::in(['age', 'date_of_birth'])],
+            'age' => [
+                'exclude_if:age_input,date_of_birth',
+                Rule::requiredIf($ageRequired),
+                'nullable', 'integer', 'between:0,150',
+            ],
+            'age_months' => ['exclude_if:age_input,date_of_birth', 'nullable', 'integer', 'between:0,11'],
+            'age_days' => ['exclude_if:age_input,date_of_birth', 'nullable', 'integer', 'between:0,30'],
+            'date_of_birth' => [
+                'exclude_if:age_input,age', 'nullable', 'required_if:age_input,date_of_birth',
+                'date_format:Y-m-d', 'before_or_equal:today',
+                'after_or_equal:'.Carbon::today()->subYears(150)->toDateString(),
+            ],
             'gender' => ['required', 'string', Rule::in(array_keys(genders()))],
             'blood_group' => ['nullable', 'string', Rule::in(array_keys(bloodGroups()))],
-            'mobile_no' => ['required', 'string', 'max:30', 'regex:/\A(?=.*[0-9])[0-9+() .-]+\z/'],
+            'mobile_no' => ['nullable', 'string', 'max:30', 'regex:/\A(?=.*[0-9])[0-9+() .-]+\z/'],
             'division_id' => ['bail', 'nullable', 'required_with:district_id', 'integer', 'min:1', $this->existsIn('divisions')],
             'district_id' => ['bail', 'nullable', 'required_with:thana_id', 'integer', 'min:1', $this->existsIn('districts')->where('division_id', $divisionId)],
             'thana_id' => ['bail', 'nullable', 'integer', 'min:1', $this->existsIn('thanas')->where('district_id', $districtId)],
             'address' => ['nullable', 'string', 'max:2000'],
         ];
+    }
+
+    public function payload(): array
+    {
+        $values = $this->validated();
+        $ageInput = $values['age_input'] ?? null;
+        unset($values['age_input']);
+
+        if (filled($values['date_of_birth'] ?? null)) {
+            $age = Carbon::parse($values['date_of_birth'])->diff(Carbon::today());
+            $values['age'] = $age->y;
+            $values['age_months'] = $age->m;
+            $values['age_days'] = $age->d;
+        } elseif ($ageInput === 'age') {
+            $values['age'] = (int) ($values['age'] ?? 0);
+            $values['age_months'] = (int) ($values['age_months'] ?? 0);
+            $values['age_days'] = (int) ($values['age_days'] ?? 0);
+            $values['date_of_birth'] = null;
+        }
+
+        return $values;
     }
 }

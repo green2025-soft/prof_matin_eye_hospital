@@ -14,7 +14,7 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-6 col-xl-4">
                     <label class="form-label small" for="prescription_search">Search</label>
-                    <input class="{{ inputClass('search') }}" id="prescription_search" name="search" type="search" maxlength="80" value="{{ getValue('search', null, $filters['search'] ?? '') }}" placeholder="Prescription ID or date" {{ inputAttrs('search', 'prescription_search') }}>
+                    <input class="{{ inputClass('search') }}" id="prescription_search" name="search" type="search" maxlength="80" value="{{ getValue('search', null, $filters['search'] ?? '') }}" placeholder="Rx number, ID or date" {{ inputAttrs('search', 'prescription_search') }}>
                     @error('search')<div class="invalid-feedback d-block" id="prescription_search-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 col-xl-5">
@@ -49,7 +49,7 @@
                 <tbody>
                     @forelse ($records as $record)
                         <tr>
-                            <th scope="row">#{{ $record->id }}</th>
+                            <th scope="row">{{ $record->rx_number ?? '#'.$record->id }}</th>
                             <td class="text-nowrap">{{ $record->prescription_date?->format('d M Y') }}</td>
                             <td><a class="d-block fw-semibold" href="{{ route($routePrefix.'.index', ['filter_patient_id' => $record->patient_id]) }}" title="View patient prescription history">{{ $record->patient?->name }}</a><small class="text-body-secondary">{{ $record->patient?->patient_id }}</small></td>
                             <td>{{ $record->doctor?->name }}</td>

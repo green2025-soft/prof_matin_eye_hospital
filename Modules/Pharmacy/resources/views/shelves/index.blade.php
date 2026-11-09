@@ -1,9 +1,9 @@
 @extends('core::layouts.app')
 
-@section('title', $pageTitle)
+@section('title', 'Shelf')
 
 @section('content')
-    @include('core::partials.heading', ['title' => $pageTitle])
+    @include('core::partials.heading', ['title' => "Shelf"])
 
     <div class="row g-4 align-items-start">
         @if ($form !== null)
@@ -31,8 +31,8 @@
                             <caption class="visually-hidden">Shelves</caption>
                             <thead>
                                 <tr>
-                                    <th scope="col">Name</th>
-                                    <th scope="col">Shelf no.</th>
+                                    <th scope="col">Shelf Name</th>
+                                    <th scope="col">Shelf No</th>
                                     <th class="text-end" scope="col">Actions</th>
                                 </tr>
                             </thead>

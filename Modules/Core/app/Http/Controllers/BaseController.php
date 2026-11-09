@@ -122,7 +122,8 @@ abstract class BaseController extends Controller
             'filterOptions' => (new $model)->queryContract()['filterable'],
         ]) + [
             'filters' => $filters,
-            'pageTitle' => Str::plural($this->title),
+            // 'pageTitle' => Str::plural($this->title),
+            'pageTitle' => $this->title,
             'routePrefix' => $this->routePrefix(),
             'routeParameters' => $this->routeParameters(),
         ];
@@ -325,7 +326,7 @@ abstract class BaseController extends Controller
                 ] + $routeParameters)
                 : route($this->routePrefix().'.store', $routeParameters),
             'formMethod' => $record->exists ? 'PUT' : 'POST',
-            'pageTitle' => $data['pageTitle'] ?? ($record->exists ? 'Edit ' : 'Create ').Str::lower($this->title),
+            'pageTitle' => $data['pageTitle'] ?? ($record->exists ? 'Edit ' : 'Create ').$this->title,
             'submitLabel' => $record->exists ? 'Update' : 'Save',
             'routePrefix' => $this->routePrefix(),
             'routeParameters' => $routeParameters,
@@ -388,7 +389,7 @@ abstract class BaseController extends Controller
 
     protected function routeParameters(?Model $record = null): array
     {
-        $parameters = [];
+        $parameters = menuParameters();
         foreach ($this->routeFilters as $queryKey => $column) {
             $value = $record?->getAttribute($column) ?? request()
                 ->query($queryKey) ?? ($this->defaultFilters[$queryKey] ?? null);

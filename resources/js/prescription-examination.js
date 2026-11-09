@@ -1,5 +1,6 @@
 import $ from './jquery';
 
+// Expand optional examination measurements and focus their first input.
 export function initializePrescriptionExamination() {
     const $pane = $('#examination-general-pane');
     $pane.off('.prescriptionExamination')

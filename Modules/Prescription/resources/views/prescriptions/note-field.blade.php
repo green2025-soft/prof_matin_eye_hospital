@@ -2,9 +2,9 @@
     $noteValue = getValue($noteField, $record);
 @endphp
 
-<section class="app-prescription-note">
-    <div class="app-prescription-section-heading">
-        <h3>{{ $noteLabel }}</h3>
+<section class="app-prescription-note mb-3">
+    <div class="app-prescription-section-heading d-flex align-items-center gap-2">
+        <h3 class="mb-0">{{ $noteLabel }}</h3>
         <button class="btn btn-outline-primary btn-sm" type="button"
             data-bs-toggle="modal" data-bs-target="#prescription-{{ $noteField }}-modal"
             aria-label="Add or edit {{ strtolower($noteLabel) }}">

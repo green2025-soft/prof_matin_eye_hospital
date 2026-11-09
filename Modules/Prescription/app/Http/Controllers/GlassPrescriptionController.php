@@ -45,24 +45,37 @@ class GlassPrescriptionController extends BaseController
             ->authorize('view', $record);
 
         $record->load([
-            'patient:id,patient_id,name,mobile_no,age,gender,address',
-            'doctor:id,doctor_id,name,bn_name,designation,education_degree,bn_education_degree,specialist,bn_specialist,bmdc_reg,bn_bmdc_reg,current_employment,bn_current_employment,pad_footer_text,mobile_no',
+            'patient:id,patient_id,name,mobile_no,age,gender',
+            'doctor:id,name,bn_name,designation,specialist,bn_specialist,'
+                .'education_degree,bn_education_degree,current_employment,bn_current_employment,'
+                .'bmdc_reg,bn_bmdc_reg,pad_footer_text',
         ]);
         $settings = Setting::values('prescription', $record->getConnectionName());
 
         $data = [
             'record' => $record,
             'patient' => $record->patient,
+            'patientAge' => $record->patient?->age ?? '--',
             'doctor' => $record->doctor,
             'entryDate' => $record->prescription_date->format('d-m-Y'),
-            'referenceNumber' => '#'.$record->id,
+            'referenceNumber' => $record->rx_number ?? '#'.$record->id,
             'documentTitle' => 'Glass Prescription',
             'backUrl' => route('prescription.glass-prescriptions.index'),
             'canEdit' => Gate::forUser($actor)
                 ->allows('update', $record),
             'editUrl' => route('prescription.glass-prescriptions.edit', $record),
             'paperSize' => $settings['glass_paper'],
+            'customPaperSize' => [
+                'width' => $settings['glass_custom_width'],
+                'height' => $settings['glass_custom_height'],
+            ],
             'showHeader' => $settings['glass_header_enabled'],
+            'printMargins' => [
+                'top' => $settings['glass_margin_top'],
+                'right' => $settings['glass_margin_right'],
+                'bottom' => $settings['glass_margin_bottom'],
+                'left' => $settings['glass_margin_left'],
+            ],
             'settings' => $settings,
             'lensOptions' => GlassPrescription::lensOptions(),
         ];

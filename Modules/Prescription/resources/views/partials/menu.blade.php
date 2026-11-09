@@ -23,3 +23,24 @@
         <span class="app-nav-copy">Prescription settings</span>
     </a>
 @endif
+
+@include('pharmacy::partials.catalog-menu', [
+    'catalogType'   => 'medicine',
+    'catalogTitle'  => 'Medicine Catalog',
+    'catalogLabel'  => 'Medicine/Product',
+    'productLabel'  => 'Medicine/Product',
+    'productIcon'   => 'pills',
+    'categoryLabel' => 'Generic/Category',
+    'shelfLabel'    => 'Shelf',
+    'catalogParameters' => ['menu' => 'prescription'],
+])
+@include('pharmacy::partials.catalog-menu', [
+    'catalogType'   => 'optic',
+    'catalogTitle'  => 'Optic Catalog',
+    'catalogLabel'  => 'Optic/Product',
+    'productLabel'  => 'Products',
+    'productIcon'   => 'glasses',
+    'categoryLabel' => 'Generic/Category',
+    'shelfLabel'    => 'Shelf',
+    'catalogParameters' => ['menu' => 'prescription'],
+])

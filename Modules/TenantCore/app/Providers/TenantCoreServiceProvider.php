@@ -10,11 +10,13 @@ use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Modules\Core\Contracts\TenantAccounts as TenantAccountsContract;
 use Modules\TenantCore\Http\Middleware\ResolveBranch;
 use Modules\TenantCore\Services\AuditLogger;
 use Modules\TenantCore\Services\TenantAccounts;
+use Modules\TenantCore\View\Composers\MenuComposer;
 use Spatie\Permission\Events\PermissionAttachedEvent;
 use Spatie\Permission\Events\PermissionDetachedEvent;
 use Spatie\Permission\Events\RoleAttachedEvent;
@@ -29,6 +31,8 @@ class TenantCoreServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        View::composer('core::layouts.app', MenuComposer::class);
+
         Event::listen(['eloquent.created: *', 'eloquent.updated: *', 'eloquent.deleted: *'], [AuditLogger::class, 'modelChanged']);
         Event::listen(Login::class, [AuditLogger::class, 'login']);
         Event::listen(Logout::class, [AuditLogger::class, 'logout']);

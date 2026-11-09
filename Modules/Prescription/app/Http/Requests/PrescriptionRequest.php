@@ -6,6 +6,7 @@ use Illuminate\Validation\Rule;
 use Modules\Core\Http\Requests\BaseRequest;
 use Modules\Core\Models\Setting;
 use Modules\Hospital\Models\Doctor;
+use Modules\Prescription\Models\PrescriptionMedicine;
 
 class PrescriptionRequest extends BaseRequest
 {
@@ -160,9 +161,10 @@ class PrescriptionRequest extends BaseRequest
             ],
             'section_details.*.*.notes' => ['nullable', 'string', 'max:1000'],
             'medicines' => ['array', 'max:100'],
-            'medicines.*' => ['array:product_id,medicine_name,dose,frequency,duration,instructions'],
+            'medicines.*' => ['array:product_id,medicine_name,dosage_type,dose,frequency,duration,instructions'],
             'medicines.*.product_id' => ['bail', 'nullable', 'integer', 'min:1', $this->existsIn('phr_products')->where('type', 'medicine')],
             'medicines.*.medicine_name' => ['required', 'string', 'max:255'],
+            'medicines.*.dosage_type' => ['nullable', 'string', Rule::in(array_keys(PrescriptionMedicine::dosageTypes()))],
             'medicines.*.dose' => ['nullable', 'string', 'max:100'],
             'medicines.*.frequency' => ['nullable', 'string', 'max:100'],
             'medicines.*.duration' => ['nullable', 'string', 'max:100'],

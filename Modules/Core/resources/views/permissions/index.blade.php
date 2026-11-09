@@ -1,9 +1,9 @@
 @extends('core::layouts.app')
 
-@section('title', $pageTitle)
+@section('title', 'Permission')
 
 @section('content')
-    @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Select a role, review its access, and save permission changes separately.'])
+    @include('core::partials.heading', ['title' => 'Permission', 'description' => 'Select a role, review its access, and save permission changes separately.'])
     <div
         data-permission-editor
         data-permission-readonly="{{ $canManagePermissions ? '0' : '1' }}"

@@ -14,7 +14,7 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-7 col-xl-5">
                     <label class="form-label small" for="glass_search">Search</label>
-                    <input class="{{ inputClass('search') }}" id="glass_search" name="search" type="search" maxlength="80" value="{{ getValue('search', null, $filters['search'] ?? '') }}" placeholder="Prescription ID or date" {{ inputAttrs('search', 'glass_search') }}>
+                    <input class="{{ inputClass('search') }}" id="glass_search" name="search" type="search" maxlength="80" value="{{ getValue('search', null, $filters['search'] ?? '') }}" placeholder="Rx number, ID or date" {{ inputAttrs('search', 'glass_search') }}>
                     @error('search')<div class="invalid-feedback d-block" id="glass_search-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-5">
@@ -38,7 +38,7 @@
                 <tbody>
                     @forelse ($records as $record)
                         <tr>
-                            <th scope="row">#{{ $record->id }}</th>
+                            <th scope="row">{{ $record->rx_number ?? '#'.$record->id }}</th>
                             <td class="text-nowrap">{{ $record->prescription_date?->format('d M Y') }}</td>
                             <td><strong class="d-block">{{ $record->patient?->name }}</strong><small class="text-body-secondary">{{ $record->patient?->patient_id }}</small></td>
                             <td>{{ $record->doctor?->name }}</td>

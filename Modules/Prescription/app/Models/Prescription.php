@@ -23,14 +23,14 @@ class Prescription extends BaseModel
     protected bool $branchScoped = true;
 
     protected array $exposed = [
-        'id', 'branch_id', 'patient_id', 'doctor_id', 'prescription_date', 'chief_complaints', 'section_details',
+        'id', 'rx_number', 'branch_id', 'patient_id', 'doctor_id', 'prescription_date', 'chief_complaints', 'section_details',
         'history', 'history_details', 'examination', 'examination_details', 'diagnosis', 'investigations',
         'advice', 'follow_up_date', 'follow_up_notes', 'follow_up_interval', 'follow_up_interval_unit', 'created_at', 'updated_at',
     ];
 
-    protected array $listColumns = ['id', 'branch_id', 'patient_id', 'doctor_id', 'prescription_date', 'follow_up_date', 'created_at'];
+    protected array $listColumns = ['id', 'rx_number', 'branch_id', 'patient_id', 'doctor_id', 'prescription_date', 'follow_up_date', 'created_at'];
 
-    protected array $searchable = ['id', 'prescription_date'];
+    protected array $searchable = ['id', 'rx_number', 'prescription_date'];
 
     protected array $filterableIds = ['filter_patient_id' => 'patient_id', 'filter_doctor_id' => 'doctor_id'];
 

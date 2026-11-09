@@ -1,5 +1,5 @@
 @extends('core::layouts.app')
-
+@php $pageTitle = 'Medicine/Product Variant' @endphp
 @section('title', $pageTitle)
 
 @section('content')
@@ -39,8 +39,8 @@
                         <th scope="col">Variant</th>
                         <th scope="col">Product</th>
                         @if (request()->attributes->get('pharmacy_product_type') !== 'medicine')
-                            <th scope="col">Color / size</th>
-                            <th scope="col">SPH / CYL</th>
+                            {{-- <th scope="col">Color / size</th>
+                            <th scope="col">SPH / CYL</th> --}}
                         @endif
                         <th scope="col">Status</th>
                         <th class="text-end" scope="col">Actions</th>
@@ -53,8 +53,8 @@
                             <td>{{ $record->name ?? '—' }}</td>
                             <td class="text-break">{{ $record->product?->name }}</td>
                             @if (request()->attributes->get('pharmacy_product_type') !== 'medicine')
-                                <td>{{ trim(($record->color ?? '').' '.($record->size ?? '')) ?: '—' }}</td>
-                                <td class="text-nowrap">{{ ($record->sph ?? '—').' / '.($record->cyl ?? '—') }}</td>
+                                {{-- <td>{{ trim(($record->color ?? '').' '.($record->size ?? '')) ?: '—' }}</td>
+                                <td class="text-nowrap">{{ ($record->sph ?? '—').' / '.($record->cyl ?? '—') }}</td> --}}
                             @endif
                             <td><span class="badge {{ $record->active ? 'text-bg-success' : 'text-bg-secondary' }}">{{ $record->active ? 'Active' : 'Inactive' }}</span></td>
                             <td>@include('core::partials.row-actions', ['model' => $record, 'routePrefix' => $routePrefix, 'actionLabel' => $record->sku])</td>

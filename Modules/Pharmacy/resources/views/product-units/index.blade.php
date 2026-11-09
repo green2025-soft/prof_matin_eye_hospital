@@ -1,5 +1,5 @@
 @extends('core::layouts.app')
-
+@php $pageTitle = ' Medicine/Product Unit' @endphp
 @section('title', $pageTitle)
 
 @section('content')
@@ -13,7 +13,7 @@
 
     <section class="app-card overflow-hidden">
         <div class="app-card-heading px-3 px-md-4 py-3 border-bottom">
-            <h2 class="h6 mb-0"><i class="fa-solid fa-boxes-stacked me-2 text-body-secondary" aria-hidden="true"></i>Units / packs</h2>
+            <h2 class="h6 mb-0"><i class="fa-solid fa-boxes-stacked me-2 text-body-secondary" aria-hidden="true"></i>Unit/Pack</h2>
         </div>
         <div class="table-responsive">
             <table class="table app-table align-middle mb-0">

@@ -13,7 +13,7 @@ use Modules\Core\Services\ContextCache;
 use Spatie\Multitenancy\Models\Tenant as BaseTenant;
 
 #[Fillable(['name', 'slug', 'address', 'phone', 'has_branches'])]
-#[Hidden(['database_token'])]
+#[Hidden(['database_token', 'database_username', 'database_password'])]
 #[UsePolicy(TenantPolicy::class)]
 class Tenant extends BaseTenant
 {
@@ -64,7 +64,7 @@ class Tenant extends BaseTenant
 
     protected function casts(): array
     {
-        return ['has_branches' => 'boolean'];
+        return ['has_branches' => 'boolean', 'database_username' => 'encrypted', 'database_password' => 'encrypted'];
     }
 
     public function getLogoUrlAttribute(): ?string

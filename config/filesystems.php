@@ -1,5 +1,7 @@
 <?php
 
+$publicDiskRoot = env('PUBLIC_DISK_ROOT', storage_path('app/public'));
+
 return [
 
     /*
@@ -40,7 +42,7 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
+            'root' => $publicDiskRoot,
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
             'visibility' => 'public',
             'throw' => false,
@@ -74,7 +76,7 @@ return [
     */
 
     'links' => [
-        public_path('storage') => storage_path('app/public'),
+        public_path('storage') => $publicDiskRoot,
     ],
 
 ];

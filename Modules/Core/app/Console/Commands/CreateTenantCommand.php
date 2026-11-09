@@ -17,7 +17,7 @@ class CreateTenantCommand extends Command
 
     protected $signature = 'tenant:create {--force}';
 
-    protected $description = 'Register a tenant and prepare its own database, schema, and administrator.';
+    protected $description = 'Register a tenant using an existing empty database, then initialize its schema, defaults and administrator.';
 
     public function handle(TenantProvisioner $provisioner): int
     {
@@ -25,7 +25,7 @@ class CreateTenantCommand extends Command
             return self::FAILURE;
         }
 
-        $rules = TenantRules::metadata() + TenantRules::owner();
+        $rules = TenantRules::metadata() + TenantRules::owner() + TenantRules::credentials();
         $name = trim(text(
             'Tenant name',
             required: true,
@@ -36,6 +36,11 @@ class CreateTenantCommand extends Command
             TenantRules::normalize(['domains' => explode(',', $value)]),
             ['domains' => $rules['domains'], 'domains.*' => $rules['domains.*']],
         )->errors()->first());
+        $credentials = [
+            'database' => trim(text('DB_DATABASE (existing empty database)', required: true, validate: $rules['credentials.database'])),
+            'username' => trim(text('DB_USERNAME', required: true, validate: $rules['credentials.username'])),
+            'password' => password('DB_PASSWORD (leave blank if none)', validate: $rules['credentials.password']),
+        ];
 
         $tenant = $provisioner->create(
             $name,
@@ -48,6 +53,7 @@ class CreateTenantCommand extends Command
             )),
             normalizeEmail(text('Tenant administrator email', required: true, validate: $rules['owner_email'])),
             password('Password', required: true, validate: $rules['password']),
+            $credentials,
         );
 
         $this->info('Tenant ready: '.$tenant->slug);

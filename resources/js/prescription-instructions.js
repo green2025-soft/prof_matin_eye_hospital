@@ -1,22 +1,24 @@
 import $ from './jquery';
 import { createEmptySearchGuard } from './select2-empty-search';
 
+// Connect each medicine's instruction search, food buttons and inline option creation.
 export function initializePrescriptionInstructions($modal, $rows) {
     let pendingInstructionWrites = 0;
 
-    function updateRow($row) {
+    // Mark the selected food instruction, or show the custom instruction as a removable badge.
+    function updateInstructionRow($row) {
         const instruction = String($row.find('[name$="[instructions]"]').val() || '').trim();
-        let isFoodChoice = false;
         const $foodChoices = $row.find('.prescription-food-instruction').attr('tabindex', '-1');
+
         $foodChoices.each(function () {
             const selected = $(this).text().trim() === instruction;
             $(this).toggleClass('active', selected).attr('aria-pressed', String(selected));
-            if (selected) isFoodChoice = true;
         });
+
         const $selectedFood = $foodChoices.filter('[aria-pressed="true"]');
         ($selectedFood.length ? $selectedFood : $foodChoices.first()).attr('tabindex', '0');
         const $selection = $row.find('.prescription-instruction-selection').empty();
-        if (!instruction || isFoodChoice) return;
+        if (!instruction || $selectedFood.length) return;
 
         const $badge = $('<span class="prescription-instruction-badge">').appendTo($selection);
         $('<span>').text(instruction).appendTo($badge);
@@ -27,7 +29,8 @@ export function initializePrescriptionInstructions($modal, $rows) {
             }).appendTo($badge);
     }
 
-    function instructionResult(choice, createUrl) {
+    // Render an existing instruction or the explicit Create choice without inserting raw HTML.
+    function renderInstructionResult(choice, createUrl) {
         if (!choice.id) return choice.text;
 
         const $result = $('<div class="app-prescription-text-choice">')
@@ -40,7 +43,8 @@ export function initializePrescriptionInstructions($modal, $rows) {
         return $result;
     }
 
-    function initializeInstructionChoice($select, $value, createUrl) {
+    // Search both saved choices and the tenant catalog; allow creation only after an empty search.
+    function initializeInstructionSearch($select, $value, createUrl) {
         const emptySearch = createEmptySearchGuard($select);
         const localChoices = new Set($select.find('option').map(function () {
             return $(this).val();
@@ -55,7 +59,8 @@ export function initializePrescriptionInstructions($modal, $rows) {
             tags: true,
             minimumInputLength: 0,
             maximumInputLength: 255,
-            templateResult: choice => instructionResult(choice, createUrl),
+            templateResult: choice => renderInstructionResult(choice, createUrl),
+            // Offer the typed name only when the completed search has no matching instruction.
             createTag(params) {
                 const name = String(params.term || '').trim();
                 return emptySearch.canCreate(name) ? { id: name, text: name, name, newTag: true } : null;
@@ -65,10 +70,12 @@ export function initializePrescriptionInstructions($modal, $rows) {
                 dataType: 'json',
                 delay: 250,
                 timeout: 15000,
+                // Start a tracked search so an older response cannot replace the current results.
                 data(params) {
                     emptySearch.begin(params);
                     return { search: String(params.term || '').trim().slice(0, 80), page: params.page || 1 };
                 },
+                // Merge local and catalog names, keeping pagination and stale-response protection.
                 processResults(data, params) {
                     const names = new Set();
                     const search = String(params.term || '').trim().toLocaleLowerCase();
@@ -103,6 +110,7 @@ export function initializePrescriptionInstructions($modal, $rows) {
         });
     }
 
+    // Select a food button or newly saved name through the same instruction field.
     function selectInstruction($row, name) {
         const $select = $row.find('.prescription-instruction-search');
         const exists = $select.find('option').filter(function () { return $(this).val() === name; }).length;
@@ -110,11 +118,13 @@ export function initializePrescriptionInstructions($modal, $rows) {
         $select.val(name || null).trigger('change');
     }
 
+    // Clear the previous server validation message when the instruction changes or retries.
     function clearInstructionError($row) {
         $row.find('.prescription-instruction-search').removeClass('is-invalid');
         $row.find('.prescription-instruction-error').removeClass('invalid-feedback d-block').empty();
     }
 
+    // Keep field validation beside the input and show workflow/network failures through Toastr.
     function showInstructionFailure($row, xhr) {
         const errors = xhr.responseJSON?.errors || {};
         const fieldMessages = Object.entries(errors)
@@ -129,6 +139,7 @@ export function initializePrescriptionInstructions($modal, $rows) {
         window.showToast(recordMessage || 'The instruction could not be saved. Please try again.', 'error');
     }
 
+    // Save one new instruction while locking this row against duplicate writes or deletion.
     function createInstruction($row, name, url) {
         const $select = $row.find('.prescription-instruction-search');
         if ($select.data('instructionCreateRequest')) return;
@@ -151,12 +162,7 @@ export function initializePrescriptionInstructions($modal, $rows) {
             timeout: 30000,
         });
         $select.data('instructionCreateRequest', request);
-        request.done((option, _, xhr) => {
-            if (xhr.status !== 201 || typeof option?.name !== 'string' || !option.name.trim()) {
-                window.showToast('The saved instruction response could not be read. Refresh the page.', 'error');
-                return;
-            }
-
+        request.done(option => {
             $rows.find('.prescription-instruction-search').trigger('prescription:optionSaved', [option.name]);
             selectInstruction($row, option.name);
             window.showToast('Instruction saved to list.', 'success');
@@ -174,11 +180,12 @@ export function initializePrescriptionInstructions($modal, $rows) {
         });
     }
 
+    // Prepare a medicine row's selector and intercept only the explicit Create choice.
     function initializeRow($row) {
         const $select = $row.find('.prescription-instruction-search');
         const createUrl = $select.attr('data-create-url');
-        initializeInstructionChoice($select, $row.find('[name$="[instructions]"]'), createUrl);
-        updateRow($row);
+        initializeInstructionSearch($select, $row.find('[name$="[instructions]"]'), createUrl);
+        updateInstructionRow($row);
 
         $select.on('select2:selecting.prescriptionInstruction', event => {
             if (event.isDefaultPrevented()) return;
@@ -191,6 +198,7 @@ export function initializePrescriptionInstructions($modal, $rows) {
         $select.on('change.prescriptionInstruction', () => clearInstructionError($row));
     }
 
+    // Wait for inline instruction creation before submitting the prescription.
     function preventWhileSaving(event) {
         if (pendingInstructionWrites === 0) return;
 
@@ -198,6 +206,7 @@ export function initializePrescriptionInstructions($modal, $rows) {
         window.showToast('Please wait for the instruction to finish saving.', 'info');
     }
 
+    // Keep the target row present until its in-flight instruction save finishes.
     function canRemoveRow($row) {
         if (!$row.find('.prescription-instruction-search').data('instructionCreateRequest')) return true;
 
@@ -211,7 +220,7 @@ export function initializePrescriptionInstructions($modal, $rows) {
         $row.find('.prescription-unit-toggle').trigger('focus');
     });
     $rows.on('input.prescriptionInstruction change.prescriptionInstruction', '[name$="[instructions]"]', function () {
-        updateRow($(this).closest('.prescription-medicine-row'));
+        updateInstructionRow($(this).closest('.prescription-medicine-row'));
     });
 
     return { initializeRow, canRemoveRow, preventWhileSaving };

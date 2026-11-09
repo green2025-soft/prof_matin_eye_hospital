@@ -1,17 +1,23 @@
 {
-    "version": "2026-10-31-v1",
-    "file": "catalog-2026-10-31-v1.json",
-    "sha256": "1d40497896372b303eee1d6f08a49ff34682f89ffbfbc36a58c482471854e1ad",
+    "version": "2026-11-07-v2",
+    "file": "catalog-2026-11-07-v2.json",
+    "sha256": "bac25b8e9a501564c30c8b02ff36b111c8ef9badfbb4281dafc024da6c6032b9",
     "counts": {
         "categories": 460,
         "dosages": 113,
         "suppliers": 254,
         "shelves": 41,
         "units": 1,
-        "products": 1685,
-        "medicine": 1225,
+        "products": 460,
+        "medicine": 0,
         "optic": 460,
-        "needs_setup": 1400
+        "needs_setup": 178
     },
-    "scope": "Catalog masters and default prices only; no stock, balances, dues, transactions, patients, users or credentials."
+    "scope": "Catalog masters and default prices only; no stock, balances, dues, transactions, patients, users or credentials.",
+    "medicine": {
+        "version": "medicine-2026-11-07-v2",
+        "file": "medicine-2026-11-07-v2.json",
+        "sha256": "be7110815a4363ad1d3ca7897b141183f55f3c3d4a77a96dcec04ee92bfda9b4",
+        "count": 325
+    }
 }

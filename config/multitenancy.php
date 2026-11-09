@@ -1,8 +1,8 @@
 <?php
 
 use Modules\Core\Models\Tenant;
+use Modules\Core\Tasks\SwitchTenantDatabase;
 use Modules\Core\Tasks\SwitchTenantSettings;
-use Spatie\Multitenancy\Tasks\SwitchTenantDatabaseTask;
 
 $centralDomains = array_values(array_filter(array_map(
     static fn (string $domain): string => strtolower(rtrim(trim($domain), '.')),
@@ -22,14 +22,12 @@ return [
     'queues_are_tenant_aware_by_default' => true,
 
     'switch_tenant_tasks' => [
-        SwitchTenantDatabaseTask::class,
+        SwitchTenantDatabase::class,
         SwitchTenantSettings::class,
     ],
 
     'central_domains' => $centralDomains,
     'tenant_base_domain' => strtolower(rtrim(trim(env('TENANT_BASE_DOMAIN') ?: $parentDomain), '.')),
-
-    'database_prefix' => env('TENANT_DATABASE_PREFIX', 'tenant_'),
 
     'migrations' => [
         'central' => [

@@ -24,16 +24,16 @@ class GlassPrescription extends BaseModel
     protected bool $branchScoped = true;
 
     protected array $exposed = [
-        'id', 'branch_id', 'patient_id', 'doctor_id', 'prescription_date', 'pd', 'disclaimer', 'lens_options',
+        'id', 'rx_number', 'branch_id', 'patient_id', 'doctor_id', 'prescription_date', 'pd', 'disclaimer', 'lens_options',
         'r_sphere_dv', 'r_cylinder_dv', 'r_axis_dv', 'r_acuity_dv',
         'r_sphere_nv', 'r_cylinder_nv', 'r_axis_nv', 'r_acuity_nv',
         'l_sphere_dv', 'l_cylinder_dv', 'l_axis_dv', 'l_acuity_dv',
         'l_sphere_nv', 'l_cylinder_nv', 'l_axis_nv', 'l_acuity_nv', 'created_at', 'updated_at',
     ];
 
-    protected array $listColumns = ['id', 'branch_id', 'patient_id', 'doctor_id', 'prescription_date', 'pd', 'created_at'];
+    protected array $listColumns = ['id', 'rx_number', 'branch_id', 'patient_id', 'doctor_id', 'prescription_date', 'pd', 'created_at'];
 
-    protected array $searchable = ['id', 'prescription_date'];
+    protected array $searchable = ['id', 'rx_number', 'prescription_date'];
 
     protected array $filterableIds = ['filter_patient_id' => 'patient_id', 'filter_doctor_id' => 'doctor_id'];
 

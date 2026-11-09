@@ -4,7 +4,120 @@ import { initializePrescriptionKeyboard } from './prescription-keyboard';
 import { initializePrescriptionInstructions } from './prescription-instructions';
 import { createPrescriptionPalette } from './prescription-palette';
 import { createEmptySearchGuard } from './select2-empty-search';
+import {
+    firstPrescriptionDoseControl,
+    initializePrescriptionDosage,
+    updatePrescriptionDoseType,
+} from './prescription-application-dose';
 
+// Recognize supported numeric/fraction schedules; keep other directions as custom text.
+function readSchedule(frequency) {
+    const values = String(frequency).split('+').map(value => value.trim());
+    const validDose = /^(?:\d+(?:\.\d+)?|\.\d+|\d*[\u00bc\u00bd\u00be\u2153\u2154])$/;
+    const valid = values.length >= 1 && values.length <= 6 && values.every(value => validDose.test(value));
+    return valid ? values : null;
+}
+
+// Show the saved unit on the row selector, using select when it is blank.
+function refreshUnitToggle($row) {
+    const value = String($row.find('[name$="[dose]"]').val() || '');
+    $row.find('.prescription-unit-toggle').val(value);
+    $row.find('.prescription-unit-label').text(value || 'select');
+}
+
+// Show structured duration labels in the pad without changing saved text.
+function previewDuration($row, duration) {
+    const unit = $row.find('.prescription-duration-unit').val();
+    if (!duration || unit === 'custom') return duration;
+
+    const unitLabel = $row.find('.prescription-duration-unit option:selected').text();
+    if (unit === 'continue') return unitLabel;
+
+    const count = $row.find('.prescription-duration-count').val();
+    return count ? count + ' ' + unitLabel : duration;
+}
+
+// Refresh one medicine summary from its current row fields.
+function updatePreview($row) {
+    const $item = $row.data('preview');
+    const name = $row.find('[name$="[medicine_name]"]').val();
+    const dose = $row.find('[name$="[dose]"]').val();
+    const frequency = String($row.find('[name$="[frequency]"]').val() || '').replace(/\s*\+\s*/g, ' + ');
+    const duration = $row.find('[name$="[duration]"]').val();
+    const instructions = $row.find('[name$="[instructions]"]').val();
+    const directions = [frequency, dose, instructions, previewDuration($row, duration)].filter(Boolean).join(' ');
+
+    $item.find('.app-prescription-rx-preview-title').text(name).attr('aria-label', 'Edit medicine: ' + name);
+    $item.find('.prescription-medicine-preview-generic')
+        .text($row.find('.prescription-medicine-generic').text());
+    $item.find('.prescription-medicine-directions').text(directions);
+}
+
+// Join schedule values into the existing frequency field and refresh its preview.
+function updateFrequency($row) {
+    const frequency = $row.find('.prescription-schedule-dose').map(function () {
+        return $(this).text().trim();
+    }).get().join('+');
+    $row.find('.prescription-frequency-value').val(frequency).trigger('input');
+}
+
+// Advance from a dose slot to the next slot, food choice or unit.
+function nextDoseControl($row, position) {
+    const $nextDose = $row.find('.prescription-schedule-dose').eq(position + 1);
+    if ($nextDose.length) return $nextDose;
+
+    const $food = $row.find('.prescription-food-instruction:visible:enabled').first();
+    return $food.length ? $food : $row.find('.prescription-unit-toggle');
+}
+
+// Show the count or custom text required by the selected duration mode.
+function displayDurationMode($row, unit) {
+    const custom = unit === 'custom';
+    const hideCount = custom || unit === 'continue';
+    $row.find('.prescription-duration-count').prop('hidden', hideCount).prop('disabled', hideCount);
+    $row.find('.prescription-duration-value').prop('hidden', !custom);
+}
+
+// Restore known saved duration formats and leave unmatched legacy text in Custom.
+function initializeDuration($row) {
+    const duration = String($row.find('.prescription-duration-value').val() || '');
+    const interval = duration.match(/^(\d+)\s+(.+)$/);
+    const units = {
+        day: 'days', days: 'days', 'দিন': 'days',
+        week: 'weeks', weeks: 'weeks', 'সপ্তাহ': 'weeks',
+        month: 'months', months: 'months', 'মাস': 'months',
+        year: 'years', years: 'years', 'বছর': 'years',
+    };
+    const intervalUnit = interval && units[interval[2].toLowerCase()];
+    const count = interval ? Number(interval[1]) : null;
+    const structured = intervalUnit && Number.isSafeInteger(count) && count > 0;
+    const continuous = duration === 'চলবে';
+    const custom = Boolean(duration) && !structured && !continuous;
+    let unit = 'days';
+    if (custom) unit = 'custom';
+    if (continuous) unit = 'continue';
+    if (structured) unit = intervalUnit;
+
+    $row.find('.prescription-duration-unit').val(unit);
+    displayDurationMode($row, unit);
+    if (structured) $row.find('.prescription-duration-count').val(interval[1]);
+}
+
+// Write the selected duration into the existing field used by save and preview.
+function updateDuration($row) {
+    const unit = $row.find('.prescription-duration-unit').val();
+    const custom = unit === 'custom';
+    const continuous = unit === 'continue';
+    const count = $row.find('.prescription-duration-count').val();
+    displayDurationMode($row, unit);
+    if (custom) return;
+
+    const label = $row.find('.prescription-duration-unit option:selected').text();
+    const duration = continuous ? 'চলবে' : (count ? count + ' ' + label : '');
+    $row.find('.prescription-duration-value').val(duration).trigger('input');
+}
+
+// Connect medicine search, Rx rows, pad previews and the dose/unit controls.
 export function initializePrescriptionMedicines() {
     const $modal = $('#prescription-rx-modal');
     const $search = $('#prescription-medicine-search');
@@ -32,12 +145,14 @@ export function initializePrescriptionMedicines() {
     let unitOptionsRequest = null;
     let unitOptionsLoaded = false;
 
+    // Update the pad count and empty-state message after a row changes.
     function updateCount() {
         const count = $rows.children('.prescription-medicine-row').length;
         $('#prescription-medicine-count').text(count + (count === 1 ? ' medicine' : ' medicines'));
         $('#prescription-medicine-empty').prop('hidden', count > 0);
     }
 
+    // Keep a suggestion chip aligned with its selected medicine rows.
     function updateSuggestion(choiceId) {
         const $button = suggestionButtons.get(choiceId);
         if (!$button) return;
@@ -46,6 +161,7 @@ export function initializePrescriptionMedicines() {
         $button.toggleClass('active', selected).attr('aria-pressed', String(selected));
     }
 
+    // Mark a medicine selected in the search list and suggestion chips.
     function selectChoice(choiceId) {
         const selected = $search.val() || [];
         if (!selected.includes(choiceId)) {
@@ -55,6 +171,7 @@ export function initializePrescriptionMedicines() {
         updateSuggestion(choiceId);
     }
 
+    // Remove a medicine selection from the search list and suggestion chips.
     function deselectChoice(choiceId) {
         const selected = ($search.val() || []).filter(value => value !== choiceId);
         $search.val(selected).trigger('change.select2');
@@ -62,6 +179,7 @@ export function initializePrescriptionMedicines() {
         updateSuggestion(choiceId);
     }
 
+    // Update the open search results without rebuilding the medicine rows.
     function syncSearchChecks() {
         const picker = $search.data('select2');
         if (!picker) return;
@@ -75,6 +193,7 @@ export function initializePrescriptionMedicines() {
         });
     }
 
+    // Link a saved or new row to its catalog/manual search choice.
     function registerChoice($row, medicine) {
         const choiceId = String(medicine.id);
         const $existingRows = rowsByChoice.get(choiceId) || $();
@@ -89,6 +208,7 @@ export function initializePrescriptionMedicines() {
         selectChoice(choiceId);
     }
 
+    // Unlink a removed or renamed row while retaining any other matching rows.
     function detachChoice($row) {
         const choiceId = $row.data('choiceId');
         if (!choiceId) return;
@@ -103,35 +223,11 @@ export function initializePrescriptionMedicines() {
         }
     }
 
-    function previewDuration($row, duration) {
-        const unit = $row.find('.prescription-duration-unit').val();
-        if (!duration || unit === 'custom') return duration;
+    // Focus an Rx field immediately or after its modal opens.
+    function focusMedicineInput($input) {
+        if (!$input.length) return;
 
-        const unitLabel = $row.find('.prescription-duration-unit option:selected').text();
-        if (unit === 'continue') return unitLabel;
-
-        const count = $row.find('.prescription-duration-count').val();
-        return count ? count + ' ' + unitLabel : duration;
-    }
-
-    function updatePreview($row) {
-        const $item = $row.data('preview');
-        const name = $row.find('[name$="[medicine_name]"]').val();
-        const dose = $row.find('[name$="[dose]"]').val();
-        const frequency = String($row.find('[name$="[frequency]"]').val() || '').replace(/\s*\+\s*/g, ' + ');
-        const duration = $row.find('[name$="[duration]"]').val();
-        const instructions = $row.find('[name$="[instructions]"]').val();
-        const title = [$row.data('dosageName'), name].filter(Boolean).join(' - ');
-        const directions = [frequency, dose, instructions, previewDuration($row, duration)].filter(Boolean).join(' ');
-
-        $item.find('.app-prescription-rx-preview-title').text(title).attr('aria-label', 'Edit medicine: ' + title);
-        $item.find('.prescription-medicine-directions').text(directions);
-    }
-
-    function focusMedicine($row) {
-        if (!$row.length) return;
-
-        $focusAfterOpen = $row.find('.prescription-frequency-value');
+        $focusAfterOpen = $input;
         if ($modal.hasClass('show')) {
             $focusAfterOpen.trigger('focus');
             $focusAfterOpen = $();
@@ -140,13 +236,16 @@ export function initializePrescriptionMedicines() {
         }
     }
 
+    // Create the pad summary and connect its edit/remove buttons to this row.
     function attachPreview($row) {
-        const $item = $('<li>');
+        const $item = $('<li class="d-flex align-items-end justify-content-between">');
         const $content = $('<div>').appendTo($item);
         $('<button type="button" class="app-prescription-rx-preview-title">')
-            .on('click.prescription', () => focusMedicine($row)).appendTo($content);
+            .on('click.prescription', () => focusMedicineInput(firstPrescriptionDoseControl($row))).appendTo($content);
+        $('<small class="d-block text-body-secondary prescription-medicine-preview-generic">').appendTo($content);
         $('<p class="prescription-medicine-directions">').appendTo($content);
         $('<button type="button" class="app-prescription-rx-preview-remove" aria-label="Remove medicine">')
+            .addClass('flex-shrink-0 p-0 border-0 bg-transparent')
             .append('<i class="fa-solid fa-xmark" aria-hidden="true"></i>')
             .on('click.prescription', () => removeRow($row)).appendTo($item);
 
@@ -157,11 +256,13 @@ export function initializePrescriptionMedicines() {
         updatePreview($row);
     }
 
+    // Close the dose choices and clear the active schedule button.
     function closeDosePalette() {
         dosePalette.close();
         $activeDose = $();
     }
 
+    // Open dose choices for one schedule position, or close them on a second click.
     function openDosePalette($button) {
         closeUnitPalette();
         const alreadyOpen = $activeDose.is($button) && $palette.hasClass('show');
@@ -175,17 +276,13 @@ export function initializePrescriptionMedicines() {
         dosePalette.open($button);
     }
 
-    function refreshUnitToggle($row) {
-        const value = String($row.find('[name$="[dose]"]').val() || '');
-        $row.find('.prescription-unit-toggle').val(value);
-        $row.find('.prescription-unit-label').text(value || 'select');
-    }
-
+    // Close the unit choices and clear their active row control.
     function closeUnitPalette() {
         unitPalette.close();
         $activeUnit = $();
     }
 
+    // Add a unit once and mark the currently selected choice.
     function appendUnitChoice(name, selected) {
         if (unitButtons.has(name)) return;
 
@@ -197,6 +294,7 @@ export function initializePrescriptionMedicines() {
         unitButtons.set(name, $button);
     }
 
+    // Rebuild unit choices, including any saved label outside the preset list.
     function renderUnitPalette() {
         const selected = String($activeUnit.closest('.prescription-medicine-row').find('[name$="[dose]"]').val() || '');
         $unitPalette.empty();
@@ -206,6 +304,7 @@ export function initializePrescriptionMedicines() {
         if (selected) appendUnitChoice(selected, selected);
     }
 
+    // Load additional catalog units once; leave failed requests available for retry.
     function loadUnitOptions(page = 1) {
         if (unitOptionsLoaded || unitOptionsRequest) return;
 
@@ -236,6 +335,7 @@ export function initializePrescriptionMedicines() {
         });
     }
 
+    // Open units for the active row while closing the dose palette.
     function openUnitPalette($button) {
         closeDosePalette();
         const alreadyOpen = $activeUnit.is($button) && $unitPalette.hasClass('show');
@@ -248,6 +348,7 @@ export function initializePrescriptionMedicines() {
         loadUnitOptions();
     }
 
+    // Build the selected number of dose slots while retaining entered values.
     function renderSchedule($row, count) {
         closeDosePalette();
         const values = $row.data('scheduleValues');
@@ -266,6 +367,7 @@ export function initializePrescriptionMedicines() {
         }
     }
 
+    // Switch between schedule slots and the custom frequency field.
     function setFrequencyMode($row, mode) {
         const scheduled = mode !== 'custom';
         $row.find('.prescription-frequency-mode').val(mode).text(scheduled ? 'Schedule' : 'Custom frequency');
@@ -278,28 +380,7 @@ export function initializePrescriptionMedicines() {
         else closeDosePalette();
     }
 
-    function updateFrequency($row) {
-        const frequency = $row.find('.prescription-schedule-dose').map(function () {
-            return $(this).text().trim();
-        }).get().join('+');
-        $row.find('.prescription-frequency-value').val(frequency).trigger('input');
-    }
-
-    function nextDoseControl($row, position) {
-        const $nextDose = $row.find('.prescription-schedule-dose').eq(position + 1);
-        if ($nextDose.length) return $nextDose;
-
-        const $food = $row.find('.prescription-food-instruction:enabled').first();
-        return $food.length ? $food : $row.find('.prescription-unit-toggle');
-    }
-
-    function readSchedule(frequency) {
-        const values = String(frequency).split('+').map(value => value.trim());
-        const validDose = /^(?:\d+(?:\.\d+)?|\.\d+|\d*[\u00bc\u00bd\u00be\u2153\u2154])$/;
-        const valid = values.length >= 1 && values.length <= 6 && values.every(value => validDose.test(value));
-        return valid ? values : null;
-    }
-
+    // Restore the saved schedule or custom frequency when a row is attached.
     function initializeFrequency($row) {
         const frequency = String($row.find('.prescription-frequency-value').val() || '');
         const values = readSchedule(frequency);
@@ -309,6 +390,7 @@ export function initializePrescriptionMedicines() {
         setFrequencyMode($row, scheduled ? String(periods) : 'custom');
     }
 
+    // Reflect typed dose text in the schedule buttons without rewriting custom directions.
     function syncFrequencyPicker($row) {
         const frequency = String($row.find('.prescription-frequency-value').val() || '');
         const parsed = readSchedule(frequency);
@@ -326,66 +408,28 @@ export function initializePrescriptionMedicines() {
         $buttons.each(function (index) { $(this).text(values[index] || '0'); });
     }
 
-    function displayDurationMode($row, unit) {
-        const custom = unit === 'custom';
-        const hideCount = custom || unit === 'continue';
-        $row.find('.prescription-duration-count').prop('hidden', hideCount).prop('disabled', hideCount);
-        $row.find('.prescription-duration-value').prop('hidden', !custom);
-    }
-
-    function initializeDuration($row) {
-        const duration = String($row.find('.prescription-duration-value').val() || '');
-        const interval = duration.match(/^(\d+)\s+(day|week|month|year)s?$/i);
-        const count = interval ? Number(interval[1]) : null;
-        const structured = interval && Number.isSafeInteger(count) && count > 0;
-        const continuous = duration === 'চলবে';
-        const custom = Boolean(duration) && !structured && !continuous;
-        let unit = 'days';
-        if (custom) unit = 'custom';
-        if (continuous) unit = 'continue';
-        if (structured) unit = interval[2].toLowerCase() + 's';
-
-        $row.find('.prescription-duration-unit').val(unit);
-        displayDurationMode($row, unit);
-        if (structured) $row.find('.prescription-duration-count').val(interval[1]);
-    }
-
-    function updateDuration($row) {
-        const unit = $row.find('.prescription-duration-unit').val();
-        const custom = unit === 'custom';
-        const continuous = unit === 'continue';
-        const count = $row.find('.prescription-duration-count').val();
-        displayDurationMode($row, unit);
-        if (custom) return;
-
-        const duration = continuous ? 'চলবে' : (count ? count + ' ' + unit : '');
-        $row.find('.prescription-duration-value').val(duration).trigger('input');
-    }
-
+    // Open the Rx modal at the field rejected by native form validation.
     function showInvalidMedicine(event) {
         event.preventDefault();
-        $focusAfterOpen = $(event.currentTarget);
-        if ($modal.hasClass('show')) {
-            $focusAfterOpen.trigger('focus');
-            $focusAfterOpen = $();
-        } else {
-            $modal.modal('show');
-        }
+        focusMedicineInput($(event.currentTarget));
     }
 
+    // Connect a row to its editors, catalog selection and pad preview.
     function attachRow($row, medicine) {
+        const generic = medicine.category?.name || '';
+
         initializeFrequency($row);
         initializeDuration($row);
         refreshUnitToggle($row);
         instructions.initializeRow($row);
+        initializePrescriptionDosage($row, medicine);
         registerChoice($row, medicine);
-        $row.data('dosageName', medicine.dosage?.name || '');
+        $row.find('.prescription-medicine-generic').text(generic).prop('hidden', !generic);
         attachPreview($row);
         $row.find(':input').on('invalid.prescription', showInvalidMedicine);
-
-        $row.find('.prescription-medicine-dosage').text(medicine.dosage?.name || '');
     }
 
+    // Reuse a selected medicine row or prepend a new row from the Blade template.
     function addMedicine(medicine) {
         const choiceId = String(medicine.id);
         const $existing = rowsByChoice.get(choiceId);
@@ -406,6 +450,7 @@ export function initializePrescriptionMedicines() {
         return $row;
     }
 
+    // Remove a row, its widgets and summary after pending instruction saves finish.
     function removeRow($row) {
         if (!instructions.canRemoveRow($row)) return;
         closeDosePalette();
@@ -417,12 +462,14 @@ export function initializePrescriptionMedicines() {
         updateCount();
     }
 
+    // Remove rows for an unselected search choice, keeping any rows still being saved.
     function removeChoice(choiceId) {
         const $selectedRows = rowsByChoice.get(choiceId);
         $selectedRows?.each(function () { removeRow($(this)); });
         if (rowsByChoice.has(choiceId)) selectChoice(choiceId);
     }
 
+    // Show matching medicines as chips that add, focus or remove their rows.
     function renderSuggestions(medicines) {
         $suggestions.empty();
         suggestionButtons.clear();
@@ -433,7 +480,8 @@ export function initializePrescriptionMedicines() {
                     if (rowsByChoice.has(choiceId)) {
                         removeChoice(choiceId);
                     } else {
-                        focusMedicine(addMedicine(medicine));
+                        const $row = addMedicine(medicine);
+                        focusMedicineInput(firstPrescriptionDoseControl($row));
                     }
                 }).appendTo($suggestions);
             suggestionButtons.set(choiceId, $button);
@@ -445,6 +493,7 @@ export function initializePrescriptionMedicines() {
         }
     }
 
+    // Build an escaped medicine search result with its generic and catalog details.
     function medicineResult(medicine) {
         if (!medicine.id) return medicine.text;
 
@@ -452,11 +501,17 @@ export function initializePrescriptionMedicines() {
         $('<span class="prescription-medicine-result-check" aria-hidden="true">').appendTo($result);
         const $description = $('<span>').appendTo($result);
         $('<strong>').text(medicine.name || medicine.text).appendTo($description);
-        const details = [medicine.dosage?.name, medicine.supplier?.name, medicine.code].filter(Boolean).join(' / ');
+        const details = [
+            medicine.category?.name,
+            medicine.dosage?.name,
+            medicine.supplier?.name,
+            medicine.code,
+        ].filter(Boolean).join(' / ');
         if (details) $('<small>').text(details).appendTo($description);
         return $result;
     }
 
+    // Restore saved rows before connecting the shared medicine search.
     $rows.children('.prescription-medicine-row').each(function () {
         const $row = $(this);
         const name = $row.find('[name$="[medicine_name]"]').attr('name');
@@ -469,6 +524,7 @@ export function initializePrescriptionMedicines() {
             id: productId || 'manual:' + medicineName,
             name: medicineName,
             manual: !productId,
+            category: { name: $row.find('.prescription-medicine-generic').text().trim() },
         });
     });
     updateCount();
@@ -484,6 +540,7 @@ export function initializePrescriptionMedicines() {
         maximumInputLength: 255,
         templateResult: medicineResult,
         templateSelection: medicine => medicine.name || medicine.text,
+        // Offer a typed medicine only after the current search finishes with no matches.
         createTag(params) {
             const name = String(params.term || '').trim();
             if (!medicineSearch.canCreate(name)) return null;
@@ -494,10 +551,12 @@ export function initializePrescriptionMedicines() {
             dataType: 'json',
             delay: 250,
             timeout: 15000,
+            // Track this search so an older response cannot enable a new manual item.
             data(params) {
                 medicineSearch.begin(params);
                 return { search: String(params.term || '').trim().slice(0, 80), page: params.page || 1 };
             },
+            // Refresh suggestions from the current response and retain catalog pagination.
             processResults(data, params) {
                 if (!medicineSearch.complete(params, data.results.length, data.pagination?.more)) {
                     return { results: [], pagination: { more: false } };
@@ -514,7 +573,8 @@ export function initializePrescriptionMedicines() {
 
     $search.on('select2:select.prescription', event => {
         $search.select2('close');
-        focusMedicine(addMedicine(event.params.data));
+        const $row = addMedicine(event.params.data);
+        focusMedicineInput(firstPrescriptionDoseControl($row));
     });
     $search.on('select2:unselect.prescription', event => removeChoice(String(event.params.data.id)));
     $search.on('select2:opening.prescription', () => {
@@ -522,6 +582,7 @@ export function initializePrescriptionMedicines() {
         closeDosePalette();
         closeUnitPalette();
     });
+    // Resume the requested field or open the search at the first server validation error.
     $modal.on('shown.bs.modal.prescription', () => {
         if ($focusAfterOpen.length) {
             $focusAfterOpen.trigger('focus');
@@ -555,6 +616,7 @@ export function initializePrescriptionMedicines() {
     });
     $('#prescription-form').on('submit.prescriptionInstruction', instructions.preventWhileSaving);
 
+    // Keep schedule buttons, typed frequency and palette selection synchronized.
     $rows.on('click.prescription', '.prescription-schedule-count', function () {
         const $row = $(this).closest('.prescription-medicine-row');
         const mode = $(this).val();
@@ -613,6 +675,7 @@ export function initializePrescriptionMedicines() {
         closeDosePalette();
         $focus.trigger('focus');
     });
+    // Select a unit without disturbing the row's dose, duration or instruction values.
     $rows.on('click.prescriptionUnit', '.prescription-unit-toggle', function (event) {
         event.preventDefault();
         event.stopPropagation();
@@ -653,18 +716,29 @@ export function initializePrescriptionMedicines() {
         '.prescription-duration-count, .prescription-duration-unit', function () {
             updateDuration($(this).closest('.prescription-medicine-row'));
         });
+    // Update only the editor affected by a field; refresh its pad preview afterward.
+    $rows.on('input.prescription change.prescription', '[name$="[medicine_name]"]', function () {
+        const $row = $(this).closest('.prescription-medicine-row');
+        detachChoice($row);
+        $row.find('[name$="[product_id]"]').val('');
+        $row.find('.prescription-medicine-generic').empty().prop('hidden', true);
+    });
+    $rows.on('input.prescription change.prescription', '[name$="[dose]"]', function () {
+        refreshUnitToggle($(this).closest('.prescription-medicine-row'));
+    });
+    $rows.on('input.prescription change.prescription', '[name$="[frequency]"]', function () {
+        syncFrequencyPicker($(this).closest('.prescription-medicine-row'));
+    });
+    $rows.on('input.prescription change.prescription', '.prescription-dosage-type', function () {
+        const $row = $(this).closest('.prescription-medicine-row');
+        closeDosePalette();
+        closeUnitPalette();
+        initializeFrequency($row);
+        refreshUnitToggle($row);
+        updatePrescriptionDoseType($row);
+    });
     $rows.on('input.prescription change.prescription', '[name]', function () {
-        const $input = $(this);
-        const $row = $input.closest('.prescription-medicine-row');
-        if ($input.is('[name$="[medicine_name]"]')) {
-            detachChoice($row);
-            $row.removeData('dosageName');
-            $row.find('[name$="[product_id]"]').val('');
-            $row.find('.prescription-medicine-dosage').text('');
-        }
-        if ($input.is('[name$="[dose]"]')) refreshUnitToggle($row);
-        if ($input.is('[name$="[frequency]"]')) syncFrequencyPicker($row);
-        updatePreview($row);
+        updatePreview($(this).closest('.prescription-medicine-row'));
     });
     $rows.on('click.prescription', '.prescription-medicine-remove', function () {
         removeRow($(this).closest('.prescription-medicine-row'));

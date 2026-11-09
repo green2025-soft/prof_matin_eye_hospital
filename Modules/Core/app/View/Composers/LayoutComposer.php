@@ -32,7 +32,6 @@ class LayoutComposer
         $user = null;
         $navigation = [];
         $permissions = [];
-        $accountPrefix = $central ? 'core.accounts' : 'tenantcore.accounts';
 
         if ($actor !== null) {
             $subscription = $central ? null : ($this->request->attributes->has('application_subscription')
@@ -73,11 +72,6 @@ class LayoutComposer
             'locale' => str_replace('_', '-', app()->getLocale()),
             'year' => now()->year,
             'user' => $user,
-            'central' => $central,
-            'accountRoutePrefix' => $accountPrefix,
-            'accountLabel' => $central ? 'Administrators' : 'Users',
-            'settingsRoutePrefix' => $central ? 'core.settings' : 'tenantcore.settings',
-            'workspaceName' => $this->request->attributes->get('application_name', 'Workspace'),
             'workspaceLabel' => $central ? 'Platform administration' : 'Tenant workspace',
             'branchName' => $this->request->attributes->get('branch_name'),
             'canSwitchBranch' => (bool) $this->request->attributes->get('branch_can_switch') && $this->request->attributes->get('branch_id') !== null,

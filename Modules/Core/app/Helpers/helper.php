@@ -6,6 +6,15 @@ use Illuminate\Support\ViewErrorBag;
 use Illuminate\View\ComponentAttributeBag;
 use Modules\Core\Helpers\Money;
 
+function menuParameters(): array
+{
+    $menu = request()->query('menu');
+
+    return is_string($menu) && $menu !== '' && strlen($menu) <= 40
+        ? ['menu' => $menu]
+        : [];
+}
+
 function moneyDecimal(int|string $minor): string
 {
     return Money::decimal($minor);

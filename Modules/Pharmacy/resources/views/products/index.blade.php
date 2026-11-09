@@ -1,5 +1,7 @@
 @extends('core::layouts.app')
-
+@php
+$pageTitle = 'Medicine/Product'
+ @endphp
 @section('title', $pageTitle)
 
 @section('content')
@@ -34,13 +36,13 @@
                     <caption class="visually-hidden">Products, prices, shelf locations and stock levels</caption>
                     <thead>
                         <tr>
-                            <th scope="col">Product</th>
-                            <th scope="col">Category / generic</th>
+                            <th scope="col">Medicine/Product</th>
+                            <th scope="col">Generic/Category </th>
                             @if (($filters['type'] ?? 'medicine') === 'medicine')
                                 <th scope="col">Dose Type</th>
                             @endif
                             <th scope="col">Supplier</th>
-                            <th scope="col">Shelf Location</th>
+                            <th scope="col">Shelf</th>
                             <th class="text-end" scope="col">Purchase</th>
                             <th class="text-end" scope="col">Sale</th>
                             <th class="text-end" scope="col">Re-order Level</th>
@@ -52,7 +54,7 @@
                             <tr>
                                 <th scope="row">
                                     @can('update', $record)
-                                        <a class="fw-semibold text-break text-decoration-none" href="{{ route('pharmacy.products.edit', ['product' => $record->id, 'type' => $record->type]) }}">{{ $record->name }}</a>
+                                        <a class="fw-semibold text-break text-decoration-none" href="{{ route('pharmacy.products.edit', ['product' => $record->id, 'type' => $record->type] + menuParameters()) }}">{{ $record->name }}</a>
                                     @else
                                         <span class="fw-semibold text-break">{{ $record->name }}</span>
                                     @endcan
@@ -78,10 +80,10 @@
                                 <td>
                                     <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
                                         @can('viewAny', \Modules\Pharmacy\Models\ProductVariant::class)
-                                            <a class="btn btn-outline-secondary btn-sm text-nowrap" href="{{ route('pharmacy.variants.index', ['product_id' => $record->id]) }}" aria-label="Manage SKUs for {{ $record->name }}"><i class="fa-solid fa-barcode me-1" aria-hidden="true"></i>{{ $record->type === 'optic' ? 'Variants' : 'SKUs' }}</a>
+                                            <a class="btn btn-outline-secondary btn-sm text-nowrap" href="{{ route('pharmacy.variants.index', ['product_id' => $record->id] + menuParameters()) }}" aria-label="Manage SKUs for {{ $record->name }}"><i class="fa-solid fa-barcode me-1" aria-hidden="true"></i>{{ $record->type === 'optic' ? 'Variants' : 'SKUs' }}</a>
                                         @endcan
                                         @can('viewAny', \Modules\Pharmacy\Models\ProductUnit::class)
-                                            <a class="btn btn-outline-secondary btn-sm text-nowrap" href="{{ route('pharmacy.product-units.index', ['product_id' => $record->id]) }}" aria-label="Manage units and packs for {{ $record->name }}"><i class="fa-solid fa-boxes-stacked me-1" aria-hidden="true"></i>Units</a>
+                                            <a class="btn btn-outline-secondary btn-sm text-nowrap" href="{{ route('pharmacy.product-units.index', ['product_id' => $record->id] + menuParameters()) }}" aria-label="Manage units and packs for {{ $record->name }}"><i class="fa-solid fa-boxes-stacked me-1" aria-hidden="true"></i>Units</a>
                                         @endcan
                                         @include('core::partials.row-actions', ['model' => $record, 'routePrefix' => $routePrefix])
                                     </div>

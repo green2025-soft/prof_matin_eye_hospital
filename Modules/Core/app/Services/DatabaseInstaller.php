@@ -5,10 +5,14 @@ namespace Modules\Core\Services;
 use Closure;
 use Illuminate\Config\Repository;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use LogicException;
+use PDOException;
 use RuntimeException;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -21,6 +25,70 @@ class DatabaseInstaller
         private Kernel $console,
         private Repository $config,
     ) {}
+
+    public function verifyEmpty(#[\SensitiveParameter] array $credentials): void
+    {
+        $connection = $this->connectTenant($credentials);
+
+        try {
+            $schema = $connection->getSchemaBuilder();
+
+            if ($schema->getTables($credentials['database']) !== [] || $schema->getViews($credentials['database']) !== []) {
+                throw ValidationException::withMessages([
+                    'credentials.database' => 'Choose an empty database. Use tenant:adopt for an existing workspace.',
+                ]);
+            }
+        } catch (QueryException) {
+            throw ValidationException::withMessages([
+                'credentials.database' => 'Cannot check the database contents. Verify the database user has access to it.',
+            ]);
+        } finally {
+            $this->database->purge($connection->getName());
+        }
+    }
+
+    public function verifyConnection(#[\SensitiveParameter] array $credentials): void
+    {
+        $connection = $this->connectTenant($credentials);
+        $this->database->purge($connection->getName());
+    }
+
+    private function connectTenant(#[\SensitiveParameter] array $credentials): Connection
+    {
+        $this->validateTenantDatabase($credentials['database']);
+        $connection = $this->database->build(array_replace(
+            $this->config->get('database.connections.tenant'),
+            [
+                'database' => $credentials['database'],
+                'username' => $credentials['username'],
+                'password' => (string) ($credentials['password'] ?? ''),
+            ],
+        ));
+
+        try {
+            $connection->getPdo();
+        } catch (PDOException|QueryException) {
+            $this->database->purge($connection->getName());
+
+            throw ValidationException::withMessages([
+                'credentials.database' => 'Cannot connect to this database. Check its name, username, password and user access.',
+            ]);
+        }
+
+        return $connection;
+    }
+
+    public function validateTenantDatabase(string $database): void
+    {
+        $this->validateIdentifier($database);
+        $reserved = ['mysql', 'sys', 'information_schema', 'performance_schema', strtolower((string) $this->config->get('database.connections.central.database'))];
+
+        if (in_array(strtolower($database), $reserved, true)) {
+            throw ValidationException::withMessages([
+                'credentials.database' => 'Choose a separate tenant database, not the central or a system database.',
+            ]);
+        }
+    }
 
     public function create(string $database): bool
     {
@@ -35,7 +103,17 @@ class DatabaseInstaller
         $collation = $connection->getConfig('collation');
         $this->validateIdentifier($charset);
         $this->validateIdentifier($collation);
-        $connection->statement('CREATE DATABASE `'.$database.'` CHARACTER SET '.$charset.' COLLATE '.$collation);
+        try {
+            $connection->statement('CREATE DATABASE `'.$database.'` CHARACTER SET '.$charset.' COLLATE '.$collation);
+        } catch (QueryException $exception) {
+            if (! in_array((int) ($exception->errorInfo[1] ?? 0), [1044, 1142], true)) {
+                throw $exception;
+            }
+
+            throw ValidationException::withMessages([
+                'record' => 'The hosting database user cannot create '.$database.'. Ask your hosting provider for database-creation access, or create this exact empty database in your hosting control panel and grant the application database user access before retrying setup.',
+            ]);
+        }
 
         return true;
     }
@@ -65,8 +143,8 @@ class DatabaseInstaller
             return;
         }
 
+        $this->database->connection('tenant')->statement('DROP DATABASE `'.$database.'`');
         $this->database->purge('tenant');
-        $this->database->connection('provisioning')->statement('DROP DATABASE `'.$database.'`');
     }
 
     public function verifyTenantDeletion(string $database, #[\SensitiveParameter] string $token): bool
@@ -81,9 +159,14 @@ class DatabaseInstaller
             throw new LogicException('Select the registered tenant database before deleting it.');
         }
 
-        $connection = $this->database->connection('provisioning');
-        if (! $connection->selectOne('SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = ?', [$database], false)) {
-            return false; // A previous deletion may have finished DROP before central cleanup.
+        try {
+            $this->database->connection('tenant')->getPdo();
+        } catch (PDOException $exception) {
+            if ((int) ($exception->errorInfo[1] ?? 0) === 1049) {
+                return false; // A previous deletion may have finished DROP before central cleanup.
+            }
+
+            throw $exception;
         }
 
         $this->verify('tenant', $token);

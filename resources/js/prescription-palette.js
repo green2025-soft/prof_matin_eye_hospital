@@ -1,10 +1,12 @@
 import $ from './jquery';
 import { createPopper } from '@popperjs/core';
 
+// Manage one reusable dose or unit palette anchored to its active button.
 export function createPrescriptionPalette($modal, $menu, placement = 'bottom-start') {
     let $trigger = $();
     let position = null;
 
+    // Release the floating position and return the hidden palette to its modal.
     function close() {
         if (!position) return;
 
@@ -15,6 +17,7 @@ export function createPrescriptionPalette($modal, $menu, placement = 'bottom-sta
         $menu.prop('hidden', true).removeClass('show').removeAttr('aria-labelledby').appendTo($modal);
     }
 
+    // Place the palette beside the chosen button and keep it inside the viewport.
     function open($button) {
         close();
         $trigger = $button;
@@ -34,7 +37,7 @@ export function createPrescriptionPalette($modal, $menu, placement = 'bottom-sta
 
     $(document).on('mousedown.prescriptionPalette focusin.prescriptionPalette', event => {
         if (!position) return;
-        if ($(event.target).closest($menu).length || $(event.target).closest($trigger).length) return;
+        if ($(event.target).closest($menu.add($trigger)).length) return;
         close();
     });
 

@@ -141,6 +141,16 @@ class SubscriptionService
         $tenants = $record->exists ? collect() : Tenant::query()
             ->whereNotIn('id', Subscription::query()->select('tenant_id'))
             ->orderBy('name')->orderBy('id')->limit(100)->get(['id', 'name']);
+        $canViewSubscriptions = Gate::forUser($actor)->allows('viewAny', Subscription::class);
+        $existingSubscriptions = collect();
+
+        if (! $record->exists && $tenants->isEmpty() && $canViewSubscriptions) {
+            $existingSubscriptions = Subscription::query()
+                ->with(['tenant:id,name', 'plan:id,name'])
+                ->orderByDesc('id')
+                ->limit(5)
+                ->get(['id', 'tenant_id', 'plan_id', 'status']);
+        }
 
         return [
             'subscription' => $record,
@@ -148,8 +158,8 @@ class SubscriptionService
             'tenants' => $tenants,
             'hasEligibleTenants' => $record->exists || $tenants->isNotEmpty(),
             'hasPlans' => $plans->isNotEmpty(),
-            'subscriptionsUrl' => Gate::forUser($actor)->allows('viewAny', Subscription::class)
-                ? route('core.subscriptions.index') : null,
+            'existingSubscriptions' => $existingSubscriptions,
+            'subscriptionsUrl' => $canViewSubscriptions ? route('core.subscriptions.index') : null,
             'createPlanUrl' => Gate::forUser($actor)->allows('create', Plan::class)
                 ? route('core.plans.create') : null,
             'renewal' => $record->status === Subscription::STATUS_CANCELLED ? 'now' : ($record->cancel_at_period_end ? 'period_end' : 'renew'),

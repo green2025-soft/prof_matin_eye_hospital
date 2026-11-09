@@ -3,7 +3,7 @@
 @section('title', $pageTitle)
 
 @section('content')
-    @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Manage workspaces and their domains.', 'create' => ['model' => \Modules\Core\Models\Tenant::class, 'url' => route('core.tenants.create'), 'label' => 'New tenant']])
+    @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Manage workspaces and their domains.', 'create' => ['model' => \Modules\Core\Models\Tenant::class, 'url' => route('core.tenants.create'), 'label' => 'New Tenant']])
     <section class="app-card overflow-hidden">
         <div class="app-card-heading d-flex align-items-center gap-2 px-3 px-md-4 py-3 border-bottom"><i class="fa-solid fa-building text-body-secondary" aria-hidden="true"></i><h2 class="h6 mb-0">Workspace directory</h2></div>
         <form class="px-3 px-md-4 py-3 border-bottom" action="{{ route('core.tenants.index') }}" method="GET" aria-label="Filter tenants">

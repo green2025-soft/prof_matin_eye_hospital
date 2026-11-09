@@ -136,6 +136,7 @@ class TenantProvisioner
                 $values['owner_name'],
                 $values['owner_email'],
                 $values['password'],
+                $values['credentials'],
                 $details,
             );
         } catch (Throwable $exception) {
@@ -155,6 +156,21 @@ class TenantProvisioner
 
         Gate::forUser($actor)->authorize($record->exists ? 'update' : 'create', $record->exists ? $record : Tenant::class);
 
+        $credentials = [
+            'database' => '',
+            'username' => '',
+            'password' => '',
+        ];
+
+        if ($record->exists) {
+            $username = $record->database_username;
+            $credentials = [
+                'database' => $record->database,
+                'username' => $username ?? config('database.connections.tenant.username'),
+                'password' => $username === null ? config('database.connections.tenant.password') : ($record->database_password ?? ''),
+            ];
+        }
+
         return [
             'tenant' => $record,
             'domains' => $record->exists ? ($record->domains->pluck('domain')->all() ?: ['']) : [''],
@@ -162,13 +178,23 @@ class TenantProvisioner
             'tenantBaseDomain' => config('multitenancy.tenant_base_domain'),
             'logoUrl' => $record->logo_url,
             'passwordMinLength' => config('auth.password_min_length', 5),
+            'databaseCredentials' => $credentials,
         ];
     }
 
-    public function create(string $name, string $slug, array $domains, string $ownerName, string $email, #[\SensitiveParameter] string $password, array $details = []): Tenant
-    {
-        $database = config('multitenancy.database_prefix').str_replace('-', '', (string) Str::uuid());
-        $tenant = $this->register($name, $slug, $domains, $database, $email, $details);
+    public function create(
+        string $name,
+        string $slug,
+        array $domains,
+        string $ownerName,
+        string $email,
+        #[\SensitiveParameter] string $password,
+        #[\SensitiveParameter] array $credentials,
+        array $details = [],
+    ): Tenant {
+        $this->ensureCentral();
+        $this->databases->verifyEmpty($credentials);
+        $tenant = $this->register($name, $slug, $domains, $credentials, $email, $details);
 
         try {
             return $this->retry($tenant, $ownerName, $password);
@@ -182,9 +208,11 @@ class TenantProvisioner
         }
     }
 
-    public function adopt(string $name, string $slug, array $domains, string $database, string $email): Tenant
+    public function adopt(string $name, string $slug, array $domains, #[\SensitiveParameter] array $credentials, string $email): Tenant
     {
-        $tenant = $this->register($name, $slug, $domains, $database, $email);
+        $this->ensureCentral();
+        $this->databases->verifyConnection($credentials);
+        $tenant = $this->register($name, $slug, $domains, $credentials, $email);
 
         return $this->retry($tenant, adopt: true);
     }
@@ -196,10 +224,6 @@ class TenantProvisioner
         return $this->prepare($tenant, function () use ($tenant, $ownerName, $password, $adopt): void {
             if ($adopt && ! $this->accounts->ownerExists($tenant->owner_email)) {
                 throw ValidationException::withMessages(['email' => 'The existing tenant owner was not found.']);
-            }
-
-            if (! $adopt) {
-                $this->databases->create($tenant->database);
             }
 
             $this->databases->claim('tenant', $tenant->database_token, allowExisting: $adopt);
@@ -269,15 +293,18 @@ class TenantProvisioner
         }
     }
 
-    private function register(string $name, string $slug, array $domains, string $database, string $email, array $details = []): Tenant
+    private function register(string $name, string $slug, array $domains, #[\SensitiveParameter] array $credentials, string $email, array $details = []): Tenant
     {
         $this->ensureCentral();
+        $this->databases->validateTenantDatabase($credentials['database']);
 
         try {
-            return (new Tenant)->getConnection()->transaction(function () use ($name, $slug, $domains, $database, $email, $details): Tenant {
+            return (new Tenant)->getConnection()->transaction(function () use ($name, $slug, $domains, $credentials, $email, $details): Tenant {
                 $tenant = new Tenant(['name' => $name, 'slug' => $slug] + Arr::only($details, ['address', 'phone', 'has_branches']));
                 $tenant->logo_path = $details['logo_path'] ?? null;
-                $tenant->database = $database;
+                $tenant->database = $credentials['database'];
+                $tenant->database_username = $credentials['username'];
+                $tenant->database_password = (string) ($credentials['password'] ?? '');
                 $tenant->database_token = (string) Str::uuid();
                 $tenant->owner_email = $email;
                 $tenant->save();
@@ -302,7 +329,7 @@ class TenantProvisioner
 
     private function duplicateIdentifier(): ValidationException
     {
-        return ValidationException::withMessages(['tenant' => 'The tenant slug or one of its domains is already registered.']);
+        return ValidationException::withMessages(['tenant' => 'The tenant slug, database name or one of its domains is already registered.']);
     }
 
     private function prepare(Tenant $tenant, callable $callback): Tenant

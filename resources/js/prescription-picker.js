@@ -4,29 +4,39 @@ import { createEmptySearchGuard } from './select2-empty-search';
 
 const pickerSelector = '.app-prescription-picker';
 
+// Compare names without leading spaces or letter-case differences.
 function itemKey(name) {
     return name.trim().toLocaleLowerCase();
 }
 
+// Read the selected names stored in the submitted textarea.
 function selectedNames(state) {
     return String(state.$value.val() || '').split(/\r?\n/).filter(name => name.trim());
 }
 
+// Show or clear feedback for this picker only.
 function showError(state, message = '') {
     state.$error.text(message).prop('hidden', !message);
 }
 
-function updateCreateButton(state) {
-    const allowed = state.emptySearch.canCreate(state.term) && !state.knownNames.has(itemKey(state.term));
-    state.$create.prop('hidden', !allowed);
+// A preset can be created only after an empty search and when its name is unknown.
+function canCreatePreset(state) {
+    return state.emptySearch.canCreate(state.term) && !state.knownNames.has(itemKey(state.term));
 }
 
+// Keep the Create button consistent with the current search result.
+function updateCreateButton(state) {
+    state.$create.prop('hidden', !canCreatePreset(state));
+}
+
+// Remember the typed name and reset creation eligibility for a changed search.
 function setSearchTerm(state, term) {
     state.term = String(term || '').trim();
     state.emptySearch.setTerm(state.term);
     updateCreateButton(state);
 }
 
+// Mirror the textarea selection in Select2, suggestion chips and result checkmarks.
 function syncSelection(state) {
     const names = selectedNames(state);
     const selected = new Set(names.map(itemKey));
@@ -54,33 +64,32 @@ function syncSelection(state) {
     });
 }
 
+// Write the submitted names and clear previous picker feedback.
 function writeSelection(state, names) {
-    const value = names.join('\n');
-    if (value.length > 5000) {
-        showError(state, 'Selected items cannot exceed 5,000 characters.');
-        syncSelection(state);
-        return false;
-    }
-
     showError(state);
-    state.$value.val(value).trigger('change');
-    return true;
+    state.$value.val(names.join('\n')).trigger('change');
 }
 
+// Add one new name at the top without duplicating an existing selection.
 function selectName(state, name) {
     const names = selectedNames(state);
-    if (names.some(selected => itemKey(selected) === itemKey(name))) {
+    const key = itemKey(name);
+    if (names.some(selected => itemKey(selected) === key)) {
         syncSelection(state);
-        return true;
+        return;
     }
 
-    return writeSelection(state, [name, ...names]);
+    writeSelection(state, [name, ...names]);
 }
 
+// Remove a selected name while preserving the order of the remaining items.
 function removeName(state, name) {
-    return writeSelection(state, selectedNames(state).filter(selected => itemKey(selected) !== itemKey(name)));
+    const key = itemKey(name);
+    const remaining = selectedNames(state).filter(selected => itemKey(selected) !== key);
+    writeSelection(state, remaining);
 }
 
+// Rebuild the suggestion chips and retain the user's scroll position.
 function renderGrid(state) {
     const selected = new Set(selectedNames(state).map(itemKey));
     const scrollTop = state.$options.scrollTop();
@@ -98,10 +107,13 @@ function renderGrid(state) {
     state.$options.scrollTop(scrollTop);
 }
 
+// Reuse a cached catalog page or request it from the existing selector route.
 function fetchOptions(state, search, page) {
     const key = JSON.stringify([search, page]);
-    if (state.cache.has(key)) {
-        return $.Deferred().resolve(state.cache.get(key)).promise({ abort() {} });
+    const cached = state.cache.get(key);
+    if (cached) {
+        // Select2 can cancel a previous request even when its result came from cache.
+        return $.Deferred().resolve(cached).promise({ abort() {} });
     }
 
     return $.ajax({
@@ -117,6 +129,7 @@ function fetchOptions(state, search, page) {
     });
 }
 
+// Load one suggestion page; ignore responses superseded by another request.
 function loadGrid(state, page = 1) {
     if (!state.$picker.is(':visible') || state.gridRequest) return;
 
@@ -147,11 +160,13 @@ function loadGrid(state, page = 1) {
     });
 }
 
+// Build an escaped search result with its current selection checkmark.
 function optionResult(state, option) {
     if (option.loading) return option.text;
 
     const name = option.name || option.text;
-    const selected = selectedNames(state).some(value => itemKey(value) === itemKey(name));
+    const key = itemKey(name);
+    const selected = selectedNames(state).some(value => itemKey(value) === key);
     const $checkbox = $('<span>', {
         class: 'prescription-option-check',
         'aria-hidden': 'true',
@@ -161,6 +176,7 @@ function optionResult(state, option) {
         .append($checkbox, $('<span>', { text: name }));
 }
 
+// Follow typing in both Select2 search fields without adding duplicate handlers.
 function bindSearchField(state) {
     const select = state.$search.data('select2');
     const $fields = select.$container.add(select.$dropdown).find('.select2-search__field');
@@ -169,6 +185,7 @@ function bindSearchField(state) {
     });
 }
 
+// Connect Select2 search, paging and selection to this picker's saved value.
 function initializeSearch(state) {
     state.emptySearch = createEmptySearchGuard(state.$search);
     state.$search.on('prescription:searchEligibility', () => updateCreateButton(state));
@@ -181,17 +198,20 @@ function initializeSearch(state) {
         closeOnSelect: false,
         maximumInputLength: 255,
         templateResult: option => optionResult(state, option),
+        // Allow a typed name only after this exact search returned no matches.
         createTag(params) {
             const name = String(params.term || '').trim();
             return state.emptySearch.canCreate(name) ? { id: name, name, text: name, newTag: true } : null;
         },
         ajax: {
             delay: 250,
+            // Associate the request with the term used to determine creation eligibility.
             data(params) {
                 setSearchTerm(state, params.term);
                 state.emptySearch.begin(params);
                 return { search: state.term.slice(0, 80), page: params.page || 1 };
             },
+            // Deliver only the active request, including cached selector responses.
             transport(params, success, failure) {
                 const request = fetchOptions(state, params.data.search, params.data.page);
                 state.searchRequest = request;
@@ -207,6 +227,7 @@ function initializeSearch(state) {
                 });
                 return request;
             },
+            // Normalize catalog names for Select2 and reject stale search results.
             processResults(data, params) {
                 if (!state.emptySearch.complete(params, data.results.length, data.pagination?.more)) {
                     return { results: [], pagination: { more: false } };
@@ -235,11 +256,11 @@ function initializeSearch(state) {
     state.emptySearch.bindSearch();
 }
 
+// Save a new preset once, then select it and refresh the local suggestions.
 function savePreset($button) {
     const state = $($button.attr('data-picker')).data('prescriptionPicker');
     const name = state.term;
-    if (!state.emptySearch.canCreate(name) || state.knownNames.has(itemKey(name))
-        || $button.data('prescriptionPresetRequest')) return;
+    if (!canCreatePreset(state) || $button.data('prescriptionPresetRequest')) return;
 
     showError(state);
     const $spinner = $('<span>', {
@@ -262,12 +283,7 @@ function savePreset($button) {
         timeout: 30000,
     });
     $button.data('prescriptionPresetRequest', request);
-    request.done((option, _, xhr) => {
-        if (xhr.status !== 201 || typeof option?.name !== 'string' || !option.name.trim()) {
-            window.showToast('The saved item response could not be read. Refresh this section.', 'error');
-            return;
-        }
-
+    request.done(option => {
         state.cache.clear();
         state.knownNames.add(itemKey(option.name));
         state.options.set(itemKey(option.name), option.name);
@@ -292,6 +308,7 @@ function savePreset($button) {
     });
 }
 
+// Initialize one picker and attach its chip and incremental-loading events.
 function initializePicker($picker) {
     if ($picker.data('prescriptionPicker')) return;
 
@@ -333,6 +350,7 @@ function initializePicker($picker) {
     syncSelection(state);
 }
 
+// Load newly visible pickers, or continue paging an already loaded picker.
 function loadVisiblePickers($container) {
     $container.find(pickerSelector).addBack(pickerSelector).filter(':visible').each(function () {
         const state = $(this).data('prescriptionPicker');
@@ -342,6 +360,7 @@ function loadVisiblePickers($container) {
     });
 }
 
+// Initialize clinical pickers and coordinate their modal, tab and Create events.
 export function initializePrescriptionPickers(root = document) {
     $(root).find(pickerSelector).addBack(pickerSelector).each(function () {
         initializePicker($(this));

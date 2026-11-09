@@ -1,6 +1,6 @@
-<section class="app-prescription-note">
-    <div class="app-prescription-section-heading">
-        <h3>On examination</h3>
+<section class="app-prescription-note mb-3">
+    <div class="app-prescription-section-heading d-flex align-items-center gap-2">
+        <h3 class="mb-0">O/E</h3>
         <button class="btn btn-outline-primary btn-sm" type="button" aria-label="Edit examination"
             data-bs-toggle="modal" data-bs-target="#prescription-examination-modal">
             <i class="fa-solid fa-plus" aria-hidden="true"></i>
@@ -19,7 +19,7 @@
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="modal-title h5" id="prescription-examination-title">On examination</h2>
+                    <h2 class="modal-title h5" id="prescription-examination-title">On Examination</h2>
                     <div class="prescription-examination-header-search">
                         @include('prescription::prescriptions.preset-search', ['pickerField' => 'examination'])
                     </div>
@@ -67,7 +67,7 @@
                             <div class="app-prescription-examination">
                                 <div class="app-prescription-examination-row">
                                     <label class="app-prescription-examination-label" for="exam_bp_systolic">Blood pressure:</label>
-                                    <div class="app-prescription-examination-control app-prescription-examination-bp">
+                                    <div class="app-prescription-examination-control app-prescription-examination-bp d-flex flex-wrap align-items-center">
                                         <input id="exam_bp_systolic" name="examination_details[bp_systolic]" form="prescription-form"
                                             maxlength="50" inputmode="decimal" class="{{ inputClass('examination_details.bp_systolic') }}"
                                             value="{{ getValue('examination_details.bp_systolic', $record) }}" placeholder="Systolic"
@@ -89,7 +89,7 @@
                                 </div>
                                 <div class="app-prescription-examination-row">
                                     <label class="app-prescription-examination-label" for="exam_pulse">Pulse:</label>
-                                    <div class="app-prescription-examination-control">
+                                    <div class="app-prescription-examination-control d-flex flex-wrap align-items-center">
                                         <div class="input-group app-prescription-examination-input">
                                             <input id="exam_pulse" name="examination_details[pulse]" form="prescription-form"
                                                 maxlength="50" inputmode="decimal" class="{{ inputClass('examination_details.pulse') }}"
@@ -127,8 +127,8 @@
                                 </div>
                                 <div class="app-prescription-examination-row">
                                     <label class="app-prescription-examination-label" for="exam_temperature">Temperature:</label>
-                                    <div class="app-prescription-examination-control">
-                                        <div class="input-group app-prescription-examination-temperature">
+                                    <div class="app-prescription-examination-control d-flex flex-wrap align-items-center">
+                                        <div class="input-group app-prescription-examination-temperature d-flex align-items-center">
                                             <input id="exam_temperature" name="examination_details[temperature]" form="prescription-form"
                                                 maxlength="50" inputmode="decimal" class="{{ inputClass('examination_details.temperature') }}"
                                                 value="{{ getValue('examination_details.temperature', $record) }}" placeholder="Temperature"
@@ -161,7 +161,7 @@
                                 </div>
                                 <div class="app-prescription-examination-row">
                                     <label class="app-prescription-examination-label" for="exam_weight">Weight:</label>
-                                    <div class="app-prescription-examination-control">
+                                    <div class="app-prescription-examination-control d-flex flex-wrap align-items-center">
                                         <div class="input-group app-prescription-examination-input">
                                             <input id="exam_weight" name="examination_details[weight]" form="prescription-form"
                                                 maxlength="50" inputmode="decimal" class="{{ inputClass('examination_details.weight') }}"
@@ -186,8 +186,8 @@
                                 </div>
                                 <div class="app-prescription-examination-row">
                                     <label class="app-prescription-examination-label" for="exam_height_feet">Height:</label>
-                                    <div class="app-prescription-examination-control">
-                                        <div class="input-group app-prescription-examination-height">
+                                    <div class="app-prescription-examination-control d-flex flex-wrap align-items-center">
+                                        <div class="input-group app-prescription-examination-height d-flex align-items-center">
                                             <input id="exam_height_feet" name="examination_details[height_feet]" form="prescription-form"
                                                 maxlength="50" inputmode="decimal" class="{{ inputClass('examination_details.height_feet') }}"
                                                 value="{{ getValue('examination_details.height_feet', $record) }}" placeholder="Feet"
@@ -220,7 +220,7 @@
                                 </div>
                                 <div class="app-prescription-examination-row">
                                     <label class="app-prescription-examination-label" for="exam_activity">Activity level:</label>
-                                    <div class="app-prescription-examination-control">
+                                    <div class="app-prescription-examination-control d-flex flex-wrap align-items-center">
                                         <select id="exam_activity" name="examination_details[activity]" form="prescription-form"
                                             class="{{ inputClass('examination_details.activity', 'form-select app-prescription-examination-input') }}"
                                             {{ inputAttrs('examination_details.activity', 'exam_activity') }}>
@@ -238,7 +238,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                                <div class="app-prescription-examination-metric-actions">
+                                <div class="app-prescription-examination-metric-actions d-flex flex-wrap gap-2">
                                     <button class="btn btn-light btn-sm prescription-examination-metric-toggle{{ $bmiExpanded ? ' active' : '' }}"
                                         type="button" aria-controls="exam-bmi-row" aria-expanded="{{ $bmiExpanded ? 'true' : 'false' }}">Show BMI</button>
                                     <button class="btn btn-light btn-sm prescription-examination-metric-toggle{{ $bsaExpanded ? ' active' : '' }}"
@@ -250,7 +250,7 @@
                                 </div>
                                 <div class="app-prescription-examination-row" id="exam-bmi-row" @if (! $bmiExpanded) hidden @endif>
                                     <label class="app-prescription-examination-label" for="exam_bmi">BMI:</label>
-                                    <div class="app-prescription-examination-control">
+                                    <div class="app-prescription-examination-control d-flex flex-wrap align-items-center">
                                         <div class="input-group app-prescription-examination-input">
                                             <input id="exam_bmi" name="examination_details[bmi]" form="prescription-form"
                                                 maxlength="50" inputmode="decimal" class="{{ inputClass('examination_details.bmi') }}"
@@ -264,7 +264,7 @@
                                 </div>
                                 <div class="app-prescription-examination-row" id="exam-bsa-row" @if (! $bsaExpanded) hidden @endif>
                                     <label class="app-prescription-examination-label" for="exam_bsa">BSA:</label>
-                                    <div class="app-prescription-examination-control">
+                                    <div class="app-prescription-examination-control d-flex flex-wrap align-items-center">
                                         <div class="input-group app-prescription-examination-input">
                                             <input id="exam_bsa" name="examination_details[bsa]" form="prescription-form"
                                                 maxlength="50" inputmode="decimal" class="{{ inputClass('examination_details.bsa') }}"
@@ -278,7 +278,7 @@
                                 </div>
                                 <div class="app-prescription-examination-row" id="exam-bmr-row" @if (! $bmrExpanded) hidden @endif>
                                     <label class="app-prescription-examination-label" for="exam_bmr">BMR:</label>
-                                    <div class="app-prescription-examination-control">
+                                    <div class="app-prescription-examination-control d-flex flex-wrap align-items-center">
                                         <div class="input-group app-prescription-examination-input">
                                             <input id="exam_bmr" name="examination_details[bmr]" form="prescription-form"
                                                 maxlength="50" inputmode="decimal" class="{{ inputClass('examination_details.bmr') }}"
@@ -292,7 +292,7 @@
                                 </div>
                                 <div class="app-prescription-examination-row" id="exam-tdee-row" @if (! $tdeeExpanded) hidden @endif>
                                     <label class="app-prescription-examination-label" for="exam_tdee">TDEE:</label>
-                                    <div class="app-prescription-examination-control">
+                                    <div class="app-prescription-examination-control d-flex flex-wrap align-items-center">
                                         <div class="input-group app-prescription-examination-input">
                                             <input id="exam_tdee" name="examination_details[tdee]" form="prescription-form"
                                                 maxlength="50" inputmode="decimal" class="{{ inputClass('examination_details.tdee') }}"
@@ -306,7 +306,7 @@
                                 </div>
                                 <div class="app-prescription-examination-row">
                                     <label class="app-prescription-examination-label" for="exam_ideal_weight">Ideal weight:</label>
-                                    <div class="app-prescription-examination-control">
+                                    <div class="app-prescription-examination-control d-flex flex-wrap align-items-center">
                                         <div class="input-group app-prescription-examination-input">
                                             <input id="exam_ideal_weight" name="examination_details[ideal_weight]" form="prescription-form"
                                                 maxlength="50" inputmode="decimal" class="{{ inputClass('examination_details.ideal_weight') }}"
@@ -321,7 +321,7 @@
                                 </div>
                                 <div class="app-prescription-examination-row">
                                     <label class="app-prescription-examination-label" for="exam_ideal_bmi">Ideal BMI:</label>
-                                    <div class="app-prescription-examination-control">
+                                    <div class="app-prescription-examination-control d-flex flex-wrap align-items-center">
                                         <div class="input-group app-prescription-examination-input">
                                             <input id="exam_ideal_bmi" name="examination_details[ideal_bmi]" form="prescription-form"
                                                 maxlength="50" inputmode="decimal" class="{{ inputClass('examination_details.ideal_bmi') }}"
@@ -335,7 +335,7 @@
                                 </div>
                                 <div class="app-prescription-examination-row">
                                     <label class="app-prescription-examination-label" for="exam_extra_calories">Extra Cal:</label>
-                                    <div class="app-prescription-examination-control">
+                                    <div class="app-prescription-examination-control d-flex flex-wrap align-items-center">
                                         <div class="input-group app-prescription-examination-input app-prescription-examination-short">
                                             <input id="exam_extra_calories" name="examination_details[extra_calories]" form="prescription-form"
                                                 maxlength="50" inputmode="decimal" class="{{ inputClass('examination_details.extra_calories') }}"
@@ -350,7 +350,7 @@
                                 </div>
                                 <div class="app-prescription-examination-row">
                                     <label class="app-prescription-examination-label" for="exam_target_calories">Target daily Cal:</label>
-                                    <div class="app-prescription-examination-control">
+                                    <div class="app-prescription-examination-control d-flex flex-wrap align-items-center">
                                         <div class="input-group app-prescription-examination-input app-prescription-examination-short">
                                             <input id="exam_target_calories" name="examination_details[target_calories]" form="prescription-form"
                                                 maxlength="50" inputmode="decimal" class="{{ inputClass('examination_details.target_calories') }}"
@@ -365,7 +365,7 @@
                                 </div>
                                 <div class="app-prescription-examination-row">
                                     <label class="app-prescription-examination-label" for="exam_spo2">SpO<sub>2</sub>:</label>
-                                    <div class="app-prescription-examination-control">
+                                    <div class="app-prescription-examination-control d-flex flex-wrap align-items-center">
                                         <div class="input-group app-prescription-examination-input app-prescription-examination-short">
                                             <input id="exam_spo2" name="examination_details[spo2]" form="prescription-form"
                                                 maxlength="50" inputmode="decimal" class="{{ inputClass('examination_details.spo2') }}"

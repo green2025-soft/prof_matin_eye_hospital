@@ -2,19 +2,23 @@ import $ from './jquery';
 import flatpickr from 'flatpickr';
 import { clinicalItemDescription } from './prescription-clinical-items';
 
+// Read optional measurement text without surrounding whitespace.
 function fieldValue($field) {
     return String($field.val() || '').trim();
 }
 
+// Split multiline notes while keeping their entered text unchanged.
 function noteLines($field) {
     return String($field.val() || '').split(/\r?\n/).filter(line => line.trim());
 }
 
+// Hide a history heading when its group contains no preview items.
 function updatePreviewGroup($list) {
     const $group = $list.closest('.app-prescription-preview-group');
     $group.prop('hidden', !$group.find('li').length);
 }
 
+// Keep keyboard focus beside a removed item, or return to its section's Add button.
 function restorePreviewFocus($list, index) {
     const $items = $list.children('li');
     const $button = $items.eq(Math.min(index, $items.length - 1)).find('button');
@@ -26,11 +30,14 @@ function restorePreviewFocus($list, index) {
     $list.closest('.app-prescription-note').find('.app-prescription-section-heading button').first().trigger('focus');
 }
 
+// Add escaped preview text and a remove button linked to the original field.
 function appendPreviewItem($list, text, remove) {
-    const $item = $('<li>', { class: 'app-prescription-preview-item' });
+    const $item = $('<li>', {
+        class: 'app-prescription-preview-item d-flex align-items-start justify-content-between gap-2 py-1',
+    });
     const $button = $('<button>', {
         type: 'button',
-        class: 'app-prescription-preview-remove',
+        class: 'app-prescription-preview-remove flex-shrink-0 px-1 py-0 border-0 bg-transparent',
         'aria-label': 'Remove ' + text,
     }).append($('<i>', { class: 'fa-solid fa-xmark', 'aria-hidden': 'true' }));
 
@@ -43,8 +50,10 @@ function appendPreviewItem($list, text, remove) {
     $item.append($('<span>').text(text), $button).appendTo($list);
 }
 
+// Keep a text-based section preview synchronized with its editor.
 function bindNotePreview($field, $list) {
-    function refresh() {
+    // Rebuild descriptions and preserve the source line removed by each button.
+    function refreshNotes() {
         const lines = noteLines($field);
         $list.empty();
         lines.forEach((line, index) => {
@@ -56,15 +65,17 @@ function bindNotePreview($field, $list) {
         updatePreviewGroup($list);
     }
 
-    $field.on('input.prescriptionPreview change.prescriptionPreview prescription:details', refresh);
-    refresh();
+    $field.on('input.prescriptionPreview change.prescriptionPreview prescription:details', refreshNotes);
+    refreshNotes();
 }
 
+// Reflect the selected personal-history checkboxes in the pad.
 function initializePersonalHistory() {
     const $choices = $('#history-personal-pane :checkbox');
     const $list = $('#history-personal-preview');
 
-    function refresh() {
+    // Rebuild removable items from the currently checked history choices.
+    function refreshPersonalHistory() {
         $list.empty();
         $choices.filter(':checked').each(function () {
             const $choice = $(this);
@@ -74,10 +85,11 @@ function initializePersonalHistory() {
         updatePreviewGroup($list);
     }
 
-    $choices.on('change.prescriptionPreview', refresh);
-    refresh();
+    $choices.on('change.prescriptionPreview', refreshPersonalHistory);
+    refreshPersonalHistory();
 }
 
+// Connect each history field to its own pad and modal previews.
 function initializeHistoryPreviews() {
     bindNotePreview($('#history'), $('#history-general-preview'));
     bindNotePreview($('#history_drug'), $('#history-drug-preview'));
@@ -92,6 +104,7 @@ function initializeHistoryPreviews() {
     initializePersonalHistory();
 }
 
+// Show a filled measurement with its optional unit and a field-clearing action.
 function appendMeasurement($list, $field, label, unit = '') {
     const value = fieldValue($field);
     if (!value) return;
@@ -100,6 +113,7 @@ function appendMeasurement($list, $field, label, unit = '') {
     appendPreviewItem($list, text, () => $field.val('').trigger('change'));
 }
 
+// Show entered systolic and diastolic readings together without inferring missing values.
 function appendBloodPressure($list) {
     const $systolic = $('#exam_bp_systolic');
     const $diastolic = $('#exam_bp_diastolic');
@@ -114,6 +128,7 @@ function appendBloodPressure($list) {
     });
 }
 
+// Combine the entered pulse rate and selected rhythm in one removable line.
 function appendPulse($list) {
     const $pulse = $('#exam_pulse');
     const $rhythms = $('input[name="examination_details[pulse_rhythm]"]');
@@ -128,6 +143,7 @@ function appendPulse($list) {
     });
 }
 
+// Show the selected Normal label or the entered temperature and unit.
 function appendTemperature($list) {
     const $temperature = $('#exam_temperature');
     const $normal = $('#exam_temperature_normal');
@@ -143,6 +159,7 @@ function appendTemperature($list) {
     });
 }
 
+// Show entered height only when the doctor enables its prescription display.
 function appendHeight($list) {
     if (!$('#exam_height_visible').is(':checked')) return;
 
@@ -159,11 +176,13 @@ function appendHeight($list) {
     });
 }
 
+// Refresh examination observations and measurements when their fields change.
 function initializeExaminationPreviews() {
     const $fields = $('#prescription-examination-modal :input[name^="examination_details["]');
     const $list = $('#examination-measurements-preview');
 
-    function refresh() {
+    // Render only the measurements the doctor entered or chose to display.
+    function refreshMeasurements() {
         $list.empty();
         appendBloodPressure($list);
         appendPulse($list);
@@ -185,10 +204,11 @@ function initializeExaminationPreviews() {
     }
 
     bindNotePreview($('#examination'), $('#examination-observation-preview'));
-    $fields.on('input.prescriptionPreview change.prescriptionPreview', refresh);
-    refresh();
+    $fields.on('input.prescriptionPreview change.prescriptionPreview', refreshMeasurements);
+    refreshMeasurements();
 }
 
+// Combine the follow-up schedule with its notes in the prescription pad.
 function initializeFollowUpPreview() {
     const $notes = $('#follow_up_notes');
     const $date = $('#follow_up_date');
@@ -196,10 +216,10 @@ function initializeFollowUpPreview() {
     const $unit = $('#prescription-follow-up-unit');
     const $list = $('#follow-up-preview');
 
+    // Prefer the entered interval; otherwise display the selected follow-up date.
     function schedulePrefix() {
         const count = Number($interval.val());
-        const unit = $unit.val();
-        if (Number.isInteger(count) && count > 0 && count <= 3650 && (unit === 'days' || unit === 'months')) {
+        if ($interval.val() && $interval.prop('validity').valid) {
             return count + ' ' + $unit.children(':selected').text() + ' পর';
         }
 
@@ -207,6 +227,7 @@ function initializeFollowUpPreview() {
         return date ? flatpickr.formatDate(date, 'd-m-Y') + ' তারিখে' : '';
     }
 
+    // Clear the full follow-up when its last visible entry is removed.
     function clearFollowUp() {
         $interval.val('');
         $unit.val('days');
@@ -217,7 +238,8 @@ function initializeFollowUpPreview() {
         $date.trigger('prescription:follow-up');
     }
 
-    function refresh() {
+    // Rebuild follow-up lines while keeping their schedule and notes linked.
+    function refreshFollowUp() {
         const prefix = schedulePrefix();
         const lines = noteLines($notes);
         $list.empty();
@@ -239,11 +261,12 @@ function initializeFollowUpPreview() {
         });
     }
 
-    $notes.on('input.prescriptionFollowUpPreview change.prescriptionFollowUpPreview', refresh);
-    $date.on('prescription:follow-up', refresh);
-    refresh();
+    $notes.on('input.prescriptionFollowUpPreview change.prescriptionFollowUpPreview', refreshFollowUp);
+    $date.on('prescription:follow-up', refreshFollowUp);
+    refreshFollowUp();
 }
 
+// Initialize the pad previews after pickers and clinical row editors are ready.
 export function initializePrescriptionPreviews() {
     bindNotePreview($('#chief_complaints'), $('#chief_complaints-preview'));
     bindNotePreview($('#diagnosis'), $('#diagnosis-preview'));

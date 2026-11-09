@@ -13,7 +13,7 @@
                         @if (! $variant->active)<small class="d-block text-body-secondary">Inactive</small>@endif
                     </div>
                     @can('update', $variant)
-                        <a class="btn btn-outline-secondary btn-sm" href="{{ route('pharmacy.variants.edit', ['product_variant' => $variant->id, 'product_id' => $product->id]) }}" aria-label="Edit SKU {{ $variant->sku }}"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></a>
+                        <a class="btn btn-outline-secondary btn-sm" href="{{ route('pharmacy.variants.edit', ['product_variant' => $variant->id, 'product_id' => $product->id] + menuParameters()) }}" aria-label="Edit SKU {{ $variant->sku }}"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></a>
                     @endcan
                 </div>
                 @if ($product->type === 'optic' && ($variant->color || $variant->size || $variant->sph !== null || $variant->cyl !== null))
@@ -26,9 +26,9 @@
     </ul>
     <div class="d-flex flex-wrap gap-2 p-3 border-top">
         @can('create', \Modules\Pharmacy\Models\ProductVariant::class)
-            <a class="btn btn-primary btn-sm" href="{{ route('pharmacy.variants.create', ['product_id' => $product->id]) }}"><i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add SKU</a>
+            <a class="btn btn-primary btn-sm" href="{{ route('pharmacy.variants.create', ['product_id' => $product->id] + menuParameters()) }}"><i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add SKU</a>
         @endcan
-        <a class="btn btn-outline-secondary btn-sm" href="{{ route('pharmacy.variants.index', ['product_id' => $product->id]) }}">All SKUs</a>
+        <a class="btn btn-outline-secondary btn-sm" href="{{ route('pharmacy.variants.index', ['product_id' => $product->id] + menuParameters()) }}">All SKUs</a>
     </div>
 </section>
 
@@ -45,7 +45,7 @@
                     <small class="d-block text-body-secondary">{{ $productUnit->factor }} {{ $productUnit->factor === 1 ? 'base piece' : 'base pieces' }}</small>
                 </div>
                 @can('update', $productUnit)
-                    <a class="btn btn-outline-secondary btn-sm" href="{{ route('pharmacy.product-units.edit', ['product_unit' => $productUnit->id, 'product_id' => $product->id]) }}" aria-label="Edit {{ $productUnit->unit?->name }} unit"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></a>
+                    <a class="btn btn-outline-secondary btn-sm" href="{{ route('pharmacy.product-units.edit', ['product_unit' => $productUnit->id, 'product_id' => $product->id] + menuParameters()) }}" aria-label="Edit {{ $productUnit->unit?->name }} unit"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></a>
                 @endcan
             </li>
         @empty
@@ -54,8 +54,8 @@
     </ul>
     <div class="d-flex flex-wrap gap-2 p-3 border-top">
         @can('create', \Modules\Pharmacy\Models\ProductUnit::class)
-            <a class="btn btn-primary btn-sm" href="{{ route('pharmacy.product-units.create', ['product_id' => $product->id]) }}"><i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add unit</a>
+            <a class="btn btn-primary btn-sm" href="{{ route('pharmacy.product-units.create', ['product_id' => $product->id] + menuParameters()) }}"><i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add unit</a>
         @endcan
-        <a class="btn btn-outline-secondary btn-sm" href="{{ route('pharmacy.product-units.index', ['product_id' => $product->id]) }}">All units</a>
+        <a class="btn btn-outline-secondary btn-sm" href="{{ route('pharmacy.product-units.index', ['product_id' => $product->id] + menuParameters()) }}">All units</a>
     </div>
 </section>

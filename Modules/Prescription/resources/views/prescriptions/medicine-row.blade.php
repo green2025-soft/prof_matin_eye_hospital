@@ -6,17 +6,20 @@
     $doseValue = data_get($medicine, 'dose');
     $instructionValue = data_get($medicine, 'instructions');
     $instructionChoices = ['খাওয়ার পরে', 'খাওয়ার আগে', 'Chewable'];
+    $productId = data_get($medicine, 'product_id');
+    $product = $medicineProducts->get($productId);
+    $genericName = data_get($product, 'category.name', '');
+    $dosageType = data_get($medicine, 'dosage_type') ?? data_get($product, 'dosage.name', '');
 @endphp
 
-<li class="prescription-medicine-row" id="{{ $errorId }}-row">
-    <div class="app-prescription-rx-card-heading">
+<li class="prescription-medicine-row d-flex flex-column mt-3" id="{{ $errorId }}-row">
+    <div class="app-prescription-rx-card-heading d-flex align-items-center">
         <span class="prescription-medicine-number" aria-hidden="true"></span>
         <div class="flex-grow-1">
-            <label class="app-prescription-medicine-name">
+            <label class="app-prescription-medicine-name d-flex align-items-center">
                 <span class="visually-hidden">Medicine</span>
                 <input type="hidden" name="{{ $name }}[product_id]" form="prescription-form"
-                    value="{{ data_get($medicine, 'product_id') }}">
-                <span class="prescription-medicine-dosage" aria-hidden="true"></span>
+                    value="{{ $productId }}">
                 <input name="{{ $name }}[medicine_name]" form="prescription-form" required maxlength="255"
                     class="{{ inputClass($field.'.medicine_name', $controlClass) }}"
                     value="{{ data_get($medicine, 'medicine_name') }}"
@@ -30,6 +33,9 @@
                     <span class="invalid-feedback d-block">{{ $message }}</span>
                 @enderror
             </label>
+            <div class="small text-body-secondary prescription-medicine-generic" hidden>
+                {{ $genericName }}
+            </div>
         </div>
         <button class="btn btn-outline-danger btn-sm prescription-medicine-remove" type="button"
             aria-label="Remove medicine">
@@ -37,16 +43,50 @@
         </button>
     </div>
 
-    <div class="app-prescription-rx-card-controls">
-        <div class="prescription-frequency-field">
-            <label class="form-label" for="{{ $errorId }}-frequency">Dose</label>
+    <div class="app-prescription-rx-card-controls d-grid align-items-start">
+        <div class="prescription-dosage-field">
+            <label class="form-label" for="{{ $errorId }}-dosage-type">Type</label>
+            <select class="{{ inputClass($field.'.dosage_type', 'form-select form-select-sm') }} prescription-dosage-type"
+                id="{{ $errorId }}-dosage-type" name="{{ $name }}[dosage_type]" form="prescription-form"
+                {{ inputAttrs($field.'.dosage_type') }}>
+                @if (! filled($dosageType) || ! array_key_exists($dosageType, $dosageTypes))
+                    <option value="{{ $dosageType }}" selected hidden>{{ $dosageType }}</option>
+                @endif
+                @foreach ($dosageTypes as $value => $label)
+                    <option value="{{ $value }}" @selected($dosageType === $value)>{{ $label }}</option>
+                @endforeach
+            </select>
+            @error($field.'.dosage_type')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+        </div>
+        <div class="prescription-frequency-field d-grid align-content-start text-start">
+            <label class="form-label prescription-frequency-label" for="{{ $errorId }}-frequency">Dose</label>
             <input id="{{ $errorId }}-frequency" name="{{ $name }}[frequency]" form="prescription-form"
                 type="text" maxlength="100" placeholder="1+0+1" autocomplete="off"
-                class="{{ inputClass($field.'.frequency', $controlClass) }} prescription-frequency-value mb-2"
+                class="{{ inputClass($field.'.frequency', $controlClass) }} prescription-frequency-value"
                 value="{{ data_get($medicine, 'frequency') }}" {{ inputAttrs($field.'.frequency') }}>
             @error($field.'.frequency')
                 <div class="invalid-feedback d-block" id="{{ $errorId }}-frequency-error">{{ $message }}</div>
             @enderror
+            <div class="prescription-application-dose" hidden>
+                <div class="row g-2">
+                    <div class="col-7">
+                        <label class="form-label" for="{{ $errorId }}-application-amount">পরিমাণ</label>
+                        <div class="input-group input-group-sm flex-nowrap">
+                            <input class="form-control prescription-application-amount" type="text" inputmode="decimal"
+                                id="{{ $errorId }}-application-amount" form="prescription-form" maxlength="30" autocomplete="off">
+                            <span class="input-group-text prescription-application-unit">ফোঁটা করে</span>
+                        </div>
+                    </div>
+                    <div class="col-5">
+                        <label class="form-label" for="{{ $errorId }}-application-times">দিনে</label>
+                        <div class="input-group input-group-sm flex-nowrap">
+                            <input class="form-control prescription-application-times" type="text" inputmode="numeric"
+                                id="{{ $errorId }}-application-times" form="prescription-form" maxlength="3" pattern="[0-9০-৯]+" autocomplete="off">
+                            <span class="input-group-text">বার</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="dropdown prescription-schedule-menu">
                 <button class="btn btn-sm dropdown-toggle prescription-frequency-mode" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false" value="3">Schedule</button>
@@ -77,7 +117,7 @@
             <div class="prescription-instruction-selection" aria-live="polite"></div>
         </div>
 
-        <div class="app-prescription-rx-card-right">
+        <div class="app-prescription-rx-card-right d-grid align-items-start text-start">
             <div class="prescription-dose-field">
                 <label class="form-label" for="{{ $errorId }}-dose">Unit</label>
                 <div class="dropdown prescription-unit-picker">
@@ -97,7 +137,7 @@
 
             <div class="prescription-duration-field">
                 <label class="form-label" for="{{ $errorId }}-duration-count">Duration</label>
-                <div class="prescription-duration-controls">
+                <div class="prescription-duration-controls d-flex align-items-center">
                     <input class="form-control form-control-sm prescription-duration-count" type="number"
                         id="{{ $errorId }}-duration-count" form="prescription-form" min="1" step="1">
                     <select class="form-select form-select-sm prescription-duration-unit" aria-label="Duration unit">
@@ -118,7 +158,7 @@
                     <div class="invalid-feedback d-block" id="{{ $errorId }}-duration-error">{{ $message }}</div>
                 @enderror
             </div>
-            <div class="app-prescription-instruction-row">
+            <div class="app-prescription-instruction-row w-100">
                 <label class="visually-hidden" for="{{ $errorId }}-instruction-search">
                     Search medicine instructions
                 </label>

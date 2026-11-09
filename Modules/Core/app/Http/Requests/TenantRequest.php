@@ -12,10 +12,10 @@ class TenantRequest extends BaseRequest
     {
         $tenant = $this->record();
         $rules = TenantRules::metadata($tenant);
-        $ownerRules = TenantRules::owner();
-        $ownerRules['password'][] = 'confirmed';
+        $createRules = TenantRules::owner() + TenantRules::credentials();
+        $createRules['password'][] = 'confirmed';
 
-        foreach ($ownerRules as $field => $fieldRules) {
+        foreach ($createRules as $field => $fieldRules) {
             $rules[$field] = $this->onCreate($fieldRules);
         }
 
@@ -23,6 +23,8 @@ class TenantRequest extends BaseRequest
         $rules['logo'] = TenantRules::logo();
         $rules['logo_path'] = ['prohibited'];
         $rules['database'] = ['prohibited'];
+        $rules['database_username'] = ['prohibited'];
+        $rules['database_password'] = ['prohibited'];
         $rules['database_token'] = ['prohibited'];
         $rules['status'] = $this->onCreate(['prohibited'], ['sometimes', 'string', Rule::in(array_keys(($tenant ?? new Tenant)->statusOptions()))]);
 
@@ -34,6 +36,13 @@ class TenantRequest extends BaseRequest
         parent::prepareForValidation();
         $isUpdate = $this->isUpdate();
         $values = TenantRules::normalize($this->only(['name', 'slug', 'domains', 'owner_name', 'owner_email', 'address', 'phone']));
+        $credentials = $this->input('credentials');
+
+        if (is_array($credentials)) {
+            $credentials['database'] = is_string($credentials['database'] ?? null) ? trim($credentials['database']) : null;
+            $credentials['username'] = is_string($credentials['username'] ?? null) ? trim($credentials['username']) : null;
+            $values['credentials'] = $credentials;
+        }
 
         if (! $isUpdate) {
             $name = is_string($values['name'] ?? null) ? $values['name'] : '';

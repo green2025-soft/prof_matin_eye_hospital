@@ -132,37 +132,15 @@
         </details>
     @endif
 
-    @if (($moduleMenu['permissions']['pharmacy-products.view'] ?? false)
-        || ($moduleMenu['permissions']['pharmacy-categories.view'] ?? false)
-        || ($moduleMenu['permissions']['pharmacy-shelves.view'] ?? false))
-        <details class="app-nav-group" @if ((($moduleMenu['productType'] ?? null) === 'medicine' && request()->routeIs('pharmacy.products.*', 'pharmacy.categories.*', 'pharmacy.shelves.*', 'pharmacy.variants.*', 'pharmacy.product-units.*'))) open @endif>
-            <summary class="app-nav-link app-nav-group-toggle{{ (($moduleMenu['productType'] ?? null) === 'medicine' && request()->routeIs('pharmacy.products.*', 'pharmacy.categories.*', 'pharmacy.shelves.*', 'pharmacy.variants.*', 'pharmacy.product-units.*')) ? ' active' : '' }}" title="Medicine Catalog">
-                <span class="app-nav-icon"><i class="fa-solid fa-list" aria-hidden="true"></i></span>
-                <span class="app-nav-copy">Catalog</span>
-                <i class="fa-solid fa-chevron-down app-nav-group-caret ms-auto" aria-hidden="true"></i>
-            </summary>
-            <div class="app-nav-submenu ps-3">
-                @if ($moduleMenu['permissions']['pharmacy-products.view'] ?? false)
-                    <a class="app-nav-link{{ (($moduleMenu['productType'] ?? null) === 'medicine' && request()->routeIs('pharmacy.products.*')) ? ' active' : '' }}" href="{{ route('pharmacy.products.index', ['type' => 'medicine']) }}" @if ((($moduleMenu['productType'] ?? null) === 'medicine' && request()->routeIs('pharmacy.products.*'))) aria-current="page" @endif>
-                        <span class="app-nav-icon"><i class="fa-solid fa-pills" aria-hidden="true"></i></span>
-                        <span class="app-nav-copy">Products</span>
-                    </a>
-                @endif
-                @if ($moduleMenu['permissions']['pharmacy-categories.view'] ?? false)
-                    <a class="app-nav-link{{ (($moduleMenu['productType'] ?? null) === 'medicine' && request()->routeIs('pharmacy.categories.*')) ? ' active' : '' }}" href="{{ route('pharmacy.categories.index', ['type' => 'medicine']) }}" @if ((($moduleMenu['productType'] ?? null) === 'medicine' && request()->routeIs('pharmacy.categories.*'))) aria-current="page" @endif>
-                        <span class="app-nav-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
-                        <span class="app-nav-copy">Category / generic</span>
-                    </a>
-                @endif
-                @if ($moduleMenu['permissions']['pharmacy-shelves.view'] ?? false)
-                    <a class="app-nav-link{{ (($moduleMenu['productType'] ?? null) === 'medicine' && request()->routeIs('pharmacy.shelves.*')) ? ' active' : '' }}" href="{{ route('pharmacy.shelves.index', ['type' => 'medicine']) }}" @if ((($moduleMenu['productType'] ?? null) === 'medicine' && request()->routeIs('pharmacy.shelves.*'))) aria-current="page" @endif>
-                        <span class="app-nav-icon"><i class="fa-solid fa-warehouse" aria-hidden="true"></i></span>
-                        <span class="app-nav-copy">Shelves</span>
-                    </a>
-                @endif
-            </div>
-        </details>
-    @endif
+    @include('pharmacy::partials.catalog-menu', [
+        'catalogType'   => 'medicine',
+        'catalogTitle'  => 'Medicine Catalog',
+        'catalogLabel'  => 'Medicine/Product',
+        'productLabel'  => 'Medicine/Product',
+        'productIcon'   => 'pills',
+        'categoryLabel' => 'Generic/Category',
+        'shelfLabel'    => 'Shelf',
+    ])
 
     @if ($moduleMenu['permissions']['pharmacy-reports.view'] ?? false)
         <details class="app-nav-group" @if ((($moduleMenu['productType'] ?? null) === 'medicine' && request()->routeIs('pharmacy.reports.*'))) open @endif>
@@ -328,37 +306,15 @@
         </details>
     @endif
 
-    @if (($moduleMenu['permissions']['pharmacy-products.view'] ?? false)
-        || ($moduleMenu['permissions']['pharmacy-categories.view'] ?? false)
-        || ($moduleMenu['permissions']['pharmacy-shelves.view'] ?? false))
-        <details class="app-nav-group" @if ((($moduleMenu['productType'] ?? null) === 'optic' && request()->routeIs('pharmacy.products.*', 'pharmacy.categories.*', 'pharmacy.shelves.*', 'pharmacy.variants.*', 'pharmacy.product-units.*'))) open @endif>
-            <summary class="app-nav-link app-nav-group-toggle{{ (($moduleMenu['productType'] ?? null) === 'optic' && request()->routeIs('pharmacy.products.*', 'pharmacy.categories.*', 'pharmacy.shelves.*', 'pharmacy.variants.*', 'pharmacy.product-units.*')) ? ' active' : '' }}" title="Optic Catalog">
-                <span class="app-nav-icon"><i class="fa-solid fa-list" aria-hidden="true"></i></span>
-                <span class="app-nav-copy">Catalog</span>
-                <i class="fa-solid fa-chevron-down app-nav-group-caret ms-auto" aria-hidden="true"></i>
-            </summary>
-            <div class="app-nav-submenu ps-3">
-                @if ($moduleMenu['permissions']['pharmacy-products.view'] ?? false)
-                    <a class="app-nav-link{{ (($moduleMenu['productType'] ?? null) === 'optic' && request()->routeIs('pharmacy.products.*')) ? ' active' : '' }}" href="{{ route('pharmacy.products.index', ['type' => 'optic']) }}" @if ((($moduleMenu['productType'] ?? null) === 'optic' && request()->routeIs('pharmacy.products.*'))) aria-current="page" @endif>
-                        <span class="app-nav-icon"><i class="fa-solid fa-glasses" aria-hidden="true"></i></span>
-                        <span class="app-nav-copy">Products</span>
-                    </a>
-                @endif
-                @if ($moduleMenu['permissions']['pharmacy-categories.view'] ?? false)
-                    <a class="app-nav-link{{ (($moduleMenu['productType'] ?? null) === 'optic' && request()->routeIs('pharmacy.categories.*')) ? ' active' : '' }}" href="{{ route('pharmacy.categories.index', ['type' => 'optic']) }}" @if ((($moduleMenu['productType'] ?? null) === 'optic' && request()->routeIs('pharmacy.categories.*'))) aria-current="page" @endif>
-                        <span class="app-nav-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
-                        <span class="app-nav-copy">Category / generic</span>
-                    </a>
-                @endif
-                @if ($moduleMenu['permissions']['pharmacy-shelves.view'] ?? false)
-                    <a class="app-nav-link{{ (($moduleMenu['productType'] ?? null) === 'optic' && request()->routeIs('pharmacy.shelves.*')) ? ' active' : '' }}" href="{{ route('pharmacy.shelves.index', ['type' => 'optic']) }}" @if ((($moduleMenu['productType'] ?? null) === 'optic' && request()->routeIs('pharmacy.shelves.*'))) aria-current="page" @endif>
-                        <span class="app-nav-icon"><i class="fa-solid fa-warehouse" aria-hidden="true"></i></span>
-                        <span class="app-nav-copy">Shelves</span>
-                    </a>
-                @endif
-            </div>
-        </details>
-    @endif
+    @include('pharmacy::partials.catalog-menu', [
+        'catalogType'       => 'optic',
+        'catalogTitle'      => 'Optic Catalog',
+        'catalogLabel'      => 'Medicine/Product',
+        'productLabel'      => 'Products',
+        'productIcon'       => 'glasses',
+        'categoryLabel'     => 'Generic/Category',
+        'shelfLabel'        => 'Shelf',
+    ])
 
     @if ($moduleMenu['permissions']['pharmacy-reports.view'] ?? false)
         <details class="app-nav-group" @if ((($moduleMenu['productType'] ?? null) === 'optic' && request()->routeIs('pharmacy.reports.*'))) open @endif>

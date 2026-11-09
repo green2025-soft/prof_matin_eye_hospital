@@ -1,5 +1,7 @@
 import $ from './jquery';
+import { firstPrescriptionDoseControl } from './prescription-application-dose';
 
+// Move to the next control on a plain Enter without interrupting shortcuts or IME typing.
 function moveOnEnter(event, $next) {
     if (event.key !== 'Enter' || event.altKey || event.ctrlKey || event.metaKey || event.originalEvent?.isComposing) return;
 
@@ -7,6 +9,7 @@ function moveOnEnter(event, $next) {
     $next.trigger('focus');
 }
 
+// Navigate visible dose/unit choices with arrows, Home and End.
 function bindPaletteNavigation($menu) {
     $menu.on('keydown.prescriptionKeyboard', '.dropdown-item', function (event) {
         if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
@@ -22,14 +25,17 @@ function bindPaletteNavigation($menu) {
     });
 }
 
+// Wire Rx shortcuts and the medicine-entry focus order.
 export function initializePrescriptionKeyboard($modal, $search, $rows) {
     let $activeRow = $rows.children('.prescription-medicine-row').first();
 
+    // Use the last focused row, falling back when that medicine has been removed.
     function currentRow() {
         if (!$activeRow.parent().is($rows)) $activeRow = $rows.children('.prescription-medicine-row').first();
         return $activeRow;
     }
 
+    // Open Rx when needed, then focus its medicine search while preserving return focus.
     function focusSearch() {
         if (!$modal.hasClass('show')) {
             const $returnFocus = $(':focus').first();
@@ -42,6 +48,7 @@ export function initializePrescriptionKeyboard($modal, $search, $rows) {
         $search.data('select2').$container.find('.select2-search__field').trigger('focus');
     }
 
+    // Handle F2/Alt+M search, F4 dose/unit and F8 Done outside other open modals.
     function handleShortcut(event) {
         if (event.originalEvent?.isComposing || event.ctrlKey || event.metaKey) return;
         if ($('.modal.show').not($modal).length) return;
@@ -69,12 +76,15 @@ export function initializePrescriptionKeyboard($modal, $search, $rows) {
             event.preventDefault();
             event.stopImmediatePropagation();
             $modal.find('select.select2-hidden-accessible').select2('close');
-            currentRow().find('.prescription-unit-toggle').trigger('focus').trigger('click');
+            const $row = currentRow();
+            const $unit = $row.find('.prescription-unit-toggle:visible');
+            if ($unit.length) $unit.trigger('focus').trigger('click');
+            else firstPrescriptionDoseControl($row).trigger('focus');
         }
     }
 
+    // Bind directly because Select2 stops keyboard events bubbling from its inline search.
     function bindSearchShortcuts() {
-        // Select2 stops bubbling from its inline search, so bind to that input too.
         $modal.find('.select2-search__field')
             .off('.prescriptionKeyboard').on('keydown.prescriptionKeyboard', handleShortcut)
             .on('keyup.prescriptionKeyboard', event => {
@@ -94,9 +104,9 @@ export function initializePrescriptionKeyboard($modal, $search, $rows) {
     $rows.on('focusin.prescriptionKeyboard', '.prescription-medicine-row', function () {
         $activeRow = $(this);
     });
-    $rows.on('keydown.prescriptionKeyboard', '[name$="[medicine_name]"]', function (event) {
+    $rows.on('keydown.prescriptionKeyboard', '[name$="[medicine_name]"], .prescription-dosage-type', function (event) {
         const $row = $(this).closest('.prescription-medicine-row');
-        moveOnEnter(event, $row.find('.prescription-frequency-value'));
+        moveOnEnter(event, firstPrescriptionDoseControl($row));
     });
     $rows.on('keydown.prescriptionKeyboard', '.prescription-frequency-value', function (event) {
         if (event.altKey || event.ctrlKey || event.metaKey || event.originalEvent?.isComposing) return;
@@ -111,7 +121,7 @@ export function initializePrescriptionKeyboard($modal, $search, $rows) {
             return;
         }
 
-        const $food = $row.find('.prescription-food-instruction:enabled').first();
+        const $food = $row.find('.prescription-food-instruction:visible:enabled').first();
         const $next = $food.length ? $food : $row.find('.prescription-unit-toggle');
         if (event.key === 'Tab' && !event.shiftKey) {
             event.preventDefault();
@@ -146,7 +156,15 @@ export function initializePrescriptionKeyboard($modal, $search, $rows) {
     $rows.on('keydown.prescriptionKeyboard', '.prescription-duration-count', function (event) {
         moveOnEnter(event, $(this).siblings('.prescription-duration-unit'));
     });
-    $rows.on('keydown.prescriptionKeyboard', '.prescription-duration-value', function (event) {
+    $rows.on('keydown.prescriptionKeyboard', '.prescription-application-amount', function (event) {
+        const $row = $(this).closest('.prescription-medicine-row');
+        moveOnEnter(event, $row.find('.prescription-application-times'));
+    });
+    $rows.on('keydown.prescriptionKeyboard', '.prescription-application-times', function (event) {
+        const $row = $(this).closest('.prescription-medicine-row');
+        moveOnEnter(event, $row.find('.prescription-duration-count:visible, .prescription-duration-value:visible').first());
+    });
+    $rows.on('keydown.prescriptionKeyboard', '.prescription-duration-unit, .prescription-duration-value', function (event) {
         const $row = $(this).closest('.prescription-medicine-row');
         moveOnEnter(event, $row.find('.prescription-instruction-search').next('.select2-container').find('.select2-selection'));
     });

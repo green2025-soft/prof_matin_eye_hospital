@@ -14,9 +14,10 @@ use Modules\Pharmacy\Models\ProductCategory;
 
 class ProductCategoryController extends BaseController
 {
+
     protected string $model = ProductCategory::class;
 
-    protected string $title = 'Category / generic';
+    protected string $title = ' Generic/Category ';
 
     protected string $views = 'pharmacy::categories';
 
@@ -38,7 +39,7 @@ class ProductCategoryController extends BaseController
     {
         $type = $request->validated('type') ?? 'medicine';
         $request->attributes->set('pharmacy_product_type', $type);
-        $this->title = Product::types()[$type].' category / generic';
+        $this->title = Product::types()[$type].$this->title;
 
         return $this->listData($request);
     }

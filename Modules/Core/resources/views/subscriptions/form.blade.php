@@ -4,12 +4,31 @@
 
 @section('content')
     @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Assign a plan and control renewal. Paid access starts after invoice settlement.'])
+
     @if (! $hasEligibleTenants)
         <section class="app-card p-3 p-md-4">
-            <h2 class="h5">No workspace needs a new subscription</h2>
+            <h2 class="h5">New workspaces already have a subscription</h2>
             <p class="text-body-secondary">
-                New workspaces receive a default subscription during setup. Change their plan by editing the existing subscription.
+                The Starter subscription is assigned automatically during setup. To choose another plan, update the existing subscription.
             </p>
+            @if ($existingSubscriptions->isNotEmpty())
+                <div class="list-group mb-3">
+                    @foreach ($existingSubscriptions as $existingSubscription)
+                        <div class="list-group-item d-flex flex-wrap align-items-center justify-content-between gap-3">
+                            <div class="text-break">
+                                <div class="fw-semibold">{{ $existingSubscription->tenant->name }}</div>
+                                <div class="small text-body-secondary">
+                                    {{ $existingSubscription->plan->name }} · {{ $statuses[$existingSubscription->status] }}
+                                </div>
+                            </div>
+                            @can('update', $existingSubscription)
+                                <a class="btn btn-outline-primary btn-sm"
+                                    href="{{ route('core.subscriptions.edit', $existingSubscription) }}">Change plan</a>
+                            @endcan
+                        </div>
+                    @endforeach
+                </div>
+            @endif
             @if ($subscriptionsUrl)
                 <a class="btn btn-primary" href="{{ $subscriptionsUrl }}">Manage existing subscriptions</a>
             @endif

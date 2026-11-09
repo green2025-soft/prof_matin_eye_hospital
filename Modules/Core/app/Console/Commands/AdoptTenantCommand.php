@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use Modules\Core\Services\TenantProvisioner;
 use Modules\Core\Validation\TenantRules;
 
+use function Laravel\Prompts\password;
 use function Laravel\Prompts\text;
 
 class AdoptTenantCommand extends Command
@@ -24,7 +25,7 @@ class AdoptTenantCommand extends Command
             return self::FAILURE;
         }
 
-        $rules = TenantRules::metadata();
+        $rules = TenantRules::metadata() + TenantRules::credentials();
         $name = trim(text(
             'Tenant name',
             required: true,
@@ -35,12 +36,17 @@ class AdoptTenantCommand extends Command
             TenantRules::normalize(['domains' => explode(',', $value)]),
             ['domains' => $rules['domains'], 'domains.*' => $rules['domains.*']],
         )->errors()->first());
+        $credentials = [
+            'database' => trim(text('DB_DATABASE (existing workspace)', required: true, validate: $rules['credentials.database'])),
+            'username' => trim(text('DB_USERNAME', required: true, validate: $rules['credentials.username'])),
+            'password' => password('DB_PASSWORD (leave blank if none)', validate: $rules['credentials.password']),
+        ];
 
         $tenant = $provisioner->adopt(
             $name,
             $slug,
             TenantRules::normalize(['domains' => explode(',', $domains)])['domains'],
-            text('Existing database name', required: true, validate: TenantRules::database()),
+            $credentials,
             normalizeEmail(text('Existing tenant administrator email', required: true, validate: TenantRules::owner()['owner_email'])),
         );
 

@@ -1513,10 +1513,10 @@
 }
 
 .app-table thead th {
-    color: var(--app-muted);
-    background: var(--app-surface-muted);
-    font-size: 0.75rem;
-    font-weight: 600;
+    color: #000;
+    background: #ccc;
+    font-size: 0.80rem;
+    font-weight: 700;
     letter-spacing: 0.04em;
     white-space: nowrap;
     text-transform: uppercase;
@@ -1672,148 +1672,97 @@
 }
 
 .app-auth-shell {
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
     background: var(--app-surface);
 }
 
 .app-auth-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(420px, 1fr);
-    min-height: 100vh;
-    min-height: 100dvh;
-}
-
-.app-auth-intro {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 3rem;
-    padding: clamp(2rem, 5vw, 5rem);
-    color: var(--app-sidebar-strong);
-    background: var(--app-sidebar-bg);
+    gap: 1.25rem;
+    width: 100%;
+    max-width: 440px;
+    min-width: 0;
 }
 
 .app-auth-brand {
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 0.75rem;
-    color: var(--app-sidebar-strong);
-    font-size: 0.9375rem;
-    font-weight: 650;
+    color: var(--app-text);
+    text-align: center;
     text-decoration: none;
 }
 
 .app-auth-brand:hover {
-    color: var(--app-sidebar-strong);
+    color: var(--app-text);
 }
 
-.app-auth-intro h1,
-.app-auth-intro h2 {
-    max-width: 20ch;
-    margin: 0 0 1rem;
-    font-size: clamp(1.75rem, 2.5vw, 2.25rem);
-    font-weight: 650;
-    letter-spacing: -0.035em;
-    line-height: 1.25;
-}
-
-.app-auth-intro p {
-    max-width: 28rem;
-    margin-bottom: 0;
-    color: var(--app-sidebar-text);
-    font-size: 0.875rem;
-    line-height: 1.8;
-}
-
-.app-auth-list {
-    display: grid;
-    gap: 1.25rem;
-    margin: 2rem 0 0;
-    padding: 0;
-    list-style: none;
-}
-
-.app-auth-feature {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.875rem;
-}
-
-.app-auth-feature > span {
-    display: inline-flex;
+.app-auth-logo,
+.app-auth-monogram {
+    width: 56px;
+    height: 56px;
     flex-shrink: 0;
+}
+
+.app-auth-logo {
+    object-fit: contain;
+}
+
+.app-auth-monogram {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
-    color: var(--app-sidebar-icon);
-    background: var(--app-sidebar-hover);
-    border: 1px solid var(--app-sidebar-border);
-    border-radius: 7px;
-    font-size: 0.8125rem;
+    color: var(--app-primary);
+    background: var(--app-primary-soft);
+    border-radius: 14px;
+    font-size: 1.5rem;
+    font-weight: 650;
 }
 
-.app-auth-feature strong {
-    display: block;
-    margin-bottom: 0.125rem;
-    color: var(--app-sidebar-strong);
-    font-size: 0.8125rem;
-    font-weight: 550;
-}
-
-.app-auth-feature small {
-    display: block;
-    color: var(--app-sidebar-text);
-    font-size: 0.75rem;
-    line-height: 1.65;
-}
-
-.app-auth-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    width: fit-content;
-    padding: 0.375rem 0.625rem;
-    color: var(--app-sidebar-text);
-    border: 1px solid var(--app-sidebar-border);
-    border-radius: 5px;
-    font-size: 0.625rem;
-    margin-bottom: 1.25rem;
-}
-
-.app-auth-intro .app-auth-copyright {
-    color: var(--app-sidebar-heading);
-    font-size: 0.6875rem;
+.app-auth-name {
+    max-width: 100%;
+    font-size: 1.25rem;
+    font-weight: 650;
+    line-height: 1.35;
+    letter-spacing: -0.025em;
+    overflow-wrap: anywhere;
 }
 
 .app-auth-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     min-width: 0;
-    padding: 3rem 2rem;
-}
-
-.app-auth-form > * {
-    width: 100%;
-    max-width: 380px;
+    padding: 1.75rem;
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(var(--app-shadow-rgb), 0.04);
 }
 
 .app-auth-form-inner {
     width: 100%;
-    max-width: 380px;
+}
+
+.app-auth-heading {
+    margin-bottom: 1.5rem;
+}
+
+.app-auth-heading > p:last-child {
+    font-size: 0.875rem;
+    line-height: 1.5;
 }
 
 .app-auth-form-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
-    margin-bottom: 1.25rem;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 0.875rem;
     color: var(--app-primary);
     background: var(--app-primary-soft);
-    border-radius: var(--app-radius);
+    border-radius: 10px;
     font-size: 1.125rem;
 }
 
@@ -1823,11 +1772,85 @@
     color: var(--app-text);
     font-size: 1.5rem;
     font-weight: 650;
-    letter-spacing: -0.035em;
+    letter-spacing: -0.03em;
+    line-height: 1.3;
+}
+
+.app-auth-form .form-label {
+    margin-bottom: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 550;
+}
+
+.app-auth-form .form-control,
+.app-auth-form .form-select {
+    min-height: 48px;
+    padding: 0.65rem 0.875rem;
+    font-size: 1rem;
+}
+
+.app-auth-form .form-select {
+    padding-inline-end: 2.5rem;
+}
+
+.app-auth-form .app-password-input {
+    padding-inline-end: 3.25rem;
+}
+
+.app-auth-form .app-password-toggle {
+    width: 44px;
+    height: 44px;
+    inset-inline-end: 0.125rem;
+}
+
+.app-auth-options {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.app-auth-options .form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    margin: 0;
+    padding: 0;
+}
+
+.app-auth-options .form-check-input {
+    float: none;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.app-auth-options .form-check-label,
+.app-auth-options > a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 0.8125rem;
+}
+
+.app-auth-options .form-check-label {
+    cursor: pointer;
 }
 
 .app-auth-form .btn-primary {
-    min-height: 42px;
+    min-height: 48px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+}
+
+.app-auth-copyright {
+    margin: 0;
+    color: var(--app-muted);
+    font-size: 0.75rem;
+    line-height: 1.5;
+    text-align: center;
 }
 
 @media (min-width: 992px) {
@@ -1927,29 +1950,6 @@
         padding-inline: 1.25rem;
     }
 
-    .app-auth-layout {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .app-auth-intro {
-        gap: 1.75rem;
-        padding: 2rem;
-    }
-
-    .app-auth-intro h1,
-    .app-auth-intro h2 {
-        max-width: none;
-        font-size: 1.5rem;
-    }
-
-    .app-auth-list,
-    .app-auth-badge {
-        display: none;
-    }
-
-    .app-auth-form {
-        padding: 2.5rem 1.5rem;
-    }
 }
 
 @media (max-width: 575.98px) {
@@ -2027,8 +2027,12 @@
         padding-inline: 1rem;
     }
 
-    .app-auth-intro {
-        padding: 1.5rem;
+    .app-auth-shell {
+        padding: 1rem;
+    }
+
+    .app-auth-form {
+        padding: 1.25rem;
     }
 }
 
@@ -3517,9 +3521,7 @@
 .app-prescription-workspace,
 .app-prescription-workspace #prescription-form,
 .app-prescription-editor {
-    display: flex;
     flex: 1;
-    flex-direction: column;
     min-width: 0;
     min-height: 0;
 }
@@ -3528,25 +3530,11 @@
     gap: 0.75rem;
 }
 
-.app-prescription-workspace .app-page-heading {
-    flex-shrink: 0;
-    margin-bottom: 0 !important;
-}
-
 .app-prescription-workspace .app-page-heading h1 {
     font-size: 1.25rem;
 }
 
-.app-prescription-editor {
-    overflow: hidden;
-}
-
 .app-prescription-editor-header {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
     padding: 0.75rem 1.25rem;
     border-bottom: 3px double var(--app-border);
 }
@@ -3565,9 +3553,6 @@
 }
 
 .app-prescription-editor-title {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
     gap: 0.65rem;
     color: var(--app-primary);
     font-size: 1rem;
@@ -3579,7 +3564,6 @@
 }
 
 .app-prescription-editor-identity {
-    flex-shrink: 0;
     padding: 0.75rem 1.25rem;
     border-bottom: 1px solid var(--app-border);
     background: var(--app-surface-muted);
@@ -3598,13 +3582,7 @@
     white-space: nowrap;
 }
 
-.app-prescription-editor-tabs {
-    flex-shrink: 0;
-    padding-inline: 1rem;
-}
-
 .app-prescription-editor-body {
-    display: flex;
     flex: 1;
     min-height: 0;
 }
@@ -3614,7 +3592,6 @@
     min-width: 0;
     min-height: 0;
     padding: 1rem 1.25rem;
-    overflow: auto;
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
     scroll-padding-block: 1rem;
@@ -3626,25 +3603,14 @@
 }
 
 .app-prescription-editor-treatment {
-    position: relative;
     flex: 1;
-    flex-direction: column;
-}
-
-.app-prescription-note {
-    margin-bottom: 1rem;
 }
 
 .app-prescription-section-heading {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 0.5rem;
     min-height: 28px;
 }
 
 .app-prescription-section-heading h3 {
-    margin: 0;
     font-size: 0.875rem;
     font-weight: 650;
 }
@@ -3670,10 +3636,6 @@
     padding-top: 1.25rem;
 }
 
-.app-prescription-editor-advice .app-prescription-note {
-    margin-bottom: 1rem;
-}
-
 .app-prescription-section-preview ul,
 ul.app-prescription-section-preview {
     padding: 0 0 0 0.6rem;
@@ -3686,11 +3648,6 @@ ul.app-prescription-section-preview {
 }
 
 .app-prescription-preview-item {
-    display: flex;
-    align-items: start;
-    justify-content: space-between;
-    gap: 0.5rem;
-    padding: 0.25rem 0;
     border-bottom: 1px solid var(--app-border);
     font-size: 0.8125rem;
 }
@@ -3702,15 +3659,7 @@ ul.app-prescription-section-preview {
 }
 
 .app-prescription-preview-remove {
-    flex-shrink: 0;
-    padding: 0 0.25rem;
-    border: 0;
     color: var(--app-danger);
-    background: transparent;
-}
-
-.app-prescription-preview-group {
-    margin-top: 0.5rem;
 }
 
 .app-prescription-preview-group h4 {
@@ -3738,31 +3687,14 @@ ul.app-prescription-section-preview {
 }
 
 .app-prescription-pad-signature {
-    align-self: flex-end;
-    padding-top: 1rem;
-    margin-top: auto;
     font-size: 0.8125rem;
 }
 
 .app-prescription-editor-actions {
-    display: flex;
-    flex-shrink: 0;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 0.5rem;
     padding-top: 0.75rem;
 }
 
-.app-prescription-rx-preview {
-    padding: 0;
-    margin: 0;
-    list-style: none;
-}
-
 .app-prescription-rx-preview > li {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
     gap: 0.75rem;
     padding: 0.5rem 0.6rem 0.45rem;
     border-bottom: 1px dashed var(--app-border);
@@ -3793,13 +3725,9 @@ ul.app-prescription-section-preview {
 }
 
 .app-prescription-rx-preview-remove {
-    flex-shrink: 0;
     min-width: 22px;
     min-height: 22px;
-    padding: 0;
-    border: 0;
     color: #f00;
-    background: transparent;
 }
 
 .app-prescription-editor .app-prescription-rx {
@@ -3864,23 +3792,15 @@ ul.app-prescription-section-preview {
 }
 
 .app-prescription-picker-search {
-    position: relative;
     width: 300px;
     max-width: 300px;
-    margin-inline: auto;
 }
 
 .app-prescription-preset-search {
-    position: relative;
-    display: flex;
     flex: 0 1 300px;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
     min-width: 0;
     width: 300px;
     max-width: 100%;
-    margin-inline: auto;
 }
 
 .app-prescription-preset-search .prescription-preset-save {
@@ -3967,17 +3887,8 @@ ul.app-prescription-section-preview {
 }
 
 .app-prescription-picker-options {
-    display: flex;
-    flex-wrap: wrap;
-    align-content: flex-start;
-    gap: 0.5rem;
-    padding: 1rem;
-}
-
-.app-prescription-picker-options {
     min-height: 160px;
     max-height: 160px;
-    overflow: auto;
     border-bottom: 1px solid var(--app-border);
     background: var(--prescription-panel);
     border: 0;
@@ -4111,9 +4022,6 @@ ul.app-prescription-section-preview {
 .app-prescription-examination-bp,
 .app-prescription-examination-temperature,
 .app-prescription-examination-height {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
     gap: 6px;
     min-width: 0;
 }
@@ -4180,9 +4088,6 @@ ul.app-prescription-section-preview {
 }
 
 .app-prescription-examination-metric-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
     margin-bottom: 14px;
 }
 
@@ -4343,8 +4248,6 @@ ul.app-prescription-section-preview {
 }
 
 .app-prescription-clinical-item-duration {
-    display: flex;
-    align-items: center;
     gap: 5px;
 }
 
@@ -4368,14 +4271,6 @@ ul.app-prescription-section-preview {
     padding-inline-end: 20px;
 }
 
-.app-prescription-clinical-item-notes > span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-}
-
 .prescription-clinical-item-remove {
     padding: 0;
     border: 0;
@@ -4383,18 +4278,12 @@ ul.app-prescription-section-preview {
 }
 
 .app-prescription-editor-medicines {
-    padding: 0;
-    margin: 0;
-    list-style: none;
     counter-reset: prescription-medicine;
 }
 
 .prescription-medicine-row {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
     padding: 0.85rem;
-    margin-top: 1rem;
     border: 1px solid var(--app-border);
     counter-increment: prescription-medicine;
 }
@@ -4405,19 +4294,12 @@ ul.app-prescription-section-preview {
 }
 
 .app-prescription-medicine-name {
-    display: flex;
-    align-items: center;
     min-width: 0;
     gap: 3px;
 }
 
-.prescription-medicine-dosage {
-    flex-shrink: 0;
-    font-size: 14px;
-}
-
-.prescription-medicine-dosage:not(:empty)::after {
-    content: ' -';
+.prescription-dosage-field {
+    min-width: 0;
 }
 
 .prescription-medicine-number::before {
@@ -4446,10 +4328,8 @@ ul.app-prescription-section-preview {
 }
 
 .app-prescription-rx-search {
-    position: relative;
     width: 300px;
     max-width: 65%;
-    margin-inline: auto;
 }
 
 .app-prescription-rx-search .select2-dropdown::before,
@@ -4468,14 +4348,9 @@ ul.app-prescription-section-preview {
 }
 
 .app-prescription-rx-options {
-    display: flex;
-    flex-wrap: wrap;
-    align-content: start;
-    gap: 0.5rem;
     min-height: 160px;
     max-height: 160px;
     padding: 0.75rem;
-    overflow: auto;
     background: var(--prescription-panel);
 }
 
@@ -4496,13 +4371,10 @@ ul.app-prescription-section-preview {
 
 .app-prescription-rx-card-heading,
 .app-prescription-rx-card-controls {
-    grid-column: 1 / -1;
     min-width: 0;
 }
 
 .app-prescription-rx-card-heading {
-    display: flex;
-    align-items: center;
     gap: 0.4rem;
 }
 
@@ -4511,32 +4383,68 @@ ul.app-prescription-section-preview {
 }
 
 .app-prescription-rx-card-controls {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px;
+    grid-template-columns: 140px minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 16px;
 }
 
 .app-prescription-rx-card-right {
-    display: grid;
     grid-template-columns: 100px minmax(0, 1fr);
-    align-items: start;
-    gap: 24px;
-    text-align: center;
+    gap: 10px 12px;
+}
+
+.prescription-application-entry .app-prescription-rx-card-right {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+}
+
+.prescription-application-dose .form-control {
+    min-width: 0;
 }
 
 .prescription-frequency-field {
+    grid-template-columns: minmax(0, 1fr) auto;
     min-width: 0;
-    text-align: center;
+    gap: 6px;
+}
+
+.prescription-frequency-field > * {
+    grid-column: 1 / -1;
+}
+
+.prescription-frequency-label {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+}
+
+.prescription-schedule-menu {
+    display: flex;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+}
+
+.prescription-dosage-field > .form-label,
+.prescription-dose-field > .form-label,
+.prescription-duration-field > .form-label,
+.prescription-application-dose .form-label {
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+    margin-bottom: 6px;
 }
 
 .prescription-schedule-controls {
-    justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: start;
     flex-wrap: wrap;
     gap: 2px;
 }
 
 .prescription-schedule-dose {
     min-width: 44px;
+    min-height: 25px;
     padding: 2px 6px;
     border: 1px solid #d6dce3;
     border-radius: 5px;
@@ -4639,9 +4547,9 @@ ul.app-prescription-section-preview {
 .app-prescription-food-options {
     display: inline-flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: start;
     gap: 8px;
-    margin-top: 8px;
+    margin-top: 0;
 }
 
 .prescription-food-instruction {
@@ -4690,8 +4598,7 @@ ul.app-prescription-section-preview {
 
 .app-prescription-instruction-row {
     grid-column: 1 / -1;
-    width: min(100%, 260px);
-    margin-inline: auto;
+    min-width: 0;
 }
 
 .app-prescription-text-choice {
@@ -4767,7 +4674,8 @@ ul.app-prescription-section-preview {
 }
 
 .prescription-medicine-row .form-control,
-.prescription-medicine-row .form-select {
+.prescription-medicine-row .form-select,
+.prescription-application-dose .input-group-text {
     min-height: 25px;
     height: 25px;
     padding: 2px 5px;
@@ -4776,14 +4684,14 @@ ul.app-prescription-section-preview {
 }
 
 .prescription-frequency-mode {
-    margin-bottom: 0.375rem;
+    min-height: 24px;
+    padding: 0;
+    margin: 0;
     border: 0;
 }
 
 .prescription-schedule-controls,
 .prescription-duration-controls {
-    display: flex;
-    align-items: center;
     gap: 2px;
     min-width: 0;
 }
@@ -4825,7 +4733,6 @@ ul.app-prescription-section-preview {
 }
 
 @media screen and (max-width: 575.98px) {
-    .prescription-medicine-row,
     .app-prescription-rx-card-controls {
         grid-template-columns: minmax(0, 1fr);
     }
@@ -4842,19 +4749,14 @@ ul.app-prescription-section-preview {
     }
 }
 
-@media screen and (min-width: 992px) {
-    .app-prescription-editor-tabs {
-        display: none;
+@media screen and (min-width: 576px) and (max-width: 767.98px) {
+    .app-prescription-rx-card-controls {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .app-prescription-editor-body > .app-prescription-editor-notes {
-        display: block;
-        opacity: 1;
-    }
-
-    .app-prescription-editor-body > .app-prescription-editor-treatment {
-        display: flex;
-        opacity: 1;
+    .prescription-dosage-field {
+        grid-column: 1 / -1;
+        width: 180px;
     }
 }
 
@@ -4974,14 +4876,33 @@ ul.app-prescription-section-preview {
 }
 
 .app-prescription-document {
-    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 210mm;
+    min-height: 297mm;
     margin-inline: auto;
-    padding: 2rem;
+    padding: 10mm;
+    color: var(--app-text);
     background: var(--app-surface);
+    line-height: 1.55;
+}
+
+.app-prescription-paper-a5 {
+    max-width: 148mm;
+    min-height: 210mm;
+    padding: 8mm;
+    font-size: 0.85rem;
+}
+
+.app-prescription-paper-custom {
+    max-width: 210mm;
+    min-height: 297mm;
 }
 
 .app-prescription-letterhead,
 .app-prescription-doctor,
+.app-prescription-identity,
 .app-prescription-footer {
     display: flex;
     justify-content: space-between;
@@ -4991,19 +4912,21 @@ ul.app-prescription-section-preview {
 .app-prescription-letterhead {
     align-items: center;
     justify-content: center;
-    padding-bottom: 1rem;
+    padding-bottom: 0.75rem;
     border-bottom: 3px double var(--app-text);
     text-align: center;
 }
 
 .app-prescription-letterhead h2 {
-    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+    font-size: 1.35rem;
     font-weight: 700;
 }
 
 .app-prescription-logo {
-    width: 76px;
-    height: 76px;
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
     object-fit: contain;
 }
 
@@ -5017,18 +4940,56 @@ ul.app-prescription-section-preview {
 
 .app-prescription-doctor {
     align-items: start;
-    padding-block: 1rem;
+    padding-block: 0.85rem;
+    border-bottom: 1px solid;
+}
+
+.app-prescription-doctor > div,
+.app-prescription-letterhead > div {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.app-prescription-doctor > div {
+    flex: 1;
+}
+
+.app-prescription-doctor-bangla {
+    text-align: end;
+}
+
+.app-prescription-doctor h2:empty {
+    display: none;
+}
+
+.app-prescription-identity {
+    align-items: center;
+    /* padding-block: 0.6rem; */
+}
+
+.app-prescription-patient-barcode {
+    min-width: 0;
+    max-width: 55%;
+}
+
+.app-prescription-barcode {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-left: -14px;
 }
 
 .app-prescription-doctor h2 {
     margin-bottom: 0.25rem;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
 }
 
 .app-prescription-reference {
-    flex-shrink: 0;
+    flex: 0 0 auto;
+    max-width: 40%;
     text-align: end;
+    overflow-wrap: anywhere;
 }
 
 .app-prescription-reference h1 {
@@ -5036,18 +4997,35 @@ ul.app-prescription-section-preview {
     font-weight: 700;
 }
 
-.app-prescription-patient {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1.25fr 1.5fr;
-    gap: 0.5rem 1rem;
-    padding: 0.75rem 0;
+.app-prescription-patien {
+    /* display: grid; */
+    /* grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); */
+    /* gap: 0.15rem 1rem; */
+    padding: 0rem 0 0.65rem;
     margin-bottom: 0;
-    border-block: 1px solid var(--app-text);
+    border-bottom: 1px solid var(--app-text);
+    border-top: none;
+}
+
+.app-prescription-clinical .chief-complaint{
+    min-height: 150px;
+}
+
+.min-height100{
+    min-height: 100px;
+}
+
+.app-prescription-patient > div {
+    display: flex;
+    align-items: baseline;
+    min-width: 0;
+    gap: 0.4rem;
 }
 
 .app-prescription-patient dt {
-    font-size: 0.75rem;
-    color: var(--app-muted);
+    flex-shrink: 0;
+    font-size: inherit;
+    font-weight: 400;
 }
 
 .app-prescription-patient dd {
@@ -5058,14 +5036,15 @@ ul.app-prescription-section-preview {
 
 .app-prescription-body {
     display: flex;
-    gap: 1.5rem;
-    padding-top: 1.25rem;
-    min-height: 320px;
+    flex: 1 0 auto;
+    gap: 1.25rem;
+    padding-block: 1rem 1.5rem;
 }
 
 .app-prescription-clinical {
-    width: 32%;
-    padding-inline-end: 1.25rem;
+    flex: 0 0 32%;
+    min-width: 0;
+    padding-inline-end: 1rem;
     border-inline-end: 1px solid var(--app-border);
 }
 
@@ -5075,15 +5054,16 @@ ul.app-prescription-section-preview {
 }
 
 .app-prescription-clinical section,
-.app-prescription-advice,
-.app-prescription-follow-up {
+.app-prescription-treatment > section,
+.app-prescription-advice {
     margin-bottom: 1rem;
 }
 
 .app-prescription-document h3 {
     margin-bottom: 0.35rem;
-    font-size: 0.9rem;
+    font-size: inherit;
     font-weight: 700;
+    break-after: avoid;
 }
 
 .app-prescription-rx {
@@ -5093,19 +5073,13 @@ ul.app-prescription-section-preview {
 
 .app-prescription-medicine-list {
     padding-inline-start: 1.25rem;
+    margin-bottom: 1.5rem;
 }
 
 .app-prescription-medicine-list li {
     padding-inline-start: 0.25rem;
     margin-bottom: 1.25rem;
     break-inside: avoid;
-}
-
-.app-prescription-dose,
-.app-prescription-lens-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem 1rem;
 }
 
 .app-prescription-text {
@@ -5115,18 +5089,27 @@ ul.app-prescription-section-preview {
 
 .app-prescription-footer {
     align-items: end;
-    margin-top: 1.5rem;
-    padding-top: 1rem;
+    flex-shrink: 0;
+    margin-top: auto;
+    padding-top: 12mm;
     border-top: 1px solid var(--app-border);
     break-inside: avoid;
 }
 
+.app-prescription-footer > div:first-child {
+    min-width: 0;
+}
+
 .app-prescription-signature {
-    min-width: 140px;
-    padding-top: 0.4rem;
+    flex: 0 0 42mm;
+    padding-top: 0.5rem;
     border-top: 1px solid var(--app-text);
     text-align: center;
     font-size: 0.8rem;
+}
+
+.app-prescription-paper-a5 .app-prescription-signature {
+    flex-basis: 34mm;
 }
 
 .app-glass-print-body {
@@ -5154,17 +5137,19 @@ ul.app-prescription-section-preview {
 @media screen and (max-width: 575.98px) {
     .app-prescription-document {
         padding: 1rem;
+        min-height: 100dvh;
     }
 
     .app-prescription-letterhead,
     .app-prescription-doctor,
+    .app-prescription-identity,
     .app-prescription-footer {
         flex-wrap: wrap;
         gap: 0.75rem;
     }
 
     .app-prescription-patient {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
     }
 
     .app-prescription-body {
@@ -5172,7 +5157,6 @@ ul.app-prescription-section-preview {
     }
 
     .app-prescription-clinical {
-        width: 100%;
         padding: 0;
         border: 0;
     }
@@ -5189,13 +5173,20 @@ ul.app-prescription-section-preview {
         margin: 8mm;
     }
 
+    @page prescription-custom {
+        size: 210mm 297mm;
+        margin: 10mm;
+    }
+
     .app-prescription-document {
         page: prescription-a4;
         width: 100%;
         max-width: none;
+        min-height: 274mm;
         margin: 0;
         padding: 0;
         border: 0;
+        border-radius: 0;
         box-shadow: none;
         font-size: 11pt;
         line-height: 1.4;
@@ -5203,11 +5194,64 @@ ul.app-prescription-section-preview {
 
     .app-prescription-paper-a5 {
         page: prescription-a5;
+        min-height: 191mm;
         font-size: 10pt;
+        line-height: 1.35;
+    }
+
+    .app-prescription-paper-custom {
+        page: prescription-custom;
+        max-width: none;
+        min-height: 274mm;
+    }
+
+    .app-prescription-body {
+        flex: 0 0 auto;
+    }
+
+    .app-prescription-paper-a5 .app-prescription-letterhead {
+        padding-bottom: 3mm;
+    }
+
+    .app-prescription-paper-a5 .app-prescription-doctor {
+        padding-block: 2mm;
+    }
+
+    .app-prescription-paper-a5 .app-prescription-letterhead p,
+    .app-prescription-paper-a5 .app-prescription-doctor p {
+        margin-bottom: 0;
+    }
+
+    .app-prescription-paper-a5 .app-prescription-doctor p {
+        line-height: 1.25;
+    }
+
+    .app-prescription-paper-a5 .app-prescription-patient {
+        padding-block: 2mm;
+    }
+
+    .app-prescription-paper-a5 .app-prescription-body {
+        gap: 4mm;
+        padding-block: 3mm 2mm;
+    }
+
+    .app-prescription-paper-a5 .app-prescription-clinical section,
+    .app-prescription-paper-a5 .app-prescription-treatment > section {
+        margin-bottom: 2.5mm;
+    }
+
+    .app-prescription-paper-a5 .app-prescription-medicine-list,
+    .app-prescription-paper-a5 .app-prescription-medicine-list li {
+        margin-bottom: 3mm;
+    }
+
+    .app-prescription-paper-a5 .app-prescription-footer {
+        padding-top: 7mm;
     }
 
     .app-prescription-letterhead,
     .app-prescription-doctor,
+    .app-prescription-identity,
     .app-prescription-patient {
         break-inside: avoid;
         break-after: avoid;
@@ -5218,12 +5262,16 @@ ul.app-prescription-section-preview {
     }
 
     .app-prescription-logo {
-        width: 17mm;
-        height: 17mm;
+        width: 15mm;
+        height: 15mm;
     }
 
     .app-prescription-document h3 {
         font-size: 10pt;
+    }
+
+    .app-prescription-footer {
+        font-size: 9pt;
     }
 
     .app-prescription-document .table-responsive {

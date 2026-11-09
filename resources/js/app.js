@@ -4,6 +4,8 @@ import 'flatpickr';
 import attachSelect2 from 'select2';
 import toastr from 'toastr';
 import { formatAmount, roundRatio } from './money';
+import { initializePatientAgeFields } from './patient-age';
+import { synchronizeDatepickerYear, destroyDatepickerYear } from './datepicker-year';
 import './pharmacy';
 import './prescription';
 
@@ -404,6 +406,7 @@ function clearPatientModal(modal) {
     $modal.find('[data-patient-modal-content] select.select2-hidden-accessible').each(function () {
         $(this).select2('close').select2('destroy');
     });
+    $modal.find('[data-patient-modal-content] [data-datepicker]').get(0)?._flatpickr?.destroy();
     $modal.find('[data-patient-modal-content]').empty();
     $modal.find('[data-patient-modal-save]').prop('disabled', true);
 }
@@ -450,6 +453,8 @@ $(document).on('show.bs.modal.patientModal', '#patient-create-modal', function (
         }
         $content.html(html);
         window.initAjaxSelects($content[0]);
+        window.initDateTimePickers($content[0]);
+        initializePatientAgeFields($content[0]);
         $modal.find('[data-patient-modal-save]').prop('disabled', false);
         $content.find(':input:visible').first().trigger('focus');
     }).fail((xhr, status) => {
@@ -1656,6 +1661,14 @@ function prepareTimeInput(_, __, picker) {
 
 window.initDateTimePickers = function (root = document) {
     const selector = '[data-datepicker], [data-timepicker]';
+    const dateOptions = {
+        dateFormat: 'Y-m-d',
+        onReady: synchronizeDatepickerYear,
+        onOpen: synchronizeDatepickerYear,
+        onMonthChange: synchronizeDatepickerYear,
+        onYearChange: synchronizeDatepickerYear,
+        onDestroy: destroyDatepickerYear,
+    };
     const timeOptions = {
         enableTime: true,
         noCalendar: true,
@@ -1674,7 +1687,7 @@ window.initDateTimePickers = function (root = document) {
             wrap: true,
             allowInput: true,
             disableMobile: true,
-            ...($picker.is('[data-timepicker]') ? timeOptions : { dateFormat: 'Y-m-d' }),
+            ...($picker.is('[data-timepicker]') ? timeOptions : dateOptions),
         });
     });
 };
@@ -1701,6 +1714,7 @@ $(() => {
         updatePosWidth();
     }
     window.initDateTimePickers();
+    initializePatientAgeFields();
     $('[data-clinical-entry]').each((_, form) => initializeClinicalEntry(form));
     $('[data-refund-form]').each((_, form) => initializeRefundForm(form));
     $('[data-due-collection-form]').each((_, form) => initializeDueCollectionForm(form));

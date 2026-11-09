@@ -100,11 +100,21 @@ class TenantRules
         return ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'mimetypes:image/jpeg,image/png,image/webp,image/gif', 'max:2048'];
     }
 
+    public static function credentials(): array
+    {
+        return [
+            'credentials' => ['required', 'array:database,username,password'],
+            'credentials.database' => static::database(),
+            'credentials.username' => ['required', 'string', 'max:128'],
+            'credentials.password' => ['present', 'nullable', 'string', 'max:4096'],
+        ];
+    }
+
     public static function database(): array
     {
         return [
             'required', 'string', 'max:64', 'regex:/\A[a-zA-Z0-9_]+\z/',
-            Rule::notIn([config('database.connections.central.database')]),
+            Rule::notIn(['mysql', 'sys', 'information_schema', 'performance_schema', config('database.connections.central.database')]),
             Rule::unique('central.tenants', 'database'),
         ];
     }

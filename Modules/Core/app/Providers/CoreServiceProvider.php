@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use LogicException;
 use Modules\Core\Console\Commands\AdoptTenantCommand;
@@ -67,6 +68,9 @@ class CoreServiceProvider extends ServiceProvider
         ], static fn (object $event) => app(ContextCache::class)->flush($event->model->getConnection()->getName(), 'actors'));
 
         Paginator::useBootstrapFive();
+
+        // Print settings read stylesheet rules, including assets from the Vite server.
+        Vite::useStyleTagAttributes(['crossorigin' => 'anonymous']);
 
         // Native policies retain precedence over these opt-in CRUD permission gates.
         foreach (['viewAny' => 'view', 'view' => 'view', 'create' => 'create', 'update' => 'update', 'delete' => 'delete'] as $ability => $action) {

@@ -3,15 +3,19 @@
 @section('title', $pageTitle)
 
 @section('content')
+    @php
+        $generalPaper = getValue('data.general_paper', null, $values['general_paper']);
+        $glassPaper = getValue('data.glass_paper', null, $values['glass_paper']);
+    @endphp
     @include('core::partials.heading', ['title' => $pageTitle])
-    <form class="app-card p-3 p-md-4" action="{{ route('prescription.settings.update', $setting) }}" method="POST">
+    <form class="app-card p-3 p-md-4" id="prescription-settings-form" action="{{ route('prescription.settings.update', $setting) }}" method="POST">
         @csrf
         @method('PUT')
         <fieldset @disabled(! $canUpdate)>
             <legend class="visually-hidden">Prescription form and print settings</legend>
             <div class="row g-4">
                 <section class="col-lg-6" aria-labelledby="settings-general-heading">
-                    <h2 class="h6 mb-3" id="settings-general-heading">General prescription</h2>
+                    <h2 class="h6 mb-3" id="settings-general-heading">General Prescription</h2>
                     <div class="row g-3">
                         <div class="col-sm-6">
                             <input name="data[general_enabled]" type="hidden" value="0">
@@ -85,18 +89,91 @@
                             </div>
                             @error('data.general_header_enabled')<div class="invalid-feedback d-block" id="general_header_enabled-error">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-sm-6">
-                            <label class="form-label" for="general_paper">Print paper</label>
-                            <select class="{{ inputClass('data.general_paper', 'form-select') }}" id="general_paper" name="data[general_paper]" required {{ inputAttrs('data.general_paper', 'general_paper') }}>
-                                <option value="a4" {{ getSelected('a4', 'data.general_paper', null, $values['general_paper']) }}>A4</option>
-                                <option value="a5" {{ getSelected('a5', 'data.general_paper', null, $values['general_paper']) }}>A5</option>
-                            </select>
-                            @error('data.general_paper')<div class="invalid-feedback d-block" id="general_paper-error">{{ $message }}</div>@enderror
+                        <div class="col-12 prescription-paper-settings">
+                            <div class="row g-2">
+                                <div class="col-sm-4">
+                                    <label class="form-label" for="general_paper">Print paper</label>
+                                    <select class="{{ inputClass('data.general_paper', 'form-select') }} prescription-paper-size"
+                                        id="general_paper" name="data[general_paper]" required {{ inputAttrs('data.general_paper', 'general_paper') }}>
+                                        <option value="a4" @selected($generalPaper === 'a4')>A4</option>
+                                        <option value="a5" @selected($generalPaper === 'a5')>A5</option>
+                                        <option value="custom" @selected($generalPaper === 'custom')>Custom</option>
+                                    </select>
+                                    @error('data.general_paper')<div class="invalid-feedback d-block" id="general_paper-error">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-sm-8 prescription-custom-paper" @if ($generalPaper !== 'custom') hidden @endif>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="form-label" for="general_custom_width">Width (mm)</label>
+                                            <input class="{{ inputClass('data.general_custom_width') }}" id="general_custom_width"
+                                                name="data[general_custom_width]" type="number" min="50" max="1000" step="0.01" inputmode="decimal"
+                                                value="{{ getValue('data.general_custom_width', null, $values['general_custom_width']) }}"
+                                                @required($generalPaper === 'custom') {{ inputAttrs('data.general_custom_width', 'general_custom_width') }}>
+                                            @error('data.general_custom_width')<div class="invalid-feedback d-block" id="general_custom_width-error">{{ $message }}</div>@enderror
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label" for="general_custom_height">Height (mm)</label>
+                                            <input class="{{ inputClass('data.general_custom_height') }}" id="general_custom_height"
+                                                name="data[general_custom_height]" type="number" min="50" max="1000" step="0.01" inputmode="decimal"
+                                                value="{{ getValue('data.general_custom_height', null, $values['general_custom_height']) }}"
+                                                @required($generalPaper === 'custom') {{ inputAttrs('data.general_custom_height', 'general_custom_height') }}>
+                                            @error('data.general_custom_height')<div class="invalid-feedback d-block" id="general_custom_height-error">{{ $message }}</div>@enderror
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="general_rx_pattern">Rx Number Pattern</label>
+                            <input class="{{ inputClass('data.general_rx_pattern') }}" id="general_rx_pattern"
+                                name="data[general_rx_pattern]" type="text" maxlength="40" required
+                                value="{{ getValue('data.general_rx_pattern', null, $values['general_rx_pattern']) }}"
+                                {{ inputAttrs('data.general_rx_pattern', 'general_rx_pattern') }}>
+                            @error('data.general_rx_pattern')<div class="invalid-feedback d-block" id="general_rx_pattern-error">{{ $message }}</div>@enderror
+                            <p class="form-text mb-0">Tokens: {SEQ:6}, {YYYY}, {YY}, {MM}, {DD}, {BRANCH}. SEQ uses the record ID.</p>
+                        </div>
+                        <div class="col-12">
+                            <p class="form-label mb-2">Print margins (mm)</p>
+                            <div class="row g-2">
+                                <div class="col-3">
+                                    <label class="form-label small" for="general_margin_top">Top</label>
+                                    <input class="{{ inputClass('data.general_margin_top') }}" id="general_margin_top"
+                                        name="data[general_margin_top]" type="number" min="0" max="50" step="0.01" placeholder="Auto"
+                                        value="{{ getValue('data.general_margin_top', null, $values['general_margin_top']) }}"
+                                        {{ inputAttrs('data.general_margin_top', 'general_margin_top') }}>
+                                    @error('data.general_margin_top')<div class="invalid-feedback d-block" id="general_margin_top-error">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-3">
+                                    <label class="form-label small" for="general_margin_right">Right</label>
+                                    <input class="{{ inputClass('data.general_margin_right') }}" id="general_margin_right"
+                                        name="data[general_margin_right]" type="number" min="0" max="50" step="0.01" placeholder="Auto"
+                                        value="{{ getValue('data.general_margin_right', null, $values['general_margin_right']) }}"
+                                        {{ inputAttrs('data.general_margin_right', 'general_margin_right') }}>
+                                    @error('data.general_margin_right')<div class="invalid-feedback d-block" id="general_margin_right-error">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-3">
+                                    <label class="form-label small" for="general_margin_bottom">Bottom</label>
+                                    <input class="{{ inputClass('data.general_margin_bottom') }}" id="general_margin_bottom"
+                                        name="data[general_margin_bottom]" type="number" min="0" max="50" step="0.01" placeholder="Auto"
+                                        value="{{ getValue('data.general_margin_bottom', null, $values['general_margin_bottom']) }}"
+                                        {{ inputAttrs('data.general_margin_bottom', 'general_margin_bottom') }}>
+                                    @error('data.general_margin_bottom')<div class="invalid-feedback d-block" id="general_margin_bottom-error">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-3">
+                                    <label class="form-label small" for="general_margin_left">Left</label>
+                                    <input class="{{ inputClass('data.general_margin_left') }}" id="general_margin_left"
+                                        name="data[general_margin_left]" type="number" min="0" max="50" step="0.01" placeholder="Auto"
+                                        value="{{ getValue('data.general_margin_left', null, $values['general_margin_left']) }}"
+                                        {{ inputAttrs('data.general_margin_left', 'general_margin_left') }}>
+                                    @error('data.general_margin_left')<div class="invalid-feedback d-block" id="general_margin_left-error">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
+                            <p class="form-text mb-0">Blank uses paper default: A4 / Custom 10 mm, A5 8 mm.</p>
                         </div>
                     </div>
                 </section>
                 <section class="col-lg-6" aria-labelledby="settings-glass-heading">
-                    <h2 class="h6 mb-3" id="settings-glass-heading">Glass prescription</h2>
+                    <h2 class="h6 mb-3" id="settings-glass-heading">Glass Prescription</h2>
                     <div class="row g-3">
                         <div class="col-sm-6">
                             <input name="data[glass_enabled]" type="hidden" value="0">
@@ -138,13 +215,86 @@
                             </div>
                             @error('data.glass_header_enabled')<div class="invalid-feedback d-block" id="glass_header_enabled-error">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-sm-6">
-                            <label class="form-label" for="glass_paper">Print paper</label>
-                            <select class="{{ inputClass('data.glass_paper', 'form-select') }}" id="glass_paper" name="data[glass_paper]" required {{ inputAttrs('data.glass_paper', 'glass_paper') }}>
-                                <option value="a4" {{ getSelected('a4', 'data.glass_paper', null, $values['glass_paper']) }}>A4</option>
-                                <option value="a5" {{ getSelected('a5', 'data.glass_paper', null, $values['glass_paper']) }}>A5</option>
-                            </select>
-                            @error('data.glass_paper')<div class="invalid-feedback d-block" id="glass_paper-error">{{ $message }}</div>@enderror
+                        <div class="col-12 prescription-paper-settings">
+                            <div class="row g-2">
+                                <div class="col-sm-4">
+                                    <label class="form-label" for="glass_paper">Print paper</label>
+                                    <select class="{{ inputClass('data.glass_paper', 'form-select') }} prescription-paper-size"
+                                        id="glass_paper" name="data[glass_paper]" required {{ inputAttrs('data.glass_paper', 'glass_paper') }}>
+                                        <option value="a4" @selected($glassPaper === 'a4')>A4</option>
+                                        <option value="a5" @selected($glassPaper === 'a5')>A5</option>
+                                        <option value="custom" @selected($glassPaper === 'custom')>Custom</option>
+                                    </select>
+                                    @error('data.glass_paper')<div class="invalid-feedback d-block" id="glass_paper-error">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-sm-8 prescription-custom-paper" @if ($glassPaper !== 'custom') hidden @endif>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="form-label" for="glass_custom_width">Width (mm)</label>
+                                            <input class="{{ inputClass('data.glass_custom_width') }}" id="glass_custom_width"
+                                                name="data[glass_custom_width]" type="number" min="50" max="1000" step="0.01" inputmode="decimal"
+                                                value="{{ getValue('data.glass_custom_width', null, $values['glass_custom_width']) }}"
+                                                @required($glassPaper === 'custom') {{ inputAttrs('data.glass_custom_width', 'glass_custom_width') }}>
+                                            @error('data.glass_custom_width')<div class="invalid-feedback d-block" id="glass_custom_width-error">{{ $message }}</div>@enderror
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label" for="glass_custom_height">Height (mm)</label>
+                                            <input class="{{ inputClass('data.glass_custom_height') }}" id="glass_custom_height"
+                                                name="data[glass_custom_height]" type="number" min="50" max="1000" step="0.01" inputmode="decimal"
+                                                value="{{ getValue('data.glass_custom_height', null, $values['glass_custom_height']) }}"
+                                                @required($glassPaper === 'custom') {{ inputAttrs('data.glass_custom_height', 'glass_custom_height') }}>
+                                            @error('data.glass_custom_height')<div class="invalid-feedback d-block" id="glass_custom_height-error">{{ $message }}</div>@enderror
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="glass_rx_pattern">Rx Number Pattern</label>
+                            <input class="{{ inputClass('data.glass_rx_pattern') }}" id="glass_rx_pattern"
+                                name="data[glass_rx_pattern]" type="text" maxlength="40" required
+                                value="{{ getValue('data.glass_rx_pattern', null, $values['glass_rx_pattern']) }}"
+                                {{ inputAttrs('data.glass_rx_pattern', 'glass_rx_pattern') }}>
+                            @error('data.glass_rx_pattern')<div class="invalid-feedback d-block" id="glass_rx_pattern-error">{{ $message }}</div>@enderror
+                            <p class="form-text mb-0">Tokens: {SEQ:6}, {YYYY}, {YY}, {MM}, {DD}, {BRANCH}. SEQ uses the record ID.</p>
+                        </div>
+                        <div class="col-12">
+                            <p class="form-label mb-2">Print margins (mm)</p>
+                            <div class="row g-2">
+                                <div class="col-3">
+                                    <label class="form-label small" for="glass_margin_top">Top</label>
+                                    <input class="{{ inputClass('data.glass_margin_top') }}" id="glass_margin_top"
+                                        name="data[glass_margin_top]" type="number" min="0" max="50" step="0.01" placeholder="Auto"
+                                        value="{{ getValue('data.glass_margin_top', null, $values['glass_margin_top']) }}"
+                                        {{ inputAttrs('data.glass_margin_top', 'glass_margin_top') }}>
+                                    @error('data.glass_margin_top')<div class="invalid-feedback d-block" id="glass_margin_top-error">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-3">
+                                    <label class="form-label small" for="glass_margin_right">Right</label>
+                                    <input class="{{ inputClass('data.glass_margin_right') }}" id="glass_margin_right"
+                                        name="data[glass_margin_right]" type="number" min="0" max="50" step="0.01" placeholder="Auto"
+                                        value="{{ getValue('data.glass_margin_right', null, $values['glass_margin_right']) }}"
+                                        {{ inputAttrs('data.glass_margin_right', 'glass_margin_right') }}>
+                                    @error('data.glass_margin_right')<div class="invalid-feedback d-block" id="glass_margin_right-error">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-3">
+                                    <label class="form-label small" for="glass_margin_bottom">Bottom</label>
+                                    <input class="{{ inputClass('data.glass_margin_bottom') }}" id="glass_margin_bottom"
+                                        name="data[glass_margin_bottom]" type="number" min="0" max="50" step="0.01" placeholder="Auto"
+                                        value="{{ getValue('data.glass_margin_bottom', null, $values['glass_margin_bottom']) }}"
+                                        {{ inputAttrs('data.glass_margin_bottom', 'glass_margin_bottom') }}>
+                                    @error('data.glass_margin_bottom')<div class="invalid-feedback d-block" id="glass_margin_bottom-error">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-3">
+                                    <label class="form-label small" for="glass_margin_left">Left</label>
+                                    <input class="{{ inputClass('data.glass_margin_left') }}" id="glass_margin_left"
+                                        name="data[glass_margin_left]" type="number" min="0" max="50" step="0.01" placeholder="Auto"
+                                        value="{{ getValue('data.glass_margin_left', null, $values['glass_margin_left']) }}"
+                                        {{ inputAttrs('data.glass_margin_left', 'glass_margin_left') }}>
+                                    @error('data.glass_margin_left')<div class="invalid-feedback d-block" id="glass_margin_left-error">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
+                            <p class="form-text mb-0">Blank uses paper default: A4 / Custom 10 mm, A5 8 mm.</p>
                         </div>
                     </div>
                 </section>

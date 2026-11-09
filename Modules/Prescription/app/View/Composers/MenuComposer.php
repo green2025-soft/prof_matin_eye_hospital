@@ -13,20 +13,37 @@ class MenuComposer
 
     public function compose(View $view): void
     {
-        if (! $this->request->routeIs('prescription.*')) {
+        $catalogContext = $this->request->query('menu') === 'prescription'
+            && $this->request->routeIs(
+                'pharmacy.products.*',
+                'pharmacy.categories.*',
+                'pharmacy.shelves.*',
+                'pharmacy.variants.*',
+                'pharmacy.product-units.*',
+            );
+
+        if (! $this->request->routeIs('prescription.*') && ! $catalogContext) {
             return;
         }
 
+        $actor = $this->request->user('web');
         $subscription = $this->request->attributes->get('application_subscription');
         $plan = $subscription?->isUsable() ? $subscription->plan : null;
+        $permissions = $this->access->navigationPermissions($actor, $plan);
 
-        $view->with('moduleMenu', [
+        if ($catalogContext && ! ($permissions['prescription.view'] ?? false)) {
+            return;
+        }
+
+        $view->with('contextMenu', [
             'view' => 'prescription::partials.menu',
             'homeLabel' => 'Prescription',
             'homeUrl' => route('prescription.dashboard'),
             'homeActive' => $this->request->routeIs('prescription.dashboard'),
-            'permissions' => $this->access->navigationPermissions($this->request->user('web'), $plan),
+            'permissions' => $permissions,
             'settings' => Setting::values('prescription'),
+            'productType' => $this->request->attributes->get('pharmacy_product_type')
+                ?? $this->request->query('type', 'medicine'),
         ]);
     }
 }

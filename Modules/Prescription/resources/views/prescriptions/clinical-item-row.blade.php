@@ -25,7 +25,7 @@
             <span class="invalid-feedback d-block" id="{{ $clinicalErrorId }}-name-error">{{ $message }}</span>
         @enderror
     </div>
-    <label class="app-prescription-clinical-item-duration">
+    <label class="app-prescription-clinical-item-duration d-flex align-items-center">
         <span>For</span>
         <input name="{{ $clinicalName }}[duration]" form="prescription-form" maxlength="30"
             class="{{ inputClass($clinicalField.'.duration', 'form-control form-control-sm') }}"
@@ -49,7 +49,7 @@
         @enderror
     </label>
     <label class="app-prescription-clinical-item-notes">
-        <span>Note</span>
+        <span class="visually-hidden">Note</span>
         <textarea name="{{ $clinicalName }}[notes]" form="prescription-form" rows="1" maxlength="1000" placeholder="Note"
             class="{{ inputClass($clinicalField.'.notes', 'form-control form-control-sm') }}"
             {{ inputAttrs($clinicalField.'.notes') }}>{{ data_get($clinicalItem, 'notes') }}</textarea>

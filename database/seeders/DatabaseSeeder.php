@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Modules\Core\Models\Tenant;
 use Modules\Pharmacy\Database\Seeders\PharmacyDatabaseSeeder;
@@ -10,8 +9,6 @@ use Nwidart\Modules\Facades\Module;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
      * Seed the application's database.
      */

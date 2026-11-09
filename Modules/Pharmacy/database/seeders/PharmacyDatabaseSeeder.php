@@ -137,5 +137,7 @@ class PharmacyDatabaseSeeder extends Seeder
         } finally {
             $connection->selectOne('SELECT RELEASE_LOCK(?) AS released', [$lockName], false);
         }
+
+        $this->call(MedicineCatalogSeeder::class);
     }
 }

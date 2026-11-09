@@ -8,12 +8,12 @@
             <h1>{{ $pageTitle }}</h1>
             <p>Choose a module to continue working.</p>
         </div>
-        <div class="d-flex flex-wrap align-items-center gap-2">
+        {{-- <div class="d-flex flex-wrap align-items-center gap-2">
             <span class="app-selection-count"><strong>{{ count($modules) }}</strong><span>{{ count($modules) === 1 ? 'module' : 'modules' }}</span></span>
             @if ($canSelectBranch)
                 <a class="btn btn-outline-secondary btn-sm" href="{{ $branchDashboardUrl }}"><i class="fa-solid fa-location-dot me-2" aria-hidden="true"></i>Choose branch</a>
             @endif
-        </div>
+        </div> --}}
     </header>
 
     @if ($modules === [])

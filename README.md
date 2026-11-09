@@ -24,18 +24,22 @@ Copy-Item .env.example .env
 php artisan key:generate
 ```
 
-Preserve an existing `.env` and application key. Configure MySQL credentials, `DB_CONNECTION=central`, `CENTRAL_DB_DATABASE`, and `CENTRAL_DOMAINS` in `.env`. The default platform host is `localhost`: use `APP_URL=http://localhost:8000` and `CENTRAL_DOMAINS=localhost` locally. The central database must differ from any tenant database. Optional `DB_PROVISION_USERNAME`/`DB_PROVISION_PASSWORD` supply database-creation credentials; otherwise the MySQL credentials are used. Setup commands need permission to create databases and apply schema changes.
+Preserve an existing `.env` and application key. Configure MySQL credentials, `DB_CONNECTION=central`, `CENTRAL_DB_DATABASE`, and `CENTRAL_DOMAINS` in `.env`. The default platform host is `localhost`: use `APP_URL=http://localhost:8000` and `CENTRAL_DOMAINS=localhost` locally. The central database must differ from any tenant database. Optional `DB_PROVISION_USERNAME`/`DB_PROVISION_PASSWORD` configure the independent provisioning connection used for platform installation and database locks; otherwise the configured MySQL credentials are used. Tenant setup uses its own registered credentials and does not create databases.
 
 The platform tenant form generates a unique slug from the workspace name and suggests its domain. The local default suggests `workspace.localhost`; set `TENANT_BASE_DOMAIN=example.com` to suggest `workspace.example.com`. Domains remain editable. Tenant profiles support optional address/phone, a PNG/JPG/WebP/GIF logo up to 2 MB, and a branches flag that does not create branch records. Text and phone fields have no blanket minimum length of 5 in validation or form HTML. Logo uploads need the public storage link (`php artisan storage:link`).
 
-Create the platform and its separate administrator, then the first tenant with its own database:
+Create the platform and its separate administrator. Before creating a tenant, manually create an empty database and its database user, then grant that user schema and data access to the chosen database. Run:
 
 ```powershell
 php artisan platform:install
 php artisan tenant:create
 ```
 
-Commands prompt for account details and a hidden password (minimum 5 characters by default, configured by `auth.password_min_length`). Use a separate domain such as `workspace.localhost` for the local tenant; `localhost` belongs to the platform. To attach an existing tenant database/account, use `php artisan tenant:adopt` instead with that separate tenant domain; its password is preserved. Resume an unfinished setup with `php artisan tenant:retry SLUG` (add `--adopt` for an adoption). No fixed password is seeded. File sessions/cache and synchronous queues remain the development defaults.
+The Tenant Create form at `/core/tenants/create` and `tenant:create` prompt for `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, and the new tenant administrator's account details. Enter the complete database/user names, including any hosting prefix; a local database password may be blank. Administrator passwords are hidden and have a minimum of 5 characters by default, configured by `auth.password_min_length`. The application verifies the existing empty database, claims it, runs tenant migrations, creates the owner/default settings/permissions, seeds the default catalog, and enrolls the default subscription. It never runs `CREATE DATABASE` for a tenant or copies another tenant's business records.
+
+Use a separate domain such as `workspace.localhost` for the local tenant; `localhost` belongs to the platform. Tenant credentials are encrypted in the central registry and hidden from model serialization. The authorized central Tenant form deliberately displays the database name, username and password; existing connection fields are read-only. Native tenant switching selects the credentials and restores defaults when leaving that context. Existing tenants without stored credentials retain their `.env` user/password. Apply the new central credential-column migration with `php artisan platform:migrate --force` before using the new form, then deploy tenant schema with `php artisan tenants:migrate --force`; see [DEPLOYMENT.md](DEPLOYMENT.md).
+
+To attach an existing populated tenant database/account, use `php artisan tenant:adopt` with its database credentials and separate tenant domain; its owner password and catalog are preserved. Resume an unfinished setup with `php artisan tenant:retry SLUG` (add `--adopt` for an adoption); retry uses the registered database name, ownership token and stored connection credentials. No fixed password is seeded. File sessions/cache and synchronous queues remain the development defaults.
 
 ```powershell
 npm run build
@@ -138,6 +142,42 @@ php artisan tenants:migrate
 Add `--force` in production. These commands initialize missing settings/permissions and preserve saved values. Configure `php artisan schedule:run` every minute; the native `GenerateDueInvoices` job maintains due subscriptions/invoices hourly, and payment reconciliation runs every five minutes. The Invoices page's Generate Invoices action uses that same workflow. Manual commands remain `php artisan payments:reconcile --force` and `php artisan subscriptions:sync --force`; none automatically charges customers.
 
 Enable a gateway only after entering its merchant credentials in platform Settings and choosing the proper sandbox/live environment. Set `PAYMENT_CALLBACK_BASE_URL` to the public HTTPS canonical central URL so providers can reach callbacks. The adapters verify the order/reference, amount, and currency before settlement; production rejects sandbox payments. Live collection still needs merchant-specific verification. No successful live payment is claimed by the source, lint, or asset build alone.
+
+### Shared hosting
+
+When the project is in `eye_app` beside the web root, set the deployed `index.php` project path to `__DIR__.'/../eye_app'`. The front controller sets Laravel's public path to its own directory with `$app->usePublicPath(__DIR__)` before handling the request. Keep the public files directly in that web root, including `build/manifest.json` and the complete `build/assets/` directory. Extracting them into an extra `public/` folder will leave Vite looking in the wrong location.
+
+If `ViteManifestNotFoundException` occurs, verify those files exist beside the deployed `index.php`. Generate them locally with `npm run build` and upload the complete `public/build/` directory as `<web-root>/build/`. The project folder path and the public folder path are separate.
+
+Keep the Laravel project outside the web root and copy **all contents** of `public/`, including `.htaccess` and built `build/` assets, into the hosting web root:
+
+```text
+/home/account/eye_app/       Laravel project, .env, vendor and storage
+/home/account/public_html/   index.php, .htaccess, build and other public files
+```
+
+Set the project location once in the deployed `public_html/index.php`:
+
+```php
+$projectPath = __DIR__.'/../eye_app';
+```
+
+Set the actual web root in `eye_app/bootstrap/app.php` as well, so Artisan uses the same public path:
+
+```php
+$app->usePublicPath('/home/account/public_html');
+```
+
+For hosts without symlink support, set these production `.env` values using the real account path and domain:
+
+```dotenv
+APP_URL=https://example.com
+PUBLIC_DISK_ROOT=/home/account/public_html/storage
+```
+
+Use a writable physical `public_html/storage` directory rather than copying the local storage symlink. Copy the contents of the existing `storage/app/public/` into it before switching upload roots, retaining all relative folders such as `tenant_1`. Upload URLs remain `/storage/...`; this direct-folder setup does not need `php artisan storage:link`. Without `PUBLIC_DISK_ROOT`, the existing `storage/app/public` disk and storage-link setup remain the defaults.
+
+Keep `storage/` and `bootstrap/cache/` writable by the hosting PHP process. Build and copy public assets, then run `composer optimize-clear` and `composer optimize` from `eye_app/` on the server after setting the deployment paths and environment. Do not reuse a local config cache containing local absolute paths.
 
 ## Tenant table and column changes
 

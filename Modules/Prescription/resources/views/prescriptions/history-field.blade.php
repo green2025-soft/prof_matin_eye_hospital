@@ -1,6 +1,6 @@
-<section class="app-prescription-note">
-    <div class="app-prescription-section-heading">
-        <h3>History</h3>
+<section class="app-prescription-note mb-3">
+    <div class="app-prescription-section-heading d-flex align-items-center gap-2">
+        <h3 class="mb-0">History</h3>
         <button class="btn btn-outline-primary btn-sm" type="button" aria-label="Edit history"
             data-bs-toggle="modal" data-bs-target="#prescription-history-modal">
             <i class="fa-solid fa-plus" aria-hidden="true"></i>
@@ -8,32 +8,32 @@
     </div>
     <div class="app-prescription-section-preview" id="history-preview">
         <ul id="history-general-preview"></ul>
-        <section class="app-prescription-preview-group" hidden>
+        <section class="app-prescription-preview-group mt-2" hidden>
             <h4>D/H:</h4>
             <ul id="history-drug-preview"></ul>
         </section>
-        <section class="app-prescription-preview-group" hidden>
+        <section class="app-prescription-preview-group mt-2" hidden>
             <h4>I/H:</h4>
             <ul id="history-investigation-preview"></ul>
         </section>
-        <section class="app-prescription-preview-group" hidden>
+        <section class="app-prescription-preview-group mt-2" hidden>
             <h4>P/H:</h4>
             <ul id="history-personal-preview"></ul>
             <ul id="history-personal-notes-preview"></ul>
         </section>
-        <section class="app-prescription-preview-group" hidden>
+        <section class="app-prescription-preview-group mt-2" hidden>
             <h4>F/H:</h4>
             <ul id="history-family-preview"></ul>
         </section>
-        <section class="app-prescription-preview-group" hidden>
+        <section class="app-prescription-preview-group mt-2" hidden>
             <h4>Surgical:</h4>
             <ul id="history-surgical-preview"></ul>
         </section>
-        <section class="app-prescription-preview-group" hidden>
+        <section class="app-prescription-preview-group mt-2" hidden>
             <h4>Allergy:</h4>
             <ul id="history-allergic-preview"></ul>
         </section>
-        <section class="app-prescription-preview-group" hidden>
+        <section class="app-prescription-preview-group mt-2" hidden>
             <h4>Other:</h4>
             <ul id="history-other-preview"></ul>
         </section>

@@ -1,0 +1,3361 @@
+{
+    "version": "medicine-2026-11-07-v2",
+    "provenance": {
+        "source_files": [
+            {
+                "name": "inv_product (2).sql",
+                "sha256": "14c8602e66720bacb02683ecdd5c0496ee6678dc067bbd5d046e18cd61d2567d"
+            },
+            {
+                "name": "inv_product_basic.sql",
+                "sha256": "a849e4d98d515718a75442fbd6b7162f6e0f867d6ba9791f8a18c3b8d2b245f6"
+            }
+        ],
+        "category_source": {
+            "database": "prof_matin_eye_hospital",
+            "table": "inv_category",
+            "captured_on": "2026-11-07"
+        },
+        "unit_source": {
+            "database": "prof_matin_eye_hospital",
+            "table": "unit",
+            "id": 1,
+            "name": "Pcs",
+            "captured_on": "2026-11-07"
+        },
+        "existing_catalog": "catalog-2026-10-31-v1.json",
+        "existing_match_rule": "Medicine source code and case-insensitive whitespace-normalized name must both match."
+    },
+    "basic_selection": {
+        "branch_id": 1,
+        "order_by": [
+            "COALESCE(updated_at, created_at) DESC",
+            "id DESC"
+        ],
+        "missing_product_ids": [
+            506
+        ],
+        "missing_basic": [
+            {
+                "source_key": "inv_product:506",
+                "source_code": "M-0298",
+                "name": "Virux 200 mg tab",
+                "defaults": {
+                    "sale_price": "0.00",
+                    "reorder_level": 0
+                }
+            }
+        ]
+    },
+    "base_unit": {
+        "source_key": "base:pcs",
+        "name": "Piece",
+        "symbol": "Pcs"
+    },
+    "categories": [
+        {
+            "source_key": "inv_category:1",
+            "name": "Moxifloxacin"
+        },
+        {
+            "source_key": "inv_category:2",
+            "name": "Bromfenac"
+        },
+        {
+            "source_key": "inv_category:3",
+            "name": "Dexamethasone + Moxifloxacin"
+        },
+        {
+            "source_key": "inv_category:4",
+            "name": "Gatifloxacin + Loteprednol"
+        },
+        {
+            "source_key": "inv_category:5",
+            "name": "Loteprednol + Tobramycin"
+        },
+        {
+            "source_key": "inv_category:6",
+            "name": "Vitamin C + Vitamin E+ Zinc + Copper + lutein + Zeaxanthin"
+        },
+        {
+            "source_key": "inv_category:7",
+            "name": "Olopatadine 0.1 %"
+        },
+        {
+            "source_key": "inv_category:8",
+            "name": "Olopatadine 0.2 %"
+        },
+        {
+            "source_key": "inv_category:9",
+            "name": "Olopatadine 0.7 %"
+        },
+        {
+            "source_key": "inv_category:10",
+            "name": "Carboxymethylcellulose"
+        },
+        {
+            "source_key": "inv_category:11",
+            "name": "Ciprofloxacin"
+        },
+        {
+            "source_key": "inv_category:12",
+            "name": "Flunarizine"
+        },
+        {
+            "source_key": "inv_category:13",
+            "name": "Besifloxacin"
+        },
+        {
+            "source_key": "inv_category:14",
+            "name": "Cefuroxime + Clavulanic Acid"
+        },
+        {
+            "source_key": "inv_category:15",
+            "name": "Brinzolamide + Brimonidine"
+        },
+        {
+            "source_key": "inv_category:16",
+            "name": "Prednisolone"
+        },
+        {
+            "source_key": "inv_category:17",
+            "name": "Adenosine + Nicotinamide + Cytochrome + Sodium Succinate"
+        },
+        {
+            "source_key": "inv_category:18",
+            "name": "Dexamethasone+ Chloramphenicol"
+        },
+        {
+            "source_key": "inv_category:19",
+            "name": "Clotrimazole"
+        },
+        {
+            "source_key": "inv_category:20",
+            "name": "Tobramycin+ Dexamethasone"
+        },
+        {
+            "source_key": "inv_category:21",
+            "name": "Ganciclovir"
+        },
+        {
+            "source_key": "inv_category:22",
+            "name": "Nepafenac"
+        },
+        {
+            "source_key": "inv_category:23",
+            "name": "Xylometazoline"
+        },
+        {
+            "source_key": "inv_category:24",
+            "name": "Vitamin B1 + Vitamin B6 + Vitamin B12"
+        },
+        {
+            "source_key": "inv_category:25",
+            "name": "Cefuroxime"
+        },
+        {
+            "source_key": "inv_category:26",
+            "name": "Vitamin C + Vitamin E"
+        },
+        {
+            "source_key": "inv_category:27",
+            "name": "Multivitamin & Multimineral A-Z Gold Preparation"
+        },
+        {
+            "source_key": "inv_category:28",
+            "name": "Naproxen + Esomeprazole"
+        },
+        {
+            "source_key": "inv_category:29",
+            "name": "Rupatadine"
+        },
+        {
+            "source_key": "inv_category:30",
+            "name": "Cefixime"
+        },
+        {
+            "source_key": "inv_category:31",
+            "name": "Polyethylene Glycol + Propylene Glycol"
+        },
+        {
+            "source_key": "inv_category:32",
+            "name": "Pizotifen"
+        },
+        {
+            "source_key": "inv_category:33",
+            "name": "Brinzolamide"
+        },
+        {
+            "source_key": "inv_category:34",
+            "name": "Natamycin"
+        },
+        {
+            "source_key": "inv_category:35",
+            "name": "Tobramycin"
+        },
+        {
+            "source_key": "inv_category:36",
+            "name": "Homatropin  Hydrobromide"
+        },
+        {
+            "source_key": "inv_category:37",
+            "name": "Fusidic Acid"
+        },
+        {
+            "source_key": "inv_category:38",
+            "name": "Netarsudil +Latanoprost"
+        },
+        {
+            "source_key": "inv_category:39",
+            "name": "Netarsudil"
+        },
+        {
+            "source_key": "inv_category:40",
+            "name": "Paracetamol"
+        },
+        {
+            "source_key": "inv_category:41",
+            "name": "Desloratadin"
+        },
+        {
+            "source_key": "inv_category:42",
+            "name": "Vonoprazan"
+        },
+        {
+            "source_key": "inv_category:43",
+            "name": "Multivitamin  and Multimineral A-Z Silver Preparetions"
+        },
+        {
+            "source_key": "inv_category:44",
+            "name": "Ebastatin"
+        },
+        {
+            "source_key": "inv_category:45",
+            "name": "Hypromelloose"
+        },
+        {
+            "source_key": "inv_category:46",
+            "name": "Esomeprazole"
+        },
+        {
+            "source_key": "inv_category:47",
+            "name": "Sodium Chloride 5%"
+        },
+        {
+            "source_key": "inv_category:48",
+            "name": "Sodium Chloride 0.9% Nasal Drop"
+        },
+        {
+            "source_key": "inv_category:49",
+            "name": "Fluorometholone+Tetra hydrozolione Hydrocloride"
+        },
+        {
+            "source_key": "inv_category:50",
+            "name": "Travopost"
+        },
+        {
+            "source_key": "inv_category:51",
+            "name": "Dexamethasone 0.1%"
+        },
+        {
+            "source_key": "inv_category:52",
+            "name": "Glycerol +Hypromellose+Polyethlyene Glycol"
+        },
+        {
+            "source_key": "inv_category:53",
+            "name": "Atropine sulphate 1% Eye Drops"
+        },
+        {
+            "source_key": "inv_category:54",
+            "name": "Liquid Paraffin+White Paraffin+Wool Alcohol"
+        },
+        {
+            "source_key": "inv_category:55",
+            "name": "Ceftriaxone"
+        },
+        {
+            "source_key": "inv_category:57",
+            "name": "Dexlansoprazole"
+        },
+        {
+            "source_key": "inv_category:58",
+            "name": "Diclofenac+Ladocaine Hydocloride"
+        },
+        {
+            "source_key": "inv_category:59",
+            "name": "tranexamic Acid"
+        },
+        {
+            "source_key": "inv_category:60",
+            "name": "Dextran +Hypromellose"
+        },
+        {
+            "source_key": "inv_category:61",
+            "name": "Ketotifen"
+        },
+        {
+            "source_key": "inv_category:62",
+            "name": "Difluprednate"
+        },
+        {
+            "source_key": "inv_category:63",
+            "name": "Calcium Carbonet +vitamin D3"
+        },
+        {
+            "source_key": "inv_category:64",
+            "name": "Calcisum (Algae Source)+Vitamin D3"
+        },
+        {
+            "source_key": "inv_category:65",
+            "name": "Nabumetone"
+        },
+        {
+            "source_key": "inv_category:66",
+            "name": "Bilastine"
+        },
+        {
+            "source_key": "inv_category:67",
+            "name": "Carboxymethylcellulose+Hypromellose"
+        },
+        {
+            "source_key": "inv_category:68",
+            "name": "Povidone"
+        },
+        {
+            "source_key": "inv_category:69",
+            "name": "Lutein +Zeaxanthin"
+        },
+        {
+            "source_key": "inv_category:70",
+            "name": "Asyclovir"
+        },
+        {
+            "source_key": "inv_category:71",
+            "name": "Levofloxacin"
+        },
+        {
+            "source_key": "inv_category:72",
+            "name": "Brimonidine Tartrate"
+        },
+        {
+            "source_key": "inv_category:73",
+            "name": "Pilocarpine Hydocloride 2%"
+        },
+        {
+            "source_key": "inv_category:74",
+            "name": "Montelukast"
+        },
+        {
+            "source_key": "inv_category:75",
+            "name": "Flupentixol+Melitracen"
+        },
+        {
+            "source_key": "inv_category:76",
+            "name": "Brimonidine Tartrate+Timolol"
+        },
+        {
+            "source_key": "inv_category:77",
+            "name": "Moxifloxacin Tab"
+        },
+        {
+            "source_key": "inv_category:78",
+            "name": "Tolfenamic Acid"
+        },
+        {
+            "source_key": "inv_category:79",
+            "name": "Vitamin C"
+        },
+        {
+            "source_key": "inv_category:80",
+            "name": "Omeprazole"
+        },
+        {
+            "source_key": "inv_category:81",
+            "name": "Loteprednol Etabonete"
+        },
+        {
+            "source_key": "inv_category:82",
+            "name": "Brinzolamide1%"
+        },
+        {
+            "source_key": "inv_category:83",
+            "name": "Glycerin+Hypromellose+Polyethylene glycol+Tetrahydrozoline+Zinc Sulfateat"
+        },
+        {
+            "source_key": "inv_category:84",
+            "name": "Dexamethasone+Ciprofloxacin"
+        },
+        {
+            "source_key": "inv_category:85",
+            "name": "Nepafenac 0.1% Eye Drops"
+        },
+        {
+            "source_key": "inv_category:89",
+            "name": "Fluorometholone"
+        },
+        {
+            "source_key": "inv_category:94",
+            "name": "Fluconazole"
+        },
+        {
+            "source_key": "inv_category:96",
+            "name": "Tranexamic Acid"
+        },
+        {
+            "source_key": "inv_category:97",
+            "name": "Flucloxacillin"
+        },
+        {
+            "source_key": "inv_category:99",
+            "name": "Atenolol"
+        },
+        {
+            "source_key": "inv_category:100",
+            "name": "Acetazolamide"
+        },
+        {
+            "source_key": "inv_category:101",
+            "name": "Potassium Cloride"
+        },
+        {
+            "source_key": "inv_category:102",
+            "name": "Disposable Syringe"
+        },
+        {
+            "source_key": "inv_category:103",
+            "name": "Acyclovir 200 mg"
+        },
+        {
+            "source_key": "inv_category:104",
+            "name": "Spirulina"
+        }
+    ],
+    "products": [
+        {
+            "source_key": "inv_product:150",
+            "source_code": "M-0001",
+            "name": "Filtear Eye Drop",
+            "category_key": "inv_category:31",
+            "sale_price": "210.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:1"
+        },
+        {
+            "source_key": "inv_product:151",
+            "source_code": "M-0002",
+            "name": "Ciprozid DS Tab",
+            "category_key": "inv_category:11",
+            "sale_price": "15.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:2"
+        },
+        {
+            "source_key": "inv_product:152",
+            "source_code": "M-0003",
+            "name": "D Fen 0.5 Tab",
+            "category_key": "inv_category:32",
+            "sale_price": "3.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:3"
+        },
+        {
+            "source_key": "inv_product:153",
+            "source_code": "M-0004",
+            "name": "Eyebrom Eye Drop",
+            "category_key": "inv_category:2",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:4"
+        },
+        {
+            "source_key": "inv_product:154",
+            "source_code": "M-0005",
+            "name": "Floxalone DX Eye Drop",
+            "category_key": "inv_category:3",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:5"
+        },
+        {
+            "source_key": "inv_product:155",
+            "source_code": "M-0006",
+            "name": "Floxalone Eye Drop",
+            "category_key": "inv_category:1",
+            "sale_price": "80.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:156",
+            "source_code": "M-0007",
+            "name": "Migon 10 Tab",
+            "category_key": "inv_category:12",
+            "sale_price": "5.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:157",
+            "source_code": "M-0008",
+            "name": "Antazol 0.1% Nasal Drop",
+            "category_key": "inv_category:23",
+            "sale_price": "20.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:158",
+            "source_code": "M-0009",
+            "name": "Cefotil Plus 500 Tab",
+            "category_key": "inv_category:14",
+            "sale_price": "0.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:6"
+        },
+        {
+            "source_key": "inv_product:159",
+            "source_code": "M-0010",
+            "name": "Neuro B Tab",
+            "category_key": "inv_category:24",
+            "sale_price": "300.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:7"
+        },
+        {
+            "source_key": "inv_product:160",
+            "source_code": "M-0011",
+            "name": "Ocubrom Eye Drop",
+            "category_key": "inv_category:2",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:8"
+        },
+        {
+            "source_key": "inv_product:161",
+            "source_code": "M-0012",
+            "name": "Azecol Cap",
+            "category_key": "inv_category:6",
+            "sale_price": "12.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:9"
+        },
+        {
+            "source_key": "inv_product:162",
+            "source_code": "M-0013",
+            "name": "Catrix Eye Drop",
+            "category_key": "inv_category:17",
+            "sale_price": "145.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:10"
+        },
+        {
+            "source_key": "inv_product:163",
+            "source_code": "M-0014",
+            "name": "Xibrofen Eye Drop",
+            "category_key": "inv_category:2",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:11"
+        },
+        {
+            "source_key": "inv_product:164",
+            "source_code": "M-0015",
+            "name": "Zolaren  Eye Drop",
+            "category_key": "inv_category:33",
+            "sale_price": "500.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:165",
+            "source_code": "M-0016",
+            "name": "Zolaren Plus Eye Drop",
+            "category_key": "inv_category:15",
+            "sale_price": "550.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:12"
+        },
+        {
+            "source_key": "inv_product:166",
+            "source_code": "M-0017",
+            "name": "Acunac Eye Drop",
+            "category_key": "inv_category:2",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:167",
+            "source_code": "M-0018",
+            "name": "Besigen Eye Drop",
+            "category_key": "inv_category:13",
+            "sale_price": "351.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:13"
+        },
+        {
+            "source_key": "inv_product:168",
+            "source_code": "M-0019",
+            "name": "Loteflam G Eye Drop",
+            "category_key": "inv_category:4",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:14"
+        },
+        {
+            "source_key": "inv_product:169",
+            "source_code": "M-0020",
+            "name": "Moxigen Eye Drop",
+            "category_key": "inv_category:1",
+            "sale_price": "160.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:15"
+        },
+        {
+            "source_key": "inv_product:170",
+            "source_code": "M-0021",
+            "name": "Natagen Eye Drop",
+            "category_key": "inv_category:34",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:16"
+        },
+        {
+            "source_key": "inv_product:171",
+            "source_code": "M-0022",
+            "name": "Predflam Eye Drop",
+            "category_key": "inv_category:16",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:17"
+        },
+        {
+            "source_key": "inv_product:173",
+            "source_code": "M-0024",
+            "name": "Bromofen Eye Drop",
+            "category_key": "inv_category:2",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:18"
+        },
+        {
+            "source_key": "inv_product:174",
+            "source_code": "M-0025",
+            "name": "Floromox D Eye Drop",
+            "category_key": "inv_category:3",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:19"
+        },
+        {
+            "source_key": "inv_product:175",
+            "source_code": "M-0026",
+            "name": "Loterex G Eye Drop",
+            "category_key": "inv_category:4",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:20"
+        },
+        {
+            "source_key": "inv_product:177",
+            "source_code": "M-0028",
+            "name": "Optagold  Cap",
+            "category_key": "inv_category:6",
+            "sale_price": "10.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:178",
+            "source_code": "M-0029",
+            "name": "Patalon Eye Drop",
+            "category_key": "inv_category:7",
+            "sale_price": "110.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:22"
+        },
+        {
+            "source_key": "inv_product:179",
+            "source_code": "M-0030",
+            "name": "Patalon Max Eye Drop",
+            "category_key": "inv_category:9",
+            "sale_price": "230.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:181",
+            "source_code": "M-0032",
+            "name": "Minium 5 Tab",
+            "category_key": "inv_category:12",
+            "sale_price": "3.50",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:182",
+            "source_code": "M-0033",
+            "name": "I Vita  Cap",
+            "category_key": "inv_category:6",
+            "sale_price": "10.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:183",
+            "source_code": "M-0034",
+            "name": "Bromnac Eye Drop",
+            "category_key": "inv_category:2",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:23"
+        },
+        {
+            "source_key": "inv_product:185",
+            "source_code": "M-0036",
+            "name": "Moxilocin Eye Drop",
+            "category_key": "inv_category:1",
+            "sale_price": "140.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:186",
+            "source_code": "M-0037",
+            "name": "Olivan TS Eye Drop",
+            "category_key": "inv_category:22",
+            "sale_price": "225.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:187",
+            "source_code": "M-0038",
+            "name": "Torcin  Ointment",
+            "category_key": "inv_category:35",
+            "sale_price": "70.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:24"
+        },
+        {
+            "source_key": "inv_product:188",
+            "source_code": "M-0039",
+            "name": "Torcin D Ointment",
+            "category_key": "inv_category:20",
+            "sale_price": "90.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:25"
+        },
+        {
+            "source_key": "inv_product:189",
+            "source_code": "M-0040",
+            "name": "I Gold  Cap",
+            "category_key": "inv_category:6",
+            "sale_price": "13.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:190",
+            "source_code": "M-0041",
+            "name": "Brinzopt Eye Drop",
+            "category_key": "inv_category:33",
+            "sale_price": "550.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:27"
+        },
+        {
+            "source_key": "inv_product:191",
+            "source_code": "M-0042",
+            "name": "Cortisol Eye Drop",
+            "category_key": "inv_category:16",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:28"
+        },
+        {
+            "source_key": "inv_product:192",
+            "source_code": "M-0043",
+            "name": "Dexamox Eye Drop",
+            "category_key": "inv_category:3",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:29"
+        },
+        {
+            "source_key": "inv_product:194",
+            "source_code": "M-0045",
+            "name": "Matropin Eye Drop",
+            "category_key": "inv_category:36",
+            "sale_price": "56.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:30"
+        },
+        {
+            "source_key": "inv_product:195",
+            "source_code": "M-0046",
+            "name": "Optimox Eye Drop",
+            "category_key": "inv_category:1",
+            "sale_price": "160.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:31"
+        },
+        {
+            "source_key": "inv_product:196",
+            "source_code": "M-0047",
+            "name": "Sinafresh Liquigel  Eye Drop",
+            "category_key": "inv_category:10",
+            "sale_price": "270.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:32"
+        },
+        {
+            "source_key": "inv_product:197",
+            "source_code": "M-0048",
+            "name": "Drylief  Eye Drop",
+            "category_key": "inv_category:10",
+            "sale_price": "325.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:33"
+        },
+        {
+            "source_key": "inv_product:198",
+            "source_code": "M-0049",
+            "name": "Lacrigel  Eye Drop",
+            "category_key": "inv_category:10",
+            "sale_price": "275.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:199",
+            "source_code": "M-0050",
+            "name": "Sonexa C  Eye Drop",
+            "category_key": "inv_category:18",
+            "sale_price": "70.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:35"
+        },
+        {
+            "source_key": "inv_product:200",
+            "source_code": "M-0051",
+            "name": "Xirom  Eye Drop",
+            "category_key": "inv_category:2",
+            "sale_price": "90.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:36"
+        },
+        {
+            "source_key": "inv_product:201",
+            "source_code": "M-0052",
+            "name": "Zypred  Eye Drop",
+            "category_key": "inv_category:4",
+            "sale_price": "290.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:37"
+        },
+        {
+            "source_key": "inv_product:202",
+            "source_code": "M-0053",
+            "name": "Aristen Eye Ointment",
+            "category_key": "inv_category:19",
+            "sale_price": "80.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:38"
+        },
+        {
+            "source_key": "inv_product:203",
+            "source_code": "M-0054",
+            "name": "Optimox Ointment",
+            "category_key": "inv_category:1",
+            "sale_price": "130.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:39"
+        },
+        {
+            "source_key": "inv_product:204",
+            "source_code": "M-0055",
+            "name": "T Mycin Ointment",
+            "category_key": "inv_category:35",
+            "sale_price": "80.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:205",
+            "source_code": "M-0056",
+            "name": "Xoviral Gel",
+            "category_key": "inv_category:21",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:206",
+            "source_code": "M-0057",
+            "name": "Axet 500 mg Tab",
+            "category_key": "inv_category:25",
+            "sale_price": "45.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:41"
+        },
+        {
+            "source_key": "inv_product:207",
+            "source_code": "M-0058",
+            "name": "EC Plus Tab",
+            "category_key": "inv_category:26",
+            "sale_price": "105.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:42"
+        },
+        {
+            "source_key": "inv_product:208",
+            "source_code": "M-0059",
+            "name": "Goldage  Tab",
+            "category_key": "inv_category:27",
+            "sale_price": "300.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:43"
+        },
+        {
+            "source_key": "inv_product:209",
+            "source_code": "M-0060",
+            "name": "Novoxen Tab",
+            "category_key": "inv_category:28",
+            "sale_price": "13.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:44"
+        },
+        {
+            "source_key": "inv_product:210",
+            "source_code": "M-0061",
+            "name": "Naspro Plus Tab",
+            "category_key": "inv_category:28",
+            "sale_price": "10.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:45"
+        },
+        {
+            "source_key": "inv_product:211",
+            "source_code": "M-0062",
+            "name": "Rupanta Tab",
+            "category_key": "inv_category:29",
+            "sale_price": "10.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:46"
+        },
+        {
+            "source_key": "inv_product:212",
+            "source_code": "M-0063",
+            "name": "Rupa Tab",
+            "category_key": "inv_category:29",
+            "sale_price": "12.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:47"
+        },
+        {
+            "source_key": "inv_product:213",
+            "source_code": "M-0064",
+            "name": "Alarup Tab",
+            "category_key": "inv_category:29",
+            "sale_price": "10.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:48"
+        },
+        {
+            "source_key": "inv_product:214",
+            "source_code": "M-0065",
+            "name": "Exalin Tab",
+            "category_key": "inv_category:29",
+            "sale_price": "12.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:49"
+        },
+        {
+            "source_key": "inv_product:215",
+            "source_code": "M-0066",
+            "name": "Truso 200 Tab",
+            "category_key": "inv_category:30",
+            "sale_price": "40.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:50"
+        },
+        {
+            "source_key": "inv_product:216",
+            "source_code": "M-0067",
+            "name": "Zemicef 200 Tab",
+            "category_key": "inv_category:30",
+            "sale_price": "45.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:217",
+            "source_code": "M-0068",
+            "name": "Natapro Eye Drop",
+            "category_key": "inv_category:34",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:52"
+        },
+        {
+            "source_key": "inv_product:218",
+            "source_code": "M-0069",
+            "name": "Bfenac Eye Drop",
+            "category_key": "inv_category:2",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:53"
+        },
+        {
+            "source_key": "inv_product:219",
+            "source_code": "M-0070",
+            "name": "Moxquin Eye Drop",
+            "category_key": "inv_category:1",
+            "sale_price": "160.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:54"
+        },
+        {
+            "source_key": "inv_product:220",
+            "source_code": "M-0071",
+            "name": "Flomox Eye Drop",
+            "category_key": "inv_category:1",
+            "sale_price": "140.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:55"
+        },
+        {
+            "source_key": "inv_product:221",
+            "source_code": "M-0072",
+            "name": "Floromox Eye Drop",
+            "category_key": "inv_category:1",
+            "sale_price": "130.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:56"
+        },
+        {
+            "source_key": "inv_product:222",
+            "source_code": "M-0073",
+            "name": "Iventi Eye Drop",
+            "category_key": "inv_category:1",
+            "sale_price": "160.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:57"
+        },
+        {
+            "source_key": "inv_product:223",
+            "source_code": "M-0074",
+            "name": "Moxibac Eye Drop",
+            "category_key": "inv_category:1",
+            "sale_price": "160.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:58"
+        },
+        {
+            "source_key": "inv_product:224",
+            "source_code": "M-0075",
+            "name": "Odycin Eye Drop",
+            "category_key": "inv_category:1",
+            "sale_price": "140.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:59"
+        },
+        {
+            "source_key": "inv_product:225",
+            "source_code": "M-0076",
+            "name": "Moxilocin Ointment",
+            "category_key": "inv_category:1",
+            "sale_price": "130.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:226",
+            "source_code": "M-0077",
+            "name": "Moxigen Ointment",
+            "category_key": "inv_category:1",
+            "sale_price": "130.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:61"
+        },
+        {
+            "source_key": "inv_product:227",
+            "source_code": "M-0078",
+            "name": "Floromox Ointment",
+            "category_key": "inv_category:1",
+            "sale_price": "130.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:62"
+        },
+        {
+            "source_key": "inv_product:228",
+            "source_code": "M-0079",
+            "name": "BSH Eye Drop",
+            "category_key": "inv_category:2",
+            "sale_price": "110.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:63"
+        },
+        {
+            "source_key": "inv_product:229",
+            "source_code": "M-0080",
+            "name": "Moxquin D Eye Drop",
+            "category_key": "inv_category:3",
+            "sale_price": "232.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:64"
+        },
+        {
+            "source_key": "inv_product:230",
+            "source_code": "M-0081",
+            "name": "Moxilocin D Eye Drop",
+            "category_key": "inv_category:3",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:231",
+            "source_code": "M-0082",
+            "name": "Flomox D Eye Drop",
+            "category_key": "inv_category:3",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:65"
+        },
+        {
+            "source_key": "inv_product:232",
+            "source_code": "M-0083",
+            "name": "Moxidex Eye Drop",
+            "category_key": "inv_category:3",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:233",
+            "source_code": "M-0084",
+            "name": "Moxigen D Eye Drop",
+            "category_key": "inv_category:3",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:67"
+        },
+        {
+            "source_key": "inv_product:234",
+            "source_code": "M-0085",
+            "name": "Iventi D Eye Drop",
+            "category_key": "inv_category:3",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:68"
+        },
+        {
+            "source_key": "inv_product:237",
+            "source_code": "M-0086",
+            "name": "Lotepro G Eye Drop",
+            "category_key": "inv_category:4",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:69"
+        },
+        {
+            "source_key": "inv_product:238",
+            "source_code": "M-0087",
+            "name": "Lotenol G Eye Drop",
+            "category_key": "inv_category:4",
+            "sale_price": "290.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:70"
+        },
+        {
+            "source_key": "inv_product:239",
+            "source_code": "M-0088",
+            "name": "Eyevi  Cap",
+            "category_key": "inv_category:6",
+            "sale_price": "10.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:71"
+        },
+        {
+            "source_key": "inv_product:240",
+            "source_code": "M-0089",
+            "name": "Lutin Plus  Cap",
+            "category_key": "inv_category:6",
+            "sale_price": "10.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:72"
+        },
+        {
+            "source_key": "inv_product:241",
+            "source_code": "M-0090",
+            "name": "Sigvit  Cap",
+            "category_key": "inv_category:6",
+            "sale_price": "10.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:73"
+        },
+        {
+            "source_key": "inv_product:242",
+            "source_code": "M-0091",
+            "name": "Optavit  Cap",
+            "category_key": "inv_category:6",
+            "sale_price": "13.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:243",
+            "source_code": "M-0092",
+            "name": "Alacot Eye Drop",
+            "category_key": "inv_category:7",
+            "sale_price": "110.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:75"
+        },
+        {
+            "source_key": "inv_product:244",
+            "source_code": "M-0093",
+            "name": "Lopadin Eye Drop",
+            "category_key": "inv_category:7",
+            "sale_price": "0.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:76"
+        },
+        {
+            "source_key": "inv_product:245",
+            "source_code": "M-0094",
+            "name": "Ologen Eye Drop",
+            "category_key": "inv_category:7",
+            "sale_price": "0.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:77"
+        },
+        {
+            "source_key": "inv_product:246",
+            "source_code": "M-0095",
+            "name": "Patadin Eye Drop",
+            "category_key": "inv_category:7",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:78"
+        },
+        {
+            "source_key": "inv_product:247",
+            "source_code": "M-0096",
+            "name": "Opatin Eye Drop",
+            "category_key": "inv_category:7",
+            "sale_price": "110.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:79"
+        },
+        {
+            "source_key": "inv_product:248",
+            "source_code": "M-0097",
+            "name": "Alacot DS Eye Drop",
+            "category_key": "inv_category:8",
+            "sale_price": "175.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:80"
+        },
+        {
+            "source_key": "inv_product:249",
+            "source_code": "M-0098",
+            "name": "Lopadin DS Eye Drop",
+            "category_key": "inv_category:8",
+            "sale_price": "175.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:81"
+        },
+        {
+            "source_key": "inv_product:250",
+            "source_code": "M-0099",
+            "name": "Patadin DS Eye Drop",
+            "category_key": "inv_category:8",
+            "sale_price": "175.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:82"
+        },
+        {
+            "source_key": "inv_product:251",
+            "source_code": "M-0100",
+            "name": "Opatin DS Eye Drop",
+            "category_key": "inv_category:8",
+            "sale_price": "150.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:83"
+        },
+        {
+            "source_key": "inv_product:252",
+            "source_code": "M-0101",
+            "name": "Patalon DS Eye Drop",
+            "category_key": "inv_category:8",
+            "sale_price": "175.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:84"
+        },
+        {
+            "source_key": "inv_product:253",
+            "source_code": "M-0102",
+            "name": "Olofix DS Eye Drop",
+            "category_key": "inv_category:8",
+            "sale_price": "170.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:85"
+        },
+        {
+            "source_key": "inv_product:255",
+            "source_code": "M-0104",
+            "name": "Alacot Max Eye Drop",
+            "category_key": "inv_category:9",
+            "sale_price": "245.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:86"
+        },
+        {
+            "source_key": "inv_product:256",
+            "source_code": "M-0105",
+            "name": "Lopadin Max Eye Drop",
+            "category_key": "inv_category:9",
+            "sale_price": "230.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:87"
+        },
+        {
+            "source_key": "inv_product:257",
+            "source_code": "M-0106",
+            "name": "Olpadin 7 Eye Drop",
+            "category_key": "inv_category:9",
+            "sale_price": "280.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:88"
+        },
+        {
+            "source_key": "inv_product:258",
+            "source_code": "M-0107",
+            "name": "Opatin max Eye Drop",
+            "category_key": "inv_category:9",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:89"
+        },
+        {
+            "source_key": "inv_product:259",
+            "source_code": "M-0108",
+            "name": "Patadin Max Eye Drop",
+            "category_key": "inv_category:9",
+            "sale_price": "240.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:90"
+        },
+        {
+            "source_key": "inv_product:260",
+            "source_code": "M-0109",
+            "name": "Ologen Max Eye Drop",
+            "category_key": "inv_category:9",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:91"
+        },
+        {
+            "source_key": "inv_product:262",
+            "source_code": "M-0111",
+            "name": "Aquafresh Eye Drop",
+            "category_key": "inv_category:10",
+            "sale_price": "325.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:92"
+        },
+        {
+            "source_key": "inv_product:263",
+            "source_code": "M-0112",
+            "name": "Tearfersh liquigel Eye Drop",
+            "category_key": "inv_category:10",
+            "sale_price": "315.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:93"
+        },
+        {
+            "source_key": "inv_product:265",
+            "source_code": "M-0114",
+            "name": "Lubgel Eye Drop",
+            "category_key": "inv_category:10",
+            "sale_price": "300.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:94"
+        },
+        {
+            "source_key": "inv_product:266",
+            "source_code": "M-0115",
+            "name": "Freshfil 1% Eye Drop",
+            "category_key": "inv_category:10",
+            "sale_price": "275.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:95"
+        },
+        {
+            "source_key": "inv_product:268",
+            "source_code": "M-0117",
+            "name": "Dewgel liquigel Eye Drop",
+            "category_key": "inv_category:10",
+            "sale_price": "275.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:96"
+        },
+        {
+            "source_key": "inv_product:269",
+            "source_code": "M-0118",
+            "name": "Civox 500 Tab",
+            "category_key": "inv_category:11",
+            "sale_price": "14.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:97"
+        },
+        {
+            "source_key": "inv_product:270",
+            "source_code": "M-0119",
+            "name": "Maprocin 500 Tab",
+            "category_key": "inv_category:11",
+            "sale_price": "15.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:98"
+        },
+        {
+            "source_key": "inv_product:271",
+            "source_code": "M-0120",
+            "name": "Xerox 500 Tab",
+            "category_key": "inv_category:11",
+            "sale_price": "15.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:99"
+        },
+        {
+            "source_key": "inv_product:272",
+            "source_code": "M-0121",
+            "name": "Basibac Eye Drop",
+            "category_key": "inv_category:13",
+            "sale_price": "0.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:100"
+        },
+        {
+            "source_key": "inv_product:273",
+            "source_code": "M-0122",
+            "name": "Besiflox Eye Drop",
+            "category_key": "inv_category:13",
+            "sale_price": "350.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:101"
+        },
+        {
+            "source_key": "inv_product:274",
+            "source_code": "M-0123",
+            "name": "Besixin Eye Drop",
+            "category_key": "inv_category:13",
+            "sale_price": "350.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:102"
+        },
+        {
+            "source_key": "inv_product:275",
+            "source_code": "M-0124",
+            "name": "Beslocin Eye Drop",
+            "category_key": "inv_category:13",
+            "sale_price": "350.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:103"
+        },
+        {
+            "source_key": "inv_product:276",
+            "source_code": "M-0125",
+            "name": "Florobex Eye Drop",
+            "category_key": "inv_category:13",
+            "sale_price": "350.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:104"
+        },
+        {
+            "source_key": "inv_product:277",
+            "source_code": "M-0126",
+            "name": "Fuclav 250",
+            "category_key": "inv_category:14",
+            "sale_price": "35.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:105"
+        },
+        {
+            "source_key": "inv_product:279",
+            "source_code": "M-0128",
+            "name": "Clacef 250 Tab",
+            "category_key": "inv_category:14",
+            "sale_price": "35.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:106"
+        },
+        {
+            "source_key": "inv_product:280",
+            "source_code": "M-0129",
+            "name": "Ocusol Eye Drop",
+            "category_key": "inv_category:16",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:107"
+        },
+        {
+            "source_key": "inv_product:281",
+            "source_code": "M-0130",
+            "name": "Isolone Eye Drop",
+            "category_key": "inv_category:16",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:108"
+        },
+        {
+            "source_key": "inv_product:282",
+            "source_code": "M-0131",
+            "name": "Cortan Eye Drop",
+            "category_key": "inv_category:16",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:109"
+        },
+        {
+            "source_key": "inv_product:283",
+            "source_code": "M-0132",
+            "name": "Cortan 20 Tab",
+            "category_key": "inv_category:16",
+            "sale_price": "6.50",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:110"
+        },
+        {
+            "source_key": "inv_product:284",
+            "source_code": "M-0133",
+            "name": "Catafix Eye Drop",
+            "category_key": "inv_category:17",
+            "sale_price": "125.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:111"
+        },
+        {
+            "source_key": "inv_product:285",
+            "source_code": "M-0134",
+            "name": "Phacovit Eye Drop",
+            "category_key": "inv_category:17",
+            "sale_price": "160.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:112"
+        },
+        {
+            "source_key": "inv_product:286",
+            "source_code": "M-0135",
+            "name": "Ractovit Eye Drop",
+            "category_key": "inv_category:17",
+            "sale_price": "125.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:113"
+        },
+        {
+            "source_key": "inv_product:287",
+            "source_code": "M-0136",
+            "name": "Vitafol Eye Drop",
+            "category_key": "inv_category:17",
+            "sale_price": "125.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:114"
+        },
+        {
+            "source_key": "inv_product:288",
+            "source_code": "M-0137",
+            "name": "Vitalens Eye Drop",
+            "category_key": "inv_category:17",
+            "sale_price": "125.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:115"
+        },
+        {
+            "source_key": "inv_product:289",
+            "source_code": "M-0138",
+            "name": "Texa Eye Drop",
+            "category_key": "inv_category:20",
+            "sale_price": "150.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:116"
+        },
+        {
+            "source_key": "inv_product:290",
+            "source_code": "M-0139",
+            "name": "Dexagen T Eye Drop",
+            "category_key": "inv_category:20",
+            "sale_price": "150.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:117"
+        },
+        {
+            "source_key": "inv_product:291",
+            "source_code": "M-0140",
+            "name": "Orbidex T Eye Drop",
+            "category_key": "inv_category:20",
+            "sale_price": "150.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:118"
+        },
+        {
+            "source_key": "inv_product:292",
+            "source_code": "M-0141",
+            "name": "T Mycin Plus Eye Drop",
+            "category_key": "inv_category:20",
+            "sale_price": "150.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:293",
+            "source_code": "M-0142",
+            "name": "Tomycin D Eye Drop",
+            "category_key": "inv_category:20",
+            "sale_price": "150.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:119"
+        },
+        {
+            "source_key": "inv_product:294",
+            "source_code": "M-0143",
+            "name": "N Mycin Eye Drop",
+            "category_key": "inv_category:34",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:120"
+        },
+        {
+            "source_key": "inv_product:295",
+            "source_code": "M-0144",
+            "name": "Tobrabac Ointment",
+            "category_key": "inv_category:35",
+            "sale_price": "60.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:121"
+        },
+        {
+            "source_key": "inv_product:296",
+            "source_code": "M-0145",
+            "name": "Fusithal Ointment",
+            "category_key": "inv_category:37",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:122"
+        },
+        {
+            "source_key": "inv_product:297",
+            "source_code": "M-0146",
+            "name": "Roklan plus",
+            "category_key": "inv_category:38",
+            "sale_price": "750.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:123"
+        },
+        {
+            "source_key": "inv_product:298",
+            "source_code": "M-0147",
+            "name": "Roklan",
+            "category_key": "inv_category:39",
+            "sale_price": "600.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:124"
+        },
+        {
+            "source_key": "inv_product:299",
+            "source_code": "M-0148",
+            "name": "Napa syrup",
+            "category_key": "inv_category:40",
+            "sale_price": "35.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:125"
+        },
+        {
+            "source_key": "inv_product:300",
+            "source_code": "M-0149",
+            "name": "NAPA 500 Tab",
+            "category_key": "inv_category:40",
+            "sale_price": "1.50",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:126"
+        },
+        {
+            "source_key": "inv_product:301",
+            "source_code": "M-0150",
+            "name": "Ace 500 Tab",
+            "category_key": "inv_category:40",
+            "sale_price": "1.50",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:127"
+        },
+        {
+            "source_key": "inv_product:302",
+            "source_code": "M-0151",
+            "name": "Napa Rapide 500",
+            "category_key": "inv_category:40",
+            "sale_price": "1.50",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:128"
+        },
+        {
+            "source_key": "inv_product:303",
+            "source_code": "M-0152",
+            "name": "Deslor Tab",
+            "category_key": "inv_category:41",
+            "sale_price": "5.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:129"
+        },
+        {
+            "source_key": "inv_product:304",
+            "source_code": "M-0153",
+            "name": "Deslor Syrup",
+            "category_key": "inv_category:41",
+            "sale_price": "30.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:130"
+        },
+        {
+            "source_key": "inv_product:305",
+            "source_code": "M-0154",
+            "name": "Vonomax 20",
+            "category_key": "inv_category:42",
+            "sale_price": "10.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:131"
+        },
+        {
+            "source_key": "inv_product:306",
+            "source_code": "M-0155",
+            "name": "Truso syrup",
+            "category_key": "inv_category:30",
+            "sale_price": "230.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:132"
+        },
+        {
+            "source_key": "inv_product:307",
+            "source_code": "M-0156",
+            "name": "Vidalin Gold  Tab",
+            "category_key": "inv_category:27",
+            "sale_price": "330.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:133"
+        },
+        {
+            "source_key": "inv_product:308",
+            "source_code": "M-0157",
+            "name": "Vidalin Silver",
+            "category_key": "inv_category:43",
+            "sale_price": "270.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:134"
+        },
+        {
+            "source_key": "inv_product:309",
+            "source_code": "M-0158",
+            "name": "Ebatin Tab",
+            "category_key": "inv_category:44",
+            "sale_price": "10.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:135"
+        },
+        {
+            "source_key": "inv_product:310",
+            "source_code": "M-0159",
+            "name": "Ebatin Syrup",
+            "category_key": "inv_category:44",
+            "sale_price": "85.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:136"
+        },
+        {
+            "source_key": "inv_product:311",
+            "source_code": "M-0160",
+            "name": "Ebatin Fast Tab",
+            "category_key": "inv_category:44",
+            "sale_price": "12.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:137"
+        },
+        {
+            "source_key": "inv_product:312",
+            "source_code": "M-0161",
+            "name": "Herpigel Eye Gel",
+            "category_key": "inv_category:21",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:138"
+        },
+        {
+            "source_key": "inv_product:313",
+            "source_code": "M-0162",
+            "name": "Genclovir eye gel",
+            "category_key": "inv_category:21",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:139"
+        },
+        {
+            "source_key": "inv_product:314",
+            "source_code": "M-0163",
+            "name": "Zirgan  Eye Gel",
+            "category_key": "inv_category:21",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:140"
+        },
+        {
+            "source_key": "inv_product:315",
+            "source_code": "M-0164",
+            "name": "Hyprogel Eye gel",
+            "category_key": "inv_category:45",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:141"
+        },
+        {
+            "source_key": "inv_product:316",
+            "source_code": "M-0165",
+            "name": "Progut 20 Tab",
+            "category_key": "inv_category:46",
+            "sale_price": "8.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:142"
+        },
+        {
+            "source_key": "inv_product:317",
+            "source_code": "M-0166",
+            "name": "NCL Eye Drop",
+            "category_key": "inv_category:47",
+            "sale_price": "70.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:143"
+        },
+        {
+            "source_key": "inv_product:318",
+            "source_code": "M-0167",
+            "name": "N Sol 5 Eye Drop",
+            "category_key": "inv_category:47",
+            "sale_price": "70.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:144"
+        },
+        {
+            "source_key": "inv_product:319",
+            "source_code": "M-0168",
+            "name": "N Sol Nasal Drop",
+            "category_key": "inv_category:48",
+            "sale_price": "20.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:145"
+        },
+        {
+            "source_key": "inv_product:320",
+            "source_code": "M-0169",
+            "name": "AFM-T Eye Drop",
+            "category_key": "inv_category:49",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:146"
+        },
+        {
+            "source_key": "inv_product:321",
+            "source_code": "M-0170",
+            "name": "Eylon Eye Drop",
+            "category_key": "inv_category:49",
+            "sale_price": "110.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:147"
+        },
+        {
+            "source_key": "inv_product:322",
+            "source_code": "M-0171",
+            "name": "Avatan Eye Drop",
+            "category_key": "inv_category:50",
+            "sale_price": "600.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:148"
+        },
+        {
+            "source_key": "inv_product:323",
+            "source_code": "M-0172",
+            "name": "Zoladin Eye Drop",
+            "category_key": "inv_category:15",
+            "sale_price": "700.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:149"
+        },
+        {
+            "source_key": "inv_product:324",
+            "source_code": "M-0173",
+            "name": "Genazopt Plus Eye Drop",
+            "category_key": "inv_category:15",
+            "sale_price": "550.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:150"
+        },
+        {
+            "source_key": "inv_product:325",
+            "source_code": "M-0174",
+            "name": "Orbidex Eye Drop",
+            "category_key": "inv_category:51",
+            "sale_price": "70.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:151"
+        },
+        {
+            "source_key": "inv_product:326",
+            "source_code": "M-0175",
+            "name": "Orbidex CEye Drop",
+            "category_key": "inv_category:18",
+            "sale_price": "0.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:152"
+        },
+        {
+            "source_key": "inv_product:327",
+            "source_code": "M-0176",
+            "name": "Civox Eye Drop",
+            "category_key": "inv_category:11",
+            "sale_price": "35.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:153"
+        },
+        {
+            "source_key": "inv_product:328",
+            "source_code": "M-0177",
+            "name": "Lubrex Eye Drop",
+            "category_key": "inv_category:52",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:154"
+        },
+        {
+            "source_key": "inv_product:329",
+            "source_code": "M-0178",
+            "name": "Visin Eye Drop",
+            "category_key": "inv_category:52",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:155"
+        },
+        {
+            "source_key": "inv_product:330",
+            "source_code": "M-0179",
+            "name": "Autotear Eye Drop",
+            "category_key": "inv_category:31",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:156"
+        },
+        {
+            "source_key": "inv_product:331",
+            "source_code": "M-0180",
+            "name": "Icefil Eye Drop",
+            "category_key": "inv_category:31",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:157"
+        },
+        {
+            "source_key": "inv_product:332",
+            "source_code": "M-0181",
+            "name": "Lubrigel Eye Drop",
+            "category_key": "inv_category:31",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:158"
+        },
+        {
+            "source_key": "inv_product:333",
+            "source_code": "M-0182",
+            "name": "Polygel Eye Drop",
+            "category_key": "inv_category:31",
+            "sale_price": "0.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:159"
+        },
+        {
+            "source_key": "inv_product:334",
+            "source_code": "M-0183",
+            "name": "Atrogen Eye Drop",
+            "category_key": "inv_category:53",
+            "sale_price": "70.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:160"
+        },
+        {
+            "source_key": "inv_product:335",
+            "source_code": "M-0184",
+            "name": "Ocupin Eye Drop",
+            "category_key": "inv_category:53",
+            "sale_price": "26.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:161"
+        },
+        {
+            "source_key": "inv_product:336",
+            "source_code": "M-0185",
+            "name": "Night Fresh Eye Ointment",
+            "category_key": "inv_category:54",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:162"
+        },
+        {
+            "source_key": "inv_product:337",
+            "source_code": "M-0186",
+            "name": "Eracef 2g",
+            "category_key": "inv_category:55",
+            "sale_price": "300.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:163"
+        },
+        {
+            "source_key": "inv_product:338",
+            "source_code": "M-0187",
+            "name": "Bacticef 2g",
+            "category_key": "inv_category:55",
+            "sale_price": "350.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:164"
+        },
+        {
+            "source_key": "inv_product:339",
+            "source_code": "M-0188",
+            "name": "Zemicef Suryp",
+            "category_key": "inv_category:30",
+            "sale_price": "230.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:165"
+        },
+        {
+            "source_key": "inv_product:341",
+            "source_code": "M-0189",
+            "name": "B126",
+            "category_key": "inv_category:24",
+            "sale_price": "9.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:166"
+        },
+        {
+            "source_key": "inv_product:342",
+            "source_code": "M-0190",
+            "name": "Xanra 30 Cap",
+            "category_key": "inv_category:57",
+            "sale_price": "9.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:167"
+        },
+        {
+            "source_key": "inv_product:343",
+            "source_code": "M-0191",
+            "name": "Dexogut 30 Cap",
+            "category_key": "inv_category:57",
+            "sale_price": "11.50",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:168"
+        },
+        {
+            "source_key": "inv_product:344",
+            "source_code": "M-0192",
+            "name": "Clofenac Plus Inj",
+            "category_key": "inv_category:58",
+            "sale_price": "15.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:169"
+        },
+        {
+            "source_key": "inv_product:345",
+            "source_code": "M-0193",
+            "name": "Frabex Inj",
+            "category_key": "inv_category:59",
+            "sale_price": "65.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:170"
+        },
+        {
+            "source_key": "inv_product:346",
+            "source_code": "M-0194",
+            "name": "Block T Tab",
+            "category_key": "inv_category:59",
+            "sale_price": "20.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:171"
+        },
+        {
+            "source_key": "inv_product:347",
+            "source_code": "M-0195",
+            "name": "Glamor Eye Drop",
+            "category_key": "inv_category:60",
+            "sale_price": "90.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:172"
+        },
+        {
+            "source_key": "inv_product:348",
+            "source_code": "M-0196",
+            "name": "Lacrima Eye Drop",
+            "category_key": "inv_category:60",
+            "sale_price": "0.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:173"
+        },
+        {
+            "source_key": "inv_product:349",
+            "source_code": "M-0197",
+            "name": "Lubtear Eye Drop",
+            "category_key": "inv_category:60",
+            "sale_price": "95.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:174"
+        },
+        {
+            "source_key": "inv_product:350",
+            "source_code": "M-0198",
+            "name": "Alarid Eye Drop",
+            "category_key": "inv_category:61",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:175"
+        },
+        {
+            "source_key": "inv_product:351",
+            "source_code": "M-0199",
+            "name": "Fenat Eye Drop",
+            "category_key": "inv_category:61",
+            "sale_price": "95.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:176"
+        },
+        {
+            "source_key": "inv_product:352",
+            "source_code": "M-0200",
+            "name": "Stafen Eye Drop",
+            "category_key": "inv_category:61",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:177"
+        },
+        {
+            "source_key": "inv_product:353",
+            "source_code": "M-0201",
+            "name": "Duxol Eye Drop",
+            "category_key": "inv_category:62",
+            "sale_price": "180.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:178"
+        },
+        {
+            "source_key": "inv_product:354",
+            "source_code": "M-0202",
+            "name": "Predicot Eye Drop",
+            "category_key": "inv_category:62",
+            "sale_price": "180.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:179"
+        },
+        {
+            "source_key": "inv_product:355",
+            "source_code": "M-0203",
+            "name": "Diflupred Eye Drop",
+            "category_key": "inv_category:62",
+            "sale_price": "180.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:180"
+        },
+        {
+            "source_key": "inv_product:356",
+            "source_code": "M-0204",
+            "name": "Dipred Eye Drop",
+            "category_key": "inv_category:62",
+            "sale_price": "180.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:181"
+        },
+        {
+            "source_key": "inv_product:357",
+            "source_code": "M-0205",
+            "name": "Lupred Eye Drop",
+            "category_key": "inv_category:62",
+            "sale_price": "180.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:182"
+        },
+        {
+            "source_key": "inv_product:358",
+            "source_code": "M-0206",
+            "name": "Neopred Eye Drop",
+            "category_key": "inv_category:62",
+            "sale_price": "230.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:183"
+        },
+        {
+            "source_key": "inv_product:359",
+            "source_code": "M-0207",
+            "name": "Aquacal D Tab",
+            "category_key": "inv_category:63",
+            "sale_price": "11.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:184"
+        },
+        {
+            "source_key": "inv_product:360",
+            "source_code": "M-0208",
+            "name": "Aquacal DX Tab",
+            "category_key": "inv_category:64",
+            "sale_price": "15.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:185"
+        },
+        {
+            "source_key": "inv_product:361",
+            "source_code": "M-0209",
+            "name": "Nabumax Tab",
+            "category_key": "inv_category:65",
+            "sale_price": "15.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:186"
+        },
+        {
+            "source_key": "inv_product:362",
+            "source_code": "M-0210",
+            "name": "Bilastin 20 Tab",
+            "category_key": "inv_category:66",
+            "sale_price": "15.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:187"
+        },
+        {
+            "source_key": "inv_product:363",
+            "source_code": "M-0211",
+            "name": "Mylastin Tab",
+            "category_key": "inv_category:66",
+            "sale_price": "15.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:188"
+        },
+        {
+            "source_key": "inv_product:364",
+            "source_code": "M-0212",
+            "name": "Aqua Eye Drop",
+            "category_key": "inv_category:67",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:189"
+        },
+        {
+            "source_key": "inv_product:365",
+            "source_code": "M-0213",
+            "name": "Isotear Eye Drop",
+            "category_key": "inv_category:67",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:190"
+        },
+        {
+            "source_key": "inv_product:366",
+            "source_code": "M-0214",
+            "name": "Lubric Extra Eye Drop",
+            "category_key": "inv_category:67",
+            "sale_price": "0.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:191"
+        },
+        {
+            "source_key": "inv_product:367",
+            "source_code": "M-0215",
+            "name": "Artear Eye Drop",
+            "category_key": "inv_category:68",
+            "sale_price": "90.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:192"
+        },
+        {
+            "source_key": "inv_product:368",
+            "source_code": "M-0216",
+            "name": "Luzinta Cap",
+            "category_key": "inv_category:69",
+            "sale_price": "35.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:369",
+            "source_code": "M-0217",
+            "name": "Acerux Ointment",
+            "category_key": "inv_category:70",
+            "sale_price": "45.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:194"
+        },
+        {
+            "source_key": "inv_product:370",
+            "source_code": "M-0218",
+            "name": "Asyvir Ointment",
+            "category_key": "inv_category:70",
+            "sale_price": "0.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:195"
+        },
+        {
+            "source_key": "inv_product:371",
+            "source_code": "M-0219",
+            "name": "Clovir Ointment",
+            "category_key": "inv_category:70",
+            "sale_price": "0.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:196"
+        },
+        {
+            "source_key": "inv_product:372",
+            "source_code": "M-0220",
+            "name": "Levox TS Eye Drop",
+            "category_key": "inv_category:71",
+            "sale_price": "130.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:197"
+        },
+        {
+            "source_key": "inv_product:373",
+            "source_code": "M-0221",
+            "name": "Levobac TS E/D",
+            "category_key": "inv_category:71",
+            "sale_price": "130.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:198"
+        },
+        {
+            "source_key": "inv_product:374",
+            "source_code": "M-0222",
+            "name": "Levosina TS Eye Drops",
+            "category_key": "inv_category:71",
+            "sale_price": "130.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:199"
+        },
+        {
+            "source_key": "inv_product:375",
+            "source_code": "M-0223",
+            "name": "Levoxin TS Eye Drops",
+            "category_key": "inv_category:71",
+            "sale_price": "130.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:200"
+        },
+        {
+            "source_key": "inv_product:376",
+            "source_code": "M-0224",
+            "name": "Ovel Ts  Eye Drops",
+            "category_key": "inv_category:71",
+            "sale_price": "130.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:201"
+        },
+        {
+            "source_key": "inv_product:377",
+            "source_code": "M-0225",
+            "name": "Lotepred Plus Eye Drop",
+            "category_key": "inv_category:5",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:202"
+        },
+        {
+            "source_key": "inv_product:378",
+            "source_code": "M-0226",
+            "name": "Lotepro Plus Eye Drop",
+            "category_key": "inv_category:5",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:203"
+        },
+        {
+            "source_key": "inv_product:379",
+            "source_code": "M-0227",
+            "name": "Loteflam T Eye Drop",
+            "category_key": "inv_category:5",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:204"
+        },
+        {
+            "source_key": "inv_product:380",
+            "source_code": "M-0228",
+            "name": "Lotemic TEye Drop",
+            "category_key": "inv_category:5",
+            "sale_price": "0.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:205"
+        },
+        {
+            "source_key": "inv_product:381",
+            "source_code": "M-0229",
+            "name": "Lotenol T Eye Drop",
+            "category_key": "inv_category:5",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:206"
+        },
+        {
+            "source_key": "inv_product:382",
+            "source_code": "M-0230",
+            "name": "Loterex T Eye Drop",
+            "category_key": "inv_category:5",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:207"
+        },
+        {
+            "source_key": "inv_product:383",
+            "source_code": "M-0231",
+            "name": "Nevan TS Eye Drop",
+            "category_key": "inv_category:22",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:208"
+        },
+        {
+            "source_key": "inv_product:384",
+            "source_code": "M-0232",
+            "name": "Nepanil  TSEye Drop",
+            "category_key": "inv_category:22",
+            "sale_price": "225.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:209"
+        },
+        {
+            "source_key": "inv_product:385",
+            "source_code": "M-0233",
+            "name": "Nep TS Eye Drop",
+            "category_key": "inv_category:22",
+            "sale_price": "225.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:210"
+        },
+        {
+            "source_key": "inv_product:386",
+            "source_code": "M-0234",
+            "name": "Nepagen TS Eye Drop",
+            "category_key": "inv_category:22",
+            "sale_price": "225.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:211"
+        },
+        {
+            "source_key": "inv_product:387",
+            "source_code": "M-0235",
+            "name": "Optafenac TS Eye Drop",
+            "category_key": "inv_category:22",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:212"
+        },
+        {
+            "source_key": "inv_product:388",
+            "source_code": "M-0236",
+            "name": "Systear Eye Drop",
+            "category_key": "inv_category:31",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:213"
+        },
+        {
+            "source_key": "inv_product:389",
+            "source_code": "M-0237",
+            "name": "Glytear P Eye Drop",
+            "category_key": "inv_category:31",
+            "sale_price": "210.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:214"
+        },
+        {
+            "source_key": "inv_product:390",
+            "source_code": "M-0238",
+            "name": "Brimo  Eye Drop",
+            "category_key": "inv_category:72",
+            "sale_price": "80.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:215"
+        },
+        {
+            "source_key": "inv_product:391",
+            "source_code": "M-0239",
+            "name": "Optacarpine Eye Drop",
+            "category_key": "inv_category:73",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:216"
+        },
+        {
+            "source_key": "inv_product:392",
+            "source_code": "M-0240",
+            "name": "Piloma Eye Drop",
+            "category_key": "inv_category:73",
+            "sale_price": "0.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:217"
+        },
+        {
+            "source_key": "inv_product:393",
+            "source_code": "M-0241",
+            "name": "M Lucas 4 Tab",
+            "category_key": "inv_category:74",
+            "sale_price": "6.50",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:218"
+        },
+        {
+            "source_key": "inv_product:394",
+            "source_code": "M-0242",
+            "name": "M Lucas 5 Tab",
+            "category_key": "inv_category:74",
+            "sale_price": "8.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:219"
+        },
+        {
+            "source_key": "inv_product:395",
+            "source_code": "M-0243",
+            "name": "M Lucas 10 Tab",
+            "category_key": "inv_category:74",
+            "sale_price": "16.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:220"
+        },
+        {
+            "source_key": "inv_product:396",
+            "source_code": "M-0244",
+            "name": "Loctril 10 Tab",
+            "category_key": "inv_category:74",
+            "sale_price": "16.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:221"
+        },
+        {
+            "source_key": "inv_product:397",
+            "source_code": "M-0245",
+            "name": "Unibac 200 Tab",
+            "category_key": "inv_category:30",
+            "sale_price": "35.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:222"
+        },
+        {
+            "source_key": "inv_product:398",
+            "source_code": "M-0246",
+            "name": "Dexagen T Ointment",
+            "category_key": "inv_category:20",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:223"
+        },
+        {
+            "source_key": "inv_product:399",
+            "source_code": "M-0247",
+            "name": "Anzet Tab",
+            "category_key": "inv_category:75",
+            "sale_price": "5.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:224"
+        },
+        {
+            "source_key": "inv_product:400",
+            "source_code": "M-0248",
+            "name": "Benozol Eye Drop",
+            "category_key": "inv_category:33",
+            "sale_price": "550.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:225"
+        },
+        {
+            "source_key": "inv_product:401",
+            "source_code": "M-0249",
+            "name": "Brimopress Eye Drop",
+            "category_key": "inv_category:76",
+            "sale_price": "120.00",
+            "reorder_level": 1,
+            "existing_source_key": "drug_medicine:226"
+        },
+        {
+            "source_key": "inv_product:402",
+            "source_code": "M-0250",
+            "name": "Combipres Eye Drop",
+            "category_key": "inv_category:76",
+            "sale_price": "120.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:227"
+        },
+        {
+            "source_key": "inv_product:403",
+            "source_code": "M-0251",
+            "name": "Combat Eye Drop",
+            "category_key": "inv_category:76",
+            "sale_price": "120.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:228"
+        },
+        {
+            "source_key": "inv_product:404",
+            "source_code": "M-0252",
+            "name": "Moxibac  400 Tab",
+            "category_key": "inv_category:77",
+            "sale_price": "70.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:229"
+        },
+        {
+            "source_key": "inv_product:405",
+            "source_code": "M-0253",
+            "name": "Floxalone Tab",
+            "category_key": "inv_category:77",
+            "sale_price": "40.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:230"
+        },
+        {
+            "source_key": "inv_product:406",
+            "source_code": "M-0254",
+            "name": "Optimox Tab",
+            "category_key": "inv_category:77",
+            "sale_price": "70.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:231"
+        },
+        {
+            "source_key": "inv_product:407",
+            "source_code": "M-0255",
+            "name": "Dexagen C Eye Drop",
+            "category_key": "inv_category:18",
+            "sale_price": "70.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:408",
+            "source_code": "M-0256",
+            "name": "Genazopt Eye Drop",
+            "category_key": "inv_category:33",
+            "sale_price": "550.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:232"
+        },
+        {
+            "source_key": "inv_product:409",
+            "source_code": "M-0257",
+            "name": "Ologen DS Eye Drop",
+            "category_key": "inv_category:8",
+            "sale_price": "180.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:233"
+        },
+        {
+            "source_key": "inv_product:410",
+            "source_code": "M-0258",
+            "name": "Arain 200 Tab",
+            "category_key": "inv_category:78",
+            "sale_price": "10.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:234"
+        },
+        {
+            "source_key": "inv_product:411",
+            "source_code": "M-0259",
+            "name": "Ceevit 250 Tab",
+            "category_key": "inv_category:79",
+            "sale_price": "2.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:235"
+        },
+        {
+            "source_key": "inv_product:412",
+            "source_code": "M-0260",
+            "name": "Seclo 20 Tab",
+            "category_key": "inv_category:80",
+            "sale_price": "6.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:413",
+            "source_code": "M-0261",
+            "name": "Lotepin Ointment",
+            "category_key": "inv_category:81",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:237"
+        },
+        {
+            "source_key": "inv_product:414",
+            "source_code": "M-0262",
+            "name": "Azopres Eye Drop",
+            "category_key": "inv_category:82",
+            "sale_price": "500.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:238"
+        },
+        {
+            "source_key": "inv_product:415",
+            "source_code": "M-0263",
+            "name": "Combofresh Eye Drop",
+            "category_key": "inv_category:83",
+            "sale_price": "275.00",
+            "reorder_level": 2,
+            "existing_source_key": "drug_medicine:239"
+        },
+        {
+            "source_key": "inv_product:416",
+            "source_code": "M-0264",
+            "name": "Eyefresh Eye Drop",
+            "category_key": "inv_category:45",
+            "sale_price": "80.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:240"
+        },
+        {
+            "source_key": "inv_product:417",
+            "source_code": "M-0265",
+            "name": "Lotemic T Eye Drop",
+            "category_key": "inv_category:5",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:241"
+        },
+        {
+            "source_key": "inv_product:418",
+            "source_code": "M-0266",
+            "name": "Minium 10 Tab",
+            "category_key": "inv_category:12",
+            "sale_price": "5.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:419",
+            "source_code": "M-0267",
+            "name": "Besibac Eye Drop",
+            "category_key": "inv_category:13",
+            "sale_price": "350.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:242"
+        },
+        {
+            "source_key": "inv_product:420",
+            "source_code": "M-0268",
+            "name": "Civodex  Eye Drop",
+            "category_key": "inv_category:84",
+            "sale_price": "75.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:243"
+        },
+        {
+            "source_key": "inv_product:421",
+            "source_code": "M-0269",
+            "name": "Optafenac  Eye Drops",
+            "category_key": "inv_category:85",
+            "sale_price": "150.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:244"
+        },
+        {
+            "source_key": "inv_product:422",
+            "source_code": "M-0270",
+            "name": "Orbidex C Eye Drop",
+            "category_key": "inv_category:84",
+            "sale_price": "70.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:245"
+        },
+        {
+            "source_key": "inv_product:423",
+            "source_code": "M-0271",
+            "name": "Orbidex T Eye Ointment",
+            "category_key": "inv_category:20",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:246"
+        },
+        {
+            "source_key": "inv_product:424",
+            "source_code": "M-0272",
+            "name": "Tobrabac Eye Drop",
+            "category_key": "inv_category:35",
+            "sale_price": "85.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:247"
+        },
+        {
+            "source_key": "inv_product:425",
+            "source_code": "M-0273",
+            "name": "Levobac Eye Drop",
+            "category_key": "inv_category:71",
+            "sale_price": "90.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:248"
+        },
+        {
+            "source_key": "inv_product:427",
+            "source_code": "M-0274",
+            "name": "Duofix(500/20mg)tab",
+            "category_key": "inv_category:28",
+            "sale_price": "12.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:249"
+        },
+        {
+            "source_key": "inv_product:429",
+            "source_code": "M-0275",
+            "name": "nepanil Eye Drop",
+            "category_key": "inv_category:85",
+            "sale_price": "150.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:250"
+        },
+        {
+            "source_key": "inv_product:430",
+            "source_code": "M-0276",
+            "name": "Fluromet Eye Drop",
+            "category_key": "inv_category:89",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:251"
+        },
+        {
+            "source_key": "inv_product:431",
+            "source_code": "M-0277",
+            "name": "T-Mycin Plus Eye Ointment",
+            "category_key": "inv_category:20",
+            "sale_price": "0.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:252"
+        },
+        {
+            "source_key": "inv_product:432",
+            "source_code": "M-0278",
+            "name": "T-Mycin Plus Ointment",
+            "category_key": "inv_category:20",
+            "sale_price": "0.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:433",
+            "source_code": "M-0279",
+            "name": "Xolamid Eye Drop",
+            "category_key": "inv_category:82",
+            "sale_price": "500.00",
+            "reorder_level": 1,
+            "existing_source_key": "drug_medicine:254"
+        },
+        {
+            "source_key": "inv_product:488",
+            "source_code": "M-0280",
+            "name": "Nispore eye drop",
+            "category_key": "inv_category:94",
+            "sale_price": "80.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:303"
+        },
+        {
+            "source_key": "inv_product:489",
+            "source_code": "M-0281",
+            "name": "Cefobac 500 Tab",
+            "category_key": "inv_category:25",
+            "sale_price": "45.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:304"
+        },
+        {
+            "source_key": "inv_product:490",
+            "source_code": "M-0282",
+            "name": "T Mycin Plus Ointment",
+            "category_key": "inv_category:20",
+            "sale_price": "150.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:491",
+            "source_code": "M-0283",
+            "name": "Frabex 500 Tab",
+            "category_key": "inv_category:96",
+            "sale_price": "23.00",
+            "reorder_level": 5,
+            "existing_source_key": "drug_medicine:305"
+        },
+        {
+            "source_key": "inv_product:492",
+            "source_code": "M-0284",
+            "name": "I Vita Cap",
+            "category_key": "inv_category:6",
+            "sale_price": "0.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:494",
+            "source_code": "M-0286",
+            "name": "Clacef 125  Tab",
+            "category_key": "inv_category:30",
+            "sale_price": "18.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:307"
+        },
+        {
+            "source_key": "inv_product:495",
+            "source_code": "M-0287",
+            "name": "Vonomax 10 Tab",
+            "category_key": "inv_category:42",
+            "sale_price": "7.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:308"
+        },
+        {
+            "source_key": "inv_product:496",
+            "source_code": "M-0288",
+            "name": "N-sol Nasal Drop",
+            "category_key": "inv_category:48",
+            "sale_price": "20.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:309"
+        },
+        {
+            "source_key": "inv_product:497",
+            "source_code": "M-0289",
+            "name": "Naspro Plus 375",
+            "category_key": "inv_category:28",
+            "sale_price": "8.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:310"
+        },
+        {
+            "source_key": "inv_product:498",
+            "source_code": "M-0290",
+            "name": "Zemicef Max Syp",
+            "category_key": "inv_category:30",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:311"
+        },
+        {
+            "source_key": "inv_product:499",
+            "source_code": "M-0291",
+            "name": "Migrium 10 Tab",
+            "category_key": "inv_category:12",
+            "sale_price": "5.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:312"
+        },
+        {
+            "source_key": "inv_product:500",
+            "source_code": "M-0292",
+            "name": "Migrum 5 Tab",
+            "category_key": "inv_category:12",
+            "sale_price": "4.00",
+            "reorder_level": 10,
+            "existing_source_key": "drug_medicine:313"
+        },
+        {
+            "source_key": "inv_product:501",
+            "source_code": "M-0293",
+            "name": "Phylopen DS",
+            "category_key": "inv_category:97",
+            "sale_price": "11.50",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:502",
+            "source_code": "M-0294",
+            "name": "Tenoloc 50 Tab",
+            "category_key": "inv_category:99",
+            "sale_price": "0.00",
+            "reorder_level": 2,
+            "existing_source_key": "drug_medicine:315"
+        },
+        {
+            "source_key": "inv_product:503",
+            "source_code": "M-0295",
+            "name": "Acemox Tab",
+            "category_key": "inv_category:100",
+            "sale_price": "4.00",
+            "reorder_level": 2,
+            "existing_source_key": "drug_medicine:316"
+        },
+        {
+            "source_key": "inv_product:504",
+            "source_code": "M-0296",
+            "name": "Electro K Tab",
+            "category_key": "inv_category:101",
+            "sale_price": "2.00",
+            "reorder_level": 2,
+            "existing_source_key": "drug_medicine:317"
+        },
+        {
+            "source_key": "inv_product:505",
+            "source_code": "M-0297",
+            "name": "D/S 5cc",
+            "category_key": "inv_category:102",
+            "sale_price": "5.00",
+            "reorder_level": 5,
+            "existing_source_key": "drug_medicine:318"
+        },
+        {
+            "source_key": "inv_product:506",
+            "source_code": "M-0298",
+            "name": "Virux 200 mg tab",
+            "category_key": "inv_category:103",
+            "sale_price": "0.00",
+            "reorder_level": 0,
+            "existing_source_key": "drug_medicine:319"
+        },
+        {
+            "source_key": "inv_product:507",
+            "source_code": "M-0299",
+            "name": "Ciprosin 250 Syp",
+            "category_key": "inv_category:11",
+            "sale_price": "0.00",
+            "reorder_level": 1,
+            "existing_source_key": "drug_medicine:320"
+        },
+        {
+            "source_key": "inv_product:508",
+            "source_code": "M-0300",
+            "name": "Natoph E/D",
+            "category_key": "inv_category:34",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:509",
+            "source_code": "M-0301",
+            "name": "billi 20 Tab",
+            "category_key": "inv_category:66",
+            "sale_price": "15.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:510",
+            "source_code": "M-0302",
+            "name": "Traxyl 500 Tab",
+            "category_key": "inv_category:59",
+            "sale_price": "25.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:511",
+            "source_code": "M-0303",
+            "name": "Eyemist E/D",
+            "category_key": "inv_category:67",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:512",
+            "source_code": "M-0304",
+            "name": "Civox Syp",
+            "category_key": "inv_category:11",
+            "sale_price": "90.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:513",
+            "source_code": "M-0305",
+            "name": "Luxen Cap",
+            "category_key": "inv_category:69",
+            "sale_price": "35.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:514",
+            "source_code": "M-0306",
+            "name": "Brogel Cap",
+            "category_key": "inv_category:104",
+            "sale_price": "20.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:515",
+            "source_code": "M-0307",
+            "name": "Xylomet N/D",
+            "category_key": "inv_category:23",
+            "sale_price": "20.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:516",
+            "source_code": "M-0308",
+            "name": "Cloram D E/D",
+            "category_key": "inv_category:18",
+            "sale_price": "70.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:517",
+            "source_code": "M-0309",
+            "name": "Trapost E/D",
+            "category_key": "inv_category:50",
+            "sale_price": "650.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:518",
+            "source_code": "M-0310",
+            "name": "Visitear",
+            "category_key": "inv_category:52",
+            "sale_price": "310.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:519",
+            "source_code": "M-0311",
+            "name": "carbogel single eye drop",
+            "category_key": "inv_category:10",
+            "sale_price": "14.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:520",
+            "source_code": "M-0312",
+            "name": "sunex-b cap",
+            "category_key": "inv_category:64",
+            "sale_price": "20.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:521",
+            "source_code": "M-0313",
+            "name": "metalone",
+            "category_key": "inv_category:89",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:522",
+            "source_code": "M-0314",
+            "name": "metalone plus",
+            "category_key": "inv_category:49",
+            "sale_price": "110.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:523",
+            "source_code": "M-0315",
+            "name": "midoria",
+            "category_key": "inv_category:19",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:524",
+            "source_code": "M-0316",
+            "name": "ciprocin 500",
+            "category_key": "inv_category:11",
+            "sale_price": "15.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:525",
+            "source_code": "M-0317",
+            "name": "kidopia eye drop",
+            "category_key": "inv_category:53",
+            "sale_price": "280.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:526",
+            "source_code": "M-0318",
+            "name": "clavurox 250mg",
+            "category_key": "inv_category:14",
+            "sale_price": "35.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:527",
+            "source_code": "M-0319",
+            "name": "Naprosyn 500/20mg",
+            "category_key": "inv_category:28",
+            "sale_price": "21.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:528",
+            "source_code": "M-0320",
+            "name": "Rivotril 0.5 mg",
+            "category_key": "inv_category:45",
+            "sale_price": "9.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:529",
+            "source_code": "M-0321",
+            "name": "neucos-b",
+            "category_key": "inv_category:24",
+            "sale_price": "12.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:530",
+            "source_code": "M-0322",
+            "name": "amilin 10mg",
+            "category_key": "inv_category:40",
+            "sale_price": "1.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:531",
+            "source_code": "M-0323",
+            "name": "vergon 10mg",
+            "category_key": "inv_category:40",
+            "sale_price": "1.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:532",
+            "source_code": "M-0324",
+            "name": "DRYLIEF SUD SUNGLE DOSE",
+            "category_key": "inv_category:10",
+            "sale_price": "40.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:533",
+            "source_code": "M-0325",
+            "name": "SYSTEAR SUD SINGLE",
+            "category_key": "inv_category:31",
+            "sale_price": "40.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:534",
+            "source_code": "M-0326",
+            "name": "Atrogen M eye drop",
+            "category_key": "inv_category:53",
+            "sale_price": "200.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:535",
+            "source_code": "M-0327",
+            "name": "Rofuclav 250 mg",
+            "category_key": "inv_category:14",
+            "sale_price": "55.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:536",
+            "source_code": "M-0328",
+            "name": "Rivotril 1 mg",
+            "category_key": "inv_category:74",
+            "sale_price": "11.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:537",
+            "source_code": "M-0329",
+            "name": "vono 20mg",
+            "category_key": "inv_category:42",
+            "sale_price": "10.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:538",
+            "source_code": "M-0330",
+            "name": "Clavurox syrup",
+            "category_key": "inv_category:14",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:539",
+            "source_code": "M-0331",
+            "name": "fexora 120mg tab",
+            "category_key": "inv_category:29",
+            "sale_price": "9.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:820",
+            "source_code": "M-0332",
+            "name": "Dexagen L Eye Drops",
+            "category_key": "inv_category:20",
+            "sale_price": "150.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:821",
+            "source_code": "M-0333",
+            "name": "Gatigen Eye Drops",
+            "category_key": "inv_category:4",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:822",
+            "source_code": "M-0334",
+            "name": "Fusithal Viscous Eye Drop",
+            "category_key": "inv_category:37",
+            "sale_price": "250.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:823",
+            "source_code": "M-0335",
+            "name": "BILASTIN KIDS",
+            "category_key": "inv_category:66",
+            "sale_price": "15.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        },
+        {
+            "source_key": "inv_product:824",
+            "source_code": "M-0336",
+            "name": "OPD",
+            "category_key": "inv_category:104",
+            "sale_price": "100.00",
+            "reorder_level": 10,
+            "existing_source_key": null
+        }
+    ],
+    "scope": "Replace the Medicine catalog with exactly these 325 Medicine source records; leave Optic unchanged."
+}

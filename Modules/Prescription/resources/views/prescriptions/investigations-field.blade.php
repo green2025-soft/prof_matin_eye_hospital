@@ -1,6 +1,6 @@
-<section class="app-prescription-note">
-    <div class="app-prescription-section-heading">
-        <h3>Investigations</h3>
+<section class="app-prescription-note mb-3">
+    <div class="app-prescription-section-heading d-flex align-items-center gap-2">
+        <h3 class="mb-0">Investigations</h3>
         <button class="btn btn-outline-primary btn-sm" type="button"
             data-bs-toggle="modal" data-bs-target="#prescription-investigations-modal"
             aria-label="Add or edit investigations">
