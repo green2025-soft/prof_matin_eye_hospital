@@ -157,9 +157,7 @@ class PrescriptionController extends BaseController
         $doctorQuery = Doctor::where('branch_id', $branchId);
 
         $doctorLocked = $actor instanceof Doctor;
-        $doctorId     = $doctorLocked
-            ? $actor->getKey()
-            : getValue('doctor_id', $record, $request->query('doctor_id'));
+        $doctorId     = $doctorLocked ? $actor->getKey() : getValue('doctor_id', $record, $request->query('doctor_id'));
 
         $selectedPatient = $this->selectedOption(
             $patientQuery,
@@ -181,19 +179,15 @@ class PrescriptionController extends BaseController
         $hasOldMedicines = $request->session()->hasOldInput('medicines');
         $medicineIds     = $hasOldMedicines
             ? array_column($medicineInputs, 'product_id')
-            : $record->medicines
-                ->pluck('product_id')
-                ->all();
+            : $record->medicines->pluck('product_id')->all();
 
         $medicineProducts = Product::where('type', 'medicine')
             ->with(['category:id,name', 'dosage:id,name'])
             ->findMany($medicineIds, ['id', 'name', 'category_id', 'dosage_id'])
             ->keyBy('id');
 
-        $canCreatePatient = isset($permissions['hospital.view'], $permissions['patients.create'])
-            && Gate::forUser($actor)->allows('create', Patient::class);
-        $canCreateOptions = isset($permissions['prescription-options.create'])
-            && Gate::forUser($actor)->allows('create', PrescriptionOption::class);
+        $canCreatePatient = isset($permissions['hospital.view'], $permissions['patients.create'])&& Gate::forUser($actor)->allows('create', Patient::class);
+        $canCreateOptions = isset($permissions['prescription-options.create']) && Gate::forUser($actor)->allows('create', PrescriptionOption::class);
         $entryDate        = $record->prescription_date?->toDateString() ?? now()->toDateString();
 
         $data = [

@@ -39,9 +39,13 @@ class SaleService extends TradeEntryService
             throw ValidationException::withMessages(['customer_id' => 'Choose an available customer.']);
         }
         $entry->customer_id = $customerId;
-        $entry->vat_mode = $entry->exists ? $entry->getRawOriginal('vat_mode') : ($settings['vat_enabled'] ? $settings['vat_mode'] : 'none');
-        $entry->vat_percent = $entry->exists ? $entry->getRawOriginal('vat_percent') : ($settings['vat_enabled'] ? $settings['vat_percent'] : '0.00');
-        $entry->stock_method = $entry->exists ? $entry->getRawOriginal('stock_method') : $settings['stock_method'];
+
+        // Existing invoices keep their saved VAT and stock-method settings.
+        if (! $entry->exists) {
+            $entry->vat_mode = $settings['vat_enabled'] ? $settings['vat_mode'] : 'none';
+            $entry->vat_percent = $settings['vat_enabled'] ? $settings['vat_percent'] : '0.00';
+            $entry->stock_method = $settings['stock_method'];
+        }
 
         $inputs = $values['lines'] ?? [];
         $lines = $this->items->prepareQuantities($entry, $inputs);

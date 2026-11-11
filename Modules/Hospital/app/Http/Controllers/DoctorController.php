@@ -39,16 +39,11 @@ class DoctorController extends BaseController
 
     public function options(SelectorRequest $request): JsonResponse
     {
-        $response = parent::options($request);
-        $data = $response->getData(true);
-        $data['results'] = array_map(
-            fn (array $doctor): array => $doctor + [
-                'text' => ($doctor['doctor_id'] ?: $doctor['id']).' — '.$doctor['name'],
-            ],
-            $data['results'],
-        );
+        $data = [
+            'records' => (new Doctor)->optionRecords($request->validated(), $this->selectorFields),
+        ];
 
-        return $response->setData($data);
+        return JsonResponse::fromJsonString(view('hospital::selectors.doctors', $data)->render());
     }
 
     public function store(DoctorRequest $request, DoctorService $doctors): RedirectResponse
@@ -74,21 +69,22 @@ class DoctorController extends BaseController
         $doctor->loadMissing('department:id,name');
         $doctor->setRawAttributes($doctor->only($doctor->queryContract()['exposed']), true);
 
-        return view(
-            'hospital::doctors.show',
-            [
-                'pageTitle' => "$this->title details",
-                'doctor' => $doctor,
-                'genderLabel' => genders()[$doctor->gender] ?? $doctor->gender,
-                'bloodGroupLabel' => bloodGroups()[$doctor->blood_group] ?? '-',
-                'routePrefix' => $this->routePrefix(),
-            ]
-        );
+        $data = [
+            'pageTitle' => "$this->title details",
+            'doctor' => $doctor,
+            'genderLabel' => genders()[$doctor->gender] ?? $doctor->gender,
+            'bloodGroupLabel' => bloodGroups()[$doctor->blood_group] ?? '-',
+            'routePrefix' => $this->routePrefix(),
+        ];
+
+        return view('hospital::doctors.show', $data);
     }
 
     public function permissions(DoctorRequest $request, DoctorService $doctors): View
     {
-        return view('hospital::doctors.permissions', $doctors->permissionPageData($request->user('web')));
+        $data = $doctors->permissionPageData($request->user('web'));
+
+        return view('hospital::doctors.permissions', $data);
     }
 
     public function savePermissions(DoctorRequest $request, DoctorService $doctors): RedirectResponse

@@ -24,39 +24,41 @@ class StockReportController extends BaseController
         }
         unset($filters['low_stock']);
         $query = $this->recordsQuery($filters);
+        $summary = $this->summary($query);
+        $records = $this->paginateQuery(
+            $query->orderByDesc('closing_quantity')
+                ->orderBy('product_name')
+                ->orderBy('id'),
+            $filters
+        );
+        $selectedCategory = $this->selectedOption(
+            ProductCategory::where('type', $filters['product_type']),
+            $filters['category_id'] ?? null
+        );
+        $selectedSupplier = $this->selectedOption(
+            Supplier::where('type', $filters['product_type']),
+            $filters['supplier_id'] ?? null
+        );
+        $selectedShelf = $this->selectedOption(
+            Shelf::where('type', $filters['product_type']),
+            $filters['shelf_id'] ?? null
+        );
+        $selectedProduct = $this->selectedOption(
+            ProductVariant::with('product:id,name,type')
+                ->whereHas('product', fn (Builder $products) => $products->where('type', $filters['product_type'])),
+            $filters['variant_id'] ?? null,
+            ['id', 'product_id', 'sku', 'name', 'color', 'size', 'sph', 'cyl']
+        );
 
         $data = [
             'pageTitle' => 'Stock Report',
             'filters' => $filters,
-            'summary' => $this->summary($query),
-            'records' => $this->paginateQuery(
-                $query->orderByDesc('closing_quantity')
-                    ->orderBy('product_name')
-                    ->orderBy('id'),
-                $filters
-            ),
-            'selectedCategory' => $this->selectedOption(
-                ProductCategory::query()
-                    ->where('type', $filters['product_type']),
-                $filters['category_id'] ?? null
-            ),
-            'selectedSupplier' => $this->selectedOption(
-                Supplier::query()
-                    ->where('type', $filters['product_type']),
-                $filters['supplier_id'] ?? null
-            ),
-            'selectedShelf' => $this->selectedOption(
-                Shelf::query()
-                    ->where('type', $filters['product_type']),
-                $filters['shelf_id'] ?? null
-            ),
-            'selectedProduct' => $this->selectedOption(
-                ProductVariant::query()
-                    ->with('product:id,name,type')
-                    ->whereHas('product', fn (Builder $products) => $products->where('type', $filters['product_type'])),
-                $filters['variant_id'] ?? null,
-                ['id', 'product_id', 'sku', 'name', 'color', 'size', 'sph', 'cyl']
-            ),
+            'summary' => $summary,
+            'records' => $records,
+            'selectedCategory' => $selectedCategory,
+            'selectedSupplier' => $selectedSupplier,
+            'selectedShelf' => $selectedShelf,
+            'selectedProduct' => $selectedProduct,
         ];
 
         return view('pharmacy::reports.stock', $data);
@@ -64,8 +66,7 @@ class StockReportController extends BaseController
 
     private function recordsQuery(array $filters): Builder
     {
-        $variants = ProductVariant::query()
-            ->select('phr_product_variants.*')
+        $variants = ProductVariant::select('phr_product_variants.*')
             ->whereHas(
                 'product',
                 fn (Builder $products) => $products->where('type', $filters['product_type'])
@@ -74,14 +75,12 @@ class StockReportController extends BaseController
                     ->when($filters['shelf_id'] ?? null, fn (Builder $products, $id) => $products->where('shelf_id', $id))
             )
             ->selectSub(
-                Product::query()
-                    ->whereColumn('id', 'phr_product_variants.product_id')
+                Product::whereColumn('id', 'phr_product_variants.product_id')
                     ->select('name'),
                 'product_name'
             )
             ->selectSub(
-                Product::query()
-                    ->whereColumn('id', 'phr_product_variants.product_id')
+                Product::whereColumn('id', 'phr_product_variants.product_id')
                     ->select('reorder_level'),
                 'reorder_level'
             )
@@ -103,8 +102,7 @@ class StockReportController extends BaseController
         $this->movementTotals($variants, $filters);
         $this->lotTotals($variants, $filters['product_type']);
 
-        $records = ProductVariant::query()
-            ->fromSub($variants->toBase(), 'phr_product_variants')
+        $records = ProductVariant::fromSub($variants->toBase(), 'phr_product_variants')
             ->with(['product.category:id,name', 'product.supplier:id,name', 'product.shelf:id,name'])
             ->withCasts([
                 'opening_quantity' => 'integer',
@@ -183,7 +181,6 @@ class StockReportController extends BaseController
             $lots->whereNull('reversed_at')
                 ->where('remaining_quantity', '>', 0)
                 ->where('received_at', '<=', $today)
-                ->whereNotNull('expiry_date')
                 ->where('expiry_date', '<', $today);
             if ($productType !== 'medicine') {
                 $lots->whereKey([]);

@@ -6,7 +6,7 @@
     @include('core::partials.heading', [
         'title' => $pageTitle,
         'description' => 'Manage references registered at the selected branch.',
-        'create' => ['model' => \Modules\Hospital\Models\Reference::class, 'url' => route($routePrefix.'.create'), 'label' => 'New reference'],
+        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New reference'],
     ])
 
     <section class="app-card overflow-hidden">

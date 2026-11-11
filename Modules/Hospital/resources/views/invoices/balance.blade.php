@@ -12,7 +12,7 @@
         <div><dt>Received amount</dt><dd>{{ $collectedAmount }}</dd></div>
     </dl>
 @endif
-@if ($creditAmount !== '0.00' || $collectedAmount !== '0.00')
+@if ($hasAdjustments)
     <h3 class="app-clinical-invoice-section-title mt-3">Current balance</h3>
     <dl class="mb-0">
         <div class="app-clinical-invoice-total"><dt>Current payable</dt><dd>{{ $remainingPayable }}</dd></div>

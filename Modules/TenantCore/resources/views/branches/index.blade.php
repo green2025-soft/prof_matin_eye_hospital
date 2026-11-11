@@ -6,7 +6,7 @@
     @include('core::partials.heading', [
         'title' => $pageTitle,
         'description' => 'Manage branch locations and contact details.',
-        'create' => ['model' => \Modules\TenantCore\Models\Branch::class, 'url' => route($routePrefix.'.create'), 'label' => 'New branch'],
+        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New branch'],
     ])
     <section class="app-card overflow-hidden">
         <div class="app-card-heading d-flex align-items-center gap-2 px-3 px-md-4 py-3 border-bottom">
@@ -19,16 +19,9 @@
                     <label class="form-label small" for="search">Search branches</label>
                     <div class="app-input-wrap app-search-field">
                         <i class="fa-solid fa-magnifying-glass app-search-icon" aria-hidden="true"></i>
-                        <input
-                            class="{{ inputClass('search') }}"
-                            id="search"
-                            name="search"
-                            type="search"
+                        <input class="{{ inputClass('search') }}" id="search" name="search" type="search"
                             value="{{ getValue('search', null, $filters['search'] ?? '') }}"
-                            placeholder="Branch name starts with..."
-                            maxlength="80"
-                            {{ inputAttrs('search') }}
-                        >
+                            placeholder="Branch name starts with..." maxlength="80" {{ inputAttrs('search') }}>
                     </div>
                     @error('search')
                         <div class="invalid-feedback d-block" id="search-error">{{ $message }}</div>

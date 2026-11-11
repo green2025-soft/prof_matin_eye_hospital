@@ -9,6 +9,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        $connection = DB::connection('tenant');
+        $dropCheck = $connection->isMaria() ? 'DROP CONSTRAINT' : 'DROP CHECK';
+
         Schema::connection('tenant')->table('refunds', function (Blueprint $table): void {
             $table->string('invoice_no', 120)->nullable()->unique();
             $table->decimal('due_adjustment', 20, 2)->default(0);
@@ -16,7 +19,7 @@ return new class extends Migration
             $table->dropUnique('refunds_investigation_id_unique');
         });
 
-        DB::connection('tenant')->statement('ALTER TABLE refunds DROP CHECK refunds_positive_amount_check, ADD CONSTRAINT refunds_credit_amount_check CHECK (amount >= 0 AND due_adjustment >= 0 AND amount + due_adjustment > 0)');
+        $connection->statement("ALTER TABLE refunds {$dropCheck} refunds_positive_amount_check, ADD CONSTRAINT refunds_credit_amount_check CHECK (amount >= 0 AND due_adjustment >= 0 AND amount + due_adjustment > 0)");
 
         Schema::connection('tenant')->create('refund_items', function (Blueprint $table): void {
             $table->unsignedBigInteger('refund_id');
@@ -38,12 +41,13 @@ return new class extends Migration
     public function down(): void
     {
         $connection = DB::connection('tenant');
+        $dropCheck = $connection->isMaria() ? 'DROP CONSTRAINT' : 'DROP CHECK';
         if ($connection->table('refund_items')->exists() || $connection->table('refunds')->where('due_adjustment', '>', 0)->exists()) {
             throw new RuntimeException('Item refunds or due adjustments exist. Preserve their accounting history and use a forward migration.');
         }
 
         Schema::connection('tenant')->dropIfExists('refund_items');
-        $connection->statement('ALTER TABLE refunds DROP CHECK refunds_credit_amount_check, ADD CONSTRAINT refunds_positive_amount_check CHECK (amount > 0)');
+        $connection->statement("ALTER TABLE refunds {$dropCheck} refunds_credit_amount_check, ADD CONSTRAINT refunds_positive_amount_check CHECK (amount > 0)");
         Schema::connection('tenant')->table('refunds', function (Blueprint $table): void {
             $table->dropUnique('refunds_invoice_no_unique');
             $table->dropUnique('refunds_id_investigation_unique');

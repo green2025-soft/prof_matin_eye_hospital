@@ -1,22 +1,16 @@
 <section class="app-card p-3 p-md-4 mb-4" aria-labelledby="permission-{{ $recordField }}-heading">
     <h2 class="h6 mb-3" id="permission-{{ $recordField }}-heading">
-        <i class="fa-solid fa-{{ $recordLabel === 'plan' ? 'layer-group' : 'shield-halved' }} me-2 text-body-secondary" aria-hidden="true"></i>Choose a {{ $recordLabel }}
+        <i class="fa-solid fa-{{ $recordIcon }} me-2 text-body-secondary" aria-hidden="true"></i>Choose a {{ $recordLabel }}
     </h2>
     <form action="{{ $pickerAction }}" method="GET" data-permission-picker>
         <div class="row g-3 align-items-end">
             <div class="col-lg-5">
                 <label class="form-label" for="{{ $recordField }}-search">Find a {{ $recordLabel }}</label>
                 <div class="input-group">
-                    <input
-                        class="{{ inputClass($searchField) }}"
-                        id="{{ $recordField }}-search"
-                        name="{{ $searchField }}"
-                        type="search"
-                        value="{{ getValue($searchField, null, $searchValue) }}"
-                        placeholder="{{ ucfirst($recordLabel) }} name starts with..."
-                        maxlength="80"
-                        {{ inputAttrs($searchField, $recordField.'-search', $recordField.'-search-help') }}
-                    >
+                    <input class="{{ inputClass($searchField) }}" id="{{ $recordField }}-search" name="{{ $searchField }}"
+                        type="search" value="{{ getValue($searchField, null, $searchValue) }}"
+                        placeholder="{{ ucfirst($recordLabel) }} name starts with..." maxlength="80"
+                        {{ inputAttrs($searchField, $recordField.'-search', $recordField.'-search-help') }}>
                     <button class="btn btn-outline-secondary" type="submit">
                         <i class="fa-solid fa-magnifying-glass me-2" aria-hidden="true"></i>Search
                     </button>
@@ -27,13 +21,9 @@
             </div>
             <div class="col-lg-5">
                 <label class="form-label" for="permission-{{ $recordField }}">{{ ucfirst($recordLabel) }}</label>
-                <select
-                    class="{{ inputClass($recordField, 'form-select') }}"
-                    id="permission-{{ $recordField }}"
-                    name="{{ $recordField }}"
-                    data-permission-record-select
-                    {{ inputAttrs($recordField, 'permission-'.$recordField) }}
-                >
+                <select class="{{ inputClass($recordField, 'form-select') }}" id="permission-{{ $recordField }}"
+                    name="{{ $recordField }}" data-permission-record-select
+                    {{ inputAttrs($recordField, 'permission-'.$recordField) }}>
                     <option value="">Select a {{ $recordLabel }}</option>
                     @foreach ($records as $record)
                         <option value="{{ $record->id }}" {{ getSelected($record->id, $recordField, null, $selectedRecord?->id) }}>{{ $record->name }}</option>

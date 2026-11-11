@@ -33,7 +33,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse ($records as $record)
+                @forelse ($records->sortBy([['activity_date', 'desc'], ['activity', 'asc']]) as $record)
                     <tr>
                         <td>{{ $record->activity_date }}</td>
                         <th scope="row">{{ ucfirst(str_replace('_', ' ', $record->activity)) }}</th>

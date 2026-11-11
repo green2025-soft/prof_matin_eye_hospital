@@ -24,10 +24,10 @@
 
 @section('report-summary')
     <div class="app-report-summary row row-cols-2 row-cols-md-4 g-3">
-        <div class="col"><span>Opening (Pcs)</span><strong>{{ $summary->opening_quantity }}</strong></div>
-        <div class="col"><span>In (Pcs)</span><strong>{{ $summary->in_quantity }}</strong></div>
-        <div class="col"><span>Out (Pcs)</span><strong>{{ $summary->out_quantity }}</strong></div>
-        <div class="col"><span>Closing (Pcs)</span><strong>{{ $summary->closing_quantity }}</strong></div>
+        <div class="col"><span class="d-block">Opening (Pcs)</span><strong class="d-block">{{ $summary->opening_quantity }}</strong></div>
+        <div class="col"><span class="d-block">In (Pcs)</span><strong class="d-block">{{ $summary->in_quantity }}</strong></div>
+        <div class="col"><span class="d-block">Out (Pcs)</span><strong class="d-block">{{ $summary->out_quantity }}</strong></div>
+        <div class="col"><span class="d-block">Closing (Pcs)</span><strong class="d-block">{{ $summary->closing_quantity }}</strong></div>
     </div>
 @endsection
 

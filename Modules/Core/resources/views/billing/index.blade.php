@@ -69,15 +69,9 @@
             <div class="row g-3 align-items-end">
                 <div class="col-md-5">
                     <label class="form-label" for="search">Invoice number</label>
-                    <input
-                        class="{{ inputClass('search') }}"
-                        id="search"
-                        name="search"
-                        type="search"
-                        value="{{ getValue('search', null, $filters['search'] ?? '') }}"
-                        placeholder="Number starts with..."
-                        {{ inputAttrs('search') }}
-                    >
+                    <input class="{{ inputClass('search') }}" id="search" name="search" type="search"
+                        value="{{ getValue('search', null, $filters['search'] ?? '') }}" placeholder="Number starts with..."
+                        {{ inputAttrs('search') }}>
                     @error('search')
                         <div class="invalid-feedback d-block" id="search-error">{{ $message }}</div>
                     @enderror

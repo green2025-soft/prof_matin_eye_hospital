@@ -16,6 +16,7 @@ function restoreDataAttributes($element, values) {
     $element.removeAttr(Object.keys(copyDataAttributes($element)).join(' ')).attr(values);
 }
 
+// Keep an edit snapshot so Cancel restores values, validation and datepicker state.
 function snapshotRow($row) {
     const controls = $row.find(controlSelector).map(function () {
         const $input = $(this);
@@ -28,6 +29,8 @@ function snapshotRow($row) {
             required: $input.prop('required'),
             className: $input.attr('class') || '',
             ariaInvalid: $input.attr('aria-invalid') ?? null,
+            touched: $input.data('touched'),
+            validationMessage: $input.data('validationMessage'),
             dataAttributes: copyDataAttributes($input),
             customValidity: $input.prop('validity').customError ? $input.prop('validationMessage') : '',
             options: $input.is('select') ? $input.find('option').clone().toArray() : null,
@@ -40,22 +43,20 @@ function snapshotRow($row) {
         return {
             $wrapper,
             value: $input.val() || '',
+            altValue: picker?.altInput ? $(picker.altInput).val() : null,
             dates: picker ? picker.selectedDates.map(date => new Date(date.getTime())) : null,
         };
     }).get();
-    const row = $row.get(0);
     return {
         controls, pickers, dataAttributes: copyDataAttributes($row),
-        product: { ...row._pharmacyProduct },
-        profiles: row._unitProfiles?.map(profile => ({ ...profile })),
+        product: { ...$row.data('pharmacyProduct') },
+        profiles: $row.data('unitProfiles')?.map(profile => ({ ...profile })),
     };
 }
 
 function restoreRow($row, snapshot) {
-    const row = $row.get(0);
     restoreDataAttributes($row, snapshot.dataAttributes);
-    row._pharmacyProduct = snapshot.product;
-    row._unitProfiles = snapshot.profiles;
+    $row.data({ pharmacyProduct: snapshot.product, unitProfiles: snapshot.profiles });
     for (const state of snapshot.controls) {
         const { input } = state;
         const $input = $(input);
@@ -67,16 +68,19 @@ function restoreRow($row, snapshot) {
         }).attr('class', state.className);
         if ('checked' in input) $input.prop('checked', state.checked);
         restoreDataAttributes($input, state.dataAttributes);
+        $input.data({ touched: state.touched, validationMessage: state.validationMessage });
         input.setCustomValidity(state.customValidity);
         if (state.ariaInvalid === null) $input.removeAttr('aria-invalid');
         else $input.attr('aria-invalid', state.ariaInvalid);
     }
-    for (const { $wrapper, dates, value } of snapshot.pickers) {
-        const picker = $wrapper.get(0)._flatpickr || $wrapper.find('[data-input]').get(0)?._flatpickr;
+    for (const { $wrapper, dates, value, altValue } of snapshot.pickers) {
+        const $input = $wrapper.find('[data-input]').first();
+        const picker = $wrapper.get(0)._flatpickr || $input.get(0)?._flatpickr;
         picker?.setDate(dates ?? value, false);
+        // Flatpickr formats values; Cancel must preserve the original typed text too.
+        $input.val(value);
+        if (picker?.altInput && altValue !== null) $(picker.altInput).val(altValue);
     }
-    // Flatpickr restores dates; retain the original typed input as well.
-    for (const { input, value } of snapshot.controls) $(input).val(value);
 }
 
 function closeDatePickers($root, destroy = false) {
@@ -87,19 +91,22 @@ function closeDatePickers($root, destroy = false) {
     });
 }
 
+// Stored editor fieldsets are disabled; submit their current values as hidden inputs.
 function writePayload($row, $payload) {
     const inputs = [];
     $row.find(controlSelector).each(function () {
         const $input = $(this);
+        const name = $input.attr('name');
+        const type = $input.attr('type');
         // The stored row is disabled. Only own flags and disabled inner
         // fieldsets determine which controls belong in the submitted line.
-        if (!this.name || $input.prop('disabled') || $input.closest('[data-pharmacy-hidden-item-field]').length
+        if (!name || $input.prop('disabled') || $input.closest('[data-pharmacy-hidden-item-field]').length
             || $input.parentsUntil($row, 'fieldset[disabled]').length
-            || ['button', 'submit', 'reset', 'file'].includes(this.type)) return;
-        if (['checkbox', 'radio'].includes(this.type) && !$input.prop('checked')) return;
+            || ['button', 'submit', 'reset', 'file'].includes(type)) return;
+        if (['checkbox', 'radio'].includes(type) && !$input.prop('checked')) return;
         const value = $input.val();
         const values = Array.isArray(value) ? value : [value ?? ''];
-        for (const item of values) inputs.push($('<input>', { type: 'hidden', name: this.name, value: item }).get(0));
+        for (const item of values) inputs.push($('<input>', { type: 'hidden', name, value: item }).get(0));
     });
     $payload.empty().append(inputs);
 }
@@ -132,11 +139,16 @@ export function initializeTradeEditor(form, {
     const $feedback = $form.find('#pharmacy-product-feedback');
     const $packModal = $('[data-pharmacy-pack-modal]');
     const $packSize = $packModal.find('[data-pharmacy-pack-size]');
-    const options = form._pharmacyOptions;
+    const options = $form.data('pharmacyOptions');
     const revisionStock = options.revisionStock;
     const entries = new Map();
     const $originalRows = $storage.find(rowSelector);
-    const indexes = $originalRows.map((_, row) => Number($(row).attr('data-index'))).get();
+    const indexes = $originalRows.map(function () {
+        const $row = $(this);
+        const index = $row.find('input[name$="[variant_id]"]').attr('name')?.match(/^lines\[([^\]]+)\]/)?.[1];
+        $row.data('pharmacyLineIndex', index);
+        return Number(index);
+    }).get();
     let nextIndex = Math.max(-1, ...indexes.filter(index => Number.isSafeInteger(index) && index >= 0)) + 1;
     let active = null;
     let pendingPack = null;
@@ -144,7 +156,8 @@ export function initializeTradeEditor(form, {
     let lastVatInput = null;
     let lastVatMode = null;
     let lastDiscountInput = null;
-    form._purchasePacks = new Map();
+    const purchasePacks = new Map();
+    $form.data('purchasePacks', purchasePacks);
 
     function announce(message, error = false) {
         if (error) window.showToast?.(message, 'error');
@@ -200,7 +213,7 @@ export function initializeTradeEditor(form, {
         $summary.find('.app-pharmacy-entry-code').text($row.find('.app-pharmacy-entry-code').text().trim());
         const values = {
             expiry: $row.find('[name$="[expiry_date]"]').val() || '—',
-            ...$row.get(0)._pharmacySummary,
+            ...$row.data('pharmacySummary'),
         };
         for (const [key, value] of Object.entries(values)) $summary.find(`[data-pharmacy-summary-${key}]`).text(value);
         $summary.find('[data-pharmacy-edit-line]').attr('aria-label', `Edit ${name}`);
@@ -215,8 +228,8 @@ export function initializeTradeEditor(form, {
 
     function createEntry($row, prepend = false) {
         const $summary = $($summaryTemplate.html().trim());
-        const index = $row.attr('data-index');
-        $summary.attr('data-index', index);
+        const index = $row.data('pharmacyLineIndex');
+        $summary.data('pharmacyLineIndex', index);
         const entry = { $row, $summary, $payload: $summary.find('[data-pharmacy-item-payload]') };
         entries.set(index, entry);
         if (prepend && $empty.length) $empty.after($summary);
@@ -234,11 +247,11 @@ export function initializeTradeEditor(form, {
 
     function validateActive() {
         if (!active) return true;
+        const $controls = active.$row.find(controlSelector);
+        $controls.data('touched', true);
         refreshRows();
-        const $controls = active.$row.find(controlSelector).not(':disabled');
-        $controls.attr('data-touched', '1');
-        refreshRows();
-        const invalid = $controls.filter((_, input) => $(input).prop('willValidate') && !input.checkValidity()).get(0);
+        const invalid = $controls.not(':disabled')
+            .filter((_, input) => $(input).prop('willValidate') && !input.checkValidity()).get(0);
         if (!invalid) return true;
         focusControl(invalid);
         invalid.reportValidity();
@@ -266,7 +279,7 @@ export function initializeTradeEditor(form, {
             return true;
         }
         if (!commitActive()) return false;
-        const $placeholder = $('<template>', { 'data-pharmacy-placeholder': $row.attr('data-index') });
+        const $placeholder = $('<template>');
         $row.before($placeholder);
         active = { $row, entry, $placeholder, snapshot: snapshotRow($row) };
         $row.prop('disabled', false);
@@ -302,7 +315,7 @@ export function initializeTradeEditor(form, {
 
     function removeRow($row) {
         if (!$row?.length) return;
-        const index = $row.attr('data-index');
+        const index = $row.data('pharmacyLineIndex');
         const entry = entries.get(index);
         const name = $row.find('.app-pharmacy-entry-name').text().trim() || 'Item';
         if (active?.$row.is($row)) {
@@ -337,7 +350,7 @@ export function initializeTradeEditor(form, {
             return;
         }
         if ($existing.length) {
-            openEntry(entries.get($existing.attr('data-index')));
+            openEntry(entries.get($existing.data('pharmacyLineIndex')));
             announce('This product is already added. Update its quantity.');
             return;
         }
@@ -355,8 +368,10 @@ export function initializeTradeEditor(form, {
             return;
         }
 
-        const $row = $($template.html().replaceAll('__INDEX__', String(nextIndex++)).trim()).filter(rowSelector).first();
+        const index = String(nextIndex++);
+        const $row = $($template.html().replaceAll('__INDEX__', index).trim()).filter(rowSelector).first();
         if (!$row.length) return;
+        $row.data('pharmacyLineIndex', index);
         bindItemControls($row);
         $row.prop('disabled', false).find('[name$="[variant_id]"]').val(product.id);
         const name = product.product_name || product.name;
@@ -415,7 +430,7 @@ export function initializeTradeEditor(form, {
         const $unit = $row.find('[data-pharmacy-purchase-unit], select[name$="[product_unit_id]"]');
         if (!$unit.length || $unit.prop('disabled')) return;
         const purchase = $unit.is('[data-pharmacy-purchase-unit]');
-        const choice = purchase ? $row.get(0)._purchaseUnits?.find(item => item.symbol === symbol) : null;
+        const choice = purchase ? $row.data('purchaseUnits')?.find(item => item.symbol === symbol) : null;
         const $options = $unit.find('option').filter(function () {
             const $option = $(this);
             return purchase ? choice && $option.attr('data-unit-id') === choice.id
@@ -443,13 +458,16 @@ export function initializeTradeEditor(form, {
         packSize.setCustomValidity(factor > 0n && factor <= 1000000n ? '' : 'Enter the pieces per pack.');
         if (!packSize.reportValidity()) return;
         const { $row, $option } = pendingPack;
-        const productId = $row.get(0)._pharmacyProduct.id;
+        const productId = $row.data('pharmacyProduct').id;
         const profile = { unit_id: $option.attr('data-unit-id'), factor: String(factor) };
-        const profiles = form._purchasePacks.get(productId) || [];
+        const profiles = purchasePacks.get(productId) || [];
         if (!profiles.some(item => String(item.unit_id) === profile.unit_id && String(item.factor) === profile.factor)) profiles.push(profile);
-        form._purchasePacks.set(productId, profiles);
+        purchasePacks.set(productId, profiles);
         $form.find(rowSelector).each(function () {
-            if (this._pharmacyProduct.id === productId) populatePurchaseUnits(this, this._unitProfiles || []);
+            const $item = $(this);
+            if ($item.data('pharmacyProduct').id === productId) {
+                populatePurchaseUnits(this, $item.data('unitProfiles') || []);
+            }
         });
         const $unit = $row.find('[data-pharmacy-purchase-unit]');
         $unit.val(`pack:${profile.unit_id}:${profile.factor}`);
@@ -515,10 +533,12 @@ export function initializeTradeEditor(form, {
         lastDiscountInput = $input.val();
         $input.closest(rowSelector).find('input[name$="[discount]"]').val('');
     });
-    $form.on('change.pharmacyTrade input.pharmacyTrade', refreshRows);
+    $form.on('change.pharmacyTrade input.pharmacyTrade',
+        `${rowSelector} input, ${rowSelector} select, ${rowSelector} textarea,
+        [name="discount"], [name="paid_amount"], [name="vat_mode"], [name="vat_percent"]`, refreshRows);
     $form.on('focusin.pharmacyTrade', 'input[type="number"]', function () { $(this).trigger('select'); });
     $form.on('focusout.pharmacyTrade', 'input[type="number"], [data-pharmacy-purchase-unit]', function () {
-        $(this).attr('data-touched', '1');
+        $(this).data('touched', true);
         refreshRows();
     });
     $form.on('click.pharmacyTrade', '[data-pharmacy-edit-unit]', function () {
@@ -526,13 +546,13 @@ export function initializeTradeEditor(form, {
         openPackEditor($row, $row.find('[data-pharmacy-purchase-unit] option:selected').get(0), this);
     });
     $form.on('click.pharmacyTrade', '[data-pharmacy-edit-line]', function () {
-        const index = $(this).closest('tr[data-index]').attr('data-index');
+        const index = $(this).closest('tr').data('pharmacyLineIndex');
         const entry = entries.get(index);
         if (entry) openEntry(entry);
     });
     $form.on('click.pharmacyTrade', '[data-pharmacy-remove-line]', function () {
         const $button = $(this);
-        const entry = entries.get($button.closest('tr[data-index]').attr('data-index'));
+        const entry = entries.get($button.closest('tr').data('pharmacyLineIndex'));
         removeRow(entry?.$row || $button.closest(rowSelector));
     });
 
@@ -593,7 +613,7 @@ export function initializeTradeEditor(form, {
             return;
         }
         if (event.altKey && event.key === 'Delete') {
-            const index = $target.closest('tr[data-index]').attr('data-index');
+            const index = $target.closest('tr').data('pharmacyLineIndex');
             const $remove = $row.length ? $row : entries.get(index)?.$row || active?.$row;
             if ($remove?.length) {
                 event.preventDefault();
@@ -640,7 +660,7 @@ export function initializeTradeEditor(form, {
             const invalid = entry.$row.find(controlSelector).filter(function () {
                 const $input = $(this);
                 return !$input.prop('disabled') && !$input.closest('[data-pharmacy-hidden-item-field]').length
-                    && $input.attr('data-validation-message');
+                    && $input.data('validationMessage');
             }).get(0);
             if (!invalid) continue;
             event.preventDefault();
@@ -659,9 +679,7 @@ export function initializeTradeEditor(form, {
         const $row = $(this).prop('disabled', true);
         bindItemControls($row);
         if ($row.find('[data-pharmacy-purchase-unit]').length) {
-            try { this._unitProfiles = JSON.parse($row.attr('data-unit-profiles') || '[]'); }
-            catch { this._unitProfiles = []; }
-            populatePurchaseUnits(this, this._unitProfiles);
+            populatePurchaseUnits(this, $row.data('unitProfiles') || []);
         }
         createEntry($row);
     });

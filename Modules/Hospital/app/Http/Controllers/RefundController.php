@@ -48,30 +48,30 @@ class RefundController extends BaseController
 
     public function show(Request $request, ClinicalEntryService $entries): View
     {
-        return view('hospital::refunds.invoice', $entries->invoiceData($request->user('web'), $this->record($request)));
+        $data = $entries->invoiceData($request->user('web'), $this->record($request));
+
+        return view('hospital::refunds.invoice', $data);
     }
 
     public function invoice(RefundRequest $request, ClinicalEntryService $entries): JsonResponse
     {
-        return response()
-            ->json($entries->refundPreview(
-                $request->user('web'),
-                $request->validated('invoice'),
-                (int) $request->attributes->get('branch_id'),
-            ));
+        $data = $entries->refundPreview(
+            $request->user('web'),
+            $request->validated('invoice'),
+            (int) $request->attributes->get('branch_id'),
+        );
+
+        return response()->json($data);
     }
 
     public function invoices(RefundRequest $request, ClinicalEntryService $entries): JsonResponse
     {
         $records = $entries->refundInvoices($request->user('web'), (int) $request->attributes->get('branch_id'), $request->validated());
+        $data = [
+            'records' => $records,
+        ];
 
-        return response()
-            ->json([
-                'results' => $records->items(),
-                'pagination' => [
-                    'more' => $records->hasMorePages(),
-                ],
-            ]);
+        return JsonResponse::fromJsonString(view('hospital::selectors.invoices', $data)->render());
     }
 
     protected function formData(Account $actor, Model $record): array
@@ -97,7 +97,7 @@ class RefundController extends BaseController
             $selectedInvoice['remaining_paid'] = $refundPreview['remaining_paid'];
             $selectedInvoice['remaining_due'] = $refundPreview['remaining_due'];
             $selectedInvoice['remaining_amount'] = $refundPreview['remaining_amount'];
-            $availableIds = array_map(fn (array $item): int => (int) $item['id'], $refundPreview['items']);
+            $availableIds = array_column($refundPreview['items'], 'id');
             if ($record->exists) {
                 $selectedItemIds = $refundPreview['selected_item_ids'];
             } else {
@@ -121,8 +121,7 @@ class RefundController extends BaseController
             'selectedInvoice' => $selectedInvoice,
             'refundPreview' => $refundPreview,
             'selectedItemIds' => $selectedItemIds,
-            'refundCauses' => RefundCause::query()
-                ->orderBy('ordering')
+            'refundCauses' => RefundCause::orderBy('ordering')
                 ->orderBy('id')
                 ->get(['id', 'name']),
         ];

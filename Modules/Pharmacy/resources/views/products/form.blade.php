@@ -32,14 +32,20 @@
                         </div>
                         <div class="col-sm-6 col-xl-3">
                             <label class="form-label" for="barcode">Barcode</label>
-                            <input class="{{ inputClass('barcode') }}" id="barcode" name="barcode" type="text" value="{{ getValue('barcode', $product) }}" maxlength="100" autocomplete="off" autocapitalize="off" spellcheck="false" {{ inputAttrs('barcode') }}>
+                            <input class="{{ inputClass('barcode') }}" id="barcode" name="barcode" type="text"
+                                value="{{ getValue('barcode', $product) }}" maxlength="100" autocomplete="off" autocapitalize="off" spellcheck="false"
+                                {{ inputAttrs('barcode') }}>
                             @error('barcode')
                                 <div class="invalid-feedback d-block" id="barcode-error">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="col-sm-6 col-xl-3">
                             <label class="form-label" for="category_id">Category / generic</label>
-                            <select class="{{ inputClass('category_id', 'form-select') }}" id="category_id" name="category_id" data-ajax-select data-url="{{ route('pharmacy.categories.options') }}" data-parent-select="type" data-parent-field="type" data-placeholder="Select category / generic" {{ inputAttrs('category_id') }}>
+                            <select class="{{ inputClass('category_id', 'form-select') }}" id="category_id" name="category_id"
+                                data-ajax-select data-url="{{ route('pharmacy.categories.options') }}"
+                                data-parent-select="type" data-parent-field="type"
+                                data-placeholder="Select category / generic"
+                                {{ inputAttrs('category_id') }}>
                                 <option value=""></option>
                                 @if ($selectedCategory !== null)
                                     <option value="{{ $selectedCategory->id }}" selected>{{ $selectedCategory->name }}</option>
@@ -49,7 +55,10 @@
                         </div>
                         <div class="col-sm-6 col-xl-3" data-pharmacy-medicine-field @if ($defaultType !== 'medicine') hidden @endif>
                             <label class="form-label" for="dosage_id">Dose Type</label>
-                            <select class="{{ inputClass('dosage_id', 'form-select') }}" id="dosage_id" name="dosage_id" data-ajax-select data-url="{{ route('pharmacy.dosages.options') }}" data-placeholder="Select dose type" {{ inputAttrs('dosage_id') }}>
+                            <select class="{{ inputClass('dosage_id', 'form-select') }}" id="dosage_id" name="dosage_id"
+                                data-ajax-select data-url="{{ route('pharmacy.dosages.options') }}"
+                                data-placeholder="Select dose type"
+                                {{ inputAttrs('dosage_id') }}>
                                 <option value=""></option>
                                 @if ($selectedDosage !== null)
                                     <option value="{{ $selectedDosage->id }}" selected>{{ $selectedDosage->name }}</option>
@@ -64,7 +73,11 @@
                         </div>
                         <div class="col-sm-6 col-xl-3">
                             <label class="form-label" for="supplier_id">Supplier</label>
-                            <select class="{{ inputClass('supplier_id', 'form-select') }}" id="supplier_id" name="supplier_id" data-ajax-select data-url="{{ route('pharmacy.suppliers.options') }}" data-parent-select="type" data-parent-field="type" data-placeholder="Select supplier" {{ inputAttrs('supplier_id') }}>
+                            <select class="{{ inputClass('supplier_id', 'form-select') }}" id="supplier_id" name="supplier_id"
+                                data-ajax-select data-url="{{ route('pharmacy.suppliers.options') }}"
+                                data-parent-select="type" data-parent-field="type"
+                                data-placeholder="Select supplier"
+                                {{ inputAttrs('supplier_id') }}>
                                 <option value=""></option>
                                 @if ($selectedSupplier !== null)
                                     <option value="{{ $selectedSupplier->id }}" selected>{{ $selectedSupplier->name }}</option>
@@ -74,7 +87,11 @@
                         </div>
                         <div class="col-sm-6 col-xl-3">
                             <label class="form-label" for="shelf_id">Shelf Location</label>
-                            <select class="{{ inputClass('shelf_id', 'form-select') }}" id="shelf_id" name="shelf_id" data-ajax-select data-url="{{ route('pharmacy.shelves.options') }}" data-parent-select="type" data-parent-field="type" data-placeholder="Select shelf location" {{ inputAttrs('shelf_id') }}>
+                            <select class="{{ inputClass('shelf_id', 'form-select') }}" id="shelf_id" name="shelf_id"
+                                data-ajax-select data-url="{{ route('pharmacy.shelf.options') }}"
+                                data-parent-select="type" data-parent-field="type"
+                                data-placeholder="Select shelf location"
+                                {{ inputAttrs('shelf_id') }}>
                                 <option value=""></option>
                                 @if ($selectedShelf !== null)
                                     <option value="{{ $selectedShelf->id }}" selected>{{ $selectedShelf->name }}</option>
@@ -90,17 +107,23 @@
                     <div class="row g-3">
                         <div class="col-sm-6 col-xl-3">
                             <label class="form-label" for="purchase_price">Purchase price <span class="text-danger" aria-hidden="true">*</span></label>
-                            <input class="{{ inputClass('purchase_price') }}" id="purchase_price" name="purchase_price" type="text" value="{{ getValue('purchase_price', $product, '0.00') }}" maxlength="13" required inputmode="decimal" {{ inputAttrs('purchase_price') }}>
+                            <input class="{{ inputClass('purchase_price') }}" id="purchase_price" name="purchase_price" type="text"
+                                value="{{ getValue('purchase_price', $product, '0.00') }}" maxlength="13" required inputmode="decimal"
+                                {{ inputAttrs('purchase_price') }}>
                             @error('purchase_price')<div class="invalid-feedback d-block" id="purchase_price-error">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-sm-6 col-xl-3">
                             <label class="form-label" for="sale_price">Sale price <span class="text-danger" aria-hidden="true">*</span></label>
-                            <input class="{{ inputClass('sale_price') }}" id="sale_price" name="sale_price" type="text" value="{{ getValue('sale_price', $product, '0.00') }}" maxlength="13" required inputmode="decimal" {{ inputAttrs('sale_price') }}>
+                            <input class="{{ inputClass('sale_price') }}" id="sale_price" name="sale_price" type="text"
+                                value="{{ getValue('sale_price', $product, '0.00') }}" maxlength="13" required inputmode="decimal"
+                                {{ inputAttrs('sale_price') }}>
                             @error('sale_price')<div class="invalid-feedback d-block" id="sale_price-error">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-sm-6 col-xl-3">
                             <label class="form-label" for="reorder_level">Re-order Level (Pcs) <span class="text-danger" aria-hidden="true">*</span></label>
-                            <input class="{{ inputClass('reorder_level') }}" id="reorder_level" name="reorder_level" type="number" value="{{ getValue('reorder_level', $product, 0) }}" required min="0" max="1000000000" step="1" inputmode="numeric" {{ inputAttrs('reorder_level') }}>
+                            <input class="{{ inputClass('reorder_level') }}" id="reorder_level" name="reorder_level" type="number"
+                                value="{{ getValue('reorder_level', $product, 0) }}" required min="0" max="1000000000" step="1" inputmode="numeric"
+                                {{ inputAttrs('reorder_level') }}>
                             @error('reorder_level')<div class="invalid-feedback d-block" id="reorder_level-error">{{ $message }}</div>@enderror
                         </div>
                     </div>

@@ -15,7 +15,21 @@ php artisan tenants:migrate --force
 
 Shared hosting-এর folder, public path ও image upload setup-এর জন্য [README-এর Shared hosting অংশ](README.md#shared-hosting) দেখুন।
 
+## Hospital ও Pharmacy settings deploy
+
+Hospital Settings এখন `/hospital/settings` এবং Pharmacy Settings `/pharmacy/settings`-এ। Controller, Request ও Blade নিজ নিজ module-এ থাকে। একই neutral Setting model, `hospital`/`pharmacy` group, row ID, JSON key ও saved value ব্যবহার হয়; `settings.view`/`settings.update`-এর সঙ্গে সংশ্লিষ্ট module ও subscription access লাগে, branch নির্বাচন লাগে না। Global `/settings`-এ এই দুই module-এর tab নেই। পুরোনো `?group=hospital`, `?group=pharmacy` ও `?group=patients` link সঠিক module page-এ redirect হয় এবং section বজায় রাখে।
+
+পরিবর্তিত PHP, Blade views, config ও routes upload করার পরে project folder থেকে চালান:
+
+```bash
+php artisan optimize:clear --except=cache
+```
+
+শুধু এই settings স্থানান্তরের জন্য schema বা data migration লাগে না। Production database reset করবেন না এবং `db:seed` চালাবেন না; আগের settings ও business data অপরিবর্তিত থাকবে। অন্য pending schema change থাকলে উপরের নিয়ম অনুযায়ী migration command চালান।
+
 ## আগে database তৈরি করে Tenant setup
+
+নতুন Tenant setup-এর একই transaction-এ `Cash` নামে Payment Type তৈরি হয়। Retry করলে একই নামের entry আবার তৈরি হয় না।
 
 প্রতিটি নতুন tenant-এর জন্য hosting control panel-এ আগে একটি **খালি database** ও database user তৈরি করুন। User-টিকে ওই database-এর সঙ্গে যুক্ত করে প্রয়োজনীয় permissions দিন। তারপর `/core/tenants/create` অথবা `php artisan tenant:create` থেকে নিচের তথ্য দিন:
 

@@ -25,36 +25,48 @@ class ItemService
             }
         }
 
-        $variants = ProductVariant::query()
-            ->whereIn('id', array_column($inputs, 'variant_id'))
+        $variants = ProductVariant::whereIn('id', array_column($inputs, 'variant_id'))
             ->orderBy('id')->lockForUpdate()->get()->keyBy('id');
-        $products = Product::query()
-            ->whereIn('id', $variants->pluck('product_id'))
+        $products = Product::whereIn('id', $variants->pluck('product_id'))
             ->orderBy('id')->lockForUpdate()->get()->keyBy('id');
-        $units = ProductUnit::query()
-            ->whereIn('id', array_filter(array_column($inputs, 'product_unit_id')))
-            ->orderBy('id')->lockForUpdate()->get()->keyBy('id');
-        $baseUnits = ProductUnit::query()
-            ->whereIn('product_id', $products->modelKeys())->where('factor', 1)
-            ->orderBy('product_id')->orderBy('id')->lockForUpdate()->get()
-            ->unique('product_id')->keyBy('product_id');
+        $units = ProductUnit::whereIn('id', array_filter(array_column($inputs, 'product_unit_id')))
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('id');
+        $baseUnits = ProductUnit::whereIn('product_id', $products->modelKeys())
+            ->where('factor', 1)
+            ->orderBy('product_id')
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get()
+            ->unique('product_id')
+            ->keyBy('product_id');
 
         return compact('variants', 'products', 'units', 'baseUnits');
     }
 
     public function selectedVariants(array $inputs): Collection
     {
-        $ids = collect($inputs)->pluck('variant_id')
-            ->filter(fn ($id): bool => is_scalar($id) && ctype_digit((string) $id))->unique()->all();
+        $ids = collect($inputs)
+            ->pluck('variant_id')
+            ->filter(fn ($id): bool => is_scalar($id) && ctype_digit((string) $id))
+            ->unique()
+            ->all();
         if ($ids === []) {
             return collect();
         }
 
-        return ProductVariant::query()->with([
+        return ProductVariant::with([
             'product:id,name,type,purchase_price,sale_price',
-            'product.units' => fn ($query) => $query->orderBy('factor')->orderBy('id'),
+            'product.units' => fn ($query) => $query
+                ->orderBy('factor')
+                ->orderBy('id'),
             'product.units.unit:id,name,symbol',
-        ])->whereIn('id', $ids)->get()->keyBy('id');
+        ])
+            ->whereIn('id', $ids)
+            ->get()
+            ->keyBy('id');
     }
 
     public function prepareQuantities(StockEntry $entry, array $inputs): array
@@ -113,21 +125,26 @@ class ItemService
 
     public function roundedRatio(int $amount, int $numerator, int $denominator): int
     {
-        return $this->bounded(BigInteger::of($amount)->multipliedBy($numerator)
-            ->plus(intdiv($denominator, 2))->quotient($denominator));
+        $rounded = BigInteger::of($amount)
+            ->multipliedBy($numerator)
+            ->plus(intdiv($denominator, 2))
+            ->quotient($denominator);
+
+        return $this->bounded($rounded);
     }
 
     public function floorRatio(int $amount, int $numerator, int $denominator): int
     {
-        return $this->bounded(BigInteger::of($amount)->multipliedBy($numerator)->quotient($denominator));
+        $ratio = BigInteger::of($amount)
+            ->multipliedBy($numerator)
+            ->quotient($denominator);
+
+        return $this->bounded($ratio);
     }
 
     public function sum(array $amounts): int
     {
-        $total = BigInteger::zero();
-        foreach ($amounts as $amount) {
-            $total = $total->plus($amount);
-        }
+        $total = BigInteger::sum(0, ...array_values($amounts));
 
         return $this->bounded($total);
     }

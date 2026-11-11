@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -27,11 +28,20 @@ class SettingController extends BaseController
 
     protected string $parameter = 'setting';
 
-    public function index(ListRequest $request): View
+    public function index(ListRequest $request): View|RedirectResponse
     {
         $group = $request->query('group', 'company');
         $group = is_string($group) ? $group : 'company';
         $group = config('settings.group_aliases', [])[$group] ?? $group;
+        $route = config('settings.groups.'.$group.'.route');
+
+        if ($route !== null) {
+            abort_unless(Route::has($route), 404);
+
+            return redirect()
+                ->route($route, Arr::only($request->query(), ['section']), 303);
+        }
+
         $paymentGroups = config('settings.payment_groups');
 
         if ($group === 'payments') {
@@ -40,31 +50,20 @@ class SettingController extends BaseController
             $group = $provider;
         }
 
-        $setting = Setting::query()
-            ->where('group', $group)
+        $setting = Setting::where('group', $group)
             ->firstOrFail();
         $isPayment = in_array($setting->group, $paymentGroups, true);
-        $hospitalSection = null;
-        $pharmacySection = null;
-        if ($setting->group === 'hospital') {
-            $hospitalSection = $request->query('section', 'patient');
-            abort_unless(is_string($hospitalSection) && array_key_exists($hospitalSection, config('settings.hospital_sections')), 404);
-        } elseif ($setting->group === 'pharmacy') {
-            $pharmacySection = $request->query('section', 'general');
-            abort_unless(is_string($pharmacySection) && array_key_exists($pharmacySection, config('settings.pharmacy_sections')), 404);
-        }
-
-        return $this->listData($request, $this->groupData($setting) + [
+        $data = $this->groupData($setting) + [
             'setting' => $setting,
             'activeGroup' => $isPayment ? 'payments' : $setting->group,
             'activeProvider' => $isPayment ? $setting->group : null,
-            'activeHospitalSection' => $hospitalSection,
-            'activePharmacySection' => $pharmacySection,
             'isPlatform' => $request->attributes->get('application_scope') === 'central',
             'formAction' => route($this->routePrefix().'.update', $setting),
             'canUpdate' => Gate::forUser($request->user('web'))
                 ->allows('update', $setting),
-        ]);
+        ];
+
+        return $this->listData($request, $data);
     }
 
     public function edit(Request $request): RedirectResponse
@@ -137,22 +136,11 @@ class SettingController extends BaseController
     {
         $group = $record instanceof Setting ? $record->group : 'company';
         $isPayment = in_array($group, config('settings.payment_groups'), true);
-        $section = null;
-        if ($group === 'hospital') {
-            $section = request()
-                ->input('section', 'patient');
-            $section = is_string($section) && array_key_exists($section, config('settings.hospital_sections')) ? $section : 'patient';
-        } elseif ($group === 'pharmacy') {
-            $section = request()
-                ->input('section', 'general');
-            $section = is_string($section) && array_key_exists($section, config('settings.pharmacy_sections')) ? $section : 'general';
-        }
 
         return redirect()
             ->route($this->routePrefix().'.index', [
                 'group' => $isPayment ? 'payments' : $group,
                 'provider' => $isPayment ? $group : null,
-                'section' => $section,
             ]);
     }
 

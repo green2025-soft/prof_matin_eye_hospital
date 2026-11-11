@@ -24,7 +24,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::connection('tenant')->statement('ALTER TABLE patient_investigations DROP CHECK patient_investigations_delivery_status_check');
+        $connection = DB::connection('tenant');
+        $dropCheck = $connection->isMaria() ? 'DROP CONSTRAINT' : 'DROP CHECK';
+
+        $connection->statement("ALTER TABLE patient_investigations {$dropCheck} patient_investigations_delivery_status_check");
 
         Schema::connection('tenant')->table('patient_investigations', function (Blueprint $table): void {
             $table->dropColumn('delivery_status');

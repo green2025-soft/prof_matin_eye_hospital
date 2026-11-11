@@ -1,12 +1,18 @@
 @extends('core::layouts.app')
 
-@section('title', ucfirst($filters['product_type'] ?? 'medicine').' Sales')
+@php
+    $productType = $filters['product_type'] ?? 'medicine';
+    $pageTitle = ucfirst($productType).' Sales';
+    $showActions = $canUpdateSales || $canDeleteSales;
+@endphp
+
+@section('title', $pageTitle)
 
 @section('content')
     <div class="d-flex justify-content-between gap-3 align-items-start mb-3">
-        @include('core::partials.heading', ['title' => ucfirst($filters['product_type'] ?? 'medicine').' Sales'])
+        @include('core::partials.heading', ['title' => $pageTitle])
         @if ($canCreate)
-            <a class="btn btn-primary text-nowrap" href="{{ route($routePrefix.'.create', ['product_type' => $filters['product_type'] ?? 'medicine']) }}">
+            <a class="btn btn-primary text-nowrap" href="{{ route($routePrefix.'.create', ['product_type' => $productType]) }}">
                 <i class="fa-solid fa-plus me-2" aria-hidden="true"></i>New sale
             </a>
         @endif
@@ -27,7 +33,7 @@
                         <th scope="col" class="text-end">Paid</th>
                         <th scope="col" class="text-end">Due</th>
                         <th scope="col">Status</th>
-                        @if ($canUpdateSales || $canDeleteSales)
+                        @if ($showActions)
                             <th scope="col" class="text-end">Actions</th>
                         @endif
                     </tr>
@@ -46,7 +52,7 @@
                             <td>
                                 @include('pharmacy::entries.partials.status')
                             </td>
-                            @if ($canUpdateSales || $canDeleteSales)
+                            @if ($showActions)
                                 <td class="text-end">
                                     @if ($canUpdateSales && ! $record->voided_at)
                                         <a class="btn btn-outline-primary btn-sm app-action-button" href="{{ route($routePrefix.'.edit', ['sale' => $record, 'product_type' => $record->product_type]) }}" aria-label="Edit {{ $record->number }}" title="Edit">
@@ -67,7 +73,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ 7 + (int) ($canUpdateSales || $canDeleteSales) }}" class="text-center text-body-secondary py-4">No sales found.</td>
+                            <td colspan="{{ 7 + (int) $showActions }}" class="text-center text-body-secondary py-4">No sales found.</td>
                         </tr>
                     @endforelse
                 </tbody>

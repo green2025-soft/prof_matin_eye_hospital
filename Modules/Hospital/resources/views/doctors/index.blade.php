@@ -6,7 +6,7 @@
     @include('core::partials.heading', [
         'title' => $pageTitle,
         'description' => 'Manage doctors, departments, and consultation fees at the selected branch.',
-        'create' => ['model' => \Modules\Hospital\Models\Doctor::class, 'url' => route($routePrefix.'.create'), 'label' => 'New doctor'],
+        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New doctor'],
     ])
 
     <section class="app-card overflow-hidden">

@@ -11,23 +11,35 @@ use Modules\Pharmacy\Models\Unit;
 
 class PurchaseUnitService
 {
-    public function prepare(array $inputs, Collection $products, Collection $savedUnits): array
+    public function prepare(array $inputs, Collection $products, Collection $savedUnits, Collection $baseUnits): array
     {
-        $piece = Unit::query()->lockForUpdate()->firstOrCreate(['symbol' => 'Pcs'], ['name' => 'Piece']);
+        $piece = Unit::lockForUpdate()
+            ->firstOrCreate(['symbol' => 'Pcs'], ['name' => 'Piece']);
         $unitIds = array_filter([...array_column($inputs, 'unit_id'), ...$savedUnits->pluck('unit_id')->all(), $piece->id]);
-        $choices = Unit::query()->whereIn('id', $unitIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
-        $piece = $choices->get($piece->id);
-        if ($piece === null) {
-            throw ValidationException::withMessages(['lines' => 'The available units changed. Reload the invoice and select them again.']);
+        $choices = Unit::whereIn('id', $unitIds)
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('id');
+        $pieceProductIds = $baseUnits->where('unit_id', $piece->id)
+            ->keys()
+            ->all();
+
+        // Catalog loading already locked these products and their existing base units.
+        foreach ($products->except($pieceProductIds)->sortBy('id') as $product) {
+            ProductUnit::lockForUpdate()
+                ->firstOrCreate([
+                    'product_id' => $product->id,
+                    'unit_id' => $piece->id,
+                    'factor' => 1,
+                ]);
         }
 
-        foreach ($products->sortBy('id') as $product) {
-            ProductUnit::query()->lockForUpdate()->firstOrCreate([
-                'product_id' => $product->id, 'unit_id' => $piece->id, 'factor' => 1,
-            ]);
-        }
-
-        return ['piece' => $piece, 'choices' => $choices, 'saved' => $savedUnits];
+        return [
+            'piece' => $piece,
+            'choices' => $choices,
+            'saved' => $savedUnits,
+        ];
     }
 
     public function resolve(Product $product, array $input, ?StockItem $previous, array $units, int|string $index): ProductUnit
@@ -76,9 +88,12 @@ class PurchaseUnitService
         }
         $this->validateFactor($product, $choice, $factor, $units['piece'], "lines.$index.unit_factor");
 
-        return ProductUnit::query()->lockForUpdate()->firstOrCreate([
-            'product_id' => $product->id, 'unit_id' => $choice->id, 'factor' => $factor,
-        ]);
+        return ProductUnit::lockForUpdate()
+            ->firstOrCreate([
+                'product_id' => $product->id,
+                'unit_id' => $choice->id,
+                'factor' => $factor,
+            ]);
     }
 
     private function validateFactor(Product $product, Unit $unit, int $factor, Unit $piece, string $field): void

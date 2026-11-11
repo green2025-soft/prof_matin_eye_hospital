@@ -9,7 +9,10 @@
         <div class="row g-2 align-items-end">
             <div class="col-md-7 col-lg-5">
                 <label class="form-label small" for="supplier_id">Supplier</label>
-                <select class="{{ inputClass('supplier_id', 'form-select') }}" id="supplier_id" name="supplier_id" data-ajax-select data-url="{{ route('pharmacy.payments.suppliers', ['product_type' => $filters['product_type']]) }}" data-placeholder="Search supplier" {{ inputAttrs('supplier_id') }}>
+                <select class="{{ inputClass('supplier_id', 'form-select') }}" id="supplier_id" name="supplier_id"
+                    data-ajax-select data-url="{{ route('pharmacy.payments.suppliers', ['product_type' => $filters['product_type']]) }}"
+                    data-placeholder="Search supplier"
+                    {{ inputAttrs('supplier_id') }}>
                     <option value=""></option>
                     @if ($selectedSupplier !== null)
                         <option value="{{ $selectedSupplier->id }}" selected>{{ $selectedSupplier->name }}</option>

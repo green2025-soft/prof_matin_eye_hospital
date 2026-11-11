@@ -33,14 +33,20 @@ class PurchaseReturnService extends ReturnEntryService
             $entry->lines()->update(['superseded_at' => now(config('app.timezone'))]);
             $entry->unsetRelation('lines');
         }
-        $entry->forceFill(['payment_type_id' => $values['payment_type_id'] ?? null, 'total' => 0, 'initial_paid' => 0]);
+        $entry->forceFill([
+            'payment_type_id' => $values['payment_type_id'] ?? null,
+            'total' => 0,
+            'initial_paid' => 0,
+        ]);
 
         return collect();
     }
 
     protected function prepareEntry(Account $actor, StockEntry $entry, array $values, array $settings, Collection $previousLines): array
     {
-        $purchase = Purchase::query()->whereKey($values['purchase_id'] ?? 0)->lockForUpdate()->first();
+        $purchase = Purchase::whereKey($values['purchase_id'] ?? 0)
+            ->lockForUpdate()
+            ->first();
         if ($purchase === null || $purchase->branch_id !== $entry->branch_id
             || $purchase->product_type !== $entry->product_type || $purchase->voided_at !== null || $purchase->posted_at === null) {
             throw ValidationException::withMessages(['purchase_id' => 'Choose an active original invoice from this branch.']);
@@ -51,10 +57,18 @@ class PurchaseReturnService extends ReturnEntryService
         if (count(array_unique(array_column($inputs, 'purchase_item_id'))) !== count($inputs)) {
             throw ValidationException::withMessages(['lines' => 'Add each original invoice line once, up to 100 lines.']);
         }
-        $originals = $purchase->lines()->with('variant:id,product_id')->whereIn('id', array_column($inputs, 'purchase_item_id'))
-            ->orderBy('id')->lockForUpdate()->get()->keyBy('id');
-        $units = ProductUnit::query()->whereIn('id', array_column($inputs, 'product_unit_id'))
-            ->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+        $originals = $purchase->lines()
+            ->with('variant:id,product_id')
+            ->whereIn('id', array_column($inputs, 'purchase_item_id'))
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('id');
+        $units = ProductUnit::whereIn('id', array_column($inputs, 'product_unit_id'))
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('id');
         $returnedAmounts = $this->returnedAmounts($purchase);
         $lines = [];
         foreach ($inputs as $index => $input) {
@@ -75,10 +89,20 @@ class PurchaseReturnService extends ReturnEntryService
 
     protected function reverseStock(StockEntry $entry): void
     {
-        $purchase = $entry->purchase()->lockForUpdate()->firstOrFail();
+        $purchase = $entry->purchase()
+            ->lockForUpdate()
+            ->firstOrFail();
         $this->reverseReturnBalance($entry, $purchase);
-        $originals = $purchase->lines()->orderBy('id')->lockForUpdate()->get()->keyBy('id');
-        $returned = $entry->lines()->orderBy('id')->lockForUpdate()->get();
+        $originals = $purchase->lines()
+            ->whereIn('id', $entry->lines()->select('purchase_item_id'))
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('id');
+        $returned = $entry->lines()
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
         $this->stock->reverse($entry);
         foreach ($returned as $line) {
             $this->reverseReturnQuantity($originals->get($line->purchase_item_id), $line);
@@ -88,21 +112,27 @@ class PurchaseReturnService extends ReturnEntryService
     public function returnedAmounts(Purchase $purchase, ?PurchaseReturn $excluding = null): Collection
     {
         $activeReturns = function ($query) use ($purchase, $excluding): void {
-            $query->whereNull('superseded_at')->whereHas('purchaseReturn', function ($query) use ($purchase, $excluding): void {
-                $query->where('purchase_id', $purchase->id)->where('branch_id', $purchase->branch_id)
-                    ->where('product_type', $purchase->product_type)->whereNull('voided_at')->whereNull('deleted_at');
-                if ($excluding?->exists) {
-                    $query->whereKeyNot($excluding->id);
-                }
-            });
+            $query->whereNull('superseded_at')
+                ->whereHas('purchaseReturn', function ($query) use ($purchase, $excluding): void {
+                    $query->where('purchase_id', $purchase->id)
+                        ->where('branch_id', $purchase->branch_id)
+                        ->where('product_type', $purchase->product_type)
+                        ->whereNull('voided_at')
+                        ->whereNull('deleted_at');
+                    if ($excluding?->exists) {
+                        $query->whereKeyNot($excluding->id);
+                    }
+                });
         };
 
-        return $purchase->lines()->select('id')
+        return $purchase->lines()
+            ->select('id')
             ->withSum(['returns as discount' => $activeReturns], 'discount')
             ->withSum(['returns as invoice_discount' => $activeReturns], 'invoice_discount')
             ->withSum(['returns as vat' => $activeReturns], 'vat')
             ->withSum(['returns as total' => $activeReturns], 'total')
-            ->get()->keyBy('id');
+            ->get()
+            ->keyBy('id');
     }
 
     protected function postStock(StockEntry $entry): int

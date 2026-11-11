@@ -27,7 +27,7 @@ class SessionController extends Controller
             $accountType = 'user';
         }
 
-        return view('core::auth.login', [
+        $data = [
             'loginTitle' => $central ? 'Sign in to Core administration' : 'Sign in to your workspace',
             'loginDescription' => $central
                 ? 'Manage tenants, plans, subscriptions, invoices and payments.'
@@ -35,7 +35,9 @@ class SessionController extends Controller
             'tenantLogin' => ! $central,
             'accountType' => $accountType,
             'accountTypes' => $accountTypes,
-        ]);
+        ];
+
+        return view('core::auth.login', $data);
     }
 
     public function store(LoginRequest $request): RedirectResponse
@@ -78,11 +80,9 @@ class SessionController extends Controller
 
                 try {
                     Tenant::forgetCurrent();
-                    $admin = Admin::query()
-                        ->findOrFail($handoff['admin_id']);
+                    $admin = Admin::findOrFail($handoff['admin_id']);
                     $access->transaction($admin, function (Account $actor) use ($handoff, $request): void {
-                        $current = Tenant::query()
-                            ->whereKey($handoff['tenant_id'])
+                        $current = Tenant::whereKey($handoff['tenant_id'])
                             ->lockForUpdate()
                             ->firstOrFail();
                         Gate::forUser($actor)

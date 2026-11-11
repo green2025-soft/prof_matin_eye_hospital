@@ -25,10 +25,10 @@ class LayoutComposer
         $central = $this->request->attributes->get('application_scope') === 'central';
         $setting = $view->getData()['setting'] ?? null;
         $connection = (new Setting)->getConnection();
-        $branding = $setting instanceof Setting && $setting->exists && $setting->group === 'branding'
+        $isBrandingForm = $setting instanceof Setting && $setting->exists && $setting->group === 'branding'
             && $setting->getConnection()->getName() === $connection->getName()
-            && $setting->getConnection()->getDatabaseName() === $connection->getDatabaseName()
-                ? $setting->publicValues() : Setting::values('branding');
+            && $setting->getConnection()->getDatabaseName() === $connection->getDatabaseName();
+        $branding = $isBrandingForm ? $setting->publicValues() : Setting::values('branding');
         $user = null;
         $navigation = [];
         $permissions = [];
@@ -38,7 +38,8 @@ class LayoutComposer
                 ? $this->request->attributes->get('application_subscription')
                 : Subscription::forTenant(Tenant::current()));
             $plan = $subscription?->isUsable() ? $subscription->plan : null;
-            $permissions = $this->access->navigationPermissions($actor, $plan);
+            $permissions = $this->request->attributes->get('navigation_permissions')
+                ?? $this->access->navigationPermissions($actor, $plan);
             $gate = Gate::forUser($actor);
 
             $user = [
@@ -73,7 +74,7 @@ class LayoutComposer
             'year' => now()->year,
             'user' => $user,
             'workspaceLabel' => $central ? 'Platform administration' : 'Tenant workspace',
-            'branchName' => $this->request->attributes->get('branch_name'),
+            'branchName' => Tenant::current()?->has_branches ? $this->request->attributes->get('branch_name') : null,
             'canSwitchBranch' => (bool) $this->request->attributes->get('branch_can_switch') && $this->request->attributes->get('branch_id') !== null,
             'switchBranchUrl' => route('tenantcore.branch-dashboard.destroy'),
             'navigation' => $navigation,

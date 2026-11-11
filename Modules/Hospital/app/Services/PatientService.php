@@ -10,8 +10,6 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Setting;
@@ -35,7 +33,8 @@ class PatientService implements PharmacyCustomers
             $size = config('pagination.default');
         }
         $records = $this->pharmacyCustomerQuery($filters['search'] ?? '', false)
-            ->orderBy('name')->orderBy('id')
+            ->orderBy('name')
+            ->orderBy('id')
             ->paginate($all ? fn (int $total): int => max(1, $total) : $size, ['*'], 'page', $all ? 1 : max(1, (int) ($filters['page'] ?? 1)))
             ->appends(['search' => $filters['search'] ?? '', 'per_page' => $size]);
         $records->setCollection($records->getCollection()->map($this->customerOption(...)));
@@ -50,9 +49,16 @@ class PatientService implements PharmacyCustomers
         if ($eligibleIds !== null) {
             $query->whereIn('id', $eligibleIds);
         }
-        $records = $query->orderBy('name')->orderBy('id')->simplePaginate(20, ['*'], 'page', max(1, $page));
+        $records = $query->orderBy('name')
+            ->orderBy('id')
+            ->simplePaginate(20, ['*'], 'page', max(1, $page));
 
-        return ['results' => $records->getCollection()->map($this->customerOption(...))->all(), 'pagination' => ['more' => $records->hasMorePages()]];
+        return [
+            'results' => $records->getCollection()->map($this->customerOption(...))->all(),
+            'pagination' => [
+                'more' => $records->hasMorePages(),
+            ],
+        ];
     }
 
     private function pharmacyCustomerQuery(string $search, bool $customersOnly): Builder
@@ -94,14 +100,6 @@ class PatientService implements PharmacyCustomers
 
     public function create(Account $actor, array $values, int $branchId): array
     {
-        $values = Validator::make($values, [
-            'name' => ['required', 'string', 'max:255'],
-            'mobile_no' => ['required', 'string', 'max:30', 'regex:/\A(?=.*[0-9])[0-9+() .-]+\z/'],
-            'age' => ['nullable', 'integer', 'between:0,150'],
-            'gender' => ['nullable', Rule::in(array_keys(genders()))],
-            'address' => ['nullable', 'string', 'max:2000'],
-        ])->validate();
-
         try {
             return $this->access->transaction($actor, function (Account $freshActor) use ($values, $branchId): array {
                 $this->authorizePharmacyCustomers($freshActor, creating: true);
@@ -132,8 +130,9 @@ class PatientService implements PharmacyCustomers
         $tenant = Tenant::current();
         $subscription = $tenant === null ? null : Subscription::forTenant($tenant);
         $plan = $subscription?->plan;
+        $isOwner = $this->access->isOwner($actor);
         if (! $subscription?->isUsable() || ! $plan->allowsRoutePermission('pharmacy.view')
-            || (! $this->access->isOwner($actor) && ! $actor->can('pharmacy.view'))) {
+            || (! $isOwner && ! $actor->can('pharmacy.view'))) {
             throw new AuthorizationException('Pharmacy access is required.');
         }
 
@@ -143,10 +142,16 @@ class PatientService implements PharmacyCustomers
             'pharmacy-customers.view', 'pharmacy-payments.view', 'pharmacy-payments.create',
             'pharmacy-reports.view',
         ];
-        $allowed = array_map(fn (string $permission): bool => $plan->allowsRoutePermission($permission)
-            && ($this->access->isOwner($actor) || $actor->can($permission)), $permissions);
+        $allowedCount = 0;
+        foreach ($permissions as $permission) {
+            if ($plan->allowsRoutePermission($permission) && ($isOwner || $actor->can($permission))) {
+                $allowedCount++;
+            }
+        }
 
-        if ($creating ? in_array(false, $allowed, true) : ! in_array(true, $allowed, true)) {
+        // Creation needs both grants; reading accepts any approved customer workflow.
+        $requiredCount = $creating ? count($permissions) : 1;
+        if ($allowedCount < $requiredCount) {
             throw new AuthorizationException('Your account or plan does not include this customer action.');
         }
     }
@@ -164,28 +169,28 @@ class PatientService implements PharmacyCustomers
             throw new AuthorizationException('This patient does not belong to the selected branch.');
         }
 
-        $tenant = Tenant::current();
-        $subscription = $tenant === null ? null : Subscription::forTenant($tenant);
-        if (! $subscription?->isUsable()) {
-            throw new AuthorizationException('An active subscription is required to save patients.');
-        }
-        if (! $subscription->plan->allowsRoutePermission('hospital.view')
-            || ! $subscription->plan->allowsRoutePermission($record ? 'patients.update' : 'patients.create')) {
-            throw new AuthorizationException('Your plan does not include this action.');
-        }
-        if (! $this->access->isOwner($actor) && ! $actor->can('hospital.view')) {
-            throw new AuthorizationException('Hospital access is required to save patients.');
-        }
-
         try {
-            return (new Patient)->writeTransaction($actor, function (Account $actor) use ($record, $values, $branchId): Patient {
+            return $this->access->transaction($actor, function (Account $freshActor) use ($record, $values, $branchId): Patient {
                 $patient = $record ? $record->newQuery()->whereKey($record->getKey())->lockForUpdate()->firstOrFail() : new Patient;
 
                 if (! $patient->exists) {
                     $patient->branch_id = $branchId;
                 }
 
-                Gate::forUser($actor)->authorize($patient->exists ? 'update' : 'create', $patient);
+                Gate::forUser($freshActor)->authorize($patient->exists ? 'update' : 'create', $patient);
+
+                $tenant = Tenant::current();
+                $subscription = $tenant === null ? null : Subscription::forTenant($tenant);
+                if (! $subscription?->isUsable()) {
+                    throw new AuthorizationException('An active subscription is required to save patients.');
+                }
+                if (! $subscription->plan->allowsRoutePermission('hospital.view')
+                    || ! $subscription->plan->allowsRoutePermission($patient->exists ? 'patients.update' : 'patients.create')) {
+                    throw new AuthorizationException('Your plan does not include this action.');
+                }
+                if (! $this->access->isOwner($freshActor) && ! $freshActor->can('hospital.view')) {
+                    throw new AuthorizationException('Hospital access is required to save patients.');
+                }
 
                 if (! $patient->exists) {
                     $patient->patient_id = $this->nextPatientId($patient);
@@ -229,7 +234,9 @@ class PatientService implements PharmacyCustomers
         $date = Carbon::now(config('app.timezone'));
         $formatted = strtr($pattern, [
             '{BRANCH}' => (string) $patient->branch_id,
-            '{YYYY}' => $date->format('Y'), '{MM}' => $date->format('m'), '{DD}' => $date->format('d'),
+            '{YYYY}' => $date->format('Y'),
+            '{MM}' => $date->format('m'),
+            '{DD}' => $date->format('d'),
         ]);
         $formatted = preg_replace_callback('/\{SEQ(?::([1-9]|1[0-2]))?\}/', fn (array $match): string => str_pad((string) $number, (int) ($match[1] ?? 6), '0', STR_PAD_LEFT), $formatted);
         if (mb_strlen($formatted) > 40) {

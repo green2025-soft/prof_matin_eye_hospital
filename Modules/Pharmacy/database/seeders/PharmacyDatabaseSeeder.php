@@ -45,7 +45,7 @@ class PharmacyDatabaseSeeder extends Seeder
                     'categories' => 'phr_product_categories',
                     'dosages' => 'phr_dosages',
                     'suppliers' => 'phr_suppliers',
-                    'shelves' => 'phr_shelves',
+                    'shelves' => 'phr_shelf',
                     'units' => 'phr_units',
                 ];
                 $ids = [];

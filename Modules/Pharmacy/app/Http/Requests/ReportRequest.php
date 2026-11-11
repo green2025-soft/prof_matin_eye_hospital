@@ -4,13 +4,12 @@ namespace Modules\Pharmacy\Http\Requests;
 
 use Illuminate\Validation\Rule;
 use Modules\Core\Http\Requests\BaseRequest;
-use Modules\Pharmacy\Services\PharmacyAccess;
 
 class ReportRequest extends BaseRequest
 {
     public function authorize(): bool
     {
-        return app(PharmacyAccess::class)->allows($this->user('web'), 'pharmacy-reports.view');
+        return true;
     }
 
     public function rules(): array

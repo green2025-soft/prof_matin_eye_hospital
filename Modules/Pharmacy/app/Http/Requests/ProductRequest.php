@@ -24,7 +24,7 @@ class ProductRequest extends BaseRequest
             'category_id' => ['nullable', 'integer', $this->existsIn('phr_product_categories')->where('type', $type)],
             'dosage_id' => ['nullable', 'integer', $this->existsIn('phr_dosages')],
             'supplier_id' => ['nullable', 'integer', $this->existsIn('phr_suppliers')->where('type', $type)],
-            'shelf_id' => ['nullable', 'integer', $this->existsIn('phr_shelves')->where('type', $type)],
+            'shelf_id' => ['nullable', 'integer', $this->existsIn('phr_shelf')->where('type', $type)],
             'strength' => ['nullable', 'string', 'max:255'],
             'purchase_price' => ['required', 'decimal:0,2', 'numeric', 'min:0', 'max:9999999999.99'],
             'sale_price' => ['required', 'decimal:0,2', 'numeric', 'min:0', 'max:9999999999.99'],

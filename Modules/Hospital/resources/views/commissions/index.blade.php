@@ -26,7 +26,10 @@
                 </div>
                 <div class="col-12 col-lg-5">
                     <label class="form-label small" for="filter_reference_id">Reference By</label>
-                    <select class="{{ inputClass('filter_reference_id', 'form-select') }}" id="filter_reference_id" name="filter_reference_id" data-ajax-select data-url="{{ route('hospital.references.options') }}" data-value-field="id" data-label-field="text" data-placeholder="All references" {{ inputAttrs('filter_reference_id') }}>
+                    <select class="{{ inputClass('filter_reference_id', 'form-select') }}" id="filter_reference_id" name="filter_reference_id"
+                        data-ajax-select data-url="{{ route('hospital.references.options') }}"
+                        data-value-field="id" data-label-field="text" data-placeholder="All references"
+                        {{ inputAttrs('filter_reference_id') }}>
                         <option value=""></option>
                         @if ($selectedReference !== null)
                             <option value="{{ $selectedReference->id }}" selected>{{ $selectedReference->reference_id }} — {{ $selectedReference->name }} ({{ $selectedReference->contact_no }})</option>
@@ -81,7 +84,7 @@
                                     @endif
                                 </td>
                                 <td class="small text-nowrap">
-                                    <span class="badge {{ $commission['status'] === 'paid' ? 'text-bg-success' : 'text-bg-warning' }}">{{ $commission['status'] === 'paid' ? 'Paid' : 'Unpaid' }}</span>
+                                    <span class="badge {{ $commission['status'] === 'paid' ? 'text-bg-success' : 'text-bg-warning' }}">{{ ucfirst($commission['status']) }}</span>
                                     @if ($commission['paid_at'] !== null)
                                         <div class="text-body-secondary mt-1">{{ $commission['paid_at'] }}</div>
                                     @endif
@@ -89,12 +92,13 @@
                                 @if ($canManageCommissions)
                                     <td class="text-end">
                                         @if ($commission['can_pay'] || $commission['can_unpay'])
+                                            @php($targetStatus = $commission['can_unpay'] ? 'unpaid' : 'paid')
                                             <form class="d-inline-flex" action="{{ route($routePrefix.'.update', ['service' => $commission['service'], 'invoice' => $commission['source_id']] + $filters) }}" method="POST">
                                                 @csrf
                                                 @method('PUT')
-                                                <input name="target_status" type="hidden" value="{{ $commission['can_unpay'] ? 'unpaid' : 'paid' }}">
-                                                <button class="btn btn-sm text-nowrap {{ $commission['can_unpay'] ? 'btn-outline-secondary' : 'btn-success' }}" type="submit" aria-label="{{ $commission['can_unpay'] ? 'Mark unpaid' : 'Mark paid' }}: {{ $commission['invoice_no'] ?: '#'.$commission['source_id'] }}">
-                                                    <i class="fa-solid {{ $commission['can_unpay'] ? 'fa-rotate-left' : 'fa-check' }} me-1" aria-hidden="true"></i>{{ $commission['can_unpay'] ? 'Unpaid' : 'Paid' }}
+                                                <input name="target_status" type="hidden" value="{{ $targetStatus }}">
+                                                <button class="btn btn-sm text-nowrap {{ $commission['can_unpay'] ? 'btn-outline-secondary' : 'btn-success' }}" type="submit" aria-label="Mark {{ $targetStatus }}: {{ $commission['invoice_no'] ?: '#'.$commission['source_id'] }}">
+                                                    <i class="fa-solid {{ $commission['can_unpay'] ? 'fa-rotate-left' : 'fa-check' }} me-1" aria-hidden="true"></i>{{ ucfirst($targetStatus) }}
                                                 </button>
                                             </form>
                                         @elseif ($commission['status'] === 'unpaid' && $commission['pending'] !== '0.00')

@@ -3,6 +3,8 @@
 @section('title', $pageTitle)
 
 @section('content')
+    @php($featuresText = implode("\n", array_keys(array_filter($plan->features ?? []))))
+
     @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Define the price and access included in this plan.'])
     <form class="app-card p-3 p-md-4" action="{{ $formAction }}" method="POST">
         @csrf

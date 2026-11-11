@@ -64,14 +64,16 @@ abstract class BaseController extends Controller
         $model = $this->modelClass();
         $records = (new $model)->optionRecords($request->validated(), $this->selectorFields);
 
+        $data = [
+            'results' => $records->getCollection()
+                ->setVisible($this->selectorFields),
+            'pagination' => [
+                'more' => $records->hasMorePages(),
+            ],
+        ];
+
         return response()
-            ->json([
-                'results' => $records->getCollection()
-                    ->setVisible($this->selectorFields),
-                'pagination' => [
-                    'more' => $records->hasMorePages(),
-                ],
-            ]);
+            ->json($data);
     }
 
     public function isUpdate(Request $request): bool
@@ -295,20 +297,22 @@ abstract class BaseController extends Controller
 
     private function form(Request $request, Model $record): View
     {
-        $data = $this->formValues($request, $record);
+        $form = $this->formValues($request, $record);
 
         if ($this->inlineForm) {
             $model = $this->modelClass();
             $filters = array_replace($this->defaultFilters, $this->routeParameters($record));
 
-            return view($this->views.'.index', [
+            $data = [
                 'records' => Gate::allows('viewAny', $model) ? (new $model)->paginateRecords($filters) : null,
                 'filters' => $filters,
-                'form' => $data,
-            ] + $data);
+                'form' => $form,
+            ] + $form;
+
+            return view($this->views.'.index', $data);
         }
 
-        return view($this->views.'.form', $data);
+        return view($this->views.'.form', $form);
     }
 
     private function formValues(Request $request, Model $record): array

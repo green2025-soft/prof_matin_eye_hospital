@@ -9,7 +9,9 @@
             <div class="col-sm-6 col-lg-3">
                 <label class="form-label small" for="expiry_before">Expires on / before</label>
                 <div class="input-group" data-datepicker>
-                    <input class="{{ inputClass('expiry_before') }}" id="expiry_before" name="expiry_before" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD" value="{{ getValue('expiry_before', null, $filters['expiry_before']) }}" required data-input {{ inputAttrs('expiry_before') }}>
+                    <input class="{{ inputClass('expiry_before') }}" id="expiry_before" name="expiry_before" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD"
+                        value="{{ getValue('expiry_before', null, $filters['expiry_before']) }}" required data-input
+                        {{ inputAttrs('expiry_before') }}>
                     <button class="btn btn-outline-secondary" type="button" data-toggle aria-controls="expiry_before" aria-label="Choose expiry limit"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></button>
                 </div>
                 @error('expiry_before')<div class="invalid-feedback d-block" id="expiry_before-error">{{ $message }}</div>@enderror

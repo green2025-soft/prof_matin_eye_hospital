@@ -7,7 +7,7 @@
         'title' => $pageTitle,
         'description' => 'Immutable receipts for manual and verified online payments.',
         'create' => [
-            'model' => \Modules\Core\Models\Payment::class,
+            'model' => resourceModel('core.payments.create'),
             'url' => route('core.payments.create'),
             'label' => 'Record payment',
         ],
@@ -18,15 +18,9 @@
             <div class="row g-3 align-items-end">
                 <div class="col-md-8">
                     <label class="form-label" for="search">Provider reference</label>
-                    <input
-                        class="{{ inputClass('search') }}"
-                        id="search"
-                        name="search"
-                        type="search"
-                        value="{{ getValue('search', null, $filters['search'] ?? '') }}"
-                        placeholder="Reference starts with..."
-                        {{ inputAttrs('search') }}
-                    >
+                    <input class="{{ inputClass('search') }}" id="search" name="search" type="search"
+                        value="{{ getValue('search', null, $filters['search'] ?? '') }}" placeholder="Reference starts with..."
+                        {{ inputAttrs('search') }}>
                     @error('search')
                         <div class="invalid-feedback d-block" id="search-error">{{ $message }}</div>
                     @enderror

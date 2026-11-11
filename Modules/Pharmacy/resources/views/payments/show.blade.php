@@ -59,13 +59,13 @@
                     @foreach($allocations as $allocation)
                         <tr>
                             <td>
-                                {{ $allocation['number'] }}
+                                {{ $payment->direction === 'customer' ? $allocation->sale?->number : $allocation->purchase?->number }}
                             </td>
                             <td class="text-end">
-                                {{ moneyDecimal($allocation['amount']) }}
+                                {{ moneyDecimal($allocation->amount) }}
                             </td>
                             <td class="text-end">
-                                {{ moneyDecimal($allocation['discount']) }}
+                                {{ moneyDecimal($allocation->discount) }}
                             </td>
                         </tr>
                     @endforeach

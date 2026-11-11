@@ -1,4 +1,4 @@
-<div class="app-clinical-invoice-notes">
+<div class="col-12 col-sm-6 app-clinical-invoice-notes">
     @yield('invoice-notes')
     @if ($refundCause !== null)
         <h2 class="app-clinical-invoice-section-title">Refund cause</h2>

@@ -5,6 +5,7 @@ namespace Modules\Hospital\Http\Controllers;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Modules\Core\Http\Controllers\BaseController;
 use Modules\Core\Http\Requests\ListRequest;
@@ -36,12 +37,11 @@ class PatientOperationController extends BaseController
         $branchId = max(0, (int) $request->attributes->get('branch_id', 0));
         $view = $this->listData($request);
 
-        return $view->with([
+        $data = [
             'invoiceBalances' => app(ClinicalEntryService::class)
                 ->listInvoiceBalances($request->user('web'), new PatientOperation, $view->getData()['records']->modelKeys(), $branchId),
             'filterDoctor' => $this->selectedOption(
-                Doctor::query()
-                    ->where('branch_id', $branchId),
+                Doctor::where('branch_id', $branchId),
                 $request->validated('filter_doctor_id'),
                 ['id', 'doctor_id', 'name']
             ),
@@ -50,15 +50,16 @@ class PatientOperationController extends BaseController
                 $request->validated('filter_patient_id'),
                 ['id', 'patient_id', 'name', 'mobile_no']
             ),
-        ]);
+        ];
+
+        return $view->with($data);
     }
 
     public function show(Request $request, ClinicalEntryService $entries): View
     {
-        return view(
-            'hospital::patient-operations.invoice',
-            $entries->invoiceData($request->user('web'), $this->record($request))
-        );
+        $data = $entries->invoiceData($request->user('web'), $this->record($request));
+
+        return view('hospital::patient-operations.invoice', $data);
     }
 
     public function store(PatientOperationRequest $request, ClinicalEntryService $entries): RedirectResponse
@@ -83,22 +84,20 @@ class PatientOperationController extends BaseController
 
         return [
             'referenceEnabled' => $referenceEnabled,
+            'canCreatePatient' => Gate::forUser($actor)->allows('create', Patient::class),
             'selectedReference' => $referenceEnabled ? $this->selectedOption(Reference::query(), getValue('reference_id', $record), ['id', 'reference_id', 'name', 'contact_no']) : null,
             'selectedPatient' => $this->selectedOption(Patient::query(), getValue('patient_id', $record), ['id', 'name', 'patient_id', 'mobile_no']),
             'selectedDoctor' => $this->selectedOption(
-                Doctor::query()
-                    ->where('branch_id', $branchId),
+                Doctor::where('branch_id', $branchId),
                 getValue('doctor_id', $record),
                 ['id', 'doctor_id', 'name', 'consultation_fee', 'follow_up_fee']
             ),
-            'paymentTypes' => PaymentType::query()
-                ->orderBy('ordering')
+            'paymentTypes' => PaymentType::orderBy('ordering')
                 ->orderBy('id')
                 ->get(['id', 'name']),
             'selectedOperation' => $this->selectedOption(Operation::query(), getValue('operation_id', $record), ['id', 'name', 'single_rate', 'both_rate']),
             'selectedConsultant' => $this->selectedOption(
-                Doctor::query()
-                    ->where('branch_id', $branchId),
+                Doctor::where('branch_id', $branchId),
                 getValue('consultant_id', $record),
                 ['id', 'doctor_id', 'name']
             ),

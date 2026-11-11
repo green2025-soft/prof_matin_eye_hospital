@@ -18,6 +18,7 @@ class SwitchTenantDatabase extends SwitchTenantDatabaseTask
     {
         $this->connectionKey = 'database.connections.'.$this->tenantDatabaseConnectionName();
         $this->defaultCredentials = $this->config->getMany([
+            $this->connectionKey.'.url',
             $this->connectionKey.'.username',
             $this->connectionKey.'.password',
         ]);
@@ -30,6 +31,8 @@ class SwitchTenantDatabase extends SwitchTenantDatabaseTask
         }
 
         $credentials = $this->defaultCredentials;
+        // A connection URL would override the tenant's saved username and password.
+        $credentials[$this->connectionKey.'.url'] = null;
         $username = $tenant->database_username;
 
         // Legacy tenants use the configured account; a supplied account may have an empty password.

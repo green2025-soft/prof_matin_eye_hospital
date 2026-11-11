@@ -15,7 +15,6 @@ use Modules\Pharmacy\Http\Requests\PurchaseRequest;
 use Modules\Pharmacy\Models\Purchase;
 use Modules\Pharmacy\Models\Supplier;
 use Modules\Pharmacy\Models\Unit;
-use Modules\Pharmacy\Services\PharmacyAccess;
 use Modules\Pharmacy\Services\ItemService;
 use Modules\Pharmacy\Services\PurchaseItemService;
 use Modules\Pharmacy\Services\PurchaseService;
@@ -43,17 +42,18 @@ class PurchaseController extends BaseController
 
     public function index(ListRequest $request): View
     {
-        $actor = $request->user('web');
-        $access = app(PharmacyAccess::class);
+        $permissions = $request->attributes->get('navigation_permissions', []);
         $view = $this->listData($request);
         $request->attributes->set('pharmacy_product_type', $view->getData()['filters']['product_type']);
 
-        return $view->with([
+        $data = [
             'resourceParameter' => $this->parameter,
-            'canCreate' => $access->allows($actor, 'pharmacy-purchases.create'),
-            'canUpdatePurchases' => $access->allows($actor, 'pharmacy-purchases.update'),
-            'canDeletePurchases' => $access->allows($actor, 'pharmacy-purchases.delete'),
-        ]);
+            'canCreate' => isset($permissions['pharmacy-purchases.create']),
+            'canUpdatePurchases' => isset($permissions['pharmacy-purchases.update']),
+            'canDeletePurchases' => isset($permissions['pharmacy-purchases.delete']),
+        ];
+
+        return $view->with($data);
     }
 
     public function store(PurchaseRequest $request): RedirectResponse
@@ -66,25 +66,26 @@ class PurchaseController extends BaseController
         $actor = $request->user('web');
         $request->attributes->set('pharmacy_product_type', $purchase->product_type);
 
-        return view(
-            $this->views.'.show',
-            $entries->invoiceData($actor, $purchase) + [
-                'routePrefix' => $this->routePrefix(),
-                'resourceParameter' => $this->parameter,
-                'canEditPurchase' => Gate::forUser($actor)
-                    ->allows('update', $purchase),
-                'canDeletePurchase' => Gate::forUser($actor)
-                    ->allows('delete', $purchase),
-            ]
-        );
+        $data = $entries->invoiceData($actor, $purchase) + [
+            'routePrefix' => $this->routePrefix(),
+            'resourceParameter' => $this->parameter,
+            'canEditPurchase' => Gate::forUser($actor)
+                ->allows('update', $purchase),
+            'canDeletePurchase' => Gate::forUser($actor)
+                ->allows('delete', $purchase),
+        ];
+
+        return view($this->views.'.show', $data);
     }
 
     protected function formData(Account $actor, Model $record): array
     {
-        $productType = $record->exists ? $record->product_type : request()
+        $request = request();
+        $permissions = $request->attributes->get('navigation_permissions', []);
+        $productType = $record->exists ? $record->product_type : $request
             ->query('product_type', 'medicine');
         $productType = in_array($productType, ['medicine', 'optic'], true) ? $productType : 'medicine';
-        request()->attributes->set('pharmacy_product_type', $productType);
+        $request->attributes->set('pharmacy_product_type', $productType);
         if ($record->exists) {
             $record->load([
                 'lines' => fn ($query) => $query->orderBy('id'),
@@ -95,44 +96,32 @@ class PurchaseController extends BaseController
                 'lines.variant.product.units.unit:id,name,symbol',
             ]);
         }
-        $savedLines = $record->exists ? $record->lines->keyBy('id') : collect();
-        $hasOldLines = array_key_exists(
-            'lines',
-            request()
-                ->session()
-                ->getOldInput()
-        );
+        $hasOldLines = $request->session()->hasOldInput('lines');
         $lineInputs = $hasOldLines ? $this->oldRows('lines') : [];
         $settings = Setting::values('pharmacy', $record->getConnectionName());
         $pharmacyPurchase = $productType === 'medicine';
-        $defaultVatMode = $settings['vat_enabled'] ? $settings['vat_mode'] : ($pharmacyPurchase ? 'exclusive' : 'none');
-        $vatMode = getValue('vat_mode', null, $defaultVatMode);
-        $vatMode = in_array($vatMode, ['none', 'inclusive', 'exclusive'], true) ? $vatMode : 'exclusive';
 
-        return [
+        $data = [
             'entry' => $record,
-            'savedLines' => $savedLines,
             'hasOldLines' => $hasOldLines,
             'lineInputs' => $lineInputs,
             'variants' => $hasOldLines ? app(ItemService::class)
                 ->selectedVariants($lineInputs) : collect(),
             'itemFields' => PurchaseItemService::itemFields($settings, $productType),
-            'paymentTypes' => PaymentType::query()
-                ->orderBy('ordering')
+            'pharmacySettings' => $settings,
+            'paymentTypes' => PaymentType::orderBy('ordering')
                 ->orderBy('id')
                 ->get(['id', 'name']),
             'selectedSupplier' => $this->selectedOption(Supplier::query(), getValue('supplier_id', $record)),
             'pharmacyPurchase' => $pharmacyPurchase,
-            'canUpdateProductPrices' => app(PharmacyAccess::class)
-                ->allows($actor, 'pharmacy-products.update'),
-            'purchaseUnits' => Unit::query()
-                ->when(! $pharmacyPurchase, fn ($query) => $query->whereIn('symbol', ['Pcs', 'Pair', 'Box']))
+            'canUpdateProductPrices' => isset($permissions['pharmacy-products.update']),
+            'purchaseUnits' => Unit::when(! $pharmacyPurchase, fn ($query) => $query->whereIn('symbol', ['Pcs', 'Pair', 'Box']))
                 ->orderBy('name')
                 ->orderBy('id')
                 ->get(['id', 'name', 'symbol']),
-            'purchaseVatMode' => $vatMode,
-            'purchaseVatPercent' => $settings['vat_enabled'] ? $settings['vat_percent'] : '0.00',
         ];
+
+        return $data;
     }
 
     public function reverse(Request $request, Purchase $purchase, PurchaseService $entries): RedirectResponse

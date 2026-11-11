@@ -5,20 +5,13 @@ namespace Modules\Hospital\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
-use Modules\Core\Models\Account;
 use Modules\Hospital\Models\Reference;
-use Modules\Hospital\Services\ClinicalEntryService;
 
 class CommissionRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $actor = $this->user('web');
-
-        return $actor instanceof Account && app(ClinicalEntryService::class)->allowsCommissions(
-            $actor, $this->routeIs('hospital.commissions.update') ? 'update' : 'view',
-            (int) $this->attributes->get('branch_id'),
-        );
+        return true;
     }
 
     public function rules(): array
@@ -42,8 +35,7 @@ class CommissionRequest extends FormRequest
     public function validationData(): array
     {
         return $this->routeIs('hospital.commissions.update')
-            ? [...$this->query(), 'target_status' => $this->post('target_status')]
-            : $this->query();
+            ? [...$this->query(), 'target_status' => $this->post('target_status')]: $this->query();
     }
 
     public function filters(): array

@@ -48,35 +48,30 @@ class DueCollectionController extends BaseController
 
     public function show(Request $request, ClinicalEntryService $entries): View
     {
-        return view(
-            'hospital::due-collections.invoice',
-            $entries->invoiceData($request->user('web'), $this->record($request))
-        );
+        $data = $entries->invoiceData($request->user('web'), $this->record($request));
+
+        return view('hospital::due-collections.invoice', $data);
     }
 
     public function invoices(DueCollectionRequest $request, ClinicalEntryService $entries): JsonResponse
     {
         $records = $entries->dueInvoices($request->user('web'), (int) $request->attributes->get('branch_id'), $request->validated());
+        $data = [
+            'records' => $records,
+        ];
 
-        return response()
-            ->json([
-                'results' => $records->getCollection()
-                    ->values()
-                    ->all(),
-                'pagination' => [
-                    'more' => $records->hasMorePages(),
-                ],
-            ]);
+        return JsonResponse::fromJsonString(view('hospital::selectors.invoices', $data)->render());
     }
 
     public function invoice(DueCollectionRequest $request, ClinicalEntryService $entries): JsonResponse
     {
-        return response()
-            ->json($entries->dueCollectionPreview(
-                $request->user('web'),
-                $request->validated('invoice'),
-                (int) $request->attributes->get('branch_id'),
-            ));
+        $data = $entries->dueCollectionPreview(
+            $request->user('web'),
+            $request->validated('invoice'),
+            (int) $request->attributes->get('branch_id'),
+        );
+
+        return response()->json($data);
     }
 
     protected function formData(Account $actor, Model $record): array
@@ -103,8 +98,7 @@ class DueCollectionController extends BaseController
             'collectionPreview' => $collectionPreview,
             'collectionDate' => $record->collection_date?->toDateString() ?? now(config('app.timezone'))
                 ->toDateString(),
-            'paymentTypes' => PaymentType::query()
-                ->orderBy('ordering')
+            'paymentTypes' => PaymentType::orderBy('ordering')
                 ->orderBy('id')
                 ->get(['id', 'name']),
         ];

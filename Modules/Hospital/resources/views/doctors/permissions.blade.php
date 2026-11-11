@@ -10,12 +10,16 @@
         data-permission-total="{{ $permissionCount }}"
         data-permission-initial="{{ implode(',', $selectedPermissions) }}"
     >
-        @include('core::permissions.matrix', [
+        @component('core::permissions.matrix', [
             'recordName' => 'All doctors',
             'formAction' => route('hospital.doctors.permissions-update'),
             'fieldName' => 'permissions',
             'markerName' => 'permissions_present',
-            'isPlan' => false,
+            'canManagePermissions' => $canManagePermissions,
+            'selectedPermissions' => $selectedPermissions,
+            'permissionCount' => $permissionCount,
+            'areas' => $areas,
         ])
+        @endcomponent
     </div>
 @endsection

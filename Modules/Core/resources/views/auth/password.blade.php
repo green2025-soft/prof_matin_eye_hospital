@@ -3,7 +3,7 @@
 @section('title', $pageTitle)
 
 @section('content')
-    <span class="app-auth-form-icon"><i class="fa-solid fa-key" aria-hidden="true"></i></span>
+    <span class="app-auth-form-icon d-inline-flex align-items-center justify-content-center"><i class="fa-solid fa-key" aria-hidden="true"></i></span>
     <h2 class="h3 fw-semibold mb-2">{{ $pageTitle }}</h2>
     <p class="text-body-secondary mb-4">{{ $description }}</p>
 

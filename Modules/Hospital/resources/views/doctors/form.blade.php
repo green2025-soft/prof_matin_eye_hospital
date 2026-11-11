@@ -35,7 +35,10 @@
                 </div>
                 <div class="col-sm-6 col-xl-3">
                     <label class="form-label" for="department_id">Department <span class="text-danger" aria-hidden="true">*</span></label>
-                    <select class="{{ inputClass('department_id', 'form-select') }}" id="department_id" name="department_id" data-ajax-select data-url="{{ route('hospital.departments.options') }}" data-value-field="id" data-label-field="name" data-placeholder="Select a department" required {{ inputAttrs('department_id') }}>
+                    <select class="{{ inputClass('department_id', 'form-select') }}" id="department_id" name="department_id"
+                        data-ajax-select data-url="{{ route('hospital.departments.options') }}"
+                        data-value-field="id" data-label-field="name" data-placeholder="Select a department" required
+                        {{ inputAttrs('department_id') }}>
                         <option value=""></option>
                         @if ($selectedDepartment !== null)
                             <option value="{{ $selectedDepartment->id }}" selected>{{ $selectedDepartment->name }}</option>

@@ -16,16 +16,20 @@ class MenuComposer
             return;
         }
 
-        $actor = $this->request->user('web');
-        $subscription = $this->request->attributes->get('application_subscription');
-        $plan = $subscription?->isUsable() ? $subscription->plan : null;
+        $permissions = $this->request->attributes->get('navigation_permissions');
+
+        if ($permissions === null) {
+            $subscription = $this->request->attributes->get('application_subscription');
+            $plan = $subscription?->isUsable() ? $subscription->plan : null;
+            $permissions = $this->access->navigationPermissions($this->request->user('web'), $plan);
+        }
 
         $view->with('moduleMenu', [
             'view' => 'hospital::partials.menu',
             'homeLabel' => 'Hospital',
             'homeUrl' => route('hospital.dashboard'),
             'homeActive' => $this->request->routeIs('hospital.dashboard'),
-            'permissions' => $this->access->navigationPermissions($actor, $plan),
+            'permissions' => $permissions,
         ]);
     }
 }

@@ -24,7 +24,9 @@ class EnsureActiveSubscription
         if (! $subscription?->isUsable()) {
             abort_if($request->expectsJson(), 403, 'An active subscription is required.');
 
-            return redirect()->route('tenantcore.billing.index')->with('warning', 'Your subscription needs attention. Review Billing to restore workspace access.');
+            return redirect()
+                ->route('tenantcore.billing.index')
+                ->with('warning', 'Your subscription needs attention. Review Billing to restore workspace access.');
         }
 
         $permission = config('permissions.tenant_routes')[$request->route()->getName()] ?? '';

@@ -43,7 +43,7 @@ class PrintComposer
         $view->with([
             'company' => [
                 'name' => $company['name'] ?: $branding['app_name'],
-                'branch_name' => $branch->name,
+                'branch_name' => $branch->is_default ? '' : $branch->name,
                 'address' => $branch->address ?: $company['address'],
                 'phone' => $phone ?: $company['phone'],
                 'email' => $branch->email ?: $company['email'],

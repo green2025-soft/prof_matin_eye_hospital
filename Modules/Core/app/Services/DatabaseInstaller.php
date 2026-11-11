@@ -8,6 +8,7 @@ use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
@@ -59,6 +60,7 @@ class DatabaseInstaller
         $connection = $this->database->build(array_replace(
             $this->config->get('database.connections.tenant'),
             [
+                'url' => null,
                 'database' => $credentials['database'],
                 'username' => $credentials['username'],
                 'password' => (string) ($credentials['password'] ?? ''),
@@ -143,7 +145,23 @@ class DatabaseInstaller
             return;
         }
 
-        $this->database->connection('tenant')->statement('DROP DATABASE `'.$database.'`');
+        try {
+            $this->database->connection('tenant')->statement('DROP DATABASE `'.$database.'`');
+        } catch (QueryException $exception) {
+            $error = (int) ($exception->errorInfo[1] ?? 0);
+
+            if ($error !== 1008 && ! in_array($error, [1044, 1045, 1142, 1227], true)) {
+                throw $exception;
+            }
+
+            if ($error !== 1008) {
+                Log::warning('Tenant database could not be dropped; tenant registration cleanup will continue.', [
+                    'database' => $database,
+                    'mysql_error' => $error,
+                ]);
+            }
+        }
+
         $this->database->purge('tenant');
     }
 
@@ -161,15 +179,26 @@ class DatabaseInstaller
 
         try {
             $this->database->connection('tenant')->getPdo();
+            $this->verify('tenant', $token);
         } catch (PDOException $exception) {
-            if ((int) ($exception->errorInfo[1] ?? 0) === 1049) {
+            $error = (int) ($exception->errorInfo[1] ?? 0);
+
+            if ($error === 1049) {
                 return false; // A previous deletion may have finished DROP before central cleanup.
             }
 
-            throw $exception;
-        }
+            if (! in_array($error, [1044, 1045, 1142, 1227], true)) {
+                throw $exception;
+            }
 
-        $this->verify('tenant', $token);
+            // Access denial does not prove absence; leave the database untouched.
+            Log::warning('Tenant database is inaccessible; tenant registration cleanup will continue without dropping it.', [
+                'database' => $database,
+                'mysql_error' => $error,
+            ]);
+
+            return false;
+        }
 
         return true;
     }

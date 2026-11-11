@@ -1,13 +1,16 @@
+@php
+    $productType = request()->attributes->get('pharmacy_product_type', 'medicine');
+@endphp
 @extends('core::layouts.app')
 
-@section('title', ucfirst(request()->attributes->get('pharmacy_product_type', 'medicine')).' Opening Stock')
+@section('title', ucfirst($productType).' Opening Stock')
 
 @section('content')
-    @include('core::partials.heading', ['title' => 'New '.ucfirst(request()->attributes->get('pharmacy_product_type', 'medicine')).' Opening Stock'])
+    @include('core::partials.heading', ['title' => 'New '.ucfirst($productType).' Opening Stock'])
 
     <form class="app-card p-3 p-md-4" action="{{ $formAction }}" method="POST" data-pharmacy-entry data-type="opening" data-vat-enabled="0">
         @csrf
-        <input id="pharmacy_product_type" name="product_type" type="hidden" value="{{ request()->attributes->get('pharmacy_product_type', 'medicine') }}">
+        <input id="pharmacy_product_type" name="product_type" type="hidden" value="{{ $productType }}">
 
         <div class="row g-3 mb-3">
             <div class="col-sm-6 col-lg-3">

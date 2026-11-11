@@ -48,7 +48,9 @@
              <div class="col-md-4">
                 <label class="form-label" for="due_collection_date">Collection date <span class="text-danger" aria-hidden="true">*</span></label>
                 <div class="input-group" data-datepicker>
-                    <input class="{{ inputClass('collection_date') }}" id="due_collection_date" name="collection_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD" value="{{ getValue('collection_date', null, $collectionDate) }}" required data-input {{ inputAttrs('collection_date', 'due_collection_date') }}>
+                    <input class="{{ inputClass('collection_date') }}" id="due_collection_date" name="collection_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD"
+                        value="{{ getValue('collection_date', null, $collectionDate) }}" required data-input
+                        {{ inputAttrs('collection_date', 'due_collection_date') }}>
                     <button class="btn btn-outline-secondary" type="button" data-toggle aria-controls="due_collection_date" aria-label="Choose collection date" title="Choose collection date"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></button>
                 </div>
                 @error('collection_date')<div class="invalid-feedback d-block" id="due_collection_date-error">{{ $message }}</div>@enderror
@@ -60,7 +62,9 @@
             </div>
             <div class="col-md-4">
                 <label class="form-label" for="due_collection_amount">Amount <span class="text-danger" aria-hidden="true">*</span></label>
-                <input class="{{ inputClass('amount') }}" id="due_collection_amount" name="amount" type="text" inputmode="decimal" maxlength="13" pattern="[0-9]{1,10}([.][0-9]{1,2})?" value="{{ getValue('amount', $due_collection) }}" required data-due-collection-amount {{ inputAttrs('amount', 'due_collection_amount', 'due_collection_amount-help due_collection_amount-client-error') }}>
+                <input class="{{ inputClass('amount') }}" id="due_collection_amount" name="amount" type="text" inputmode="decimal" maxlength="13" pattern="[0-9]{1,10}([.][0-9]{1,2})?"
+                    value="{{ getValue('amount', $due_collection) }}" required data-due-collection-amount
+                    {{ inputAttrs('amount', 'due_collection_amount', 'due_collection_amount-help due_collection_amount-client-error') }}>
                 <div class="form-text" id="due_collection_amount-help">Enter at least 0.01, up to the current due.</div>
                 @error('amount')<div class="invalid-feedback d-block" id="due_collection_amount-error">{{ $message }}</div>@enderror
                 <div class="invalid-feedback d-block" id="due_collection_amount-client-error" data-due-collection-amount-error aria-live="polite" aria-atomic="true"></div>

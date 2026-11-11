@@ -22,16 +22,13 @@ class SettingController extends BaseController
     {
         Gate::authorize('viewAny', Setting::class);
 
-        $setting = Setting::query()
-            ->where('group', 'prescription')
-            ->firstOrFail();
+        $setting = Setting::where('group', 'prescription')->firstOrFail();
 
         $data = [
-            'pageTitle' => 'Prescription settings',
-            'setting' => $setting,
-            'values' => $setting->publicValues(),
-            'canUpdate' => Gate::forUser($request->user('web'))
-                ->allows('update', $setting),
+            'pageTitle'     => 'Prescription settings',
+            'setting'       => $setting,
+            'values'        => $setting->publicValues(),
+            'canUpdate'     => Gate::forUser($request->user('web'))->allows('update', $setting),
         ];
 
         return view('prescription::settings.index', $data);

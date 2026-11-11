@@ -7,13 +7,13 @@
         'title' => $pageTitle,
         'description' => 'Draft, issue, and review workspace invoices.',
         'create' => [
-            'model' => \Modules\Core\Models\Invoice::class,
+            'model' => resourceModel('core.invoices.create'),
             'url' => route('core.invoices.create'),
             'label' => 'New invoice',
         ],
     ])
 
-    @can('create', \Modules\Core\Models\Invoice::class)
+    @can('create', resourceModel('core.invoices.create'))
         <div class="d-flex justify-content-end mb-3">
             <form action="{{ route('core.invoices.generate') }}" method="POST">
                 @csrf
@@ -29,15 +29,9 @@
             <div class="row g-3 align-items-end">
                 <div class="col-md-5">
                     <label class="form-label" for="search">Invoice number</label>
-                    <input
-                        class="{{ inputClass('search') }}"
-                        id="search"
-                        name="search"
-                        type="search"
-                        value="{{ getValue('search', null, $filters['search'] ?? '') }}"
-                        placeholder="Number starts with..."
-                        {{ inputAttrs('search') }}
-                    >
+                    <input class="{{ inputClass('search') }}" id="search" name="search" type="search"
+                        value="{{ getValue('search', null, $filters['search'] ?? '') }}" placeholder="Number starts with..."
+                        {{ inputAttrs('search') }}>
                     @error('search')
                         <div class="invalid-feedback d-block" id="search-error">{{ $message }}</div>
                     @enderror

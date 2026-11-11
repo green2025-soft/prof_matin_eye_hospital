@@ -5,6 +5,7 @@ import { formatAmount, roundRatio } from './money';
 
 const pharmacyQuantityFormatter = new Intl.NumberFormat('en-BD');
 
+// Keep invoice arithmetic in integer minor units, including VAT rounding.
 function pharmacyMinor(value) {
     const match = String(value ?? '').trim().match(/^(\d{1,10})(?:\.(\d{1,2}))?$/);
     return match ? BigInt(match[1]) * 100n + BigInt((match[2] || '').padEnd(2, '0')) : 0n;
@@ -25,8 +26,8 @@ function tradeAmountError(input) {
 function setTradeValidity(input, message) {
     const $input = $(input);
     input.setCustomValidity(message);
-    $input.attr('data-validation-message', message);
-    if ($input.attr('data-touched') === '1') {
+    $input.data('validationMessage', message);
+    if ($input.data('touched')) {
         $input.toggleClass('is-invalid', Boolean(message));
         if (message) $input.attr('aria-invalid', 'true');
         else $input.removeAttr('aria-invalid');
@@ -89,12 +90,12 @@ function readEntryLine(row, trade, options, vatMode) {
     const $selectedUnit = $row.find('[data-pharmacy-purchase-unit] option:selected, select[name$="[product_unit_id]"] option:selected');
     const unitName = $selectedUnit.attr('data-unit-name') || $selectedUnit.text() || $row.attr('data-pharmacy-fixed-unit') || '';
     const $salePrice = $row.find('input[name$="[sale_price_per_piece]"]');
-    row._pharmacySummary = {
+    $row.data('pharmacySummary', {
         quantity: `${pharmacyQuantityFormatter.format(quantity)} ${unitName}`,
         rate: formatAmount(pharmacyMinor($price.val())),
         discount: formatAmount(discount),
         'sale-price': $salePrice.val() ? formatAmount(pharmacyMinor($salePrice.val())) : '—',
-    };
+    });
     if (trade) {
         if (discountMode === 'percent') $discount.attr('max', '100');
         else $discount.removeAttr('max');
@@ -108,6 +109,7 @@ function readEntryLine(row, trade, options, vatMode) {
     };
 }
 
+// Allocate invoice discounts cumulatively so item rounding preserves the exact total.
 function applyInvoiceDiscount(states, beforeDiscount, discount) {
     const allowedDiscount = discount > beforeDiscount ? beforeDiscount : discount;
     let cumulative = 0n;
@@ -148,7 +150,7 @@ function calculateLineVat($row, vatMode, weight) {
     setTradeValidity($amount[0], hiddenVat ? '' : amountError);
     if (hiddenVat && (rateError || amountError)) {
         const $price = $row.find('[name$="[unit_price]"]');
-        setTradeValidity($price[0], $price.attr('data-validation-message')
+        setTradeValidity($price[0], $price.data('validationMessage')
             || 'Saved VAT exceeds this item amount. Adjust Qty or Rate.');
     }
     $row.find('[data-pharmacy-line-vat-total]').text(formatAmount(tax));
@@ -176,8 +178,9 @@ function applyEntryVat(states, net, lineVat, vatMode, percent) {
         }
         if (itemVatMode === 'exclusive') addedTax += rowTax;
         const itemAmount = state.weight + (itemVatMode === 'exclusive' ? rowTax : 0n);
-        row._pharmacySummary.vat = `${formatAmount(rowTax)}${itemVatMode === 'inclusive' ? ' · Included' : (itemVatMode === 'exclusive' ? ' · Added' : '')}`;
-        row._pharmacySummary.amount = formatAmount(itemAmount);
+        const summary = $row.data('pharmacySummary');
+        summary.vat = `${formatAmount(rowTax)}${itemVatMode === 'inclusive' ? ' · Included' : (itemVatMode === 'exclusive' ? ' · Added' : '')}`;
+        summary.amount = formatAmount(itemAmount);
         $row.find('[data-pharmacy-row-amount]').text(formatAmount(itemAmount));
     }
     return { tax, addedTax };
@@ -203,8 +206,8 @@ function validateTradeEntry($form, amounts) {
 function refreshEntryTotal(form) {
     const $form = $(form);
     if (!$form.find('[data-pharmacy-total]').length) return;
-    const trade = $form.is('[data-pharmacy-trade]');
-    const options = form._pharmacyOptions;
+    const trade = $form.hasClass('app-pharmacy-trade-layout');
+    const options = $form.data('pharmacyOptions');
     const lineVat = trade && options.type === 'purchase';
     const $modeInput = $form.find('[data-pharmacy-vat-mode]');
     const vatMode = $modeInput.length ? $modeInput.val() : options.vatMode;
@@ -213,8 +216,8 @@ function refreshEntryTotal(form) {
     }).get();
     const $itemList = $form.find('[data-pharmacy-item-list]');
     if ($itemList.length) {
-        const order = new Map($itemList.find('tr[data-index]').get().map((item, index) => [$(item).attr('data-index'), index]));
-        rows.sort((left, right) => (order.get($(left).attr('data-index')) ?? -1) - (order.get($(right).attr('data-index')) ?? -1));
+        const order = new Map($itemList.children('tr').get().map((item, index) => [$(item).data('pharmacyLineIndex'), index]));
+        rows.sort((left, right) => (order.get($(left).data('pharmacyLineIndex')) ?? -1) - (order.get($(right).data('pharmacyLineIndex')) ?? -1));
     }
     const states = [];
     let subtotal = 0n;
@@ -243,13 +246,14 @@ function refreshEntryTotal(form) {
 
 function refreshReceiptFields(form) {
     const $form = $(form);
+    const options = $form.data('pharmacyOptions');
     const medicine = $form.find('[name="product_type"]').val() === 'medicine';
     $form.find('[data-pharmacy-line]').each(function () {
         const $row = $(this);
         const decrease = $row.find('[name$="[direction]"]').val() === 'decrease';
-        const receipt = form._pharmacyOptions.type === 'opening' || (form._pharmacyOptions.type === 'adjustment' && !decrease);
+        const receipt = options.type === 'opening' || (options.type === 'adjustment' && !decrease);
         $row.find('[name$="[expiry_date]"]').prop('required', medicine && receipt);
-        if (form._pharmacyOptions.type === 'adjustment') {
+        if (options.type === 'adjustment') {
             $row.find('[data-pharmacy-lot]').prop('disabled', !decrease || !$row.find('select[name$="[variant_id]"]').val());
         }
     });
@@ -257,19 +261,20 @@ function refreshReceiptFields(form) {
 
 function selectVariant(row, data) {
     const $row = $(row);
-    row._pharmacyProduct = {
+    const product = {
         id: String(data.product_id || ''),
         purchasePrice: data.purchase_price || '0',
         salePrice: data.sale_price || '0',
     };
+    $row.data('pharmacyProduct', product);
     $row.find('input[name$="[sale_price_per_piece]"]').attr('placeholder', pharmacyMinor(data.sale_price) > 0n ? data.sale_price : '0');
     const $purchaseUnit = $row.find('[data-pharmacy-purchase-unit]');
     if ($purchaseUnit.length || $row.is('[data-pharmacy-fixed-unit]')) {
         if ($purchaseUnit.length) populatePurchaseUnits(row, Array.isArray(data.units) ? data.units : []);
         const factor = pharmacyInteger($row.find('input[name$="[unit_factor]"]').val());
-        const basePrice = pharmacyMinor(row._pharmacyProduct.purchasePrice);
+        const basePrice = pharmacyMinor(product.purchasePrice);
         $row.find('[name$="[unit_price]"]').val(basePrice > 0n && factor > 0n ? formatAmount(basePrice * factor) : '');
-        refreshEntryTotal($row.closest('[data-pharmacy-entry]')[0]);
+        refreshEntryTotal($row.closest('form')[0]);
         return;
     }
     const $unit = $row.find('select[name$="[product_unit_id]"]');
@@ -291,17 +296,20 @@ function selectVariant(row, data) {
 
 function setDefaultPrice(row) {
     const $row = $(row);
-    const form = $row.closest('[data-pharmacy-entry]')[0];
+    const $form = $row.closest('form');
+    const options = $form.data('pharmacyOptions');
+    const product = $row.data('pharmacyProduct');
     const $unit = $row.find('select[name$="[product_unit_id]"]');
     const $price = $row.find('[name$="[unit_price]"]');
-    if (!$unit.length || !$price.length || ['damage', 'transfer'].includes(form._pharmacyOptions.type)) return;
-    const basePrice = form._pharmacyOptions.type === 'sale' ? row._pharmacyProduct.salePrice : row._pharmacyProduct.purchasePrice;
+    if (!$unit.length || !$price.length) return;
+    const basePrice = options.type === 'sale' ? product.salePrice : product.purchasePrice;
     const factor = pharmacyInteger($unit.find('option:selected').attr('data-factor') || 1);
     const minor = pharmacyMinor(basePrice);
     $price.val(minor > 0n ? formatAmount(minor * factor) : '');
-    refreshEntryTotal(form);
+    refreshEntryTotal($form.get(0));
 }
 
+// Hidden saved per-unit amounts follow pack edits without compounding earlier rounding.
 function rescaleHiddenUnitAmount(row, input, basis, previousFactor, nextFactor) {
     const $input = $(input);
     if (!$input.length || basis !== 'unit' || nextFactor < 1n
@@ -351,31 +359,48 @@ function applyPurchaseUnit(row, option, clearPrice = false) {
     if (clearPrice && changed) $price.val('');
 }
 
+// Reuse catalog units and distinct pack sizes; repeated edits must not grow profile data.
 function populatePurchaseUnits(row, profiles) {
     const $row = $(row);
     const $select = $row.find('[data-pharmacy-purchase-unit]');
-    const $form = $row.closest('[data-pharmacy-trade]');
-    const form = $form[0];
-    if (!row._purchaseUnits) {
-        row._purchaseUnits = $select.find('option[data-unit-id]').get().map(option => ({
-            id: $(option).attr('data-unit-id'), name: $(option).text(), symbol: $(option).attr('data-symbol')?.toLowerCase() || '',
-        }));
+    const $form = $row.closest('form');
+    let units = $row.data('purchaseUnits');
+    if (!units) {
+        units = $select.find('option[data-unit-id]').map(function () {
+            const $option = $(this);
+
+            return {
+                id: $option.attr('data-unit-id'),
+                name: $option.text(),
+                symbol: $option.attr('data-symbol')?.toLowerCase() || '',
+            };
+        }).get();
+        $row.data('purchaseUnits', units);
     }
-    const remembered = form._purchasePacks?.get(row._pharmacyProduct.id) || [];
+    const remembered = $form.data('purchasePacks')?.get($row.data('pharmacyProduct').id) || [];
     const unitId = $row.find('input[name$="[unit_id]"]').val();
     const factor = $row.find('input[name$="[unit_factor]"]').val();
-    const optic = $form.find('[name="product_type"]').val() === 'optic';
-    const allProfiles = [...profiles, ...remembered];
-    if (/^\d+$/.test(unitId) && /^[1-9]\d{0,6}$/.test(factor) && Number(factor) <= 1000000) {
-        allProfiles.push({ unit_id: unitId, factor });
+    const allProfiles = [];
+    const sizesByUnit = new Map();
+
+    for (const profile of [...profiles, ...remembered, { unit_id: unitId, factor }]) {
+        const id = String(profile.unit_id);
+        const size = Number(profile.factor);
+        if (!/^\d+$/.test(id) || !Number.isInteger(size) || size < 1 || size > 1000000) continue;
+
+        if (!sizesByUnit.has(id)) sizesByUnit.set(id, new Set());
+        const sizes = sizesByUnit.get(id);
+        if (sizes.has(size)) continue;
+
+        sizes.add(size);
+        allProfiles.push({ unit_id: id, factor: String(size) });
     }
-    const pieces = row._purchaseUnits.find(unit => unit.symbol === 'pcs');
+    const pieces = units.find(unit => unit.symbol === 'pcs');
     $select.empty().append($('<option>', { text: 'Unit', value: '' }));
-    for (const unit of row._purchaseUnits) {
-        const fixed = unit.symbol === 'pcs' ? 1 : (optic && unit.symbol === 'pair' ? 2 : null);
-        const factors = fixed === null
-            ? allProfiles.filter(profile => String(profile.unit_id) === unit.id).map(profile => Number(profile.factor)) : [fixed];
-        for (const size of [...new Set(factors)].filter(size => Number.isInteger(size) && size > 0 && size <= 1000000).sort((a, b) => a - b)) {
+    for (const unit of units) {
+        const fixed = unit.symbol === 'pcs' ? 1 : null;
+        const sizes = fixed === null ? [...(sizesByUnit.get(unit.id) || [])].sort((a, b) => a - b) : [fixed];
+        for (const size of sizes) {
             const label = fixed !== null ? unit.name : `${unit.name} · ${size} Pcs`;
             $select.append($('<option>', {
                 text: label, value: `pack:${unit.id}:${size}`, 'data-unit-id': unit.id, 'data-factor': String(size),
@@ -392,7 +417,7 @@ function populatePurchaseUnits(row, profiles) {
     const hasOldSelection = unitId !== '' || factor !== '';
     const hasSelectedPack = $select.find('option').get().some(option => $(option).val() === selected);
     $select.val(hasSelectedPack ? selected : (!hasOldSelection && pieces ? `pack:${pieces.id}:1` : ''));
-    row._unitProfiles = allProfiles;
+    $row.data('unitProfiles', allProfiles);
     applyPurchaseUnit(row, $select.find('option:selected')[0]);
 }
 
@@ -409,11 +434,17 @@ function refreshReturnUnit(row) {
     $row.find('[data-pharmacy-return-rate]').text(price);
 }
 
+// Return quantities determine both the due reduction and any refundable cash.
 function initializeReturn(form) {
     const $form = $(form);
     const $rows = $form.find('[data-pharmacy-line]');
     const $firstQuantity = $form.find('[data-pharmacy-return-quantity]').first();
     const $paymentType = $form.find('[name="payment_type_id"]');
+    const $total = $form.find('[data-pharmacy-return-total]');
+    const $due = $form.find('[data-pharmacy-return-due]');
+    const $cash = $form.find('[data-pharmacy-return-cash]');
+    const $count = $form.find('[data-pharmacy-return-count]');
+    const $paymentNote = $form.find('[data-pharmacy-return-payment-note]');
     const remainingTotal = pharmacyInteger($form.attr('data-return-source-total'))
         - pharmacyInteger($form.attr('data-return-source-returned')) + pharmacyInteger($form.attr('data-return-edit-total'));
     const settlementDiscount = pharmacyInteger($form.attr('data-return-source-discount'));
@@ -443,12 +474,12 @@ function initializeReturn(form) {
 
         const cash = selected > 0 && total > dueBeforeReturn ? total - dueBeforeReturn : 0n;
         const dueAdjusted = total > cash ? total - cash : 0n;
-        $form.find('[data-pharmacy-return-total]').text(formatAmount(total));
-        $form.find('[data-pharmacy-return-due]').text(formatAmount(dueAdjusted));
-        $form.find('[data-pharmacy-return-cash]').text(formatAmount(cash));
-        $form.find('[data-pharmacy-return-count]').text(String(selected));
+        $total.text(formatAmount(total));
+        $due.text(formatAmount(dueAdjusted));
+        $cash.text(formatAmount(cash));
+        $count.text(selected);
         $paymentType.prop('required', cash > 0n);
-        $form.find('[data-pharmacy-return-payment-note]').prop('hidden', cash === 0n);
+        $paymentNote.prop('hidden', cash === 0n);
     }
     $rows.each(function () { refreshReturnUnit(this); });
     $form.on('input.pharmacy', '[data-pharmacy-return-quantity]', refreshSelection);
@@ -461,49 +492,57 @@ function initializeReturn(form) {
     refreshSelection();
 }
 
-function initializeStockEntry(form) {
+function initializeEntryData(form) {
     const $form = $(form);
-    form._pharmacyOptions = {
+    $form.data('pharmacyOptions', {
         type: $form.attr('data-type'),
         vatMode: $form.attr('data-vat-enabled') === '1' ? $form.attr('data-vat-mode') : 'none',
         vatPercent: $form.attr('data-vat-percent') || '0',
         allowWithoutStock: $form.attr('data-allow-without-stock') === '1',
         revisionStock: {},
         ...JSON.parse($form.find('#pharmacy-sale-options').text() || '{}'),
-    };
+    });
     $form.find('[data-pharmacy-line]').each(function () {
         const $row = $(this);
-        this._pharmacyProduct = {
+        $row.data('pharmacyProduct', {
             id: $row.attr('data-product-id'),
             purchasePrice: $row.attr('data-purchase-price') || '0',
             salePrice: $row.attr('data-sale-price') || '0',
-        };
-    });
-    if ($form.is('[data-pharmacy-trade]')) {
-        initializeTradeEditor(form, {
-            selectVariant, applyPurchaseUnit, populatePurchaseUnits, setDefaultPrice, refreshEntryTotal,
-            parseInteger: pharmacyInteger,
         });
-        return;
-    }
-    if ($form.is('[data-pharmacy-return]')) {
-        initializeReturn(form);
-        return;
-    }
+    });
+}
+
+function initializeTradeEntry(form) {
+    initializeEntryData(form);
+    initializeTradeEditor(form, {
+        selectVariant,
+        applyPurchaseUnit,
+        populatePurchaseUnits,
+        setDefaultPrice,
+        refreshEntryTotal,
+        parseInteger: pharmacyInteger,
+    });
+}
+
+function initializeStockEntry(form) {
+    initializeEntryData(form);
+
+    const $form = $(form);
     const $rows = $form.find('[data-pharmacy-lines]');
+    const $template = $form.find('[data-pharmacy-line-template]');
     $form.find('select[name$="[variant_id]"]').each(function () {
-        const row = $(this).closest('[data-pharmacy-line]')[0];
+        const product = $(this).closest('[data-pharmacy-line]').data('pharmacyProduct');
         const $selected = $(this).find('option:selected');
-        row._pharmacyProduct.purchasePrice = $selected.attr('data-purchase-price') || '0';
-        row._pharmacyProduct.salePrice = $selected.attr('data-sale-price') || '0';
+        product.purchasePrice = $selected.attr('data-purchase-price') || '0';
+        product.salePrice = $selected.attr('data-sale-price') || '0';
     });
     let nextIndex = Math.max(-1, ...$form.find('[data-pharmacy-line]').get().map(row => Number($(row).attr('data-index')) || 0)) + 1;
     $form.on('click.pharmacy', '[data-pharmacy-add-line]', () => {
         if ($rows.children().length >= 100) return;
-        const $row = $($form.find('[data-pharmacy-line-template]').html().replaceAll('__INDEX__', String(nextIndex++)).trim())
+        const $row = $($template.html().replaceAll('__INDEX__', String(nextIndex++)).trim())
             .filter('[data-pharmacy-line]').first();
         const row = $row.get(0);
-        row._pharmacyProduct = { id: '', purchasePrice: '0', salePrice: '0' };
+        $row.data('pharmacyProduct', { id: '', purchasePrice: '0', salePrice: '0' });
         $rows.append($row);
         window.initAjaxSelects(row);
         window.initDateTimePickers(row);
@@ -593,12 +632,8 @@ function initializeCustomerModal(form) {
 }
 
 function allocationRow($template, invoice, index) {
-    const $row = $template.contents().filter('tr').clone();
+    const $row = $($template.html().replaceAll('__INDEX__', String(index)).trim()).filter('tr').first();
     $row.attr({ 'data-invoice-id': invoice.id, 'data-due': invoice.due });
-    $row.find('[name]').each(function () {
-        const $input = $(this);
-        $input.attr('name', $input.attr('name').replace('__INDEX__', String(index)));
-    });
     $row.find('[data-pharmacy-allocation-select]').attr('aria-label', `Pay invoice ${invoice.number}`);
     $row.find('[data-pharmacy-allocation-number]').text(invoice.number);
     $row.find('[data-pharmacy-allocation-due]').text(invoice.due);
@@ -612,6 +647,7 @@ function allocationRow($template, invoice, index) {
     return $row;
 }
 
+// A party change cancels the old request before loading its outstanding invoices.
 function initializePayment(form) {
     const $form = $(form);
     const $table = $form.find('[data-pharmacy-allocations]');
@@ -621,13 +657,16 @@ function initializePayment(form) {
     const $loading = $form.find('[data-pharmacy-payment-loading]');
     const $direction = $form.find('[name="direction"]');
     const $party = $form.find('[data-pharmacy-payment-party]');
+    const $cashTotal = $form.find('[data-pharmacy-cash-total]');
     let page = 1;
-    let nextIndex = Math.max(-1, ...$table.find('[name]').get().map(input => Number($(input).attr('name').match(/^allocations\[(\d+)\]/)?.[1]) || 0)) + 1;
+    let nextIndex = Math.max(-1, ...$table.find('[name$="[amount]"]').map(function () {
+        return Number($(this).attr('name').match(/^allocations\[(\d+)\]/)?.[1]) || 0;
+    }).get()) + 1;
     let pending = null;
     function refreshCash() {
         let total = 0n;
         $table.find('[name$="[amount]"]:enabled').each(function () { total += pharmacyMinor($(this).val()); });
-        $form.find('[data-pharmacy-cash-total]').text(formatAmount(total));
+        $cashTotal.text(formatAmount(total));
     }
     function clearInvoices() {
         const previous = pending;
@@ -705,11 +744,15 @@ function initializePayment(form) {
 }
 
 $(function () {
+    const $entries = $('[data-pharmacy-entry], .app-pharmacy-trade-layout');
     const $returnSourceForm = $('#pharmacy-return-source-form');
     $('select[form="pharmacy-return-source-form"]').on('change.pharmacy', () => {
         $returnSourceForm[0].requestSubmit();
     });
-    $('[data-pharmacy-entry]').each(function () { initializeStockEntry(this); });
+    $entries.filter('.app-pharmacy-trade-layout').each(function () { initializeTradeEntry(this); });
+    $('[data-pharmacy-return]').each(function () { initializeReturn(this); });
+    $entries.not('.app-pharmacy-trade-layout, [data-pharmacy-return]')
+        .each(function () { initializeStockEntry(this); });
     $('[data-pharmacy-product-form]').each(function () { initializeProductForm(this); });
     $('[data-pharmacy-variant-form]').each(function () { initializeVariantForm(this); });
     $('[data-pharmacy-customer-create]').each(function () { initializeCustomerModal(this); });

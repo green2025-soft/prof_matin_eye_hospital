@@ -42,7 +42,7 @@ class PaymentController extends BaseController
         Gate::authorize('view', $payment);
         $payment->load('invoice');
 
-        return view('core::payments.show', [
+        $data = [
             'payment' => $payment,
             'pageTitle' => 'Payment #'.$payment->getKey(),
             'amount' => Money::decimal($payment->amount_minor),
@@ -54,19 +54,22 @@ class PaymentController extends BaseController
             'invoiceUrl' => Gate::allows('view', $payment->invoice)
                 ? route('core.invoices.show', $payment->invoice)
                 : null,
-        ]);
+        ];
+
+        return view('core::payments.show', $data);
     }
 
     protected function formData(Account $actor, Model $record): array
     {
+        $invoices = Invoice::whereIn('status', [Invoice::STATUS_ISSUED, Invoice::STATUS_PARTIALLY_PAID])
+            ->whereNotNull('issued_at')
+            ->orderByDesc('id')
+            ->limit(100)
+            ->get(['id', 'number', 'currency', 'total_minor', 'paid_minor']);
+
         return [
             'idempotencyKey' => (string) Str::uuid(),
-            'invoices' => Invoice::query()
-                ->whereIn('status', [Invoice::STATUS_ISSUED, Invoice::STATUS_PARTIALLY_PAID])
-                ->whereNotNull('issued_at')
-                ->orderByDesc('id')
-                ->limit(100)
-                ->get(['id', 'number', 'currency', 'total_minor', 'paid_minor']),
+            'invoices' => $invoices,
         ];
     }
 

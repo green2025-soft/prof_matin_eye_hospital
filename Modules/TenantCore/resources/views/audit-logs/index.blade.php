@@ -3,7 +3,7 @@
 @section('title', $pageTitle)
 
 @section('content')
-    @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Review account activity and record changes across branches.'])
+    @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Review account activity and record changes.'])
 
     <section class="app-card overflow-hidden">
         <div class="app-card-heading d-flex align-items-center gap-2 px-3 px-md-4 py-3 border-bottom">
@@ -30,31 +30,27 @@
                     </select>
                     @error('event')<div class="invalid-feedback d-block" id="event-error">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-sm-6 col-lg-3">
-                    <label class="form-label small" for="branch_id">Branch</label>
-                    <select class="{{ inputClass('branch_id', 'form-select') }}" id="branch_id" name="branch_id" data-ajax-select data-url="{{ route('tenantcore.audit-logs.branches') }}" data-value-field="id" data-label-field="name" data-placeholder="All branches" {{ inputAttrs('branch_id') }}>
-                        <option value=""></option>
-                        @if ($selectedBranch !== null)
-                            <option value="{{ $selectedBranch->id }}" selected>{{ $selectedBranch->name }}</option>
-                        @endif
-                    </select>
-                    @error('branch_id')<div class="invalid-feedback d-block" id="branch_id-error">{{ $message }}</div>@enderror
-                </div>
+                @if ($hasBranches)
+                    <div class="col-sm-6 col-lg-3">
+                        <label class="form-label small" for="branch_id">Branch</label>
+                        <select class="{{ inputClass('branch_id', 'form-select') }}" id="branch_id" name="branch_id"
+                            data-ajax-select data-url="{{ route('tenantcore.audit-logs.branches') }}"
+                            data-placeholder="All branches" {{ inputAttrs('branch_id') }}>
+                            <option value=""></option>
+                            @if ($selectedBranch !== null)
+                                <option value="{{ $selectedBranch->id }}" selected>{{ $selectedBranch->name }}</option>
+                            @endif
+                        </select>
+                        @error('branch_id')<div class="invalid-feedback d-block" id="branch_id-error">{{ $message }}</div>@enderror
+                    </div>
+                @endif
                 <div class="col-sm-6 col-lg-4">
                     <label class="form-label small" for="date_from">From date</label>
                     <div class="input-group" data-datepicker>
-                        <input
-                            class="{{ inputClass('date_from') }}"
-                            id="date_from"
-                            name="date_from"
-                            type="text"
-                            inputmode="numeric"
-                            autocomplete="off"
-                            placeholder="YYYY-MM-DD"
+                        <input class="{{ inputClass('date_from') }}" id="date_from" name="date_from" type="text"
+                            inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD"
                             value="{{ getValue('date_from', null, $filters['date_from'] ?? '') }}"
-                            data-input
-                            {{ inputAttrs('date_from') }}
-                        >
+                            data-input {{ inputAttrs('date_from') }}>
                         <button class="btn btn-outline-secondary" type="button" data-toggle aria-controls="date_from" aria-label="Choose from date" title="Choose from date">
                             <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
                         </button>
@@ -67,18 +63,10 @@
                 <div class="col-sm-6 col-lg-4">
                     <label class="form-label small" for="date_to">To date</label>
                     <div class="input-group" data-datepicker>
-                        <input
-                            class="{{ inputClass('date_to') }}"
-                            id="date_to"
-                            name="date_to"
-                            type="text"
-                            inputmode="numeric"
-                            autocomplete="off"
-                            placeholder="YYYY-MM-DD"
+                        <input class="{{ inputClass('date_to') }}" id="date_to" name="date_to" type="text"
+                            inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD"
                             value="{{ getValue('date_to', null, $filters['date_to'] ?? '') }}"
-                            data-input
-                            {{ inputAttrs('date_to') }}
-                        >
+                            data-input {{ inputAttrs('date_to') }}>
                         <button class="btn btn-outline-secondary" type="button" data-toggle aria-controls="date_to" aria-label="Choose to date" title="Choose to date">
                             <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
                         </button>
@@ -99,7 +87,7 @@
         @else
             <div class="table-responsive">
                 <table class="table app-table align-middle mb-0">
-                    <caption class="visually-hidden">Account activity and record changes across all branches</caption>
+                    <caption class="visually-hidden">Account activity and record changes</caption>
                     <thead>
                         <tr>
                             <th scope="col">Time</th>
@@ -107,7 +95,7 @@
                             <th scope="col">Action</th>
                             <th scope="col">Resource</th>
                             <th scope="col">Record</th>
-                            <th scope="col">Branch</th>
+                            @if ($hasBranches)<th scope="col">Branch</th>@endif
                             <th class="text-end" scope="col">Details</th>
                         </tr>
                     </thead>
@@ -131,14 +119,16 @@
                                         <div class="text-body-secondary">#{{ $auditLog->record_id }}</div>
                                     @endif
                                 </td>
-                                <td class="small text-break">
-                                    @if ($auditLog->branch_id !== null)
-                                        <div><a href="{{ route($routePrefix.'.index', ['branch_id' => $auditLog->branch_id]) }}">{{ $auditLog->branch_name ?? 'Branch' }}</a></div>
-                                        <div class="text-body-secondary">#{{ $auditLog->branch_id }}</div>
-                                    @else
-                                        No branch
-                                    @endif
-                                </td>
+                                @if ($hasBranches)
+                                    <td class="small text-break">
+                                        @if ($auditLog->branch_id !== null && (int) $auditLog->branch_id !== (int) $defaultBranchId)
+                                            <div><a href="{{ route($routePrefix.'.index', ['branch_id' => $auditLog->branch_id]) }}">{{ $auditLog->branch_name ?? 'Branch' }}</a></div>
+                                            <div class="text-body-secondary">#{{ $auditLog->branch_id }}</div>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                @endif
                                 <td class="text-end">
                                     <a class="btn btn-outline-secondary btn-sm text-nowrap" href="{{ route($routePrefix.'.show', $auditLog) }}" aria-label="View audit log #{{ $auditLog->id }}"><i class="fa-solid fa-eye me-2" aria-hidden="true"></i>Details</a>
                                 </td>

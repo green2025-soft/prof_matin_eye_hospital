@@ -25,48 +25,44 @@
             @enderror
         </div>
     </div>
-    <div class="app-pharmacy-entry-summary mt-3">
+    <div class="border rounded bg-body-tertiary p-2 mt-3">
         <dl class="mb-0">
-            <div>
-                <dt>Subtotal</dt>
-                <dd data-pharmacy-subtotal>0.00</dd>
+            <div class="d-flex justify-content-between gap-2 py-1">
+                <dt class="small text-body-secondary fw-normal">Subtotal</dt>
+                <dd class="mb-0 text-end" data-pharmacy-subtotal>0.00</dd>
             </div>
-            <div>
-                <dt>Item discounts</dt>
-                <dd data-pharmacy-line-discount>0.00</dd>
+            <div class="d-flex justify-content-between gap-2 py-1">
+                <dt class="small text-body-secondary fw-normal">Item discounts</dt>
+                <dd class="mb-0 text-end" data-pharmacy-line-discount>0.00</dd>
             </div>
-            <div>
-                <dt>Invoice discount</dt>
-                <dd data-pharmacy-invoice-discount>0.00</dd>
+            <div class="d-flex justify-content-between gap-2 py-1">
+                <dt class="small text-body-secondary fw-normal">Invoice discount</dt>
+                <dd class="mb-0 text-end" data-pharmacy-invoice-discount>0.00</dd>
             </div>
-            <div>
-                <dt>Item VAT total</dt>
-                <dd data-pharmacy-vat>0.00</dd>
+            <div class="d-flex justify-content-between gap-2 py-1">
+                <dt class="small text-body-secondary fw-normal">Item VAT total</dt>
+                <dd class="mb-0 text-end" data-pharmacy-vat>0.00</dd>
             </div>
-            <div class="app-pharmacy-entry-payable">
-                <dt>Payable</dt>
-                <dd data-pharmacy-total>0.00</dd>
+            <div class="d-flex justify-content-between gap-2 border-top pt-2 mt-1 fw-bold">
+                <dt class="small fw-semibold">Payable</dt>
+                <dd class="mb-0 text-end" data-pharmacy-total>0.00</dd>
             </div>
-            <div>
-                <dt>Paid</dt>
-                <dd data-pharmacy-paid>0.00</dd>
+            <div class="d-flex justify-content-between gap-2 py-1">
+                <dt class="small text-body-secondary fw-normal">Paid</dt>
+                <dd class="mb-0 text-end" data-pharmacy-paid>0.00</dd>
             </div>
-            <div class="app-pharmacy-entry-due">
-                <dt>Due</dt>
-                <dd data-pharmacy-due>0.00</dd>
+            <div class="d-flex justify-content-between gap-2 bg-primary-subtle text-primary rounded px-2 py-1 mt-1 fw-semibold">
+                <dt class="small fw-semibold">Due</dt>
+                <dd class="mb-0 text-end" data-pharmacy-due>0.00</dd>
             </div>
         </dl>
     </div>
-    <details class="app-pharmacy-entry-notes mt-2"
-        @if (filled(getValue('notes', $entry)) || $errors->has('notes')) open @endif>
-        <summary>Notes</summary>
-        <div class="mt-2">
-            <label class="visually-hidden" for="notes">Notes</label>
-            <textarea class="{{ inputClass('notes') }}" id="notes" name="notes" rows="2" maxlength="2000"
-                {{ inputAttrs('notes') }}>{{ getValue('notes', $entry) }}</textarea>
-            @error('notes')
-                <div class="invalid-feedback d-block" id="notes-error">{{ $message }}</div>
-            @enderror
-        </div>
-    </details>
+    <div class="mt-3">
+        <label class="form-label" for="notes">Notes</label>
+        <textarea class="{{ inputClass('notes') }}" id="notes" name="notes" rows="2" maxlength="2000"
+            {{ inputAttrs('notes') }}>{{ getValue('notes', $entry) }}</textarea>
+        @error('notes')
+            <div class="invalid-feedback d-block" id="notes-error">{{ $message }}</div>
+        @enderror
+    </div>
 </section>

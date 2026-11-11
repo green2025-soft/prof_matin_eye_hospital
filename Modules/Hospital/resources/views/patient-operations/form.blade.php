@@ -58,7 +58,10 @@
         <div class="row g-3 mt-0">
             <div class="col-md-4">
                 <label class="form-label" for="operation_doctor_id">Doctor <span class="text-danger" aria-hidden="true">*</span></label>
-                <select class="{{ inputClass('doctor_id', 'form-select') }}" id="operation_doctor_id" name="doctor_id" data-ajax-select data-url="{{ route('hospital.doctors.options') }}" data-value-field="id" data-label-field="text" data-placeholder="Select a doctor" required {{ inputAttrs('doctor_id', 'operation_doctor_id') }}>
+                <select class="{{ inputClass('doctor_id', 'form-select') }}" id="operation_doctor_id" name="doctor_id"
+                    data-ajax-select data-url="{{ route('hospital.doctors.options') }}"
+                    data-value-field="id" data-label-field="text" data-placeholder="Select a doctor" required
+                    {{ inputAttrs('doctor_id', 'operation_doctor_id') }}>
                     <option value=""></option>
                     @if ($selectedDoctor !== null)
                         <option value="{{ $selectedDoctor->id }}" data-consultation-fee="{{ $selectedDoctor->consultation_fee }}" data-follow-up-fee="{{ $selectedDoctor->follow_up_fee }}" selected>{{ $selectedDoctor->doctor_id ?: $selectedDoctor->id }} — {{ $selectedDoctor->name }}</option>
@@ -78,7 +81,10 @@
             </div>
             <div class="col-md-4">
                 <label class="form-label" for="operation_consultant_id">Consultant</label>
-                <select class="{{ inputClass('consultant_id', 'form-select') }}" id="operation_consultant_id" name="consultant_id" data-ajax-select data-url="{{ route('hospital.doctors.options') }}" data-value-field="id" data-label-field="text" data-placeholder="Select a consultant" {{ inputAttrs('consultant_id', 'operation_consultant_id') }}>
+                <select class="{{ inputClass('consultant_id', 'form-select') }}" id="operation_consultant_id" name="consultant_id"
+                    data-ajax-select data-url="{{ route('hospital.doctors.options') }}"
+                    data-value-field="id" data-label-field="text" data-placeholder="Select a consultant"
+                    {{ inputAttrs('consultant_id', 'operation_consultant_id') }}>
                     <option value=""></option>
                     @if ($selectedConsultant !== null)
                         <option value="{{ $selectedConsultant->id }}" selected>{{ $selectedConsultant->doctor_id ?: $selectedConsultant->id }} — {{ $selectedConsultant->name }}</option>
@@ -91,7 +97,10 @@
         <div class="row g-3 mt-0">
             <div class="col-md-4">
                 <label class="form-label" for="operation_operation_id">Operation <span class="text-danger" aria-hidden="true">*</span></label>
-                <select class="{{ inputClass('operation_id', 'form-select') }}" id="operation_operation_id" name="operation_id" data-ajax-select data-url="{{ route('hospital.operations.options') }}" data-value-field="id" data-label-field="name" data-placeholder="Select an operation" required {{ inputAttrs('operation_id', 'operation_operation_id') }}>
+                <select class="{{ inputClass('operation_id', 'form-select') }}" id="operation_operation_id" name="operation_id"
+                    data-ajax-select data-url="{{ route('hospital.operations.options') }}"
+                    data-value-field="id" data-label-field="name" data-placeholder="Select an operation" required
+                    {{ inputAttrs('operation_id', 'operation_operation_id') }}>
                     <option value=""></option>
                     @if ($selectedOperation !== null)
                         <option value="{{ $selectedOperation->id }}" data-single-rate="{{ $selectedOperation->single_rate }}" data-both-rate="{{ $selectedOperation->both_rate }}" selected>{{ $selectedOperation->name }}</option>
@@ -112,7 +121,9 @@
             <div class="col-md-4">
                 <label class="form-label" for="operation_operation_date">Operation date <span class="text-danger" aria-hidden="true">*</span></label>
                 <div class="input-group" data-datepicker>
-                    <input class="{{ inputClass('operation_date') }}" id="operation_operation_date" name="operation_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD" value="{{ getValue('operation_date', null, $operationDate) }}" required data-input {{ inputAttrs('operation_date', 'operation_operation_date') }}>
+                    <input class="{{ inputClass('operation_date') }}" id="operation_operation_date" name="operation_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD"
+                        value="{{ getValue('operation_date', null, $operationDate) }}" required data-input
+                        {{ inputAttrs('operation_date', 'operation_operation_date') }}>
                     <button class="btn btn-outline-secondary" type="button" data-toggle aria-controls="operation_operation_date" aria-label="Choose operation date" title="Choose operation date"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></button>
                 </div>
                 @error('operation_date')<div class="invalid-feedback d-block" id="operation_operation_date-error">{{ $message }}</div>@enderror
@@ -123,7 +134,10 @@
             <div class="row g-3 mt-0">
                 <div class="col-md-4">
                     <label class="form-label" for="operation_reference_id">Reference</label>
-                    <select class="{{ inputClass('reference_id', 'form-select') }}" id="operation_reference_id" name="reference_id" data-ajax-select data-url="{{ route('hospital.references.options') }}" data-value-field="id" data-label-field="text" data-placeholder="Select a reference" {{ inputAttrs('reference_id', 'operation_reference_id') }}>
+                    <select class="{{ inputClass('reference_id', 'form-select') }}" id="operation_reference_id" name="reference_id"
+                        data-ajax-select data-url="{{ route('hospital.references.options') }}"
+                        data-value-field="id" data-label-field="text" data-placeholder="Select a reference"
+                        {{ inputAttrs('reference_id', 'operation_reference_id') }}>
                         <option value=""></option>
                         @if ($selectedReference !== null)
                             <option value="{{ $selectedReference->id }}" selected>{{ $selectedReference->reference_id }} — {{ $selectedReference->name }}{{ $selectedReference->contact_no ? ' ('.$selectedReference->contact_no.')' : '' }}</option>
@@ -143,7 +157,9 @@
                 </div>
                 <div class="col-sm-6 col-xl-3">
                     <label class="form-label" for="operation_discount_amount">Discount amount <span class="text-danger" aria-hidden="true">*</span></label>
-                    <input class="{{ inputClass('discount_amount') }}" id="operation_discount_amount" name="discount_amount" type="text" inputmode="decimal" maxlength="13" value="{{ getValue('discount_amount', $patient_operation, '0.00') }}" required data-clinical-discount-amount {{ inputAttrs('discount_amount', 'operation_discount_amount') }}>
+                    <input class="{{ inputClass('discount_amount') }}" id="operation_discount_amount" name="discount_amount" type="text" inputmode="decimal" maxlength="13"
+                        value="{{ getValue('discount_amount', $patient_operation, '0.00') }}" required data-clinical-discount-amount
+                        {{ inputAttrs('discount_amount', 'operation_discount_amount') }}>
                     @error('discount_amount')<div class="invalid-feedback d-block" id="operation_discount_amount-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6 col-xl-3">

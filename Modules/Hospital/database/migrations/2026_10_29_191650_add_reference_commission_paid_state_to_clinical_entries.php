@@ -20,8 +20,11 @@ return new class extends Migration
 
     public function down(): void
     {
+        $connection = DB::connection('tenant');
+        $dropCheck = $connection->isMaria() ? 'DROP CONSTRAINT' : 'DROP CHECK';
+
         foreach (['consultations', 'patient_investigations', 'patient_operations'] as $name) {
-            DB::connection('tenant')->statement("ALTER TABLE `{$name}` DROP CHECK `{$name}_reference_commission_paid_check`");
+            $connection->statement("ALTER TABLE `{$name}` {$dropCheck} `{$name}_reference_commission_paid_check`");
             Schema::connection('tenant')->table($name, function (Blueprint $table): void {
                 $table->dropColumn(['reference_commission_paid_amount', 'reference_commission_paid_at']);
             });

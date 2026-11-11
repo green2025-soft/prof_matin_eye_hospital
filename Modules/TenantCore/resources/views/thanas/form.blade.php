@@ -19,7 +19,9 @@
         </div>
         <div>
             <label class="form-label" for="district_id">District <span class="text-danger" aria-hidden="true">*</span></label>
-            <select class="{{ inputClass('district_id', 'form-select') }}" id="district_id" name="district_id" data-ajax-select data-url="{{ route('tenantcore.districts.options') }}" data-value-field="id" data-label-field="name" data-placeholder="Select a district" required {{ inputAttrs('district_id') }}>
+            <select class="{{ inputClass('district_id', 'form-select') }}" id="district_id" name="district_id"
+                data-ajax-select data-url="{{ route('tenantcore.districts.options') }}"
+                data-placeholder="Select a district" required {{ inputAttrs('district_id') }}>
                 <option value=""></option>
                 @if ($selectedDistrict !== null)
                     <option value="{{ $selectedDistrict->id }}" {{ getSelected($selectedDistrict->id, 'district_id', $thana) }}>{{ $selectedDistrict->name }}</option>

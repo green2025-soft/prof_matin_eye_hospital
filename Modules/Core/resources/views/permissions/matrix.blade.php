@@ -12,35 +12,10 @@
             Select visible
         </label>
     </div>
-    @if ($isPlan)
-        <div class="px-3 px-md-4 py-3 border-bottom">
-            <input name="unrestricted_route_access" type="hidden" value="0">
-            <label class="form-check d-flex align-items-center gap-2 mb-2" for="unrestricted-route-access">
-                <input
-                    class="{{ inputClass('unrestricted_route_access', 'form-check-input') }}"
-                    id="unrestricted-route-access"
-                    name="unrestricted_route_access"
-                    type="checkbox"
-                    value="1"
-                    data-permission-unrestricted
-                    {{ getChecked(1, 'unrestricted_route_access', null, $unrestrictedRouteAccess) }}
-                    {{ inputAttrs('unrestricted_route_access', 'unrestricted-route-access', 'plan-routes-help') }}
-                    @disabled(! $canManagePermissions)
-                >
-                Allow all current and future routes
-            </label>
-            <p class="form-text mb-0" id="plan-routes-help">
-                Uncheck to use only the selected actions; no selections means no optional routes. Account roles still apply.
-                Dashboard, sign-in, password recovery, and Billing remain available for subscription and payment recovery.
-            </p>
-            @error('unrestricted_route_access')
-                <div class="invalid-feedback d-block" id="unrestricted-route-access-error">{{ $message }}</div>
-            @enderror
-        </div>
-    @endif
+    {{ $slot }}
     <div class="px-3 px-md-4 py-3 border-bottom">
-        <div class="app-permission-toolbar">
-            <div>
+        <div class="app-permission-toolbar row align-items-end">
+            <div class="col-md">
                 <label class="form-label small" for="permission-area">Area</label>
                 <select class="form-select" id="permission-area" data-permission-area>
                     <option value="">All areas</option>
@@ -49,7 +24,7 @@
                     @endforeach
                 </select>
             </div>
-            <div>
+            <div class="col-md">
                 <label class="form-label small" for="permission-group">Group</label>
                 <select class="form-select" id="permission-group" data-permission-group>
                     <option value="">All groups</option>
@@ -60,7 +35,7 @@
                     @endforeach
                 </select>
             </div>
-            <div>
+            <div class="col-md-5">
                 <label class="form-label small" for="permission-search">Search permissions</label>
                 <div class="app-input-wrap app-search-field">
                     <i class="fa-solid fa-magnifying-glass app-search-icon" aria-hidden="true"></i>
@@ -96,12 +71,8 @@
                 <tbody>
                     @foreach ($areas as $area)
                         @foreach ($area['groups'] as $group)
-                            <tr
-                                data-permission-row
-                                data-permission-area-key="{{ $area['key'] }}"
-                                data-permission-group-key="{{ $group['key'] }}"
-                                data-permission-search-text="{{ $area['label'].' '.$group['label'].' '.implode(' ', array_column($group['permissions'], 'name')).' '.implode(' ', array_column($group['permissions'], 'label')) }}"
-                            >
+                            <tr data-permission-row data-permission-area-key="{{ $area['key'] }}"
+                                data-permission-group-key="{{ $group['key'] }}">
                                 <th class="app-permission-area" scope="row">
                                     <label class="d-flex align-items-center gap-2">
                                         <input class="form-check-input mt-0" type="checkbox" data-permission-area-toggle data-area-key="{{ $area['key'] }}" aria-label="Select area {{ $area['label'] }}">
@@ -118,18 +89,11 @@
                                     <div class="app-permission-options d-flex flex-wrap gap-2">
                                         @foreach ($group['permissions'] as $permission)
                                             <label class="app-permission-option app-check-option d-flex align-items-center gap-2" for="permission-{{ $permission['id'] }}" title="{{ $permission['name'] }}">
-                                                <input
-                                                    class="{{ inputClass($fieldName, 'form-check-input') }}"
-                                                    id="permission-{{ $permission['id'] }}"
-                                                    name="{{ $fieldName }}[]"
-                                                    type="checkbox"
-                                                    value="{{ $permission['id'] }}"
+                                                <input class="{{ inputClass($fieldName, 'form-check-input') }}"
+                                                    id="permission-{{ $permission['id'] }}" name="{{ $fieldName }}[]"
+                                                    type="checkbox" value="{{ $permission['id'] }}"
                                                     {{ getChecked($permission['id'], $fieldName, null, $selectedPermissions) }}
-                                                    {{ inputAttrs($fieldName) }}
-                                                    data-permission-item
-                                                    data-area-key="{{ $area['key'] }}"
-                                                    data-group-key="{{ $group['key'] }}"
-                                                >
+                                                    {{ inputAttrs($fieldName) }} data-permission-item>
                                                 <span class="small">{{ $permission['label'] }}</span>
                                             </label>
                                         @endforeach
@@ -145,7 +109,7 @@
             </table>
         </div>
     </fieldset>
-    <div class="app-permission-footer d-flex flex-wrap align-items-center justify-content-between gap-3 px-3 px-md-4 py-3 border-top">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 px-3 px-md-4 py-3 border-top">
         <span class="app-permission-state small text-body-secondary" data-permission-state>{{ ! $canManagePermissions ? 'Read-only access' : (getValue($markerName) ? 'Unsaved changes' : 'All changes saved') }}</span>
         @if ($canManagePermissions)
             <button class="btn btn-primary" type="submit" data-permission-save>

@@ -68,11 +68,15 @@ class PurchaseService extends TradeEntryService
 
     private function assignSupplier(StockEntry $entry, array $values): void
     {
-        $supplier = Supplier::query()->whereKey($values['supplier_id'] ?? 0)
-            ->where('type', $entry->product_type)->where('active', true)->first();
+        $supplier = Supplier::whereKey($values['supplier_id'] ?? 0)
+            ->where('type', $entry->product_type)
+            ->where('active', true)
+            ->first();
+
         if ($supplier === null) {
             throw ValidationException::withMessages(['supplier_id' => 'Choose a supplier for this product type.']);
         }
+
         $entry->supplier_id = $supplier->id;
         $entry->supplier_invoice_no = $values['supplier_invoice_no'] ?? null;
         $entry->active_supplier_invoice_no = $entry->supplier_invoice_no;

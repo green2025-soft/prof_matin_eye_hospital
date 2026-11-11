@@ -3,7 +3,7 @@
     "alias": "tenantcore",
     "description": "Manage users, branches, permissions and workspace settings.",
     "tenant_dashboard": {
-        "label": "Tenant Core",
+        "label": "Administrator",
         "icon": "users-gear",
         "route": "tenantcore.dashboard",
         "permission": null

@@ -49,22 +49,17 @@
                                 <td class="text-end">
                                     @if ($submission['canReview'])
                                         <div class="d-flex justify-content-end gap-2">
-                                            <form
-                                                action="{{ route('core.checkouts.approve', $submission['id']) }}"
+                                            <form action="{{ route('core.checkouts.approve', $submission['id']) }}"
                                                 method="POST"
-                                                data-confirm="Approve this payment after verifying the received funds?"
-                                            >
+                                                data-confirm="Approve this payment after verifying the received funds?">
                                                 @csrf
                                                 <button class="btn btn-primary btn-sm" type="submit">Approve</button>
                                             </form>
                                             <details>
                                                 <summary class="btn btn-outline-danger btn-sm">Reject</summary>
-                                                <form
-                                                    class="mt-2"
+                                                <form class="mt-2"
                                                     action="{{ route('core.checkouts.reject', $submission['id']) }}"
-                                                    method="POST"
-                                                    data-confirm="Reject this manual payment submission?"
-                                                >
+                                                    method="POST" data-confirm="Reject this manual payment submission?">
                                                     @csrf
                                                     <label class="visually-hidden" for="reject-reason-{{ $submission['id'] }}">
                                                         Rejection reason

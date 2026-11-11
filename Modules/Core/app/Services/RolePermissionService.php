@@ -19,27 +19,37 @@ class RolePermissionService
     public function pageData(Account $actor, array $filters): array
     {
         $this->access->assertActorContext($actor);
-        Gate::forUser($actor)->authorize('viewPermissions', Role::class);
+        Gate::forUser($actor)
+            ->authorize('viewPermissions', Role::class);
+
         $roleId = $filters['role'] ?? null;
         $roleSearch = $filters['role_search'] ?? '';
-        $query = $this->access->rolesQuery($actor)->select(['id', 'name', 'guard_name']);
+        $query = $this->access->rolesQuery($actor)
+            ->select(['id', 'name', 'guard_name']);
 
         if ($roleSearch !== '') {
             $prefix = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $roleSearch);
             $query->whereRaw("name LIKE ? ESCAPE '!'", [$prefix.'%']);
         }
 
-        $matches = $query->orderBy('name')->orderBy('id')->limit(101)->get();
+        $matches = $query->orderBy('name')
+            ->orderBy('id')
+            ->limit(101)
+            ->get();
         $roles = $matches->take(100)->values();
         $selectedRole = null;
+
         if ($roleId !== null) {
             $selectedRole = $matches->firstWhere('id', $roleId)
-                ?? $this->access->rolesQuery($actor)->findOrFail($roleId, ['id', 'name', 'guard_name']);
+                ?? $this->access->rolesQuery($actor)
+                    ->findOrFail($roleId, ['id', 'name', 'guard_name']);
             $actorRoles = $actor->relationLoaded('roles') ? $actor->getRelation('roles') : new Collection;
             $actorRole = $actorRoles->find($selectedRole->getKey());
+
             if ($actorRole?->relationLoaded('permissions')) {
                 $selectedRole->setRelation('permissions', $actorRole->getRelation('permissions'));
             }
+
             (new Collection([$selectedRole, ...$actorRoles->all()]))->loadMissing('permissions:id,name,guard_name');
         }
 
@@ -47,8 +57,12 @@ class RolePermissionService
             $roles->push($selectedRole);
         }
 
-        $permissions = Permission::on($actor->getConnection()->getName())->where('guard_name', 'web')
-            ->whereIn('name', $this->access->permissionNames($actor))->orderBy('name')->limit(501)->get(['id', 'name', 'guard_name']);
+        $permissions = Permission::on($actor->getConnection()->getName())
+            ->where('guard_name', 'web')
+            ->whereIn('name', $this->access->permissionNames($actor))
+            ->orderBy('name')
+            ->limit(501)
+            ->get(['id', 'name', 'guard_name']);
 
         if ($permissions->count() > 500) {
             throw ValidationException::withMessages(['permissions' => 'There are too many available permissions for this page. Contact the application administrator.']);
@@ -77,18 +91,28 @@ class RolePermissionService
 
         $role = $record;
         $permissionIds = $values['permissions'];
-        Gate::forUser($actor)->authorize('managePermissions', $role);
+        Gate::forUser($actor)
+            ->authorize('managePermissions', $role);
 
         return $this->access->transaction($actor, function (Account $freshActor) use ($role, $permissionIds): Role {
             $connection = $freshActor->getConnection()->getName();
-            $record = Role::on($connection)->where('guard_name', 'web')->whereKey($role->getKey())->lockForUpdate()->firstOrFail();
-            Gate::forUser($freshActor)->authorize('managePermissions', $record);
+            $record = Role::on($connection)
+                ->where('guard_name', 'web')
+                ->whereKey($role->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            Gate::forUser($freshActor)
+                ->authorize('managePermissions', $record);
 
             if (count($permissionIds) > 500) {
                 throw ValidationException::withMessages(['permissions' => 'Select no more than 500 permissions.']);
             }
 
-            $permissions = Permission::on($connection)->where('guard_name', 'web')->whereIn('id', $permissionIds)->get(['id', 'name', 'guard_name']);
+            $permissions = Permission::on($connection)
+                ->where('guard_name', 'web')
+                ->whereIn('id', $permissionIds)
+                ->get(['id', 'name', 'guard_name']);
 
             if ($permissions->count() !== count(array_unique($permissionIds))) {
                 throw ValidationException::withMessages(['permissions' => 'Select permissions from the current application.']);
@@ -98,7 +122,9 @@ class RolePermissionService
                 throw ValidationException::withMessages(['permissions' => 'You may grant only permissions you hold yourself.']);
             }
 
-            $currentPermissions = $record->permissions()->get(['id', 'name', 'guard_name']);
+            // Reuse policy-loaded permissions; owner authorization may not have loaded them.
+            $record->loadMissing('permissions:id,name,guard_name');
+            $currentPermissions = $record->permissions;
             $removedPermissions = $currentPermissions->diff($permissions);
             $addedPermissions = $permissions->diff($currentPermissions);
 

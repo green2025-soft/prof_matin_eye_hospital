@@ -24,17 +24,9 @@
                     @if ($invoice->exists)
                         <input class="form-control" id="tenant-id" type="text" value="{{ $invoice->tenant->name }}" readonly>
                     @else
-                        <input
-                            class="{{ inputClass('tenant_id') }}"
-                            id="tenant-id"
-                            name="tenant_id"
-                            type="text"
-                            inputmode="numeric"
-                            list="invoice-tenants"
-                            value="{{ getValue('tenant_id') }}"
-                            required
-                            {{ inputAttrs('tenant_id', 'tenant-id', 'tenant-id-help') }}
-                        >
+                        <input class="{{ inputClass('tenant_id') }}" id="tenant-id" name="tenant_id" type="text"
+                            inputmode="numeric" list="invoice-tenants" value="{{ getValue('tenant_id') }}" required
+                            {{ inputAttrs('tenant_id', 'tenant-id', 'tenant-id-help') }}>
                         <datalist id="invoice-tenants">
                             @foreach ($tenantSuggestions as $tenant)
                                 <option value="{{ $tenant->id }}">{{ $tenant->name }}</option>
@@ -55,18 +47,10 @@
                 <div class="col-md-3 col-xl-3">
                     <label class="form-label" for="due-at">Due date</label>
                     <div class="input-group" data-datepicker>
-                        <input
-                            class="{{ inputClass('due_at') }}"
-                            id="due-at"
-                            name="due_at"
-                            type="text"
-                            inputmode="numeric"
-                            autocomplete="off"
-                            placeholder="YYYY-MM-DD"
-                            value="{{ getValue('due_at', null, $invoice->due_at?->toDateString()) }}"
-                            data-input
-                            {{ inputAttrs('due_at', 'due-at') }}
-                        >
+                        <input class="{{ inputClass('due_at') }}" id="due-at" name="due_at" type="text" inputmode="numeric"
+                            autocomplete="off" placeholder="YYYY-MM-DD"
+                            value="{{ getValue('due_at', null, $invoice->due_at?->toDateString()) }}" data-input
+                            {{ inputAttrs('due_at', 'due-at') }}>
                         <button class="btn btn-outline-secondary" type="button" data-toggle aria-controls="due-at" aria-label="Choose due date" title="Choose due date">
                             <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
                         </button>

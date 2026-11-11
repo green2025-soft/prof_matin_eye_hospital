@@ -1,4 +1,4 @@
-@can('create', \Modules\Hospital\Models\Patient::class)
+@can('create', resourceModel('hospital.patients.create'))
     <div class="modal fade" id="patient-create-modal" tabindex="-1" aria-labelledby="patient-create-modal-heading" aria-hidden="true" data-fields-url="{{ route('hospital.patients.modal') }}">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <form class="modal-content" action="{{ route('hospital.patients.store') }}" method="POST" data-patient-create-form>

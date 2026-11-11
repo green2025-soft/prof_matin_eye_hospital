@@ -4,6 +4,7 @@ namespace Modules\Hospital\Http\Controllers;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Modules\Core\Http\Controllers\BaseController;
 use Modules\Core\Http\Requests\ListRequest;
@@ -30,20 +31,20 @@ class AppointmentController extends BaseController
     {
         $branchId = max(0, (int) $request->attributes->get('branch_id', 0));
 
-        return $this->listData($request)
-            ->with([
-                'filterDoctor' => $this->selectedOption(
-                    Doctor::query()
-                        ->where('branch_id', $branchId),
-                    $request->validated('filter_doctor_id'),
-                    ['id', 'doctor_id', 'name']
-                ),
-                'filterPatient' => $this->selectedOption(
-                    Patient::query(),
-                    $request->validated('filter_patient_id'),
-                    ['id', 'patient_id', 'name', 'mobile_no']
-                ),
-            ]);
+        $data = [
+            'filterDoctor' => $this->selectedOption(
+                Doctor::where('branch_id', $branchId),
+                $request->validated('filter_doctor_id'),
+                ['id', 'doctor_id', 'name']
+            ),
+            'filterPatient' => $this->selectedOption(
+                Patient::query(),
+                $request->validated('filter_patient_id'),
+                ['id', 'patient_id', 'name', 'mobile_no']
+            ),
+        ];
+
+        return $this->listData($request)->with($data);
     }
 
     public function store(AppointmentRequest $request, ClinicalEntryService $entries): RedirectResponse
@@ -64,9 +65,9 @@ class AppointmentController extends BaseController
         $branchId = max(0, (int) request()->attributes->get('branch_id', 0));
 
         return [
+            'canCreatePatient' => Gate::forUser($actor)->allows('create', Patient::class),
             'selectedDoctor' => $this->selectedOption(
-                Doctor::query()
-                    ->where('branch_id', $branchId),
+                Doctor::where('branch_id', $branchId),
                 getValue('doctor_id', $record),
                 ['id', 'doctor_id', 'name']
             ),

@@ -15,7 +15,8 @@ class ReportService
             ->when($variantId, fn (Builder $stock, int $id) => $stock->where('variant_id', $id))
             ->when(filled($search), function (Builder $stock) use ($search): void {
                 $term = '%'.addcslashes($search, '\\%_').'%';
-                $stock->whereHas('variant', fn (Builder $variants) => $variants->whereLike('sku', $term)
+                $stock->whereHas('variant', fn (Builder $variants) => $variants
+                    ->whereLike('sku', $term)
                     ->orWhereHas('product', fn (Builder $products) => $products->whereLike('name', $term)));
             });
     }
@@ -32,15 +33,22 @@ class ReportService
     public function dueBalances(Builder $invoices, string $partyColumn, LengthAwarePaginator $parties): void
     {
         $totals = [];
-        $invoices = (clone $invoices)->whereIn($partyColumn, $parties->pluck('party_id'))
+        $invoices = (clone $invoices)
+            ->whereIn($partyColumn, $parties->pluck('party_id'))
             ->select(['id', $partyColumn, 'total', 'returned', 'paid', 'refunded', 'settlement_discount', 'outstanding']);
 
         // Stream only invoices for this page; integer strings retain exact totals above PHP's integer limit.
         foreach ($invoices->lazyById(200) as $invoice) {
             $partyId = $invoice->getAttribute($partyColumn);
             $totals[$partyId] ??= (object) [
-                'party_id' => $partyId, 'invoice_count' => 0, 'invoice_total' => '0',
-                'returned' => '0', 'paid' => '0', 'refunded' => '0', 'settlement_discount' => '0', 'due' => '0',
+                'party_id' => $partyId,
+                'invoice_count' => 0,
+                'invoice_total' => '0',
+                'returned' => '0',
+                'paid' => '0',
+                'refunded' => '0',
+                'settlement_discount' => '0',
+                'due' => '0',
             ];
             $balance = $totals[$partyId];
             $balance->invoice_count++;
@@ -58,12 +66,18 @@ class ReportService
     public function financialActivities(Builder $invoices, array $dates, string $activity, int $cashSign): Collection
     {
         $totals = [];
-        $invoices = (clone $invoices)->whereIn('entry_date', $dates)->select(['id', 'entry_date', 'total', 'initial_paid']);
+        $invoices = (clone $invoices)
+            ->whereIn('entry_date', $dates)
+            ->select(['id', 'entry_date', 'total', 'initial_paid']);
 
         foreach ($invoices->lazyById(200) as $invoice) {
             $date = $invoice->entry_date->toDateString();
             $totals[$date] ??= (object) [
-                'activity_date' => $date, 'activity' => $activity, 'entries' => 0, 'value' => '0', 'cash' => '0',
+                'activity_date' => $date,
+                'activity' => $activity,
+                'entries' => 0,
+                'value' => '0',
+                'cash' => '0',
             ];
             $row = $totals[$date];
             $row->entries++;
@@ -78,12 +92,18 @@ class ReportService
     public function stockActivities(Builder $entries, array $dates, string $activity): Collection
     {
         $totals = [];
-        $entries = (clone $entries)->whereIn('entry_date', $dates)->select(['id', 'entry_date', 'cost']);
+        $entries = (clone $entries)
+            ->whereIn('entry_date', $dates)
+            ->select(['id', 'entry_date', 'cost']);
 
         foreach ($entries->lazyById(200) as $entry) {
             $date = $entry->entry_date->toDateString();
             $totals[$date] ??= (object) [
-                'activity_date' => $date, 'activity' => $activity, 'entries' => 0, 'value' => '0', 'cash' => '0',
+                'activity_date' => $date,
+                'activity' => $activity,
+                'entries' => 0,
+                'value' => '0',
+                'cash' => '0',
             ];
             $row = $totals[$date];
             $row->entries++;
@@ -96,12 +116,18 @@ class ReportService
     public function paymentActivities(Builder $payments, array $dates, string $activity, int $cashSign): Collection
     {
         $totals = [];
-        $payments = (clone $payments)->whereIn('payment_date', $dates)->select(['id', 'payment_date', 'amount', 'discount']);
+        $payments = (clone $payments)
+            ->whereIn('payment_date', $dates)
+            ->select(['id', 'payment_date', 'amount', 'discount']);
 
         foreach ($payments->lazyById(200) as $payment) {
             $date = $payment->payment_date->toDateString();
             $totals[$date] ??= (object) [
-                'activity_date' => $date, 'activity' => $activity, 'entries' => 0, 'value' => '0', 'cash' => '0',
+                'activity_date' => $date,
+                'activity' => $activity,
+                'entries' => 0,
+                'value' => '0',
+                'cash' => '0',
             ];
             $row = $totals[$date];
             $row->entries++;

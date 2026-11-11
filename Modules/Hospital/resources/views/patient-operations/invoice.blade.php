@@ -1,5 +1,7 @@
 @extends('hospital::invoices.show')
 
+@php($hasAdjustments = $creditAmount !== '0.00' || $collectedAmount !== '0.00')
+
 @section('invoice-notes')
     <h2 class="app-clinical-invoice-section-title">Operation details</h2>
     <p class="app-clinical-invoice-note">Operation date: {{ $operationDate ?? '-' }}</p>
@@ -36,16 +38,16 @@
         </table>
     </div>
 
-    <div class="app-clinical-invoice-summary">
+    <div class="row g-4 app-clinical-invoice-summary">
         @include('hospital::invoices.notes', ['wordsLabel' => 'Amount in words'])
-        <section class="app-clinical-invoice-totals" aria-labelledby="clinical-invoice-totals-title">
+        <section class="col-12 col-sm-6 app-clinical-invoice-totals" aria-labelledby="clinical-invoice-totals-title">
             <h2 class="app-clinical-invoice-section-title" id="clinical-invoice-totals-title">Operation payment summary</h2>
             <dl class="mb-0">
                 <div><dt>Operation charge</dt><dd>{{ $amount }}</dd></div>
                 <div><dt>Discount</dt><dd>{{ $discount }}</dd></div>
-                <div class="app-clinical-invoice-total"><dt>{{ $creditAmount !== '0.00' || $collectedAmount !== '0.00' ? 'Original payable' : 'Payable' }}</dt><dd>{{ $payable }}</dd></div>
-                <div><dt>{{ $creditAmount !== '0.00' || $collectedAmount !== '0.00' ? 'Original paid' : 'Paid' }}</dt><dd>{{ $paid }}</dd></div>
-                <div><dt>{{ $creditAmount !== '0.00' || $collectedAmount !== '0.00' ? 'Original due' : 'Due' }}</dt><dd>{{ $due }}</dd></div>
+                <div class="app-clinical-invoice-total"><dt>{{ $hasAdjustments ? 'Original payable' : 'Payable' }}</dt><dd>{{ $payable }}</dd></div>
+                <div><dt>{{ $hasAdjustments ? 'Original paid' : 'Paid' }}</dt><dd>{{ $paid }}</dd></div>
+                <div><dt>{{ $hasAdjustments ? 'Original due' : 'Due' }}</dt><dd>{{ $due }}</dd></div>
             </dl>
             @include('hospital::invoices.balance')
         </section>

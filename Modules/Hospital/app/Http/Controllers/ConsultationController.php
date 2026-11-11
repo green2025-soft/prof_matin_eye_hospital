@@ -37,12 +37,11 @@ class ConsultationController extends BaseController
         $branchId = max(0, (int) $request->attributes->get('branch_id', 0));
         $view = $this->listData($request);
 
-        return $view->with([
+        $data = [
             'invoiceBalances' => app(ClinicalEntryService::class)
                 ->listInvoiceBalances($request->user('web'), new Consultation, $view->getData()['records']->modelKeys(), $branchId),
             'filterDoctor' => $this->selectedOption(
-                Doctor::query()
-                    ->where('branch_id', $branchId),
+                Doctor::where('branch_id', $branchId),
                 $request->validated('filter_doctor_id'),
                 ['id', 'doctor_id', 'name']
             ),
@@ -51,15 +50,16 @@ class ConsultationController extends BaseController
                 $request->validated('filter_patient_id'),
                 ['id', 'patient_id', 'name', 'mobile_no']
             ),
-        ]);
+        ];
+
+        return $view->with($data);
     }
 
     public function show(Request $request, ClinicalEntryService $entries): View
     {
-        return view(
-            'hospital::consultations.invoice',
-            $entries->invoiceData($request->user('web'), $this->record($request))
-        );
+        $data = $entries->invoiceData($request->user('web'), $this->record($request));
+
+        return view('hospital::consultations.invoice', $data);
     }
 
     public function store(ConsultationRequest $request, ClinicalEntryService $entries): RedirectResponse
@@ -78,43 +78,30 @@ class ConsultationController extends BaseController
     protected function formData(Account $actor, Model $record): array
     {
         $branchId = max(0, (int) request()->attributes->get('branch_id', 0));
-        $today = now(config('app.timezone'))
-            ->toDateString();
+        $today = now(config('app.timezone'))->toDateString();
         $referenceEnabled = (bool) Setting::values('hospital', $record->getConnectionName())['consultation_reference_enabled'];
-        $appointmentId = getValue(
-            'appointment_id',
-            $record,
-            $record->exists ? null : request()
-                ->query('appointment')
+        $appointmentId = getValue('appointment_id',$record,
+            $record->exists ? null : request()->query('appointment')
         );
-        $appointment = $record->exists ? null : $this->selectedOption(
-            Appointment::query(),
-            $appointmentId,
-            ['id', 'patient_id', 'doctor_id', 'appointment_date'],
-        );
+        $appointment = $record->exists ? null : $this->selectedOption(Appointment::query(),$appointmentId,['id', 'patient_id', 'doctor_id', 'appointment_date']);
         if ($appointment !== null) {
-            Gate::forUser($actor)
-                ->authorize('viewAny', Appointment::class);
+            Gate::forUser($actor)->authorize('viewAny', Appointment::class);
         }
 
         return [
             'referenceEnabled' => $referenceEnabled,
+            'canCreatePatient' => Gate::forUser($actor)->allows('create', Patient::class),
             'selectedReference' => $referenceEnabled ? $this->selectedOption(Reference::query(), getValue('reference_id', $record), ['id', 'reference_id', 'name', 'contact_no']) : null,
-            'selectedPatient' => $this->selectedOption(
-                Patient::query(),
+            'selectedPatient' => $this->selectedOption(Patient::query(),
                 getValue('patient_id', $record, $appointment?->patient_id),
                 ['id', 'name', 'patient_id', 'mobile_no']
             ),
             'selectedDoctor' => $this->selectedOption(
-                Doctor::query()
-                    ->where('branch_id', $branchId),
+                Doctor::where('branch_id', $branchId),
                 getValue('doctor_id', $record, $appointment?->doctor_id),
                 ['id', 'doctor_id', 'name', 'consultation_fee', 'follow_up_fee']
             ),
-            'paymentTypes' => PaymentType::query()
-                ->orderBy('ordering')
-                ->orderBy('id')
-                ->get(['id', 'name']),
+            'paymentTypes' => PaymentType::orderBy('ordering')->orderBy('id')->get(['id', 'name']),
             'patientTypes' => patientTypes(),
             'entryDate' => $record->entry_date?->toDateString() ?? $appointment?->appointment_date?->toDateString() ?? $today,
             'dueDate' => $record->due_date?->toDateString() ?? $today,

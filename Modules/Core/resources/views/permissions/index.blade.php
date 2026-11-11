@@ -4,14 +4,11 @@
 
 @section('content')
     @include('core::partials.heading', ['title' => 'Permission', 'description' => 'Select a role, review its access, and save permission changes separately.'])
-    <div
-        data-permission-editor
-        data-permission-readonly="{{ $canManagePermissions ? '0' : '1' }}"
-        data-permission-total="{{ $permissionCount }}"
-        data-permission-initial="{{ implode(',', $selectedPermissions) }}"
-    >
+    <div data-permission-editor data-permission-readonly="{{ $canManagePermissions ? '0' : '1' }}"
+        data-permission-total="{{ $permissionCount }}" data-permission-initial="{{ implode(',', $selectedPermissions) }}">
         @include('core::permissions.picker', [
             'recordLabel' => 'role',
+            'recordIcon' => 'shield-halved',
             'records' => $roles,
             'selectedRecord' => $selectedRole,
             'searchValue' => $roleSearch,
@@ -26,13 +23,17 @@
                 @include('core::partials.empty', ['title' => 'No role selected', 'description' => 'Choose a role above to view its permissions.', 'icon' => 'key'])
             </section>
         @else
-            @include('core::permissions.matrix', [
+            @component('core::permissions.matrix', [
                 'recordName' => $selectedRole->name,
                 'formAction' => route('core.permissions.update', $selectedRole),
                 'fieldName' => 'permissions',
                 'markerName' => 'permissions_present',
-                'isPlan' => false,
+                'canManagePermissions' => $canManagePermissions,
+                'selectedPermissions' => $selectedPermissions,
+                'permissionCount' => $permissionCount,
+                'areas' => $areas,
             ])
+            @endcomponent
         @endif
     </div>
 @endsection

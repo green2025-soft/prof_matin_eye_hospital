@@ -26,7 +26,10 @@
                  </div>
                 <div class="col-sm-6">
                     <label class="form-label" for="category_id">Category <span class="text-danger" aria-hidden="true">*</span></label>
-                    <select class="{{ inputClass('category_id', 'form-select') }}" id="category_id" name="category_id" data-ajax-select data-url="{{ route('hospital.investigation-categories.options') }}" data-value-field="id" data-label-field="name" data-placeholder="Select a category" required {{ inputAttrs('category_id') }}>
+                    <select class="{{ inputClass('category_id', 'form-select') }}" id="category_id" name="category_id"
+                        data-ajax-select data-url="{{ route('hospital.investigation-categories.options') }}"
+                        data-value-field="id" data-label-field="name" data-placeholder="Select a category" required
+                        {{ inputAttrs('category_id') }}>
                         <option value=""></option>
                         @if ($selectedCategory !== null)
                             <option value="{{ $selectedCategory->id }}" selected>{{ $selectedCategory->name }}</option>

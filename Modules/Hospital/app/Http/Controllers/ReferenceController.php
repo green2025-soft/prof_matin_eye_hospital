@@ -34,16 +34,11 @@ class ReferenceController extends BaseController
 
     public function options(SelectorRequest $request): JsonResponse
     {
-        $response = parent::options($request);
-        $data = $response->getData(true);
-        $data['results'] = array_map(
-            fn (array $reference): array => $reference + [
-                'text' => $reference['reference_id'].' — '.$reference['name'].' ('.$reference['contact_no'].')',
-            ],
-            $data['results']
-        );
+        $data = [
+            'records' => (new Reference)->optionRecords($request->validated(), $this->selectorFields),
+        ];
 
-        return $response->setData($data);
+        return JsonResponse::fromJsonString(view('hospital::selectors.references', $data)->render());
     }
 
     public function store(ReferenceRequest $request, ReferenceService $references): RedirectResponse

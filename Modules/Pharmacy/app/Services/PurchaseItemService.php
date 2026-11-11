@@ -37,7 +37,7 @@ class PurchaseItemService
     public function prepare(Account $actor, StockEntry $entry, array $inputs, Collection $previousLines, array $settings): array
     {
         $catalog = $this->items->loadCatalog($inputs);
-        $units = $this->units->prepare($inputs, $catalog['products'], $catalog['units']);
+        $units = $this->units->prepare($inputs, $catalog['products'], $catalog['units'], $catalog['baseUnits']);
         $fields = self::itemFields($settings, $entry->product_type);
         $lines = [];
         $salePrices = [];
@@ -92,14 +92,21 @@ class PurchaseItemService
         $salePrice = filled($input['sale_price_per_piece'] ?? null) ? Money::minor($input['sale_price_per_piece']) : null;
 
         return [
-            'variant_id' => $variant->id, 'product_unit_id' => $unit->id,
-            'quantity' => $quantity, 'factor' => $unit->factor, 'base_quantity' => $this->multiply($quantity, $unit->factor),
-            'unit_price' => $price, 'subtotal' => $subtotal,
-            ...$discount, ...$vat,
+            'variant_id' => $variant->id,
+            'product_unit_id' => $unit->id,
+            'quantity' => $quantity,
+            'factor' => $unit->factor,
+            'base_quantity' => $this->multiply($quantity, $unit->factor),
+            'unit_price' => $price,
+            'subtotal' => $subtotal,
+            ...$discount,
+            ...$vat,
             'sale_price_per_piece' => $salePrice ?? $previous?->sale_price_per_piece,
-            'invoice_discount' => 0, 'total' => $subtotal - $discount['discount'],
+            'invoice_discount' => 0,
+            'total' => $subtotal - $discount['discount'],
             'cost' => $subtotal - $discount['discount'],
-            'batch_no' => $input['batch_no'] ?? null, 'expiry_date' => $input['expiry_date'] ?? null,
+            'batch_no' => $input['batch_no'] ?? null,
+            'expiry_date' => $input['expiry_date'] ?? null,
         ];
     }
 
@@ -120,7 +127,8 @@ class PurchaseItemService
         }
 
         return [
-            'discount' => $amount, 'discount_calculation' => $mode,
+            'discount' => $amount,
+            'discount_calculation' => $mode,
             'discount_percent' => $mode === 'percent' ? Money::decimal($value) : null,
             'discount_unit_amount' => $mode === 'unit' ? $value : null,
         ];
@@ -134,7 +142,8 @@ class PurchaseItemService
         }
 
         return [
-            'vat_mode' => $mode, 'vat_percent' => (string) ($input['vat_percent'] ?? '0'),
+            'vat_mode' => $mode,
+            'vat_percent' => (string) ($input['vat_percent'] ?? '0'),
             'vat_calculation' => $input['vat_input'] ?? 'percent',
             'vat_unit_amount' => ($input['vat_input'] ?? null) === 'unit' ? Money::minor($input['vat_amount'] ?? '0') : null,
             'vat' => Money::minor($input['vat_amount'] ?? '0'),
@@ -170,7 +179,10 @@ class PurchaseItemService
             default => Money::decimal($previous?->discount ?? 0),
         };
 
-        return ['discount' => $value, 'discount_input' => $mode];
+        return [
+            'discount' => $value,
+            'discount_input' => $mode,
+        ];
     }
 
     private function savedVat(?StockItem $previous, int $factor): array
@@ -218,22 +230,24 @@ class PurchaseItemService
     private function updateSalePrices(Account $actor, Collection $products, array $salePrices): void
     {
         $changes = [];
+        $gate = Gate::forUser($actor);
+
+        // Authorize every changed product before saving any catalog price.
         foreach ($salePrices as $productId => $salePrice) {
             $product = $products->get($productId);
             $price = Money::decimal($salePrice);
+
             if ($product->sale_price === $price) {
                 continue;
             }
+
+            if ($changes === []) {
+                $this->pharmacy->authorize($actor, 'pharmacy-products.update');
+            }
+            $gate->authorize('update', $product);
             $changes[$productId] = $price;
         }
-        if ($changes === []) {
-            return;
-        }
-        $this->pharmacy->authorize($actor, 'pharmacy-products.update');
-        // Authorize the full batch before changing any catalog price.
-        foreach (array_keys($changes) as $productId) {
-            Gate::forUser($actor)->authorize('update', $products->get($productId));
-        }
+
         foreach ($changes as $productId => $price) {
             $product = $products->get($productId);
             $product->sale_price = $price;

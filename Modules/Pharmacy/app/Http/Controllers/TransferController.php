@@ -11,7 +11,6 @@ use Modules\Core\Http\Requests\ListRequest;
 use Modules\Core\Models\Account;
 use Modules\Pharmacy\Http\Requests\TransferRequest;
 use Modules\Pharmacy\Models\Transfer;
-use Modules\Pharmacy\Services\PharmacyAccess;
 use Modules\Pharmacy\Services\ItemService;
 use Modules\Pharmacy\Services\TransferService;
 use Modules\TenantCore\Models\Branch;
@@ -39,13 +38,15 @@ class TransferController extends BaseController
     public function index(ListRequest $request): View
     {
         $view = $this->listData($request);
+        $permissions = $request->attributes->get('navigation_permissions', []);
         $request->attributes->set('pharmacy_product_type', $view->getData()['filters']['product_type']);
 
-        return $view->with([
+        $data = [
             'resourceParameter' => 'transfer',
-            'canCreate' => app(PharmacyAccess::class)
-                ->allows($request->user('web'), 'pharmacy-transfers.create'),
-        ]);
+            'canCreate'         => isset($permissions['pharmacy-transfers.create']),
+        ];
+
+        return $view->with($data);
     }
 
     public function store(TransferRequest $request): RedirectResponse
@@ -57,44 +58,40 @@ class TransferController extends BaseController
     {
         $request->attributes->set('pharmacy_product_type', $transfer->product_type);
 
-        return view(
-            'pharmacy::transfers.show',
-            $entries->invoiceData($request->user('web'), $transfer) + [
-                'routePrefix' => $this->routePrefix(),
-                'resourceParameter' => 'transfer',
-            ]
-        );
+        $data = $entries->invoiceData($request->user('web'), $transfer) + [
+            'routePrefix'       => $this->routePrefix(),
+            'resourceParameter' => 'transfer',
+        ];
+
+        return view('pharmacy::transfers.show', $data);
     }
 
     protected function formData(Account $actor, Model $record): array
     {
-        $productType = $record->exists ? $record->product_type : request()
-            ->query('product_type', 'medicine');
+        $request = request();
+        $productType = $record->exists ? $record->product_type : $request->query('product_type', 'medicine');
         $productType = in_array($productType, ['medicine', 'optic'], true) ? $productType : 'medicine';
-        request()->attributes->set('pharmacy_product_type', $productType);
+        $request->attributes->set('pharmacy_product_type', $productType);
         $lineInputs = $this->oldRows('lines');
-        $variants = app(ItemService::class)
-            ->selectedVariants($lineInputs);
+        $variants = app(ItemService::class)->selectedVariants($lineInputs);
 
-        return [
-            'entry' => $record,
+        $data = [
+            'entry'     => $record,
             'lineInputs' => $lineInputs,
-            'variants' => $variants,
-            'branches' => Branch::query()
-                ->where('id', '!=', request()->attributes->get('branch_id'))
-                ->orderBy('name')
-                ->get(['id', 'name']),
+            'variants'  => $variants,
+            'branches'  => Branch::where('id', '!=', $request->attributes->get('branch_id'))->where('is_default', false)->orderBy('name')->get(['id', 'name']),
         ];
+
+        return $data;
     }
 
     public function reverse(Request $request, Transfer $transfer, TransferService $entries): RedirectResponse
     {
         $entries->reverse($request->user('web'), $transfer);
 
-        return redirect()
-            ->route('pharmacy.transfers.show', [
-                'transfer' => $transfer,
-                'product_type' => $transfer->product_type,
+        return redirect()->route('pharmacy.transfers.show', [
+                'transfer'      => $transfer,
+                'product_type'  => $transfer->product_type,
             ])
             ->with('status', 'Entry voided. Stock and balances have been reversed.');
     }

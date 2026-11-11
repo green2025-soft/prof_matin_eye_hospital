@@ -28,8 +28,10 @@ class InvoiceController extends BaseController
 
     public function index(ListRequest $request): View
     {
-        return $this->listData($request, app(InvoiceService::class)
-            ->indexData($request->user('web'), $request->validated()));
+        $data = app(InvoiceService::class)
+            ->indexData($request->user('web'), $request->validated());
+
+        return $this->listData($request, $data);
     }
 
     public function generate(): RedirectResponse
@@ -57,7 +59,9 @@ class InvoiceController extends BaseController
 
     public function show(Request $request, Invoice $invoice, InvoiceService $invoices): View
     {
-        return view('core::invoices.show', $invoices->showData($request->user('web'), $invoice));
+        $data = $invoices->showData($request->user('web'), $invoice);
+
+        return view('core::invoices.show', $data);
     }
 
     public function issue(InvoiceActionRequest $request, InvoiceService $invoices): RedirectResponse

@@ -15,13 +15,17 @@ class MenuComposer
         if (! $this->request->routeIs('pharmacy.*')) {
             return;
         }
-        $actor = $this->request->user('web');
-        $subscription = $this->request->attributes->get('application_subscription');
-        $plan = $subscription?->isUsable() ? $subscription->plan : null;
+        $permissions = $this->request->attributes->get('navigation_permissions');
+        if ($permissions === null) {
+            $actor = $this->request->user('web');
+            $subscription = $this->request->attributes->get('application_subscription');
+            $plan = $subscription?->isUsable() ? $subscription->plan : null;
+            $permissions = $this->access->navigationPermissions($actor, $plan);
+        }
 
         $view->with('moduleMenu', [
             'view' => 'pharmacy::partials.menu', 'homeLabel' => 'Pharmacy', 'homeUrl' => route('pharmacy.dashboard'),
-            'homeActive' => $this->request->routeIs('pharmacy.dashboard'), 'permissions' => $this->access->navigationPermissions($actor, $plan),
+            'homeActive' => $this->request->routeIs('pharmacy.dashboard'), 'permissions' => $permissions,
             'productType' => $this->productType(),
         ]);
     }

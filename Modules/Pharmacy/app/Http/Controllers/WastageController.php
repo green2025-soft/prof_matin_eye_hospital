@@ -13,7 +13,6 @@ use Modules\Core\Models\Setting;
 use Modules\Pharmacy\Http\Requests\WastageRequest;
 use Modules\Pharmacy\Models\StockLot;
 use Modules\Pharmacy\Models\Wastage;
-use Modules\Pharmacy\Services\PharmacyAccess;
 use Modules\Pharmacy\Services\ItemService;
 use Modules\Pharmacy\Services\WastageService;
 
@@ -39,14 +38,16 @@ class WastageController extends BaseController
 
     public function index(ListRequest $request): View
     {
-        $view = $this->listData($request);
+        $view           = $this->listData($request);
+        $permissions    = $request->attributes->get('navigation_permissions', []);
         $request->attributes->set('pharmacy_product_type', $view->getData()['filters']['product_type']);
 
-        return $view->with([
+        $data = [
             'resourceParameter' => 'wastage',
-            'canCreate' => app(PharmacyAccess::class)
-                ->allows($request->user('web'), 'pharmacy-damage.create'),
-        ]);
+            'canCreate'         => isset($permissions['pharmacy-damage.create']),
+        ];
+
+        return $view->with($data);
     }
 
     public function store(WastageRequest $request): RedirectResponse
@@ -58,52 +59,46 @@ class WastageController extends BaseController
     {
         $request->attributes->set('pharmacy_product_type', $wastage->product_type);
 
-        return view(
-            'pharmacy::wastage.show',
-            $entries->invoiceData($request->user('web'), $wastage) + [
-                'routePrefix' => $this->routePrefix(),
-                'resourceParameter' => 'wastage',
-            ]
-        );
+        $data = $entries->invoiceData($request->user('web'), $wastage) + [
+            'routePrefix'       => $this->routePrefix(),
+            'resourceParameter' => 'wastage',
+        ];
+
+        return view('pharmacy::wastage.show', $data);
     }
 
     protected function formData(Account $actor, Model $record): array
     {
-        $productType = $record->exists ? $record->product_type : request()
-            ->query('product_type', 'medicine');
-        $productType = in_array($productType, ['medicine', 'optic'], true) ? $productType : 'medicine';
-        request()->attributes->set('pharmacy_product_type', $productType);
-        $lineInputs = $this->oldRows('lines');
-        $variants = app(ItemService::class)
-            ->selectedVariants($lineInputs);
+        $request        = request();
+        $productType    = $record->exists ? $record->product_type : $request->query('product_type', 'medicine');
+        $productType    = in_array($productType, ['medicine', 'optic'], true) ? $productType : 'medicine';
+        $request->attributes->set('pharmacy_product_type', $productType);
+        $lineInputs     = $this->oldRows('lines');
+        $variants       = app(ItemService::class)->selectedVariants($lineInputs);
 
-        $lotIds = collect($lineInputs)
-            ->pluck('stock_lot_id')
-            ->filter(fn ($id): bool => is_scalar($id) && ctype_digit((string) $id))
-            ->unique()
-            ->all();
-        $stockLots = $lotIds === [] ? collect() : StockLot::query()
-            ->whereIn('id', $lotIds)
-            ->get()
-            ->keyBy('id');
+        $lotIds = collect($lineInputs)->pluck('stock_lot_id')
+            ->filter(fn ($id): bool => is_scalar($id) && ctype_digit((string) $id))->unique()->all();
 
-        return [
-            'entry' => $record,
-            'lineInputs' => $lineInputs,
-            'variants' => $variants,
-            'pharmacySettings' => Setting::values('pharmacy'),
-            'stockLots' => $stockLots,
+        $stockLots = $lotIds === [] ? collect() : StockLot::whereIn('id', $lotIds)->get()->keyBy('id');
+
+        $data = [
+            'entry'             => $record,
+            'lineInputs'        => $lineInputs,
+            'variants'          => $variants,
+            'pharmacySettings'  => Setting::values('pharmacy'),
+            'stockLots'         => $stockLots,
         ];
+
+        return $data;
     }
 
     public function reverse(Request $request, Wastage $wastage, WastageService $entries): RedirectResponse
     {
         $entries->reverse($request->user('web'), $wastage);
 
-        return redirect()
-            ->route('pharmacy.damage.show', [
-                'wastage' => $wastage,
-                'product_type' => $wastage->product_type,
+        return redirect()->route('pharmacy.damage.show', [
+                'wastage'       => $wastage,
+                'product_type'  => $wastage->product_type,
             ])
             ->with('status', 'Entry voided. Stock and balances have been reversed.');
     }

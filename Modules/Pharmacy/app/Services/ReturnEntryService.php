@@ -54,10 +54,14 @@ abstract class ReturnEntryService extends StockEntryService
             throw ValidationException::withMessages(["lines.$index.quantity" => 'Return quantity exceeds the remaining original quantity.']);
         }
         $line = [
-            'variant_id' => $original->variant_id, 'product_unit_id' => $unitId,
-            'quantity' => $quantity, 'factor' => $factor, 'base_quantity' => $baseQuantity,
+            'variant_id' => $original->variant_id,
+            'product_unit_id' => $unitId,
+            'quantity' => $quantity,
+            'factor' => $factor,
+            'base_quantity' => $baseQuantity,
             'unit_price' => $this->items->roundedRatio($original->unit_price, $factor, $original->factor),
-            'vat_mode' => $original->vat_mode, 'cost' => 0,
+            'vat_mode' => $original->vat_mode,
+            'cost' => 0,
         ];
         // Allocate remaining amounts so voiding an earlier return cannot duplicate a rounding penny.
         foreach (['discount', 'invoice_discount', 'vat', 'total'] as $field) {

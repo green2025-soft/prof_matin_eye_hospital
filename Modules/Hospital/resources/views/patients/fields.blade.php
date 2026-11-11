@@ -1,3 +1,5 @@
+@php($usingBirthDate = $ageInput === 'date_of_birth')
+
 <section class="app-form-section" aria-labelledby="{{ $fieldPrefix.'details_heading' }}">
     <h2 class="app-form-section-title" id="{{ $fieldPrefix.'details_heading' }}">
         <span class="app-form-section-icon"><i class="fa-solid fa-hospital-user" aria-hidden="true"></i></span>Patient details
@@ -22,40 +24,40 @@
                     <label class="form-check-label" for="{{ $fieldPrefix.'age_input_age' }}">Age</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" id="{{ $fieldPrefix.'age_input_birth' }}" name="age_input" type="radio" value="date_of_birth" @checked($ageInput === 'date_of_birth')>
+                    <input class="form-check-input" id="{{ $fieldPrefix.'age_input_birth' }}" name="age_input" type="radio" value="date_of_birth" @checked($usingBirthDate)>
                     <label class="form-check-label" for="{{ $fieldPrefix.'age_input_birth' }}">Date of birth</label>
                 </div>
             </div>
             @error('age_input')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
 
-            <div class="row g-3 patient-age-parts" @if ($ageInput === 'date_of_birth') hidden @endif>
+            <div class="row g-3 patient-age-parts" @if ($usingBirthDate) hidden @endif>
                 <div class="col-4">
                     <label class="form-label" for="{{ $fieldPrefix.'age' }}">Years</label>
                     <input class="{{ inputClass('age') }}" id="{{ $fieldPrefix.'age' }}" name="age" type="number" inputmode="numeric"
-                        value="{{ getValue('age', $patient) }}" min="0" max="150" step="1" @disabled($ageInput === 'date_of_birth') {{ inputAttrs('age', $fieldPrefix.'age') }}>
+                        value="{{ getValue('age', $patient) }}" min="0" max="150" step="1" @disabled($usingBirthDate) {{ inputAttrs('age', $fieldPrefix.'age') }}>
                     @error('age')<div class="invalid-feedback d-block" id="{{ $fieldPrefix.'age-error' }}">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-4">
                     <label class="form-label" for="{{ $fieldPrefix.'age_months' }}">Months</label>
                     <input class="{{ inputClass('age_months') }}" id="{{ $fieldPrefix.'age_months' }}" name="age_months" type="number" inputmode="numeric"
-                        value="{{ getValue('age_months', $patient) }}" min="0" max="11" step="1" @disabled($ageInput === 'date_of_birth') {{ inputAttrs('age_months', $fieldPrefix.'age_months') }}>
+                        value="{{ getValue('age_months', $patient) }}" min="0" max="11" step="1" @disabled($usingBirthDate) {{ inputAttrs('age_months', $fieldPrefix.'age_months') }}>
                     @error('age_months')<div class="invalid-feedback d-block" id="{{ $fieldPrefix.'age_months-error' }}">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-4">
                     <label class="form-label" for="{{ $fieldPrefix.'age_days' }}">Days</label>
                     <input class="{{ inputClass('age_days') }}" id="{{ $fieldPrefix.'age_days' }}" name="age_days" type="number" inputmode="numeric"
-                        value="{{ getValue('age_days', $patient) }}" min="0" max="30" step="1" @disabled($ageInput === 'date_of_birth') {{ inputAttrs('age_days', $fieldPrefix.'age_days') }}>
+                        value="{{ getValue('age_days', $patient) }}" min="0" max="30" step="1" @disabled($usingBirthDate) {{ inputAttrs('age_days', $fieldPrefix.'age_days') }}>
                     @error('age_days')<div class="invalid-feedback d-block" id="{{ $fieldPrefix.'age_days-error' }}">{{ $message }}</div>@enderror
                 </div>
             </div>
 
-            <div class="patient-birth-date" @if ($ageInput !== 'date_of_birth') hidden @endif>
+            <div class="patient-birth-date" @if (! $usingBirthDate) hidden @endif>
                 <label class="form-label" for="{{ $fieldPrefix.'date_of_birth' }}">Date of birth</label>
                 <div class="input-group" data-datepicker data-max-date="today" data-min-date="{{ now()->subYears(150)->toDateString() }}">
                     <input class="{{ inputClass('date_of_birth') }}" id="{{ $fieldPrefix.'date_of_birth' }}" name="date_of_birth" type="text" inputmode="numeric"
                         value="{{ $birthDate }}" placeholder="YYYY-MM-DD" autocomplete="off" data-input
-                        @required($ageInput === 'date_of_birth') @disabled($ageInput !== 'date_of_birth') {{ inputAttrs('date_of_birth', $fieldPrefix.'date_of_birth') }}>
-                    <button class="btn btn-outline-secondary" type="button" data-toggle aria-label="Choose date of birth" @disabled($ageInput !== 'date_of_birth')>
+                        @required($usingBirthDate) @disabled(! $usingBirthDate) {{ inputAttrs('date_of_birth', $fieldPrefix.'date_of_birth') }}>
+                    <button class="btn btn-outline-secondary" type="button" data-toggle aria-label="Choose date of birth" @disabled(! $usingBirthDate)>
                         <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
                     </button>
                 </div>
@@ -95,7 +97,10 @@
     <div class="row g-3">
         <div class="col-md-4">
             <label class="form-label" for="{{ $fieldPrefix.'division_id' }}">Division</label>
-            <select class="{{ inputClass('division_id', 'form-select') }}" id="{{ $fieldPrefix.'division_id' }}" name="division_id" data-ajax-select data-url="{{ route('tenantcore.divisions.options') }}" data-value-field="id" data-label-field="name" data-placeholder="Select a division" {{ inputAttrs('division_id', $fieldPrefix.'division_id') }}>
+            <select class="{{ inputClass('division_id', 'form-select') }}" id="{{ $fieldPrefix.'division_id' }}" name="division_id"
+                data-ajax-select data-url="{{ route('tenantcore.divisions.options') }}"
+                data-value-field="id" data-label-field="name" data-placeholder="Select a division"
+                {{ inputAttrs('division_id', $fieldPrefix.'division_id') }}>
                 <option value=""></option>
                 @if ($selectedDivision !== null)
                     <option value="{{ $selectedDivision->id }}" selected>{{ $selectedDivision->name }}</option>
@@ -106,7 +111,10 @@
         <div class="col-md-4">
             <label class="form-label" for="{{ $fieldPrefix.'district_id' }}">District</label>
             <input type="hidden" name="district_id" value="">
-            <select class="{{ inputClass('district_id', 'form-select') }}" id="{{ $fieldPrefix.'district_id' }}" name="district_id" data-ajax-select data-url="{{ route('tenantcore.districts.options') }}" data-value-field="id" data-label-field="name" data-placeholder="Select a district" data-parent-select="{{ $fieldPrefix.'division_id' }}" data-parent-field="division_id" @disabled($selectedDivision === null) {{ inputAttrs('district_id', $fieldPrefix.'district_id') }}>
+            <select class="{{ inputClass('district_id', 'form-select') }}" id="{{ $fieldPrefix.'district_id' }}" name="district_id"
+                data-ajax-select data-url="{{ route('tenantcore.districts.options') }}"
+                data-value-field="id" data-label-field="name" data-placeholder="Select a district" data-parent-select="{{ $fieldPrefix.'division_id' }}" data-parent-field="division_id" @disabled($selectedDivision === null)
+                {{ inputAttrs('district_id', $fieldPrefix.'district_id') }}>
                 <option value=""></option>
                 @if ($selectedDistrict !== null)
                     <option value="{{ $selectedDistrict->id }}" selected>{{ $selectedDistrict->name }}</option>
@@ -117,7 +125,10 @@
         <div class="col-md-4">
             <label class="form-label" for="{{ $fieldPrefix.'thana_id' }}">Thana</label>
             <input type="hidden" name="thana_id" value="">
-            <select class="{{ inputClass('thana_id', 'form-select') }}" id="{{ $fieldPrefix.'thana_id' }}" name="thana_id" data-ajax-select data-url="{{ route('tenantcore.thanas.options') }}" data-value-field="id" data-label-field="name" data-placeholder="Select a thana" data-parent-select="{{ $fieldPrefix.'district_id' }}" data-parent-field="district_id" @disabled($selectedDistrict === null) {{ inputAttrs('thana_id', $fieldPrefix.'thana_id') }}>
+            <select class="{{ inputClass('thana_id', 'form-select') }}" id="{{ $fieldPrefix.'thana_id' }}" name="thana_id"
+                data-ajax-select data-url="{{ route('tenantcore.thanas.options') }}"
+                data-value-field="id" data-label-field="name" data-placeholder="Select a thana" data-parent-select="{{ $fieldPrefix.'district_id' }}" data-parent-field="district_id" @disabled($selectedDistrict === null)
+                {{ inputAttrs('thana_id', $fieldPrefix.'thana_id') }}>
                 <option value=""></option>
                 @if ($selectedThana !== null)
                     <option value="{{ $selectedThana->id }}" selected>{{ $selectedThana->name }}</option>

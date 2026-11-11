@@ -31,7 +31,10 @@
                     @if ($product_variant->exists)
                         <input type="hidden" name="product_id" value="{{ $product_variant->product_id }}">
                     @endif
-                    <select class="{{ inputClass('product_id', 'form-select') }}" id="product_id" name="product_id" data-ajax-select data-url="{{ route('pharmacy.products.options') }}" data-placeholder="Select product" required @disabled($product_variant->exists) {{ inputAttrs('product_id') }}>
+                    <select class="{{ inputClass('product_id', 'form-select') }}" id="product_id" name="product_id"
+                        data-ajax-select data-url="{{ route('pharmacy.products.options') }}"
+                        data-placeholder="Select product" required @disabled($product_variant->exists)
+                        {{ inputAttrs('product_id') }}>
                         <option value=""></option>
                         @if ($selectedProduct !== null)
                             <option value="{{ $selectedProduct->id }}" selected>{{ $selectedProduct->name }}</option>

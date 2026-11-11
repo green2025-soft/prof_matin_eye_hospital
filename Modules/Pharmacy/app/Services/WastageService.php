@@ -23,7 +23,6 @@ class WastageService extends StockEntryService
         $lines = $this->items->prepareQuantities($entry, $inputs);
         foreach ($lines as $index => $line) {
             $line['stock_lot_id'] = $inputs[$index]['stock_lot_id'] ?? null;
-            $line['cost'] = 0;
             $lines[$index] = $line;
         }
 

@@ -44,9 +44,7 @@
                                         <td>{{ $record->contact_no ?? '—' }}</td>
                                         <td>{{ $record->active ? 'Active' : 'Inactive' }}</td>
                                         <td>
-                                            <div class="d-flex justify-content-end gap-2">
-                                                @include('core::partials.row-actions', ['model' => $record, 'routePrefix' => $routePrefix])
-                                            </div>
+                                            @include('core::partials.row-actions', ['model' => $record, 'routePrefix' => $routePrefix])
                                         </td>
                                     </tr>
                                 @empty

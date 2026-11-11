@@ -6,7 +6,7 @@
     @include('core::partials.heading', [
         'title' => $pageTitle,
         'description' => 'Review due payments collected at the selected branch.',
-        'create' => ['model' => \Modules\Hospital\Models\DueCollection::class, 'url' => route($routePrefix.'.create'), 'label' => 'New due collection'],
+        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New due collection'],
     ])
 
     <section class="app-card overflow-hidden">

@@ -4,17 +4,12 @@ namespace Modules\Pharmacy\Http\Requests;
 
 use Illuminate\Validation\Rule;
 use Modules\Core\Http\Requests\BaseRequest;
-use Modules\Pharmacy\Services\PharmacyAccess;
 
 class CustomerRequest extends BaseRequest
 {
     public function authorize(): bool
     {
-        $access = app(PharmacyAccess::class);
-        $actor = $this->user('web');
-
-        return $this->isMethod('GET') ? $access->allows($actor, 'pharmacy.view')
-            : $access->allows($actor, 'pharmacy-sales.create') && $access->allows($actor, 'pharmacy-customers.create');
+        return true;
     }
 
     public function rules(): array
@@ -29,7 +24,8 @@ class CustomerRequest extends BaseRequest
         }
 
         return [
-            'name' => ['required', 'string', 'max:255'], 'mobile_no' => ['required', 'string', 'max:30'],
+            'name' => ['required', 'string', 'max:255'],
+            'mobile_no' => ['required', 'string', 'max:30', 'regex:/\A(?=.*[0-9])[0-9+() .-]+\z/'],
             'age' => ['nullable', 'integer', 'between:0,150'], 'gender' => ['nullable', 'in:male,female,other'],
             'address' => ['nullable', 'string', 'max:2000'],
         ];

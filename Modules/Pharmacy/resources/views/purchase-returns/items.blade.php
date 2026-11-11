@@ -21,6 +21,8 @@
             </thead>
             <tbody data-pharmacy-lines>
             @php
+                $savedLines = $entry->exists ? $entry->lines->keyBy('purchase_item_id') : collect();
+                $returnQuantities = $savedLines->pluck('base_quantity', 'purchase_item_id');
                 $flashedLines = collect($lineInputs);
                 // Reuse submitted row keys so validation errors stay with their items.
                 $oldLineIndexes = $flashedLines->mapWithKeys(fn ($input, $index) => [(int) ($input['purchase_item_id'] ?? 0) => $index]);
@@ -64,19 +66,19 @@
             <p class="small text-body-secondary mt-2 mb-0">Set Qty to 0 to skip an item. Original invoice totals apply.</p>
         </div>
         <div class="col-lg-5">
-            <div class="app-pharmacy-entry-summary">
+            <div class="border rounded bg-body-tertiary p-2">
                 <dl class="mb-0">
-                    <div>
-                        <dt>Invoice credit</dt>
-                        <dd data-pharmacy-return-total>0.00</dd>
+                    <div class="d-flex justify-content-between gap-2 py-1">
+                        <dt class="small text-body-secondary fw-normal">Invoice credit</dt>
+                        <dd class="mb-0 text-end" data-pharmacy-return-total>0.00</dd>
                     </div>
-                    <div>
-                        <dt>Due adjusted</dt>
-                        <dd data-pharmacy-return-due>0.00</dd>
+                    <div class="d-flex justify-content-between gap-2 py-1">
+                        <dt class="small fw-semibold">Due adjusted</dt>
+                        <dd class="mb-0 text-end" data-pharmacy-return-due>0.00</dd>
                     </div>
-                    <div class="app-pharmacy-entry-payable">
-                        <dt>Cash received</dt>
-                        <dd data-pharmacy-return-cash>0.00</dd>
+                    <div class="d-flex justify-content-between gap-2 border-top pt-2 mt-1 fw-bold">
+                        <dt class="small fw-semibold">Cash received</dt>
+                        <dd class="mb-0 text-end" data-pharmacy-return-cash>0.00</dd>
                     </div>
                 </dl>
             </div>

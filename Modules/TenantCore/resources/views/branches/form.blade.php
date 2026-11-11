@@ -16,34 +16,18 @@
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label" for="branch-name">Branch name <span class="text-danger" aria-hidden="true">*</span></label>
-                    <input
-                        class="{{ inputClass('name') }}"
-                        id="branch-name"
-                        name="name"
-                        type="text"
-                        value="{{ getValue('name', $branch) }}"
-                        maxlength="255"
-                        autocomplete="organization"
-                        required
-                        autofocus
-                        {{ inputAttrs('name', 'branch-name') }}
-                    >
+                    <input class="{{ inputClass('name') }}" id="branch-name" name="name" type="text"
+                        value="{{ getValue('name', $branch) }}" maxlength="255" autocomplete="organization" required autofocus
+                        {{ inputAttrs('name', 'branch-name') }}>
                     @error('name')
                         <div class="invalid-feedback d-block" id="branch-name-error">{{ $message }}</div>
                     @enderror
                 </div>
                 <div class="col-12">
                     <label class="form-label" for="branch-address">Address <span class="text-danger" aria-hidden="true">*</span></label>
-                    <textarea
-                        class="{{ inputClass('address') }}"
-                        id="branch-address"
-                        name="address"
-                        rows="3"
-                        maxlength="2000"
-                        autocomplete="street-address"
-                        required
-                        {{ inputAttrs('address', 'branch-address') }}
-                    >{{ getValue('address', $branch) }}</textarea>
+                    <textarea class="{{ inputClass('address') }}" id="branch-address" name="address" rows="3"
+                        maxlength="2000" autocomplete="street-address" required
+                        {{ inputAttrs('address', 'branch-address') }}>{{ getValue('address', $branch) }}</textarea>
                     @error('address')
                         <div class="invalid-feedback d-block" id="branch-address-error">{{ $message }}</div>
                     @enderror
@@ -56,48 +40,27 @@
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label" for="branch-mobile">Mobile number</label>
-                    <input
-                        class="{{ inputClass('mobile_no') }}"
-                        id="branch-mobile"
-                        name="mobile_no"
-                        type="tel"
-                        value="{{ getValue('mobile_no', $branch) }}"
-                        maxlength="30"
-                        autocomplete="tel"
-                        {{ inputAttrs('mobile_no', 'branch-mobile') }}
-                    >
+                    <input class="{{ inputClass('mobile_no') }}" id="branch-mobile" name="mobile_no" type="tel"
+                        value="{{ getValue('mobile_no', $branch) }}" maxlength="30" autocomplete="tel"
+                        {{ inputAttrs('mobile_no', 'branch-mobile') }}>
                     @error('mobile_no')
                         <div class="invalid-feedback d-block" id="branch-mobile-error">{{ $message }}</div>
                     @enderror
                 </div>
                 <div class="col-md-6">
                     <label class="form-label" for="branch-telephone">Telephone number</label>
-                    <input
-                        class="{{ inputClass('telephone_no') }}"
-                        id="branch-telephone"
-                        name="telephone_no"
-                        type="tel"
-                        value="{{ getValue('telephone_no', $branch) }}"
-                        maxlength="30"
-                        autocomplete="tel"
-                        {{ inputAttrs('telephone_no', 'branch-telephone') }}
-                    >
+                    <input class="{{ inputClass('telephone_no') }}" id="branch-telephone" name="telephone_no" type="tel"
+                        value="{{ getValue('telephone_no', $branch) }}" maxlength="30" autocomplete="tel"
+                        {{ inputAttrs('telephone_no', 'branch-telephone') }}>
                     @error('telephone_no')
                         <div class="invalid-feedback d-block" id="branch-telephone-error">{{ $message }}</div>
                     @enderror
                 </div>
                 <div class="col-md-6">
                     <label class="form-label" for="branch-email">Email address</label>
-                    <input
-                        class="{{ inputClass('email') }}"
-                        id="branch-email"
-                        name="email"
-                        type="email"
-                        value="{{ getValue('email', $branch) }}"
-                        maxlength="255"
-                        autocomplete="email"
-                        {{ inputAttrs('email', 'branch-email') }}
-                    >
+                    <input class="{{ inputClass('email') }}" id="branch-email" name="email" type="email"
+                        value="{{ getValue('email', $branch) }}" maxlength="255" autocomplete="email"
+                        {{ inputAttrs('email', 'branch-email') }}>
                     @error('email')
                         <div class="invalid-feedback d-block" id="branch-email-error">{{ $message }}</div>
                     @enderror
@@ -112,14 +75,9 @@
                     @if ($branch->logo_path)
                         <img class="app-brand-preview img-thumbnail mb-2" src="{{ $branch->logo_url }}" alt="Current branch logo" width="160" height="80">
                     @endif
-                    <input
-                        class="{{ inputClass('logo') }}"
-                        id="branch-logo"
-                        name="logo"
-                        type="file"
+                    <input class="{{ inputClass('logo') }}" id="branch-logo" name="logo" type="file"
                         accept=".png,.jpg,.jpeg,.webp,.gif,image/png,image/jpeg,image/webp,image/gif"
-                        {{ inputAttrs('logo', 'branch-logo', 'branch-logo-help') }}
-                    >
+                        {{ inputAttrs('logo', 'branch-logo', 'branch-logo-help') }}>
                     <div class="form-text" id="branch-logo-help">Optional PNG, JPG, WebP, or GIF up to 2 MB. Leave blank to keep the current logo.</div>
                     @error('logo')
                         <div class="invalid-feedback d-block" id="branch-logo-error">{{ $message }}</div>

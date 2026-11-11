@@ -43,7 +43,7 @@ class DoctorService
         }
 
         return [
-            'pageTitle' => 'Doctor permissions',
+            'pageTitle' => 'Doctor Permission',
             'areas' => $this->catalog->areas($permissions->pluck('name', 'id')->all()),
             'selectedPermissions' => (new Doctor)->getAllPermissions()->pluck('id')->all(),
             'permissionCount' => $permissions->count(),
@@ -69,7 +69,10 @@ class DoctorService
                     $doctor = new Doctor;
                     $doctor->branch_id = $branchId;
                 } else {
-                    $doctor = Doctor::query()->where('branch_id', $branchId)->whereKey($record->getKey())->lockForUpdate()->firstOrFail();
+                    $doctor = Doctor::where('branch_id', $branchId)
+                        ->whereKey($record->getKey())
+                        ->lockForUpdate()
+                        ->firstOrFail();
                 }
                 Gate::forUser($freshActor)->authorize($action, $doctor);
 
@@ -158,7 +161,10 @@ class DoctorService
 
         $this->access->transaction($actor, function (Account $freshActor) use ($record): void {
             $this->authorizePlan($freshActor, 'doctors.delete');
-            $doctor = Doctor::query()->where('branch_id', $record->branch_id)->whereKey($record->getKey())->lockForUpdate()->firstOrFail();
+            $doctor = Doctor::where('branch_id', $record->branch_id)
+                ->whereKey($record->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
             Gate::forUser($freshActor)->authorize('delete', $doctor);
             $doctor->getConnection()->table('doctor_password_reset_tokens')->where('email', $doctor->email)->delete();
             $doctor->delete();
@@ -189,7 +195,9 @@ class DoctorService
         $date = Carbon::now(config('app.timezone'));
         $formatted = strtr($pattern, [
             '{BRANCH}' => (string) $doctor->branch_id,
-            '{YYYY}' => $date->format('Y'), '{MM}' => $date->format('m'), '{DD}' => $date->format('d'),
+            '{YYYY}' => $date->format('Y'),
+            '{MM}' => $date->format('m'),
+            '{DD}' => $date->format('d'),
         ]);
         $formatted = preg_replace_callback('/\{SEQ(?::([1-9]|1[0-2]))?\}/', fn (array $match): string => str_pad((string) $number, (int) ($match[1] ?? 6), '0', STR_PAD_LEFT), $formatted);
         if (mb_strlen($formatted) > 40) {

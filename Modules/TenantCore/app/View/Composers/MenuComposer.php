@@ -4,6 +4,7 @@ namespace Modules\TenantCore\View\Composers;
 
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Modules\Core\Models\Tenant;
 
 class MenuComposer
 {
@@ -15,6 +16,9 @@ class MenuComposer
             return;
         }
 
-        $view->with('foundationMenuView', 'tenantcore::partials.menu');
+        $view->with([
+            'foundationMenuView' => 'tenantcore::partials.menu',
+            'foundationHasBranches' => (bool) Tenant::current()?->has_branches,
+        ]);
     }
 }

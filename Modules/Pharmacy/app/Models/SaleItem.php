@@ -36,14 +36,8 @@ class SaleItem extends StockItem
 
     public function shortageSettlements(): HasManyThrough
     {
-        return $this->hasManyThrough(
-            StockShortageSettlement::class,
-            StockAllocation::class,
-            'stock_item_id',
-            'allocation_id',
-            'id',
-            'id'
-        )->where('phr_stock_allocations.stock_item_type', $this->getMorphClass())
+        return $this->hasManyThrough(StockShortageSettlement::class,StockAllocation::class,'stock_item_id','allocation_id','id','id')
+            ->where('phr_stock_allocations.stock_item_type', $this->getMorphClass())
             ->whereNull('phr_stock_allocations.source_allocation_id')
             ->whereNull('phr_stock_allocations.lot_id')
             ->whereNull('phr_stock_allocations.reversed_at');

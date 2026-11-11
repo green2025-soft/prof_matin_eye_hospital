@@ -22,9 +22,10 @@ class DeliveryInvestigationController extends BaseController
 
     protected string $parameter = 'patient_investigation';
 
-    public function index(DeliveryInvestigationRequest $request, ClinicalEntryService $entries): View
+    public function index(DeliveryInvestigationRequest $request): View
     {
         $filters = $request->filters();
+        $permissions = $request->attributes->get('navigation_permissions', []);
         $branchId = (int) $request->attributes->get('branch_id');
         $model = new PatientInvestigation;
         $query = $model->listQuery()
@@ -43,22 +44,20 @@ class DeliveryInvestigationController extends BaseController
         $records = $model->paginateRecords($filters, $query)
             ->appends(Arr::only($filters, ['date_from', 'date_to']));
 
-        return $this->listData(
-            $request,
-            [
-                'records' => $records,
-                'filters' => $filters,
-                'deliveryStatuses' => PatientInvestigation::DELIVERY_STATUSES,
-                'filterDoctor' => $this->selectedOption(
-                    Doctor::query()
-                        ->where('branch_id', $branchId),
-                    $filters['filter_doctor_id'] ?? null,
-                    ['id', 'doctor_id', 'name']
-                ),
-                'filterPatient' => $this->selectedOption(Patient::query(), $filters['filter_patient_id'] ?? null, ['id', 'patient_id', 'name', 'mobile_no']),
-                'canManageDelivery' => $entries->allowsInvestigationDelivery($request->user('web'), 'update', $branchId),
-            ]
-        );
+        $data = [
+            'records' => $records,
+            'filters' => $filters,
+            'deliveryStatuses' => PatientInvestigation::DELIVERY_STATUSES,
+            'filterDoctor' => $this->selectedOption(
+                Doctor::where('branch_id', $branchId),
+                $filters['filter_doctor_id'] ?? null,
+                ['id', 'doctor_id', 'name']
+            ),
+            'filterPatient' => $this->selectedOption(Patient::query(), $filters['filter_patient_id'] ?? null, ['id', 'patient_id', 'name', 'mobile_no']),
+            'canManageDelivery' => isset($permissions['delivery-investigations.update']),
+        ];
+
+        return $this->listData($request, $data);
     }
 
     public function update(DeliveryInvestigationRequest $request, ClinicalEntryService $entries): RedirectResponse

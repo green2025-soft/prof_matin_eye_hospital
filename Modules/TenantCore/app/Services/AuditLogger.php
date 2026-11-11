@@ -34,13 +34,23 @@ class AuditLogger
         }
 
         $action = Str::after(Str::before($event, ':'), 'eloquent.');
-        $fields = array_diff($model->queryContract()['exposed'], [$model->getKeyName(), 'created_at', 'updated_at'], $model->getHidden());
+        $fields = array_diff(
+            $model->queryContract()['exposed'],
+            [$model->getKeyName(), 'created_at', 'updated_at'],
+            $model->getHidden(),
+        );
         $changedFields = array_keys($action === 'updated' ? $model->getChanges() : $model->getAttributes());
+
+        // Updates need changed fields; creation/deletion retain their full safe snapshot.
+        if ($action === 'updated') {
+            $fields = array_intersect($fields, $changedFields);
+        }
+
         $old = [];
         $new = [];
 
         foreach ($fields as $field) {
-            if ($this->sensitiveKey($field) || ($action === 'updated' && ! in_array($field, $changedFields, true))) {
+            if ($this->sensitiveKey($field)) {
                 continue;
             }
 
@@ -130,7 +140,13 @@ class AuditLogger
         }
 
         $change = [$field.'_'.$operation => array_values(array_unique($ids))];
-        $this->write($actor, $model, 'updated', $operation === 'detached' ? $change : [], $operation === 'attached' ? $change : []);
+        $this->write(
+            $actor,
+            $model,
+            'updated',
+            $operation === 'detached' ? $change : [],
+            $operation === 'attached' ? $change : [],
+        );
     }
 
     private function actor(?Account $user = null): ?Account
@@ -151,8 +167,11 @@ class AuditLogger
             return false;
         }
 
-        return $model->getConnection()->getName() === $actor->getConnection()->getName()
-            && $model->getConnection()->getDatabaseName() === $actor->getConnection()->getDatabaseName();
+        $modelConnection = $model->getConnection();
+        $actorConnection = $actor->getConnection();
+
+        return $modelConnection->getName() === $actorConnection->getName()
+            && $modelConnection->getDatabaseName() === $actorConnection->getDatabaseName();
     }
 
     private function branch(Account $actor): ?Branch
@@ -170,7 +189,7 @@ class AuditLogger
             $branchId = $this->request->session()->get('branch_id');
         }
 
-        return $branchId === null ? null : Branch::query()->find($branchId, ['id', 'name']);
+        return $branchId === null ? null : Branch::find($branchId, ['id', 'name']);
     }
 
     private function write(Account $actor, Model $model, string $event, array $old = [], array $new = []): void
@@ -178,8 +197,9 @@ class AuditLogger
         $branch = $this->branch($actor);
         $attributes = $model->getAttributes();
 
-        // Direct insert avoids recursive model events and joins the caller's transaction.
-        (new AuditLog)->getConnection()->table('audit_logs')->insert([
+        // Direct insertion avoids model events; the verified source connection
+        // keeps audit rows in the transaction of the audited change.
+        $model->getConnection()->table('audit_logs')->insert([
             'branch_id' => $branch?->getKey(),
             'branch_name' => $branch?->name,
             'actor_id' => $actor->getKey(),

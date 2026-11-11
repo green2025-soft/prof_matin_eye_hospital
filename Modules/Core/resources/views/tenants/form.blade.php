@@ -1,20 +1,17 @@
 @extends('core::layouts.app')
 
-@section('title', ucwords($pageTitle))
+@php($formTitle = ucwords($pageTitle))
 
+@section('title', $formTitle)
 
 @section('content')
-    @php($domainValues = array_slice(array_values(getValue('domains', null, $domains)), 0, 20) ?: [''])
-    @include('core::partials.heading', ['title' => ucwords($pageTitle), 'description' => $tenant->exists ? 'Update workspace details and domain access.' : 'Set up a workspace and its administrator.'])
-    <form
-        class="app-card p-3 p-md-4"
-        action="{{ $formAction }}"
-        method="POST"
-        enctype="multipart/form-data"
-        data-tenant-form
-        data-tenant-create="{{ $tenant->exists ? '0' : '1' }}"
-        data-tenant-base-domain="{{ $tenantBaseDomain }}"
-    >
+    @php
+        $domainValues = array_slice(array_values(getValue('domains', null, $domains)), 0, 20) ?: [''];
+        $domainCount = count($domainValues);
+    @endphp
+    @include('core::partials.heading', ['title' => $formTitle, 'description' => $tenant->exists ? 'Update workspace details and domain access.' : 'Set up a workspace and its administrator.'])
+    <form class="app-card p-3 p-md-4" action="{{ $formAction }}" method="POST" enctype="multipart/form-data" data-tenant-form
+        data-tenant-create="{{ $tenant->exists ? '0' : '1' }}" data-tenant-base-domain="{{ $tenantBaseDomain }}">
         @csrf
         <input name="domains_auto" type="hidden" value="0" data-tenant-domain-auto>
         @if ($formMethod !== 'POST')
@@ -87,14 +84,14 @@
                                         <div class="invalid-feedback d-block" id="tenant-domain-{{ $index }}-error">{{ $message }}</div>
                                     @enderror
                                 </div>
-                                <button class="btn btn-outline-secondary app-domain-remove" type="button" data-domain-remove aria-label="Remove domain {{ $index + 1 }}" @disabled(count($domainValues) === 1)><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+                                <button class="btn btn-outline-secondary app-domain-remove" type="button" data-domain-remove aria-label="Remove domain {{ $index + 1 }}" @disabled($domainCount === 1)><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
                             </div>
                         @endforeach
                     </div>
                     @error('domains')
                         <div class="invalid-feedback d-block mb-2" id="domains-error">{{ $message }}</div>
                     @enderror
-                    <button class="btn btn-outline-secondary btn-sm" type="button" data-domain-add @disabled(count($domainValues) >= 20)><i class="fa-solid fa-plus me-2" aria-hidden="true"></i>Add domain</button>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" data-domain-add @disabled($domainCount >= 20)><i class="fa-solid fa-plus me-2" aria-hidden="true"></i>Add domain</button>
                     <span class="visually-hidden" data-domain-announcement aria-live="polite"></span>
                     <template data-domain-template>
                         <div class="d-flex align-items-start gap-2" data-domain-row>

@@ -6,7 +6,7 @@
     @include('core::partials.heading', [
         'title' => $pageTitle,
         'description' => 'Review patient operations and payments at the selected branch.',
-        'create' => ['model' => \Modules\Hospital\Models\PatientOperation::class, 'url' => route($routePrefix.'.create'), 'label' => 'New operation'],
+        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New operation'],
     ])
 
     <section class="app-card overflow-hidden">
@@ -36,7 +36,10 @@
                 </div>
                 <div class="col-md-8 col-xxl-4">
                     <label class="form-label small" for="filter_patient_id">Patient</label>
-                    <select class="{{ inputClass('filter_patient_id', 'form-select') }}" id="filter_patient_id" name="filter_patient_id" data-ajax-select data-url="{{ route('hospital.patients.options') }}" data-value-field="id" data-label-field="text" data-placeholder="All patients" {{ inputAttrs('filter_patient_id') }}>
+                    <select class="{{ inputClass('filter_patient_id', 'form-select') }}" id="filter_patient_id" name="filter_patient_id"
+                        data-ajax-select data-url="{{ route('hospital.patients.options') }}"
+                        data-value-field="id" data-label-field="text" data-placeholder="All patients"
+                        {{ inputAttrs('filter_patient_id') }}>
                         <option value=""></option>
                         @if (($filterPatient ?? null) !== null)
                             <option value="{{ $filterPatient->id }}" selected>{{ $filterPatient->patient_id }} — {{ $filterPatient->name }} — {{ $filterPatient->mobile_no }}</option>

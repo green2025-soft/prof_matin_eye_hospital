@@ -15,8 +15,7 @@ class StockMovementReportController extends BaseController
     public function index(DateRangeReportRequest $request, ReportService $reports): View
     {
         $filters = $request->filters();
-        $query = StockMovement::query()
-            ->where('movement_date', '<=', $filters['to_date']);
+        $query = StockMovement::where('movement_date', '<=', $filters['to_date']);
         $reports->filterStockProducts($query, $filters['product_type'], $filters['variant_id'] ?? null, $filters['search'] ?? null);
         $summary = (object) [
             'opening_quantity' => (clone $query)->where('movement_date', '<', $filters['from_date'])
@@ -36,19 +35,19 @@ class StockMovementReportController extends BaseController
                 ->orderByDesc('id'),
             $filters
         );
+        $selectedProduct = $this->selectedOption(
+            ProductVariant::with('product:id,name,type')
+                ->whereHas('product', fn (Builder $products) => $products->where('type', $filters['product_type'])),
+            $filters['variant_id'] ?? null,
+            ['id', 'product_id', 'sku', 'name', 'color', 'size', 'sph', 'cyl']
+        );
 
         $data = [
             'pageTitle' => 'Stock Movements',
             'filters' => $filters,
             'summary' => $summary,
             'records' => $records,
-            'selectedProduct' => $this->selectedOption(
-                ProductVariant::query()
-                    ->with('product:id,name,type')
-                    ->whereHas('product', fn (Builder $products) => $products->where('type', $filters['product_type'])),
-                $filters['variant_id'] ?? null,
-                ['id', 'product_id', 'sku', 'name', 'color', 'size', 'sph', 'cyl']
-            ),
+            'selectedProduct' => $selectedProduct,
         ];
 
         return view('pharmacy::reports.movements', $data);

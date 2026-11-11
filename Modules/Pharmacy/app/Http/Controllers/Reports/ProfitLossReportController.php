@@ -28,6 +28,12 @@ class ProfitLossReportController extends BaseController
         foreach ($records as $record) {
             $this->calculateProfit($record);
         }
+        $selectedProduct = $this->selectedOption(
+            ProductVariant::with('product:id,name,type')
+                ->whereHas('product', fn (Builder $products) => $products->where('type', $filters['product_type'])),
+            $filters['variant_id'] ?? null,
+            ['id', 'product_id', 'sku', 'name', 'color', 'size', 'sph', 'cyl']
+        );
 
         $data = [
             'pageTitle' => 'Product Profit / Loss',
@@ -35,13 +41,7 @@ class ProfitLossReportController extends BaseController
             'summary' => $summary,
             'records' => $records,
             'showInvoiceAdjustments' => $showInvoiceAdjustments,
-            'selectedProduct' => $this->selectedOption(
-                ProductVariant::query()
-                    ->with('product:id,name,type')
-                    ->whereHas('product', fn (Builder $products) => $products->where('type', $filters['product_type'])),
-                $filters['variant_id'] ?? null,
-                ['id', 'product_id', 'sku', 'name', 'color', 'size', 'sph', 'cyl']
-            ),
+            'selectedProduct' => $selectedProduct,
         ];
 
         return view('pharmacy::reports.profit-loss', $data);
@@ -61,8 +61,7 @@ class ProfitLossReportController extends BaseController
         $stockEffects = fn (Builder $movements) => $movements->whereIn('type', ['damage', 'adjustment', 'stock_variance'])
             ->whereBetween('movement_date', [$filters['from_date'], $filters['to_date']]);
 
-        $variants = ProductVariant::query()
-            ->select('phr_product_variants.*')
+        $variants = ProductVariant::select('phr_product_variants.*')
             ->whereHas('product', fn (Builder $products) => $products->where('type', $filters['product_type']))
             ->where(
                 fn (Builder $activity) => $activity->whereHas('saleItems', $saleItems)
@@ -71,8 +70,7 @@ class ProfitLossReportController extends BaseController
             )
             ->when($filters['variant_id'] ?? null, fn (Builder $variants, $id) => $variants->whereKey($id))
             ->selectSub(
-                Product::query()
-                    ->whereColumn('id', 'phr_product_variants.product_id')
+                Product::whereColumn('id', 'phr_product_variants.product_id')
                     ->select('name'),
                 'product_name'
             )
@@ -113,8 +111,7 @@ class ProfitLossReportController extends BaseController
                     ->where('type', 'stock_variance'),
             ], 'cost');
 
-        return ProductVariant::query()
-            ->fromSub($variants->toBase(), 'phr_product_variants')
+        return ProductVariant::fromSub($variants->toBase(), 'phr_product_variants')
             ->with('product:id,name');
     }
 
@@ -167,8 +164,7 @@ class ProfitLossReportController extends BaseController
         $summary->customer_discount = '0';
         $summary->supplier_discount = '0';
         if ($includeSettlements) {
-            $payments = Payment::query()
-                ->where('product_type', $filters['product_type'])
+            $payments = Payment::where('product_type', $filters['product_type'])
                 ->whereNull('voided_at')
                 ->whereBetween('payment_date', [$filters['from_date'], $filters['to_date']]);
             $summary->customer_discount = (clone $payments)->where('direction', 'customer')

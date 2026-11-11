@@ -10,7 +10,7 @@
         @endif
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body @class(['app-shell', 'app-auth-shell' => ! $layout['user']])>
+    <body @class(['app-shell', 'app-auth-shell d-flex align-items-center justify-content-center p-3 p-sm-4' => ! $layout['user']])>
         <a class="app-skip-link visually-hidden-focusable position-fixed p-3" href="#main-content">Skip to content</a>
         @if ($layout['user'])
             <aside class="app-sidebar offcanvas-lg offcanvas-start" id="appSidebar" tabindex="-1" aria-labelledby="sidebar-brand">
@@ -105,24 +105,24 @@
                 <footer class="app-page-footer"><span>&copy; {{ $layout['year'] }} {{ $layout['appName'] }}</span></footer>
             </div>
         @else
-            <main class="app-auth-layout" id="main-content">
+            <main class="app-auth-layout d-grid w-100" id="main-content">
                 <header class="app-auth-branding">
-                    <a class="app-auth-brand" href="{{ $layout['loginUrl'] }}">
+                    <a class="app-auth-brand d-flex flex-column align-items-center text-center text-decoration-none" href="{{ $layout['loginUrl'] }}">
                         @if ($layout['logoUrl'])
-                            <img class="app-auth-logo" src="{{ $layout['logoUrl'] }}" width="56" height="56" alt="">
+                            <img class="app-auth-logo flex-shrink-0 object-fit-contain" src="{{ $layout['logoUrl'] }}" width="56" height="56" alt="">
                         @else
-                            <span class="app-auth-monogram" aria-hidden="true">{{ $layout['appInitial'] }}</span>
+                            <span class="app-auth-monogram d-inline-flex flex-shrink-0 align-items-center justify-content-center" aria-hidden="true">{{ $layout['appInitial'] }}</span>
                         @endif
                         <span class="app-auth-name">{{ $layout['appName'] }}</span>
                     </a>
                 </header>
                 <section class="app-auth-form" aria-label="Sign in">
-                    <div class="app-auth-form-inner">
+                    <div class="w-100">
                         @include('core::partials.feedback')
                         @yield('content')
                     </div>
                 </section>
-                <footer class="app-auth-copyright">&copy; {{ $layout['year'] }} {{ $layout['appName'] }}</footer>
+                <footer class="app-auth-copyright text-center m-0">&copy; {{ $layout['year'] }} {{ $layout['appName'] }}</footer>
             </main>
         @endif
     </body>

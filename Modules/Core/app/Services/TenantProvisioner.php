@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -18,6 +19,7 @@ use Modules\Core\Contracts\TenantAccounts;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Subscription;
 use Modules\Core\Models\Tenant;
+use PDOException;
 use RuntimeException;
 use Throwable;
 
@@ -34,7 +36,7 @@ class TenantProvisioner
         Gate::forUser($actor)->authorize('delete', $record);
 
         $this->databases->locked($record->database, function () use ($actor, $record): void {
-            $record->execute(fn () => $this->databases->verifyTenantDeletion($record->database, $record->database_token));
+            $databaseVerified = $record->execute(fn () => $this->databases->verifyTenantDeletion($record->database, $record->database_token));
             $tenant = $this->access->transaction($actor, function (Account $freshActor) use ($record): Tenant {
                 $tenant = Tenant::query()->whereKey($record->getKey())->lockForUpdate()->firstOrFail();
                 Gate::forUser($freshActor)->authorize('delete', $tenant);
@@ -56,7 +58,9 @@ class TenantProvisioner
             });
 
             // MySQL DROP cannot roll back. Keep the registry until every cleanup succeeds.
-            $tenant->execute(fn () => $this->databases->dropOwnedTenant($tenant->database, $tenant->database_token));
+            if ($databaseVerified) {
+                $tenant->execute(fn () => $this->databases->dropOwnedTenant($tenant->database, $tenant->database_token));
+            }
             $this->deleteFiles($tenant);
 
             $tenant->getConnection()->transaction(function () use ($tenant): void {
@@ -222,6 +226,20 @@ class TenantProvisioner
         $this->ensureCentral();
 
         return $this->prepare($tenant, function () use ($tenant, $ownerName, $password, $adopt): void {
+            $connection = DB::connection('tenant');
+            $username = $tenant->database_username;
+
+            if ($username !== null && (
+                $connection->getDatabaseName() !== $tenant->database
+                || $connection->getConfig('username') !== $username
+                || (string) $connection->getConfig('password') !== ($tenant->database_password ?? '')
+            )) {
+                throw ValidationException::withMessages([
+                    'credentials.database' => 'The saved tenant database credentials were not applied. '
+                        .'Update the server tenant connection configuration, clear cached configuration and retry setup.',
+                ]);
+            }
+
             if ($adopt && ! $this->accounts->ownerExists($tenant->owner_email)) {
                 throw ValidationException::withMessages(['email' => 'The existing tenant owner was not found.']);
             }
@@ -229,18 +247,23 @@ class TenantProvisioner
             $this->databases->claim('tenant', $tenant->database_token, allowExisting: $adopt);
             $this->databases->migrate('tenant');
 
-            if ($adopt) {
-                $this->accounts->adoptOwner($tenant->owner_email);
-            } else {
-                $this->accounts->createOwner($ownerName, $tenant->owner_email, $password);
+            // Start after migrations: account, settings and seed data roll back together.
+            DB::connection('tenant')->transaction(function () use ($tenant, $ownerName, $password, $adopt): void {
+                if ($adopt) {
+                    $this->accounts->adoptOwner($tenant->owner_email);
+                } else {
+                    $this->accounts->createOwner($ownerName, $tenant->owner_email, $password);
 
-                // Seed fresh tenant databases only; adoption preserves existing business data.
-                $status = $this->console->call('db:seed', ['--database' => 'tenant', '--force' => true]);
+                    // Seed fresh tenant databases only; adoption preserves existing business data.
+                    $status = $this->console->call('db:seed', ['--database' => 'tenant', '--force' => true]);
 
-                if ($status !== 0) {
-                    throw new RuntimeException('Tenant catalog initialization failed. Retry tenant setup.');
+                    if ($status !== 0) {
+                        throw new RuntimeException('Tenant catalog initialization failed. Retry tenant setup.');
+                    }
                 }
-            }
+
+                $this->accounts->ensureDefaultBranch($tenant->name, $tenant->address ?? '');
+            });
         });
     }
 
@@ -283,6 +306,10 @@ class TenantProvisioner
 
                     foreach (array_diff($domains, $existing) as $domain) {
                         $current->domains()->create(['domain' => $domain]);
+                    }
+
+                    if ($current->isReady()) {
+                        $current->execute(fn () => $this->accounts->ensureDefaultBranch($current->name, $current->address ?? ''));
                     }
 
                     return $current->load('domains:id,tenant_id,domain');
@@ -346,14 +373,31 @@ class TenantProvisioner
 
             try {
                 $tenant->execute($callback);
-                app(SubscriptionService::class)->enrollDefault($tenant);
-                $tenant->status = Tenant::STATUS_ACTIVE;
-                $tenant->provisioning_error = null;
-                $tenant->save();
+
+                $tenant->getConnection()->transaction(function () use ($tenant): void {
+                    app(SubscriptionService::class)->enrollDefault($tenant);
+                    $tenant->status = Tenant::STATUS_ACTIVE;
+                    $tenant->provisioning_error = null;
+                    $tenant->save();
+                });
             } catch (Throwable $exception) {
+                $databaseError = $exception instanceof PDOException ? (int) ($exception->errorInfo[1] ?? 0) : 0;
+                $databaseAccessFailed = in_array($databaseError, [1044, 1045, 1049, 1142, 1227], true);
+                $databaseMessage = 'Cannot initialize database '.$tenant->database.' (MySQL error '.$databaseError.'). '
+                    .'Check DB_DATABASE, DB_USERNAME and DB_PASSWORD, '
+                    .'and grant that user full access to this exact database in the hosting control panel before retrying setup.';
+
                 $tenant->status = Tenant::STATUS_FAILED;
-                $tenant->provisioning_error = 'Setup failed. Review the command error before retrying.';
+                $tenant->provisioning_error = $databaseAccessFailed
+                    ? $databaseMessage
+                    : 'Setup failed. Review the command error before retrying.';
                 $tenant->save();
+
+                if ($databaseAccessFailed) {
+                    throw ValidationException::withMessages([
+                        'credentials.database' => $databaseMessage,
+                    ]);
+                }
 
                 throw $exception;
             }

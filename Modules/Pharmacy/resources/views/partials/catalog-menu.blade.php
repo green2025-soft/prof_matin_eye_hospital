@@ -1,11 +1,11 @@
 @if (($moduleMenu['permissions']['pharmacy.view'] ?? false)
     && (($moduleMenu['permissions']['pharmacy-products.view'] ?? false)
         || ($moduleMenu['permissions']['pharmacy-categories.view'] ?? false)
-        || ($moduleMenu['permissions']['pharmacy-shelves.view'] ?? false)))
+        || ($moduleMenu['permissions']['pharmacy-shelf.view'] ?? false)))
     @php
         $catalogSelected = ($moduleMenu['productType'] ?? null) === $catalogType;
         $catalogActive = $catalogSelected && request()->routeIs(
-            'pharmacy.products.*', 'pharmacy.categories.*', 'pharmacy.shelves.*',
+            'pharmacy.products.*', 'pharmacy.categories.*', 'pharmacy.shelf.*',
             'pharmacy.variants.*', 'pharmacy.product-units.*',
         );
     @endphp
@@ -30,11 +30,11 @@
                     'active' => $catalogSelected && request()->routeIs('pharmacy.categories.*'),
                 ])
             @endif
-            @if ($moduleMenu['permissions']['pharmacy-shelves.view'] ?? false)
+            @if ($moduleMenu['permissions']['pharmacy-shelf.view'] ?? false)
                 @include('core::partials.navigation-link', [
                     'label' => $shelfLabel, 'icon' => 'warehouse',
-                    'url' => route('pharmacy.shelves.index', ['type' => $catalogType] + ($catalogParameters ?? [])),
-                    'active' => $catalogSelected && request()->routeIs('pharmacy.shelves.*'),
+                    'url' => route('pharmacy.shelf.index', ['type' => $catalogType] + ($catalogParameters ?? [])),
+                    'active' => $catalogSelected && request()->routeIs('pharmacy.shelf.*'),
                 ])
             @endif
         </div>

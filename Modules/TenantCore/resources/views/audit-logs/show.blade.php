@@ -3,6 +3,8 @@
 @section('title', $pageTitle)
 
 @section('content')
+    @php($jsonOptions = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)
+
     @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Review the activity details and recorded changes.'])
 
     <div class="mb-4">
@@ -22,14 +24,16 @@
             <dd class="col-sm-9 text-break mb-0">{{ $auditLog->resource }}</dd>
             <dt class="col-sm-3">Record</dt>
             <dd class="col-sm-9 text-break mb-0">{{ $auditLog->record_name ?? '-' }}@if ($auditLog->record_id !== null) <span class="text-body-secondary">(#{{ $auditLog->record_id }})</span>@endif</dd>
-            <dt class="col-sm-3">Branch</dt>
-            <dd class="col-sm-9 text-break mb-0">
-                @if ($auditLog->branch_id !== null)
-                    {{ $auditLog->branch_name ?? 'Branch' }} <span class="text-body-secondary">(#{{ $auditLog->branch_id }})</span>
-                @else
-                    No branch
-                @endif
-            </dd>
+            @if ($hasBranches)
+                <dt class="col-sm-3">Branch</dt>
+                <dd class="col-sm-9 text-break mb-0">
+                    @if ($auditLog->branch_id !== null && (int) $auditLog->branch_id !== (int) $defaultBranchId)
+                        {{ $auditLog->branch_name ?? 'Branch' }} <span class="text-body-secondary">(#{{ $auditLog->branch_id }})</span>
+                    @else
+                        -
+                    @endif
+                </dd>
+            @endif
             <dt class="col-sm-3">IP address</dt>
             <dd class="col-sm-9 text-break mb-0">{{ $auditLog->ip_address ?? '-' }}</dd>
             <dt class="col-sm-3">User agent</dt>
@@ -41,13 +45,13 @@
         <div class="col-lg-6">
             <section class="app-card p-3 p-md-4" aria-labelledby="audit-log-old-values-heading">
                 <h2 class="h6 mb-3" id="audit-log-old-values-heading">Old values</h2>
-                <pre class="small overflow-auto mb-0"><code>{{ $oldValues }}</code></pre>
+                <pre class="small overflow-auto mb-0"><code>{{ json_encode($auditLog->old_values, $jsonOptions) }}</code></pre>
             </section>
         </div>
         <div class="col-lg-6">
             <section class="app-card p-3 p-md-4" aria-labelledby="audit-log-new-values-heading">
                 <h2 class="h6 mb-3" id="audit-log-new-values-heading">New values</h2>
-                <pre class="small overflow-auto mb-0"><code>{{ $newValues }}</code></pre>
+                <pre class="small overflow-auto mb-0"><code>{{ json_encode($auditLog->new_values, $jsonOptions) }}</code></pre>
             </section>
         </div>
     </div>

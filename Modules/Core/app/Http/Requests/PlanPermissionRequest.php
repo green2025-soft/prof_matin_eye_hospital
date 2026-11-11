@@ -13,11 +13,13 @@ class PlanPermissionRequest extends BaseRequest
 
     public function rules(): array
     {
+        $permissions = PermissionCatalog::tenantPermissions();
+
         return [
             'route_permissions_present' => ['required', 'in:1'],
             'unrestricted_route_access' => ['required', 'boolean'],
-            'route_permissions' => ['present', 'array', 'max:'.count(PermissionCatalog::tenantPermissions())],
-            'route_permissions.*' => ['required', 'string', 'distinct', Rule::in(PermissionCatalog::tenantPermissions())],
+            'route_permissions' => ['present', 'array', 'max:'.count($permissions)],
+            'route_permissions.*' => ['required', 'string', 'distinct', Rule::in($permissions)],
         ];
     }
 
@@ -25,11 +27,15 @@ class PlanPermissionRequest extends BaseRequest
     {
         $values = $this->validated();
 
-        return ['route_permissions' => $values['unrestricted_route_access'] ? null : $values['route_permissions']];
+        return [
+            'route_permissions' => $values['unrestricted_route_access'] ? null : $values['route_permissions'],
+        ];
     }
 
     protected function getRedirectUrl(): string
     {
-        return route('core.plan-permissions.index', ['plan' => $this->record()->getKey()]);
+        return route('core.plan-permissions.index', [
+            'plan' => $this->record()->getKey(),
+        ]);
     }
 }

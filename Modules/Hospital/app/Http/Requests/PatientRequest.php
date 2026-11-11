@@ -23,8 +23,9 @@ class PatientRequest extends BaseRequest
         $record = $this->record();
         $divisionId = $this->integer('division_id', $record?->division_id ?? 0);
         $districtId = $this->integer('district_id', $record?->district_id ?? 0);
-        $ageRequired = $this->input('age_input') !== 'date_of_birth'
-            && (! $this->isUpdate() || $this->input('age_input') === 'age')
+        $ageInput = $this->input('age_input');
+        $ageRequired = $ageInput !== 'date_of_birth'
+            && (! $this->isUpdate() || $ageInput === 'age')
             && ! $this->filled('age_months') && ! $this->filled('age_days');
 
         return [

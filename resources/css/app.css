@@ -501,14 +501,6 @@
     border-color: var(--app-primary);
 }
 
-.app-selection-intro {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
 .app-selection-intro h1 {
     margin: 0 0 0.375rem;
     color: var(--app-text);
@@ -518,15 +510,11 @@
 }
 
 .app-selection-intro p {
-    margin: 0;
     color: var(--app-muted);
     font-size: 0.875rem;
 }
 
 .app-selection-count {
-    display: inline-flex;
-    flex-shrink: 0;
-    align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 0.875rem;
     color: var(--app-muted);
@@ -543,8 +531,6 @@
 }
 
 .app-selection-search {
-    display: flex;
-    align-items: flex-start;
     gap: 0.75rem;
     margin-bottom: 1.75rem;
 }
@@ -556,32 +542,16 @@
 }
 
 .app-selection-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.25rem;
-}
-
-.app-selection-choice {
-    min-width: 0;
-    margin: 0;
+    --bs-gutter-x: 1.25rem;
+    --bs-gutter-y: 1.25rem;
 }
 
 .app-selection-card {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    padding: 0;
     color: var(--app-text);
     background: var(--app-surface);
     border: 1px solid var(--app-border);
     border-radius: 12px;
     box-shadow: var(--app-shadow);
-    text-align: start;
-    text-decoration: none;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -607,28 +577,14 @@
     background: var(--app-primary);
 }
 
-.app-selection-card-content {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    padding: 1.5rem;
-}
-
 .app-selection-card-head {
-    display: flex;
-    align-items: center;
     gap: 0.875rem;
     margin-bottom: 1.25rem;
 }
 
 .app-selection-mark {
-    display: inline-flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
     width: 56px;
     height: 56px;
-    overflow: hidden;
     color: var(--app-primary);
     background: var(--app-primary-soft);
     border: 1px solid var(--app-border);
@@ -636,22 +592,11 @@
     font-size: 1.25rem;
 }
 
-.app-selection-mark img {
-    max-width: 100%;
-    object-fit: contain;
-}
-
 .app-selection-active {
-    display: inline-flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
     width: 24px;
     height: 24px;
-    margin-inline-start: auto;
     color: var(--app-primary);
     background: var(--app-primary-soft);
-    border-radius: 50%;
     font-size: 0.6875rem;
 }
 
@@ -672,26 +617,18 @@
 }
 
 .app-selection-contacts {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-top: 1rem;
     color: var(--app-muted);
     font-size: 0.75rem;
 }
 
 .app-selection-contacts > span {
-    display: flex;
-    align-items: baseline;
     gap: 0.625rem;
     min-width: 0;
 }
 
 .app-selection-contacts i {
     width: 0.875rem;
-    flex-shrink: 0;
     color: var(--app-placeholder);
-    text-align: center;
 }
 
 .app-selection-contacts span > span {
@@ -699,11 +636,7 @@
 }
 
 .app-selection-open {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.875rem 1.5rem;
+    padding-block: 0.875rem;
     color: var(--app-primary);
     background: var(--app-surface-muted);
     border-top: 1px solid var(--app-border);
@@ -737,7 +670,6 @@
 }
 
 .app-avatar,
-.app-initials,
 .app-table-avatar {
     display: inline-flex;
     flex-shrink: 0;
@@ -890,8 +822,7 @@
     box-shadow: var(--app-shadow);
 }
 
-.app-stat-icon,
-.app-quick-icon {
+.app-stat-icon {
     display: inline-flex;
     flex-shrink: 0;
     align-items: center;
@@ -945,39 +876,6 @@
     --app-tone-bg: var(--app-info-soft);
 }
 
-.app-dashboard-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.9fr) minmax(280px, 1fr);
-    align-items: start;
-    gap: 1.5rem;
-}
-
-.app-dashboard-table {
-    --bs-table-bg: var(--app-surface);
-    --bs-table-color: var(--app-text);
-    --bs-table-border-color: var(--app-border);
-    min-width: 480px;
-    margin-bottom: 0;
-    font-size: 0.8125rem;
-}
-
-.app-dashboard-table > :not(caption) > * > * {
-    padding: 0.875rem 1.25rem;
-}
-
-.app-dashboard-table thead th {
-    color: var(--app-muted);
-    background: var(--app-surface-muted);
-    font-size: 0.625rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.app-dashboard-table tbody tr:last-child > * {
-    border-bottom: 0;
-}
-
 .app-quick-link {
     display: flex;
     align-items: center;
@@ -997,40 +895,6 @@
 .app-quick-link:hover {
     color: var(--app-primary);
     background: var(--app-surface-muted);
-}
-
-.app-quick-icon {
-    width: 32px;
-    height: 32px;
-    font-size: 0.8125rem;
-}
-
-.app-account-detail {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
-    margin: 0;
-    padding: 0.625rem 0;
-    border-bottom: 1px solid var(--app-border);
-    font-size: 0.75rem;
-}
-
-.app-account-detail:last-child {
-    padding-bottom: 0;
-    border-bottom: 0;
-}
-
-.app-account-detail dt {
-    flex-shrink: 0;
-    color: var(--app-muted);
-    font-weight: 400;
-}
-
-.app-account-detail dd {
-    margin: 0;
-    overflow-wrap: anywhere;
-    text-align: end;
 }
 
 .app-dashboard-empty {
@@ -1672,28 +1536,18 @@
 }
 
 .app-auth-shell {
-    display: grid;
-    place-items: center;
-    padding: 1.5rem;
     background: var(--app-surface);
 }
 
 .app-auth-layout {
-    display: grid;
     gap: 1.25rem;
-    width: 100%;
     max-width: 440px;
     min-width: 0;
 }
 
 .app-auth-brand {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     gap: 0.75rem;
     color: var(--app-text);
-    text-align: center;
-    text-decoration: none;
 }
 
 .app-auth-brand:hover {
@@ -1704,17 +1558,9 @@
 .app-auth-monogram {
     width: 56px;
     height: 56px;
-    flex-shrink: 0;
-}
-
-.app-auth-logo {
-    object-fit: contain;
 }
 
 .app-auth-monogram {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     color: var(--app-primary);
     background: var(--app-primary-soft);
     border-radius: 14px;
@@ -1740,23 +1586,12 @@
     box-shadow: 0 4px 24px rgba(var(--app-shadow-rgb), 0.04);
 }
 
-.app-auth-form-inner {
-    width: 100%;
-}
-
-.app-auth-heading {
-    margin-bottom: 1.5rem;
-}
-
 .app-auth-heading > p:last-child {
     font-size: 0.875rem;
     line-height: 1.5;
 }
 
 .app-auth-form-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     width: 40px;
     height: 40px;
     margin-bottom: 0.875rem;
@@ -1803,34 +1638,12 @@
     inset-inline-end: 0.125rem;
 }
 
-.app-auth-options {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.25rem 1rem;
-    margin-bottom: 1rem;
-}
-
 .app-auth-options .form-check {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
     min-height: 44px;
-    margin: 0;
-    padding: 0;
-}
-
-.app-auth-options .form-check-input {
-    float: none;
-    flex-shrink: 0;
-    margin: 0;
 }
 
 .app-auth-options .form-check-label,
 .app-auth-options > a {
-    display: inline-flex;
-    align-items: center;
     min-height: 44px;
     font-size: 0.8125rem;
 }
@@ -1846,11 +1659,9 @@
 }
 
 .app-auth-copyright {
-    margin: 0;
     color: var(--app-muted);
     font-size: 0.75rem;
     line-height: 1.5;
-    text-align: center;
 }
 
 @media (min-width: 992px) {
@@ -1907,10 +1718,6 @@
 }
 
 @media (max-width: 1199.98px) {
-    .app-selection-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
     .app-header-inner {
         flex-wrap: wrap;
         row-gap: 0.625rem;
@@ -1927,9 +1734,6 @@
         max-width: min(70%, 24rem);
     }
 
-    .app-dashboard-grid {
-        grid-template-columns: minmax(0, 1fr);
-    }
 }
 
 @media (max-width: 991.98px) {
@@ -1953,10 +1757,6 @@
 }
 
 @media (max-width: 575.98px) {
-    .app-selection-intro {
-        align-items: flex-start;
-    }
-
     .app-selection-intro h1 {
         font-size: 1.375rem;
     }
@@ -1966,17 +1766,9 @@
         padding: 0.375rem 0.625rem;
     }
 
-    .app-selection-search {
-        flex-wrap: wrap;
-    }
-
     .app-selection-search-field {
         flex-basis: 100%;
         max-width: none;
-    }
-
-    .app-selection-grid {
-        grid-template-columns: minmax(0, 1fr);
     }
 
     .app-branch-badge {
@@ -2027,38 +1819,14 @@
         padding-inline: 1rem;
     }
 
-    .app-auth-shell {
-        padding: 1rem;
-    }
-
     .app-auth-form {
         padding: 1.25rem;
     }
 }
 
 .app-permission-toolbar {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.5fr);
-    align-items: end;
-    gap: 1rem;
-}
-
-.app-permission-toolbar .mb-3 {
-    margin-bottom: 0 !important;
-}
-
-.app-permission-summary,
-.app-permission-footer {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.875rem;
-    padding: 1rem 1.25rem;
-}
-
-.app-permission-summary {
-    border-bottom: 1px solid var(--app-border);
+    --bs-gutter-x: 1rem;
+    --bs-gutter-y: 1rem;
 }
 
 .app-permission-summary h2 {
@@ -2071,10 +1839,6 @@
 .app-permission-state {
     color: var(--app-muted);
     font-size: 0.75rem;
-}
-
-.app-permission-footer {
-    border-top: 1px solid var(--app-border);
 }
 
 .app-permission-state.is-dirty {
@@ -2121,21 +1885,9 @@
     margin: 0;
 }
 
-.app-permission-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem 1.25rem;
-}
-
 .app-permission-option {
     min-width: 105px;
     font-weight: 400;
-}
-
-@media (max-width: 767.98px) {
-    .app-permission-toolbar {
-        grid-template-columns: minmax(0, 1fr);
-    }
 }
 
 .app-clinical-invoice {
@@ -2252,13 +2004,6 @@
     vertical-align: top;
 }
 
-.app-clinical-invoice-summary {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(230px, 0.8fr);
-    gap: 1.5rem;
-    align-items: start;
-}
-
 .app-clinical-invoice-section-title {
     margin-bottom: 0.375rem;
     font-size: 0.75rem;
@@ -2342,10 +2087,6 @@
 
     .app-clinical-invoice-meta {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .app-clinical-invoice-summary {
-        grid-template-columns: minmax(0, 1fr);
     }
 
     .app-clinical-invoice-footer {
@@ -2505,8 +2246,8 @@
     }
 
     .app-clinical-invoice-summary {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        gap: 4mm;
+        --bs-gutter-x: 4mm;
+        --bs-gutter-y: 4mm;
     }
 
     .app-clinical-invoice-section-title {
@@ -3219,66 +2960,6 @@
     gap: 0.5rem;
 }
 
-.app-pharmacy-entry-summary {
-    padding: 1rem;
-    border: 1px solid var(--app-border);
-    border-radius: var(--app-radius);
-    background: var(--app-surface-muted);
-}
-
-.app-pharmacy-entry-summary dl > div {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
-    padding-block: 0.375rem;
-}
-
-.app-pharmacy-entry-summary dt {
-    color: var(--app-muted);
-    font-size: 0.875rem;
-    font-weight: 400;
-}
-
-.app-pharmacy-entry-summary dd {
-    margin: 0;
-    font-variant-numeric: tabular-nums;
-    font-weight: 600;
-}
-
-.app-pharmacy-entry-summary .app-pharmacy-entry-payable {
-    margin-top: 0.375rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--app-border);
-}
-
-.app-pharmacy-entry-payable dt,
-.app-pharmacy-entry-payable dd {
-    color: var(--app-text);
-    font-size: 1rem;
-    font-weight: 600;
-}
-
-.app-pharmacy-entry-summary .app-pharmacy-entry-due {
-    margin: 0.5rem -0.5rem -0.5rem;
-    padding: 0.625rem 0.5rem;
-    border-radius: var(--app-radius);
-    background: var(--app-primary-soft);
-}
-
-.app-pharmacy-entry-due dt,
-.app-pharmacy-entry-due dd {
-    color: var(--app-primary);
-    font-weight: 600;
-}
-
-.app-pharmacy-trade-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    align-items: start;
-    gap: 1rem;
-}
-
 .app-pharmacy-trade-main,
 .app-pharmacy-trade-sidebar {
     min-width: 0;
@@ -3309,21 +2990,6 @@
     padding: 0.625rem !important;
 }
 
-.app-pharmacy-trade-layout [data-pharmacy-line] > .row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
-    gap: 0.5rem;
-    margin: 0;
-}
-
-.app-pharmacy-trade-layout [data-pharmacy-line] > .row > * {
-    min-width: 0;
-    width: auto;
-    max-width: none;
-    padding: 0;
-    margin: 0;
-}
-
 .app-pharmacy-trade-layout #pharmacy-product-feedback {
     margin-top: 0.25rem !important;
     line-height: 1.35;
@@ -3352,24 +3018,6 @@
 
 .app-pharmacy-trade-layout [data-pharmacy-empty] > td {
     padding-block: 0.75rem !important;
-}
-
-.app-pharmacy-trade-sidebar .app-pharmacy-entry-summary {
-    padding: 0.625rem;
-}
-
-.app-pharmacy-trade-sidebar .app-pharmacy-entry-summary dl > div {
-    gap: 0.5rem;
-    padding-block: 0.25rem;
-}
-
-.app-pharmacy-trade-sidebar .app-pharmacy-entry-summary dt {
-    font-size: 0.75rem;
-}
-
-.app-pharmacy-trade-sidebar .app-pharmacy-entry-payable dt,
-.app-pharmacy-trade-sidebar .app-pharmacy-entry-payable dd {
-    font-size: 0.875rem;
 }
 
 .app-pharmacy-entry-notes > summary {
@@ -3431,9 +3079,6 @@
 }
 
 @media (min-width: 1200px) {
-    .app-pharmacy-trade-layout {
-        grid-template-columns: minmax(0, 1fr) 15rem;
-    }
 
     .app-pharmacy-trade-sidebar {
         padding-top: 0;
@@ -5294,20 +4939,13 @@ ul.app-prescription-section-preview {
 }
 
 .app-report-letterhead {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
     padding-bottom: 1rem;
     border-bottom: 3px double var(--app-text);
-    text-align: center;
 }
 
 .app-report-logo {
     width: 76px;
     height: 76px;
-    flex: 0 0 auto;
-    object-fit: contain;
 }
 
 .app-report-brand {
@@ -5329,22 +4967,7 @@ ul.app-prescription-section-preview {
     display: none;
 }
 
-.app-report-branch {
-    font-weight: 600;
-}
-
-.app-report-title,
-.app-report-context,
-.app-report-footer,
-.app-report-signatures {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 0.5rem 1.5rem;
-}
-
 .app-report-title {
-    align-items: center;
     margin-top: 1rem;
 }
 
@@ -5373,11 +4996,6 @@ ul.app-prescription-section-preview {
 
 .app-report-summary {
     margin-bottom: 1rem;
-}
-
-.app-report-summary .col > span,
-.app-report-summary .col > strong {
-    display: block;
 }
 
 .app-report-summary .col > span {
@@ -5420,11 +5038,6 @@ ul.app-prescription-section-preview {
 @media screen and (max-width: 575.98px) {
     .app-pharmacy-report {
         padding: 1rem;
-    }
-
-    .app-report-letterhead {
-        flex-direction: column;
-        gap: 0.5rem;
     }
 }
 

@@ -19,7 +19,10 @@
         <div class="row g-2 align-items-end">
             <div class="col-md-6 col-xl-3">
                 <label class="form-label" for="appointment_doctor_id">Doctor <span class="text-danger" aria-hidden="true">*</span></label>
-                <select class="{{ inputClass('doctor_id', 'form-select') }}" id="appointment_doctor_id" name="doctor_id" data-ajax-select data-url="{{ route('hospital.doctors.options') }}" data-value-field="id" data-label-field="text" data-placeholder="Select a doctor" required {{ inputAttrs('doctor_id', 'appointment_doctor_id') }}>
+                <select class="{{ inputClass('doctor_id', 'form-select') }}" id="appointment_doctor_id" name="doctor_id"
+                    data-ajax-select data-url="{{ route('hospital.doctors.options') }}"
+                    data-value-field="id" data-label-field="text" data-placeholder="Select a doctor" required
+                    {{ inputAttrs('doctor_id', 'appointment_doctor_id') }}>
                     <option value=""></option>
                     @if ($selectedDoctor !== null)
                         <option value="{{ $selectedDoctor->id }}" selected>{{ $selectedDoctor->doctor_id ?: $selectedDoctor->id }} — {{ $selectedDoctor->name }}</option>

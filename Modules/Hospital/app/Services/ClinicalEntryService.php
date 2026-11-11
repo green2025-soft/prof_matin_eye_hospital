@@ -160,12 +160,20 @@ class ClinicalEntryService
         $isPaid = $source->reference_commission_paid_at !== null;
 
         return [
-            'service' => $invoice->service, 'source_id' => (int) $invoice->source_id,
+            'service' => $invoice->service,
+            'source_id' => (int) $invoice->source_id,
             'service_label' => clinicalServiceOptions()[$invoice->service],
-            'invoice_no' => $invoice->invoice_no, 'entry_date' => $invoice->entry_date,
-            'reference_id' => (int) $invoice->reference_id, 'reference_code' => $invoice->reference_code, 'reference_name' => $invoice->reference_name,
-            'percent' => $amounts['percent'], 'commission' => $amounts['commission'], 'eligible' => $amounts['eligible'], 'pending' => $amounts['pending'],
-            'paid_amount' => $paidAmount, 'paid_at' => $source->reference_commission_paid_at?->format('d M Y'),
+            'invoice_no' => $invoice->invoice_no,
+            'entry_date' => $invoice->entry_date,
+            'reference_id' => (int) $invoice->reference_id,
+            'reference_code' => $invoice->reference_code,
+            'reference_name' => $invoice->reference_name,
+            'percent' => $amounts['percent'],
+            'commission' => $amounts['commission'],
+            'eligible' => $amounts['eligible'],
+            'pending' => $amounts['pending'],
+            'paid_amount' => $paidAmount,
+            'paid_at' => $source->reference_commission_paid_at?->format('d M Y'),
             'status' => $isPaid ? 'paid' : 'unpaid',
             'can_pay' => ! $isPaid && $amounts['commission'] !== '0.00' && $amounts['pending'] === '0.00',
             'can_unpay' => $isPaid,
@@ -234,7 +242,9 @@ class ClinicalEntryService
         return $this->write($actor, $record ?? new Consultation, $values, $branchId, function (Consultation $entry, Doctor $doctor) use ($values, $branchId): Consultation {
             $appointmentId = $values['appointment_id'] ?? null;
             if ($appointmentId !== null) {
-                $appointment = Appointment::query()->whereKey($appointmentId)->lockForUpdate()->first();
+                $appointment = Appointment::whereKey($appointmentId)
+                    ->lockForUpdate()
+                    ->first(['id', 'branch_id', 'patient_id', 'doctor_id']);
                 if ($appointment === null || $appointment->branch_id !== $branchId
                     || $appointment->patient_id !== (int) $values['patient_id'] || $appointment->doctor_id !== $doctor->getKey()) {
                     throw ValidationException::withMessages(['appointment_id' => 'The appointment must match the selected patient, doctor, and branch.']);
@@ -261,21 +271,30 @@ class ClinicalEntryService
         return $this->write($actor, $record ?? new PatientInvestigation, $values, $branchId, function (PatientInvestigation $entry) use ($values, $branchId): PatientInvestigation {
             $ids = $values['investigation_ids'];
             $eyes = $values['investigation_eyes'];
-            if (count($ids) !== count($eyes) || array_diff(array_map('strval', array_keys($eyes)), array_map('strval', $ids)) !== []) {
+            if (count($ids) !== count($eyes) || array_diff(array_keys($eyes), $ids) !== []) {
                 throw ValidationException::withMessages(['investigation_ids' => 'Each selected test must have its own eye type.']);
             }
 
-            $tests = Investigation::query()->whereKey($ids)->orderBy('id')->sharedLock()->get()->keyBy('id');
+            $tests = Investigation::whereKey($ids)
+                ->orderBy('id')
+                ->sharedLock()
+                ->get(['id', 'single_rate', 'both_rate'])
+                ->keyBy('id');
             if ($tests->count() !== count($ids)) {
                 throw ValidationException::withMessages(['investigation_ids' => 'Select valid investigations from the catalog.']);
             }
 
-            $previousItems = $entry->exists ? $entry->investigations()->get()->keyBy('id') : collect();
+            $previousItems = $entry->exists
+                ? $entry->investigations()
+                    ->get(['investigations.id'])
+                    ->keyBy('id')
+                : collect();
+            $eyeTypes = eyeTypes();
             $items = [];
             $amount = 0;
             foreach (array_values($ids) as $position => $id) {
                 $eye = $eyes[$id];
-                if (! array_key_exists($eye, eyeTypes())) {
+                if (! array_key_exists($eye, $eyeTypes)) {
                     throw ValidationException::withMessages(['investigation_ids' => 'Select a valid eye type for every test.']);
                 }
                 $test = $tests->get($id);
@@ -300,12 +319,14 @@ class ClinicalEntryService
     public function saveOperation(Account $actor, ?PatientOperation $record, array $values, int $branchId): PatientOperation
     {
         return $this->write($actor, $record ?? new PatientOperation, $values, $branchId, function (PatientOperation $entry) use ($values, $branchId): PatientOperation {
-            $operation = Operation::query()->whereKey($values['operation_id'])->sharedLock()->first();
+            $operation = Operation::whereKey($values['operation_id'])
+                ->sharedLock()
+                ->first(['id', 'single_rate', 'both_rate']);
             if ($operation === null) {
                 throw ValidationException::withMessages(['operation_id' => 'Select an operation from the catalog.']);
             }
             if (filled($values['consultant_id'] ?? null)
-                && Doctor::query()->where('branch_id', $branchId)->whereKey($values['consultant_id'])->sharedLock()->first(['id']) === null) {
+                && Doctor::where('branch_id', $branchId)->whereKey($values['consultant_id'])->sharedLock()->first(['id']) === null) {
                 throw ValidationException::withMessages(['consultant_id' => 'Select a consultant from this branch.']);
             }
 
@@ -351,7 +372,7 @@ class ClinicalEntryService
                 if ($state['remaining_paid'] + $amount - $previous < 0) {
                     throw ValidationException::withMessages(['amount' => 'This payment has funded a refund. Its amount cannot be reduced this far.']);
                 }
-                if (PaymentType::query()->whereKey($values['payment_type_id'])->sharedLock()->first(['id']) === null) {
+                if (PaymentType::whereKey($values['payment_type_id'])->sharedLock()->first(['id']) === null) {
                     throw ValidationException::withMessages(['payment_type_id' => 'Select an available payment type.']);
                 }
                 if (! $collection->exists) {
@@ -453,7 +474,7 @@ class ClinicalEntryService
                     $this->assignNumbers($refund, 'refund', now()->toDateString(), $source->doctor_id);
                 }
 
-                if (RefundCause::query()->whereKey($values['cause_id'])->sharedLock()->first(['id']) === null) {
+                if (RefundCause::whereKey($values['cause_id'])->sharedLock()->first(['id']) === null) {
                     throw ValidationException::withMessages(['cause_id' => 'Select an available refund cause.']);
                 }
                 $refund->fill($values);
@@ -547,14 +568,10 @@ class ClinicalEntryService
         $this->authorize($actor, $document, 'view');
         $isRefund = $document instanceof Refund;
         $isCollection = $document instanceof DueCollection;
-        $source = match (true) {
-            $isRefund => $this->sourceInvoice($document),
-            $isCollection => $this->sourceInvoice($document),
-            default => $document,
-        };
+        $source = $isRefund || $isCollection ? $this->sourceInvoice($document) : $document;
         $patient = $source->patient()->first(['id', 'patient_id', 'name', 'age', 'gender', 'mobile_no']);
         $doctor = $source->doctor()->where('branch_id', $source->branch_id)->first(['id', 'name']);
-        $branch = Branch::query()->find($source->branch_id, ['id', 'name', 'address', 'mobile_no', 'telephone_no', 'email', 'logo_path']);
+        $branch = Branch::find($source->branch_id, ['id', 'name', 'address', 'mobile_no', 'telephone_no', 'email', 'logo_path']);
         $company = Setting::values('company', $source->getConnectionName());
         $branding = Setting::values('branding', $source->getConnectionName());
         $branchPhone = implode(' / ', array_filter([$branch?->mobile_no, $branch?->telephone_no], fn ($value): bool => filled($value)));
@@ -583,14 +600,20 @@ class ClinicalEntryService
         };
         $state = $this->invoiceBalance($source);
         $refundCredit = $isRefund ? Money::minor($document->amount) + Money::minor($document->due_adjustment) : null;
+        $sourceService = $this->sourceService($source);
+        $amountInWords = match (true) {
+            $isRefund => $refundCredit,
+            $isCollection => Money::minor($document->amount),
+            default => $state['remaining_amount'],
+        };
 
         return [
             'pageTitle' => $title,
             'documentTitle' => $title,
             'invoiceNumber' => $isRefund || $isCollection ? ($document->invoice_no ?: '—') : $invoiceNumber,
             'originalInvoiceNumber' => $isRefund || $isCollection ? $invoiceNumber : null,
-            'sourceService' => $this->sourceService($source),
-            'sourceServiceLabel' => ucfirst($this->sourceService($source)),
+            'sourceService' => $sourceService,
+            'sourceServiceLabel' => ucfirst($sourceService),
             'entryDate' => $date?->format('d M Y') ?? '—',
             'entryDateLabel' => $isCollection ? 'Collection date' : 'Date / Time',
             'entryTime' => $isCollection ? '' : ($createdAt?->format('h:i A') ?? '—'),
@@ -637,11 +660,7 @@ class ClinicalEntryService
             'remainingDue' => Money::decimal($state['remaining_due']),
             'remarks' => $isRefund || $isCollection ? $document->remarks : $source->getAttribute('remarks'),
             'refundCause' => $isRefund ? $document->cause()->value('name') : null,
-            'amountWords' => Money::words(Money::minor(match (true) {
-                $isRefund => Money::decimal($refundCredit),
-                $isCollection => $document->amount,
-                default => Money::decimal($state['remaining_amount']),
-            })),
+            'amountWords' => Money::words($amountInWords),
             'status' => $isCollection ? 'RECEIVED' : ($isRefund || ($state['credit'] > 0 && $state['remaining_amount'] === 0)
                 ? 'REFUNDED' : ($state['credit'] > 0 ? 'PARTIALLY REFUNDED' : ($state['remaining_due'] > 0 ? 'DUE' : 'PAID'))),
             'backUrl' => route($routePrefix.'.index'),
@@ -671,14 +690,17 @@ class ClinicalEntryService
                     throw ValidationException::withMessages(['record' => 'This invoice has a refund or due collection and cannot be changed.']);
                 }
 
-                $doctor = Doctor::query()->where('branch_id', $branchId)->whereKey($values['doctor_id'])->sharedLock()->first();
+                $doctor = Doctor::where('branch_id', $branchId)
+                    ->whereKey($values['doctor_id'])
+                    ->sharedLock()
+                    ->first(['id', 'branch_id', 'consultation_fee', 'follow_up_fee']);
                 if ($doctor === null) {
                     throw ValidationException::withMessages(['doctor_id' => 'Select a doctor from this branch.']);
                 }
-                if (Patient::query()->whereKey($values['patient_id'])->sharedLock()->first(['id']) === null) {
+                if (Patient::whereKey($values['patient_id'])->sharedLock()->first(['id']) === null) {
                     throw ValidationException::withMessages(['patient_id' => 'Select a patient from this branch.']);
                 }
-                if (! $entry instanceof Appointment && PaymentType::query()->whereKey($values['payment_type_id'])->sharedLock()->first(['id']) === null) {
+                if (! $entry instanceof Appointment && PaymentType::whereKey($values['payment_type_id'])->sharedLock()->first(['id']) === null) {
                     throw ValidationException::withMessages(['payment_type_id' => 'Select an available payment type.']);
                 }
 
@@ -726,7 +748,7 @@ class ClinicalEntryService
         $referenceId = $values['reference_id'] ?? null;
         $reference = null;
         if ($referenceId !== null) {
-            $reference = Reference::query()->where('branch_id', $branchId)->whereKey($referenceId)->sharedLock()->first(['id', $type.'_percent']);
+            $reference = Reference::where('branch_id', $branchId)->whereKey($referenceId)->sharedLock()->first(['id', $type.'_percent']);
             if ($reference === null) {
                 throw ValidationException::withMessages(['reference_id' => 'Select a reference from this branch.']);
             }
@@ -747,9 +769,9 @@ class ClinicalEntryService
     private function sourceInvoice(Refund|DueCollection $record, bool $lock = false): BaseModel
     {
         $query = match ($record->serviceType()) {
-            'consultation' => Consultation::query()->whereKey($record->consultation_id),
-            'investigation' => PatientInvestigation::query()->whereKey($record->investigation_id),
-            'operation' => PatientOperation::query()->whereKey($record->operation_id),
+            'consultation' => Consultation::whereKey($record->consultation_id),
+            'investigation' => PatientInvestigation::whereKey($record->investigation_id),
+            'operation' => PatientOperation::whereKey($record->operation_id),
         };
         $query->where('branch_id', $record->branch_id);
         if ($lock) {
@@ -766,11 +788,11 @@ class ClinicalEntryService
         }
         [, $service, $id] = $matches;
         $query = match ($service) {
-            'consultation' => Consultation::query(),
-            'investigation' => PatientInvestigation::query(),
-            'operation' => PatientOperation::query(),
+            'consultation' => Consultation::whereKey($id),
+            'investigation' => PatientInvestigation::whereKey($id),
+            'operation' => PatientOperation::whereKey($id),
         };
-        $query->where('branch_id', $branchId)->whereKey($id);
+        $query->where('branch_id', $branchId);
         if ($lock) {
             $query->lockForUpdate();
         }
@@ -986,11 +1008,10 @@ class ClinicalEntryService
                     ->orWhereRaw("mobile_no LIKE ? ESCAPE '!'", [$pattern]);
             });
         }
-        $records = $query->orderBy('service_rank')->orderBy('source_id')
-            ->simplePaginate(20, ['*'], 'page', max(1, (int) ($filters['page'] ?? 1)));
-        $records->setCollection($records->getCollection()->map(fn (object $invoice): array => $this->invoiceOption((array) $invoice)));
 
-        return $records;
+        return $query->orderBy('service_rank')
+            ->orderBy('source_id')
+            ->simplePaginate(20, ['*'], 'page', max(1, (int) ($filters['page'] ?? 1)));
     }
 
     private function invoiceOption(array $invoice): array
@@ -1011,17 +1032,23 @@ class ClinicalEntryService
         $patient = $source->patient()->first(['id', 'name', 'mobile_no']);
 
         return $this->invoiceOption([
-            'service' => $this->sourceService($source), 'source_id' => $source->getKey(), 'invoice_no' => $source->invoice_no,
-            'patient_name' => $patient?->name, 'mobile_no' => $patient?->mobile_no,
-            'paid_amount' => $source->paid_amount, 'due_amount' => $source->due_amount, 'payable_amount' => $source->payable_amount,
-            'remaining_paid' => Money::decimal($state['remaining_paid']), 'remaining_due' => Money::decimal($state['remaining_due']),
+            'service' => $this->sourceService($source),
+            'source_id' => $source->getKey(),
+            'invoice_no' => $source->invoice_no,
+            'patient_name' => $patient?->name,
+            'mobile_no' => $patient?->mobile_no,
+            'paid_amount' => $source->paid_amount,
+            'due_amount' => $source->due_amount,
+            'payable_amount' => $source->payable_amount,
+            'remaining_paid' => Money::decimal($state['remaining_paid']),
+            'remaining_due' => Money::decimal($state['remaining_due']),
             'remaining_amount' => Money::decimal($state['remaining_amount']),
         ]);
     }
 
     private function sourceRefunds(BaseModel $source): Builder
     {
-        return Refund::query()->where($this->sourceColumn($source), $source->getKey());
+        return Refund::where($this->sourceColumn($source), $source->getKey());
     }
 
     private function sourceColumn(BaseModel $source): string
@@ -1044,7 +1071,7 @@ class ClinicalEntryService
 
     private function sourceCollections(BaseModel $source): Builder
     {
-        return DueCollection::query()->where($this->sourceColumn($source), $source->getKey());
+        return DueCollection::where($this->sourceColumn($source), $source->getKey());
     }
 
     private function invoiceBalance(BaseModel $source, ?Refund $current = null, bool $includeRefundItems = false): array
@@ -1105,9 +1132,14 @@ class ClinicalEntryService
             $minor = $share->toInt();
             $id = $item->getKey();
             $items[$id] = [
-                'id' => $id, 'name' => $item->name, 'room' => $item->room_no,
-                'eye_type' => $item->pivot->eye_type, 'eye_label' => eyeTypes()[$item->pivot->eye_type] ?? ucfirst($item->pivot->eye_type),
-                'rate' => Money::decimal($rate), 'amount' => Money::decimal($minor), 'position' => (int) $item->pivot->position,
+                'id' => $id,
+                'name' => $item->name,
+                'room' => $item->room_no,
+                'eye_type' => $item->pivot->eye_type,
+                'eye_label' => eyeTypes()[$item->pivot->eye_type] ?? ucfirst($item->pivot->eye_type),
+                'rate' => Money::decimal($rate),
+                'amount' => Money::decimal($minor),
+                'position' => (int) $item->pivot->position,
             ];
             $remainders[$id] = $remainder->toInt();
             $allocated += $minor;
@@ -1243,8 +1275,11 @@ class ClinicalEntryService
 
         $date = Carbon::parse($date);
         $formatted = strtr($pattern, [
-            '{YYYY}' => $date->format('Y'), '{MM}' => $date->format('m'), '{DD}' => $date->format('d'),
-            '{BRANCH}' => (string) $entry->branch_id, '{DOCTOR}' => (string) ($doctorId ?? $entry->getAttribute('doctor_id')),
+            '{YYYY}' => $date->format('Y'),
+            '{MM}' => $date->format('m'),
+            '{DD}' => $date->format('d'),
+            '{BRANCH}' => (string) $entry->branch_id,
+            '{DOCTOR}' => (string) ($doctorId ?? $entry->getAttribute('doctor_id')),
         ]);
         $formatted = preg_replace_callback('/\{SEQ(?::([1-9]|1[0-2]))?\}/', fn (array $match): string => str_pad((string) $number, (int) ($match[1] ?? 6), '0', STR_PAD_LEFT), $formatted);
         if (mb_strlen($formatted) > 120) {

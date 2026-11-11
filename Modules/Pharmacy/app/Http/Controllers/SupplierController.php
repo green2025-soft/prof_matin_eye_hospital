@@ -50,18 +50,20 @@ class SupplierController extends BaseController
 
     protected function formData(Account $actor, Model $record): array
     {
-        $type = $record->exists ? $record->type : request()
-            ->query('type', 'medicine');
-        if (! is_string($type) || ! array_key_exists($type, Product::types())) {
+        $request = request();
+        $type = $record->exists ? $record->type : $request->query('type', 'medicine');
+
+        if (! in_array($type, array_keys(Product::types()), true)) {
             $type = 'medicine';
         }
-        if (! request()->attributes->has('pharmacy_product_type')) {
-            request()->attributes->set('pharmacy_product_type', $type);
-        }
 
-        return [
-            'defaultType' => $type,
-            'pageTitle' => ($record->exists ? 'Edit ' : 'Create ').Product::types()[$type].' supplier',
+        $request->attributes->set('pharmacy_product_type', $type);
+
+        $data = [
+            'defaultType'   => $type,
+            'pageTitle'     => ($record->exists ? 'Edit ' : 'Create ').Product::types()[$type].' supplier',
         ];
+
+        return $data;
     }
 }

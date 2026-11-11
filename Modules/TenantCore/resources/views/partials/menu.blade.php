@@ -1,9 +1,14 @@
-@if (array_intersect(array_keys($layout['permissions']), [
-    'accounts.view', 'branches.view', 'payment-types.view',
-    'divisions.view', 'districts.view', 'thanas.view',
-    'roles.view', 'audit-logs.view', 'permissions.view',
-    'billing.view', 'settings.view',
-]))
+@php
+    $canViewBranches = $foundationHasBranches && ($layout['permissions']['branches.view'] ?? false);
+    $showManagement = $canViewBranches || array_intersect(array_keys($layout['permissions']), [
+        'accounts.view', 'payment-types.view',
+        'divisions.view', 'districts.view', 'thanas.view',
+        'roles.view', 'audit-logs.view', 'permissions.view',
+        'billing.view', 'settings.view',
+    ]);
+@endphp
+
+@if ($showManagement)
     <p class="app-nav-label">Management</p>
 @endif
 
@@ -14,7 +19,7 @@
         'active' => request()->routeIs('tenantcore.accounts.*'),
     ])
 @endif
-@if ($layout['permissions']['branches.view'] ?? false)
+@if ($canViewBranches)
     @include('core::partials.navigation-link', [
         'label' => 'Branches', 'icon' => 'building',
         'url' => route('tenantcore.branches.index'),

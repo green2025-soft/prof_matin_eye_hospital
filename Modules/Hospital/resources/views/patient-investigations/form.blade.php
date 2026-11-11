@@ -40,7 +40,9 @@
             <div class="col-md-4">
                 <label class="form-label" for="investigation_entry_date">Entry date <span class="text-danger" aria-hidden="true">*</span></label>
                 <div class="input-group" data-datepicker>
-                    <input class="{{ inputClass('entry_date') }}" id="investigation_entry_date" name="entry_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD" value="{{ getValue('entry_date', null, $entryDate) }}" required data-input {{ inputAttrs('entry_date', 'investigation_entry_date') }}>
+                    <input class="{{ inputClass('entry_date') }}" id="investigation_entry_date" name="entry_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD"
+                        value="{{ getValue('entry_date', null, $entryDate) }}" required data-input
+                        {{ inputAttrs('entry_date', 'investigation_entry_date') }}>
                     <button class="btn btn-outline-secondary" type="button" data-toggle aria-controls="investigation_entry_date" aria-label="Choose entry date" title="Choose entry date"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></button>
                 </div>
                 @error('entry_date')<div class="invalid-feedback d-block" id="investigation_entry_date-error">{{ $message }}</div>@enderror
@@ -61,7 +63,10 @@
         <div class="row g-3 mt-0">
             <div class="col-md-4">
                 <label class="form-label" for="investigation_doctor_id">Doctor <span class="text-danger" aria-hidden="true">*</span></label>
-                <select class="{{ inputClass('doctor_id', 'form-select') }}" id="investigation_doctor_id" name="doctor_id" data-ajax-select data-url="{{ route('hospital.doctors.options') }}" data-value-field="id" data-label-field="text" data-placeholder="Select a doctor" required {{ inputAttrs('doctor_id', 'investigation_doctor_id') }}>
+                <select class="{{ inputClass('doctor_id', 'form-select') }}" id="investigation_doctor_id" name="doctor_id"
+                    data-ajax-select data-url="{{ route('hospital.doctors.options') }}"
+                    data-value-field="id" data-label-field="text" data-placeholder="Select a doctor" required
+                    {{ inputAttrs('doctor_id', 'investigation_doctor_id') }}>
                     <option value=""></option>
                     @if ($selectedDoctor !== null)
                         <option value="{{ $selectedDoctor->id }}" data-consultation-fee="{{ $selectedDoctor->consultation_fee }}" data-follow-up-fee="{{ $selectedDoctor->follow_up_fee }}" selected>{{ $selectedDoctor->doctor_id ?: $selectedDoctor->id }} — {{ $selectedDoctor->name }}</option>
@@ -82,7 +87,9 @@
             <div class="col-md-4">
                 <label class="form-label" for="investigation_delivery_date">Delivery date <span class="text-danger" aria-hidden="true">*</span></label>
                 <div class="input-group" data-datepicker>
-                    <input class="{{ inputClass('delivery_date') }}" id="investigation_delivery_date" name="delivery_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD" value="{{ getValue('delivery_date', null, $deliveryDate) }}" required data-input {{ inputAttrs('delivery_date', 'investigation_delivery_date') }}>
+                    <input class="{{ inputClass('delivery_date') }}" id="investigation_delivery_date" name="delivery_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD"
+                        value="{{ getValue('delivery_date', null, $deliveryDate) }}" required data-input
+                        {{ inputAttrs('delivery_date', 'investigation_delivery_date') }}>
                     <button class="btn btn-outline-secondary" type="button" data-toggle aria-controls="investigation_delivery_date" aria-label="Choose delivery date" title="Choose delivery date"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></button>
                 </div>
                 @error('delivery_date')<div class="invalid-feedback d-block" id="investigation_delivery_date-error">{{ $message }}</div>@enderror
@@ -91,12 +98,17 @@
 
         <div class="mt-3">
             <label class="form-label" for="investigation_investigation_ids">Investigations <span class="text-danger" aria-hidden="true">*</span></label>
-            <select class="{{ inputClass('investigation_ids', 'form-select') }}" id="investigation_investigation_ids" data-investigation-picker data-ajax-select data-url="{{ route('hospital.investigations.options') }}" data-value-field="id" data-label-field="name" data-placeholder="Select a test to add" @disabled($selectedDoctor === null) {{ inputAttrs('investigation_ids', 'investigation_investigation_ids', 'investigation_doctor-help investigation_picker-help') }}>
+            <select class="{{ inputClass('investigation_ids', 'form-select') }}" id="investigation_investigation_ids" data-investigation-picker
+                data-ajax-select data-url="{{ route('hospital.investigations.options') }}"
+                data-value-field="id" data-label-field="name" data-placeholder="Select a test to add" @disabled($selectedDoctor === null)
+                {{ inputAttrs('investigation_ids', 'investigation_investigation_ids', 'investigation_doctor-help investigation_picker-help') }}>
                 <option value=""></option>
             </select>
             <select name="investigation_ids[]" data-investigation-items multiple hidden>
                 @foreach ($selectedInvestigations as $investigation)
-                    <option value="{{ $investigation->id }}" data-single-rate="{{ $investigation->single_rate }}" data-both-rate="{{ $investigation->both_rate }}" data-category-name="{{ $investigation->category?->name }}" data-entry-rate="{{ $investigationRates[$investigation->id] ?? '' }}" data-entry-eye="{{ $investigationEyes[$investigation->id] ?? $patient_investigation->eye_type ?? 'left' }}" selected>{{ $investigation->name }}</option>
+                    <option value="{{ $investigation->id }}" data-single-rate="{{ $investigation->single_rate }}" data-both-rate="{{ $investigation->both_rate }}"
+                        data-category-name="{{ $investigation->category?->name }}"
+                        data-entry-rate="{{ $investigationRates[$investigation->id] ?? '' }}" data-entry-eye="{{ $investigationEyes[$investigation->id] ?? $patient_investigation->eye_type ?? 'left' }}" selected>{{ $investigation->name }}</option>
                 @endforeach
             </select>
             <p class="form-text mb-0" id="investigation_doctor-help" data-investigation-doctor-help @if ($selectedDoctor !== null) hidden @endif>Select a doctor before adding investigations.</p>
@@ -116,7 +128,10 @@
             <div class="row g-3 mt-0">
                 <div class="col-md-4">
                     <label class="form-label" for="investigation_reference_id">Reference</label>
-                    <select class="{{ inputClass('reference_id', 'form-select') }}" id="investigation_reference_id" name="reference_id" data-ajax-select data-url="{{ route('hospital.references.options') }}" data-value-field="id" data-label-field="text" data-placeholder="Select a reference" {{ inputAttrs('reference_id', 'investigation_reference_id') }}>
+                    <select class="{{ inputClass('reference_id', 'form-select') }}" id="investigation_reference_id" name="reference_id"
+                        data-ajax-select data-url="{{ route('hospital.references.options') }}"
+                        data-value-field="id" data-label-field="text" data-placeholder="Select a reference"
+                        {{ inputAttrs('reference_id', 'investigation_reference_id') }}>
                         <option value=""></option>
                         @if ($selectedReference !== null)
                             <option value="{{ $selectedReference->id }}" selected>{{ $selectedReference->reference_id }} — {{ $selectedReference->name }}{{ $selectedReference->contact_no ? ' ('.$selectedReference->contact_no.')' : '' }}</option>
@@ -138,17 +153,23 @@
                 </div>
                 <div class="col-sm-6 col-xl-3">
                     <label class="form-label" for="investigation_discount_percent">Discount % <span class="text-danger" aria-hidden="true">*</span></label>
-                    <input class="{{ inputClass('discount_percent') }}" id="investigation_discount_percent" name="discount_percent" type="number" inputmode="decimal" min="0" max="100" step="0.01" value="{{ getValue('discount_percent', $patient_investigation, '0.00') }}" required data-clinical-discount-percent {{ inputAttrs('discount_percent', 'investigation_discount_percent') }}>
+                    <input class="{{ inputClass('discount_percent') }}" id="investigation_discount_percent" name="discount_percent" type="number" inputmode="decimal" min="0" max="100" step="0.01"
+                        value="{{ getValue('discount_percent', $patient_investigation, '0.00') }}" required data-clinical-discount-percent
+                        {{ inputAttrs('discount_percent', 'investigation_discount_percent') }}>
                     @error('discount_percent')<div class="invalid-feedback d-block" id="investigation_discount_percent-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6 col-xl-3">
                     <label class="form-label" for="investigation_discount_amount">Discount amount <span class="text-danger" aria-hidden="true">*</span></label>
-                    <input class="{{ inputClass('discount_amount') }}" id="investigation_discount_amount" name="discount_amount" type="text" inputmode="decimal" maxlength="13" value="{{ getValue('discount_amount', $patient_investigation, '0.00') }}" required data-clinical-discount-amount {{ inputAttrs('discount_amount', 'investigation_discount_amount') }}>
+                    <input class="{{ inputClass('discount_amount') }}" id="investigation_discount_amount" name="discount_amount" type="text" inputmode="decimal" maxlength="13"
+                        value="{{ getValue('discount_amount', $patient_investigation, '0.00') }}" required data-clinical-discount-amount
+                        {{ inputAttrs('discount_amount', 'investigation_discount_amount') }}>
                     @error('discount_amount')<div class="invalid-feedback d-block" id="investigation_discount_amount-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6 col-xl-3">
                     <label class="form-label" for="investigation_extra_discount_percent">Extra discount % <span class="text-danger" aria-hidden="true">*</span></label>
-                    <input class="{{ inputClass('extra_discount_percent') }}" id="investigation_extra_discount_percent" name="extra_discount_percent" type="number" inputmode="decimal" min="0" max="100" step="0.01" value="{{ getValue('extra_discount_percent', $patient_investigation, '0.00') }}" required data-clinical-extra-discount-percent {{ inputAttrs('extra_discount_percent', 'investigation_extra_discount_percent') }}>
+                    <input class="{{ inputClass('extra_discount_percent') }}" id="investigation_extra_discount_percent" name="extra_discount_percent" type="number" inputmode="decimal" min="0" max="100" step="0.01"
+                        value="{{ getValue('extra_discount_percent', $patient_investigation, '0.00') }}" required data-clinical-extra-discount-percent
+                        {{ inputAttrs('extra_discount_percent', 'investigation_extra_discount_percent') }}>
                     @error('extra_discount_percent')<div class="invalid-feedback d-block" id="investigation_extra_discount_percent-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6 col-xl-3">
@@ -157,7 +178,9 @@
                 </div>
                 <div class="col-sm-6 col-xl-3">
                     <label class="form-label" for="investigation_paid_amount">Paid amount <span class="text-danger" aria-hidden="true">*</span></label>
-                    <input class="{{ inputClass('paid_amount') }}" id="investigation_paid_amount" name="paid_amount" type="text" inputmode="decimal" maxlength="13" value="{{ getValue('paid_amount', $patient_investigation, '0.00') }}" required data-clinical-paid {{ inputAttrs('paid_amount', 'investigation_paid_amount') }}>
+                    <input class="{{ inputClass('paid_amount') }}" id="investigation_paid_amount" name="paid_amount" type="text" inputmode="decimal" maxlength="13"
+                        value="{{ getValue('paid_amount', $patient_investigation, '0.00') }}" required data-clinical-paid
+                        {{ inputAttrs('paid_amount', 'investigation_paid_amount') }}>
                     @error('paid_amount')<div class="invalid-feedback d-block" id="investigation_paid_amount-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6 col-xl-3">

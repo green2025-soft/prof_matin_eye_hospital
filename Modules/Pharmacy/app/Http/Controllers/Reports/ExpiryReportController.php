@@ -23,11 +23,9 @@ class ExpiryReportController extends BaseController
 
         $request->attributes->set('pharmacy_product_type', 'medicine');
 
-        $query = StockLot::query()
-            ->with('variant.product:id,name')
+        $query = StockLot::with('variant.product:id,name')
             ->whereNull('reversed_at')
             ->where('remaining_quantity', '>', 0)
-            ->whereNotNull('expiry_date')
             ->where('expiry_date', '<=', $filters['expiry_before'])
             ->orderBy('expiry_date')
             ->orderBy('id');
@@ -41,8 +39,7 @@ class ExpiryReportController extends BaseController
 
         $records = $this->paginateQuery($query, $filters);
 
-        $productQuery = ProductVariant::query()
-            ->with('product:id,name,type')
+        $productQuery = ProductVariant::with('product:id,name,type')
             ->whereHas('product', fn (Builder $products) => $products->where('type', 'medicine'));
 
         $selectedProduct = $this->selectedOption(

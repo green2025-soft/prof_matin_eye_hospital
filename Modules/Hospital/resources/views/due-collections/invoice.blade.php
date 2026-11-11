@@ -23,9 +23,9 @@
         </table>
     </div>
 
-    <div class="app-clinical-invoice-summary">
+    <div class="row g-4 app-clinical-invoice-summary">
         @include('hospital::invoices.notes', ['wordsLabel' => 'Received amount in words'])
-        <section class="app-clinical-invoice-totals" aria-labelledby="clinical-invoice-totals-title">
+        <section class="col-12 col-sm-6 app-clinical-invoice-totals" aria-labelledby="clinical-invoice-totals-title">
             <h2 class="app-clinical-invoice-section-title" id="clinical-invoice-totals-title">Collection receipt</h2>
             <dl class="mb-0">
                 <div class="app-clinical-invoice-total"><dt>Received amount</dt><dd>{{ $collectionAmount }}</dd></div>

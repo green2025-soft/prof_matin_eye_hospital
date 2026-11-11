@@ -24,8 +24,10 @@ class PermissionController extends BaseController
 
     public function index(PermissionPageRequest $request): View
     {
-        return $this->listData($request, app($this->service)
-            ->pageData($request->user('web'), $request->validated()));
+        $data = app($this->service)
+            ->pageData($request->user('web'), $request->validated());
+
+        return $this->listData($request, $data);
     }
 
     public function store(RolePermissionRequest $request): RedirectResponse

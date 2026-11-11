@@ -61,18 +61,9 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label" for="plan_id">Plan <span class="text-danger" aria-hidden="true">*</span></label>
-                        <input
-                            class="{{ inputClass('plan_id') }}"
-                            id="plan_id"
-                            name="plan_id"
-                            type="number"
-                            value="{{ getValue('plan_id', $subscription) }}"
-                            list="subscription-plans"
-                            min="1"
-                            step="1"
-                            required
-                            {{ inputAttrs('plan_id', null, 'plan-help') }}
-                        >
+                        <input class="{{ inputClass('plan_id') }}" id="plan_id" name="plan_id" type="number"
+                            value="{{ getValue('plan_id', $subscription) }}" list="subscription-plans" min="1" step="1" required
+                            {{ inputAttrs('plan_id', null, 'plan-help') }}>
                         <datalist id="subscription-plans">
                             @foreach ($plans as $plan)
                                 <option value="{{ $plan->id }}">{{ $plan->name }}</option>

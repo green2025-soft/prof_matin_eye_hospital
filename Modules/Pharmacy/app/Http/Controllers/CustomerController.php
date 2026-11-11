@@ -8,40 +8,37 @@ use Modules\Core\Http\Controllers\BaseController;
 use Modules\Core\Models\Setting;
 use Modules\Hospital\Contracts\PharmacyCustomers;
 use Modules\Pharmacy\Http\Requests\CustomerRequest;
-use Modules\Pharmacy\Services\PharmacyAccess;
 
 class CustomerController extends BaseController
 {
-    public function index(CustomerRequest $request, PharmacyCustomers $customers, PharmacyAccess $access): View
+    public function index(CustomerRequest $request, PharmacyCustomers $customers): View
     {
-        $access->authorize($request->user('web'), 'pharmacy-customers.view');
-        $filters = $request->validated();
-        $records = $customers->paginate($request->user('web'), $filters);
+        $actor      = $request->user('web');
+        $filters    = $request->validated();
+        $records    = $customers->paginate($actor, $filters);
 
-        return view('pharmacy::customers.index', [
+        $data = [
             'pageTitle' => 'Customers / patients',
-            'filters' => $filters,
-            'records' => $records,
-        ]);
+            'filters'   => $filters,
+            'records'   => $records,
+        ];
+
+        return view('pharmacy::customers.index', $data);
     }
 
     public function choices(CustomerRequest $request, PharmacyCustomers $customers): JsonResponse
     {
-        $filters = $request->validated();
-        $settings = Setting::values('pharmacy');
-        $customersOnly = ! empty($filters['new_sale']) && $settings['customer_scope'] === 'customer';
+        $filters        = $request->validated();
+        $settings       = Setting::values('pharmacy');
+        $customersOnly  = ! empty($filters['new_sale']) && $settings['customer_scope'] === 'customer';
 
-        return response()
-            ->json($customers->search($request->user('web'), $filters['search'] ?? '', $customersOnly, (int) ($filters['page'] ?? 1)));
+        return response()->json($customers->search($request->user('web'), $filters['search'] ?? '', $customersOnly, (int) ($filters['page'] ?? 1)));
     }
 
     public function store(CustomerRequest $request, PharmacyCustomers $customers): JsonResponse
     {
         $customer = $customers->create($request->user('web'), $request->validated(), (int) $request->attributes->get('branch_id'));
 
-        return response()
-            ->json([
-                'customer' => $customer,
-            ], 201);
+        return response()->json(['customer' => $customer], 201);
     }
 }

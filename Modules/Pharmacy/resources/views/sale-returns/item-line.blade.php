@@ -11,14 +11,7 @@
     </td>
     <td class="app-pharmacy-entry-product" data-label="Product">
         <strong class="d-block small">{{ $variant->product->name }}</strong>
-        <small class="text-body-secondary">{{ $variant->sku }}</small>
-        @if (filled($variant->name) && strtolower(trim($variant->name)) !== 'default')
-            <small class="text-body-secondary"> / {{ $variant->name }}</small>
-        @endif
-        @if ($variant->color)<small class="text-body-secondary"> / {{ $variant->color }}</small>@endif
-        @if ($variant->size)<small class="text-body-secondary"> / {{ $variant->size }}</small>@endif
-        @if (filled($variant->sph))<small class="text-body-secondary"> / SPH {{ $variant->sph }}</small>@endif
-        @if (filled($variant->cyl))<small class="text-body-secondary"> / CYL {{ $variant->cyl }}</small>@endif
+        <small class="text-body-secondary">{{ $variant->description() }}</small>
         <input name="lines[{{ $lineIndex }}][variant_id]" type="hidden" value="{{ $variant->id }}" data-pharmacy-return-field @disabled((int) $quantity <= 0)>
         <input name="lines[{{ $lineIndex }}][sale_item_id]" type="hidden" value="{{ $sourceLine->id }}" data-pharmacy-return-field @disabled((int) $quantity <= 0)>
         @error('lines.'.$lineIndex.'.variant_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror

@@ -1,10 +1,12 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Js;
 use Illuminate\Support\Str;
 use Illuminate\Support\ViewErrorBag;
 use Illuminate\View\ComponentAttributeBag;
 use Modules\Core\Helpers\Money;
+use Modules\Core\Http\Controllers\BaseController;
 
 function menuParameters(): array
 {
@@ -13,6 +15,15 @@ function menuParameters(): array
     return is_string($menu) && $menu !== '' && strlen($menu) <= 40
         ? ['menu' => $menu]
         : [];
+}
+
+// Resolve a CRUD route's declared model for native Blade authorization.
+function resourceModel(string $routeName): ?string
+{
+    $route = Route::getRoutes()->getByName($routeName);
+    $controller = $route?->getController();
+
+    return $controller instanceof BaseController ? $controller->modelClass() : null;
 }
 
 function moneyDecimal(int|string $minor): string

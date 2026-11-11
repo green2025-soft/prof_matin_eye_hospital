@@ -13,7 +13,6 @@ use Modules\Core\Models\Setting;
 use Modules\Hospital\Contracts\PharmacyCustomers;
 use Modules\Pharmacy\Http\Requests\SaleRequest;
 use Modules\Pharmacy\Models\Sale;
-use Modules\Pharmacy\Services\PharmacyAccess;
 use Modules\Pharmacy\Services\ItemService;
 use Modules\Pharmacy\Services\SaleService;
 use Modules\Pharmacy\Services\StockService;
@@ -41,23 +40,21 @@ class SaleController extends BaseController
 
     public function index(ListRequest $request): View
     {
-        $view = $this->listData($request);
+        $view           = $this->listData($request);
         $request->attributes->set('pharmacy_product_type', $view->getData()['filters']['product_type']);
-        $actor = $request->user('web');
-        $access = app(PharmacyAccess::class);
-        $customerIds = $view->getData()['records']->pluck('customer_id')
-            ->filter()
-            ->unique()
-            ->all();
+        $actor          = $request->user('web');
+        $permissions    = $request->attributes->get('navigation_permissions', []);
+        $customerIds    = $view->getData()['records']->pluck('customer_id')->filter()->unique()->all();
 
-        return $view->with([
+        $data = [
             'resourceParameter' => $this->parameter,
-            'canCreate' => $access->allows($actor, 'pharmacy-sales.create'),
-            'canUpdateSales' => $access->allows($actor, 'pharmacy-sales.update'),
-            'canDeleteSales' => $access->allows($actor, 'pharmacy-sales.delete'),
-            'customers' => $customerIds === [] ? [] : app(PharmacyCustomers::class)
-                ->findMany($actor, $customerIds),
-        ]);
+            'canCreate'         => isset($permissions['pharmacy-sales.create']),
+            'canUpdateSales'    => isset($permissions['pharmacy-sales.update']),
+            'canDeleteSales'    => isset($permissions['pharmacy-sales.delete']),
+            'customers'         => $customerIds === [] ? [] : app(PharmacyCustomers::class)->findMany($actor, $customerIds),
+        ];
+
+        return $view->with($data);
     }
 
     public function store(SaleRequest $request): RedirectResponse
@@ -70,91 +67,69 @@ class SaleController extends BaseController
         $request->attributes->set('pharmacy_product_type', $sale->product_type);
         $settings = Setting::values('pharmacy', $sale->getConnectionName());
 
-        return view(
-            $this->views.'.show',
-            $entries->invoiceData($request->user('web'), $sale) + [
-                'routePrefix' => $this->routePrefix(),
-                'resourceParameter' => $this->parameter,
-                'invoicePaper' => $settings['sale_invoice_paper'],
-                'salePosWidth' => $settings['sale_pos_width_mm'],
-            ]
-        );
+        $data = $entries->invoiceData($request->user('web'), $sale) + [
+            'routePrefix' => $this->routePrefix(),
+            'resourceParameter' => $this->parameter,
+            'invoicePaper' => $settings['sale_invoice_paper'],
+            'salePosWidth' => $settings['sale_pos_width_mm'],
+        ];
+
+        return view($this->views.'.show', $data);
     }
 
     protected function formData(Account $actor, Model $record): array
     {
-        $productType = $record->exists ? $record->product_type : request()
-            ->query('product_type', 'medicine');
-        $productType = in_array($productType, ['medicine', 'optic'], true) ? $productType : 'medicine';
-        request()->attributes->set('pharmacy_product_type', $productType);
-        $settings = Setting::values('pharmacy', $record->getConnectionName());
+        $request        = request();
+        $productType    = $record->exists ? $record->product_type : $request->query('product_type', 'medicine');
+        $productType    = in_array($productType, ['medicine', 'optic'], true) ? $productType : 'medicine';
+        $request->attributes->set('pharmacy_product_type', $productType);
+        $settings       = Setting::values('pharmacy', $record->getConnectionName());
         if ($record->exists) {
             $record->load([
                 'lines' => fn ($query) => $query->orderBy('id'),
                 'lines.variant.product:id,name,type,purchase_price,sale_price',
-                'lines.variant.product.units' => fn ($query) => $query->orderBy('factor')
-                    ->orderBy('id'),
+                'lines.variant.product.units' => fn ($query) => $query->orderBy('factor')->orderBy('id'),
                 'lines.variant.product.units.unit:id,name,symbol',
             ]);
-            $settings['vat_enabled'] = $record->vat_mode !== 'none';
-            $settings['vat_mode'] = $record->vat_mode;
-            $settings['vat_percent'] = $record->vat_percent;
         }
-        $savedLines = $record->exists ? $record->lines->keyBy('id') : collect();
-        $hasOldLines = array_key_exists(
-            'lines',
-            request()
-                ->session()
-                ->getOldInput()
-        );
-        $lineInputs = $hasOldLines ? $this->oldRows('lines') : [];
-        $fields = SaleService::itemFields($settings, $productType);
-        $variants = $hasOldLines ? app(ItemService::class)
-            ->selectedVariants($lineInputs) : $savedLines->pluck('variant')
-            ->keyBy('id');
+        $savedLines     = $record->exists ? $record->lines : collect();
+        $hasOldLines    = $request->session()->hasOldInput('lines');
+        $lineInputs     = $hasOldLines ? $this->oldRows('lines') : [];
+        $fields         = SaleService::itemFields($settings, $productType);
+        $variants       = $hasOldLines ? app(ItemService::class)->selectedVariants($lineInputs) : $savedLines->pluck('variant')->keyBy('id');
         // Show current stock consistently with the picker; posting also checks the invoice date.
-        $stockDate = now()
-            ->toDateString();
-        $stock = app(StockService::class);
-        $customerId = getValue('customer_id', $record);
-        $customerId = is_scalar($customerId) && ctype_digit((string) $customerId) ? (int) $customerId : null;
-        $customers = $customerId === null ? [] : app(PharmacyCustomers::class)
-            ->findMany($actor, [$customerId]);
-        $access = app(PharmacyAccess::class);
+        $stockDate      = now()->toDateString();
+        $stock          = app(StockService::class);
+        $customerId     = getValue('customer_id', $record);
+        $customerId     = is_scalar($customerId) && ctype_digit((string) $customerId) ? (int) $customerId : null;
+        $customers      = $customerId === null ? [] : app(PharmacyCustomers::class)->findMany($actor, [$customerId]);
+        $permissions    = $request->attributes->get('navigation_permissions', []);
 
-        return [
-            'entry' => $record,
-            'lineInputs' => $lineInputs,
-            'variants' => $variants,
-            'savedLines' => $savedLines,
-            'hasOldLines' => $hasOldLines,
-            'pharmacySettings' => $settings,
-            'itemFields' => $fields,
-            'stockQuantities' => $stock->availableQuantities(
-                $productType,
-                $stockDate,
-                $variants->keys()
-                    ->all()
-            ),
-            'revisionStock' => $record->exists ? $stock->saleRevisionQuantities($record, $stockDate) : collect(),
-            'paymentTypes' => PaymentType::query()
-                ->orderBy('ordering')
-                ->orderBy('id')
-                ->get(['id', 'name']),
-            'selectedCustomer' => $customers[$customerId] ?? null,
-            'canCreateCustomer' => $access->allows($actor, 'pharmacy-customers.create')
-                && $access->allows($actor, 'pharmacy-sales.create'),
+        $data = [
+            'entry'             => $record,
+            'lineInputs'        => $lineInputs,
+            'variants'          => $variants,
+            'savedLines'        => $savedLines,
+            'hasOldLines'       => $hasOldLines,
+            'pharmacySettings'  => $settings,
+            'itemFields'        => $fields,
+            'stockQuantities'   => $stock->availableQuantities($productType,$stockDate,$variants->keys()->all()),
+            'revisionStock'     => $record->exists ? $stock->saleRevisionQuantities($record, $stockDate) : collect(),
+            'paymentTypes'      => PaymentType::orderBy('ordering')->orderBy('id')->get(['id', 'name']),
+            'selectedCustomer'  => $customers[$customerId] ?? null,
+            'canCreateCustomer' => isset($permissions['pharmacy-customers.create'], $permissions['pharmacy-sales.create']),
         ];
+
+        return $data;
     }
 
     public function reverse(Request $request, Sale $sale, SaleService $entries): RedirectResponse
     {
         $entries->reverse($request->user('web'), $sale);
 
-        return redirect()
-            ->route($this->routePrefix().'.show', [
-                $this->parameter => $sale,
-                'product_type' => $sale->product_type,
+        return redirect()->route($this->routePrefix().'.show', [
+                $this->parameter    => $sale,
+                'product_type'  => $sale->product_type,
             ])
             ->with('status', 'Entry voided. Stock and balances have been reversed.');
     }

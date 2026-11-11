@@ -3,8 +3,10 @@
 namespace Modules\Pharmacy\Providers;
 
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Modules\Core\Http\Middleware\EnsureModulePermission;
 use Modules\Pharmacy\Models\Adjustment;
 use Modules\Pharmacy\Models\AdjustmentItem;
 use Modules\Pharmacy\Models\OpeningStock;
@@ -26,8 +28,10 @@ use Modules\Pharmacy\View\Composers\ReportComposer;
 
 class PharmacyServiceProvider extends ServiceProvider
 {
-    public function boot(): void
+    public function boot(Router $router): void
     {
+        $router->aliasMiddleware('pharmacy.permission', EnsureModulePermission::class.':pharmacy.view');
+
         Relation::morphMap([
             'purchase' => Purchase::class,
             'purchase_item' => PurchaseItem::class,

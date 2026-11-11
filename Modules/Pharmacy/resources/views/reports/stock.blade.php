@@ -24,7 +24,10 @@
             </div>
             <div class="col-sm-6 col-lg-3">
                 <label class="form-label small" for="category_id">Category / generic</label>
-                <select class="{{ inputClass('category_id', 'form-select') }}" id="category_id" name="category_id" data-ajax-select data-url="{{ route('pharmacy.categories.options', ['type' => $filters['product_type']]) }}" data-placeholder="All categories" {{ inputAttrs('category_id') }}>
+                <select class="{{ inputClass('category_id', 'form-select') }}" id="category_id" name="category_id"
+                    data-ajax-select data-url="{{ route('pharmacy.categories.options', ['type' => $filters['product_type']]) }}"
+                    data-placeholder="All categories"
+                    {{ inputAttrs('category_id') }}>
                     <option value=""></option>
                     @if ($selectedCategory !== null)
                         <option value="{{ $selectedCategory->id }}" selected>{{ $selectedCategory->name }}</option>
@@ -34,7 +37,10 @@
             </div>
             <div class="col-sm-6 col-lg-3">
                 <label class="form-label small" for="supplier_id">Supplier</label>
-                <select class="{{ inputClass('supplier_id', 'form-select') }}" id="supplier_id" name="supplier_id" data-ajax-select data-url="{{ route('pharmacy.suppliers.options', ['type' => $filters['product_type']]) }}" data-placeholder="All suppliers" {{ inputAttrs('supplier_id') }}>
+                <select class="{{ inputClass('supplier_id', 'form-select') }}" id="supplier_id" name="supplier_id"
+                    data-ajax-select data-url="{{ route('pharmacy.suppliers.options', ['type' => $filters['product_type']]) }}"
+                    data-placeholder="All suppliers"
+                    {{ inputAttrs('supplier_id') }}>
                     <option value=""></option>
                     @if ($selectedSupplier !== null)
                         <option value="{{ $selectedSupplier->id }}" selected>{{ $selectedSupplier->name }}</option>
@@ -44,7 +50,10 @@
             </div>
             <div class="col-sm-6 col-lg-3">
                 <label class="form-label small" for="shelf_id">Shelf</label>
-                <select class="{{ inputClass('shelf_id', 'form-select') }}" id="shelf_id" name="shelf_id" data-ajax-select data-url="{{ route('pharmacy.shelves.options', ['type' => $filters['product_type']]) }}" data-placeholder="All shelves" {{ inputAttrs('shelf_id') }}>
+                <select class="{{ inputClass('shelf_id', 'form-select') }}" id="shelf_id" name="shelf_id"
+                    data-ajax-select data-url="{{ route('pharmacy.shelf.options', ['type' => $filters['product_type']]) }}"
+                    data-placeholder="All Shelf"
+                    {{ inputAttrs('shelf_id') }}>
                     <option value=""></option>
                     @if ($selectedShelf !== null)
                         <option value="{{ $selectedShelf->id }}" selected>{{ $selectedShelf->name }}</option>
@@ -73,11 +82,11 @@
 
 @section('report-summary')
     <div class="app-report-summary row row-cols-2 row-cols-lg-5 g-3">
-        <div class="col"><span>Products / SKUs</span><strong>{{ $summary->product_count }}</strong></div>
-        <div class="col"><span>Available now (Pcs)</span><strong>{{ (int) $summary->available_quantity }}</strong></div>
-        <div class="col"><span>Expired now (Pcs)</span><strong>{{ (int) $summary->expired_quantity }}</strong></div>
-        <div class="col"><span>Period closing (Pcs)</span><strong>{{ (int) $summary->closing_quantity }}</strong></div>
-        <div class="col"><span>Closing value (BDT)</span><strong>{{ moneyDecimal($summary->closing_cost) }}</strong></div>
+        <div class="col"><span class="d-block">Products / SKUs</span><strong class="d-block">{{ $summary->product_count }}</strong></div>
+        <div class="col"><span class="d-block">Available now (Pcs)</span><strong class="d-block">{{ (int) $summary->available_quantity }}</strong></div>
+        <div class="col"><span class="d-block">Expired now (Pcs)</span><strong class="d-block">{{ (int) $summary->expired_quantity }}</strong></div>
+        <div class="col"><span class="d-block">Period closing (Pcs)</span><strong class="d-block">{{ (int) $summary->closing_quantity }}</strong></div>
+        <div class="col"><span class="d-block">Closing value (BDT)</span><strong class="d-block">{{ moneyDecimal($summary->closing_cost) }}</strong></div>
     </div>
 @endsection
 
@@ -107,7 +116,8 @@
                 @forelse ($records as $record)
                     <tr>
                         <th scope="row">
-                            <a class="text-decoration-none" href="{{ route('pharmacy.reports.movements', ['product_type' => $filters['product_type'], 'variant_id' => $record->id, 'from_date' => $filters['from_date'], 'to_date' => $filters['to_date']]) }}">{{ $record->product->name }}</a>
+                            <a class="text-decoration-none"
+                                href="{{ route('pharmacy.reports.movements', ['product_type' => $filters['product_type'], 'variant_id' => $record->id, 'from_date' => $filters['from_date'], 'to_date' => $filters['to_date']]) }}">{{ $record->product->name }}</a>
                             <small class="d-block fw-normal">{{ $record->description() }}</small>
                             <small class="d-block fw-normal text-body-secondary">{{ $record->product->category?->name }}</small>
                         </th>

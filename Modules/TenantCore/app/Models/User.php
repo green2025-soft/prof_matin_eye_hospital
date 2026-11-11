@@ -19,7 +19,8 @@ class User extends Account
 
     public function branch(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Branch::class)
+            ->where('is_default', false);
     }
 
     public function queryContract(): array

@@ -38,6 +38,8 @@
         $outstandingMinor = $entry->voided_at ? 0 : $entry->outstandingMinor();
         $invoiceStatus = $entry->voided_at ? 'VOID' : ($outstandingMinor > 0 ? 'DUE' : 'PAID');
         $invoicePaper = in_array($invoicePaper ?? null, ['a4', 'a5', 'pos'], true) ? $invoicePaper : 'a4';
+        $isPos = $invoicePaper === 'pos';
+        $hasVat = $entry->vat > 0;
         $salePosWidth = is_string($salePosWidth ?? null) && preg_match('/\A\d{1,3}(?:\.\d{1,2})?\z/', $salePosWidth)
             && (float) $salePosWidth >= 20 && (float) $salePosWidth <= 300 ? $salePosWidth : '80';
         $salePosWidth = rtrim(rtrim(number_format((float) $salePosWidth, 2, '.', ''), '0'), '.');
@@ -47,7 +49,7 @@
         @media print {
             @page pharmacy-sale {
                 size: {{ match ($invoicePaper) { 'a5' => 'A5', 'pos' => $salePosWidth.'mm 297mm', default => 'A4' } }};
-                margin: {{ $invoicePaper === 'pos' ? '2mm 0 0' : '10mm' }};
+                margin: {{ $isPos ? '2mm 0 0' : '10mm' }};
             }
 
             .app-shell,
@@ -57,7 +59,7 @@
                 page: pharmacy-sale;
             }
 
-            @if ($invoicePaper === 'pos')
+            @if ($isPos)
                 .app-shell,
                 .app-page,
                 .app-content {
@@ -72,7 +74,7 @@
         }
     </style>
 
-    <article class="app-card app-invoice-document app-clinical-invoice app-pharmacy-invoice app-sale-invoice app-sale-invoice-{{ $invoicePaper }}" @if ($invoicePaper === 'pos') style="--sale-pos-width: {{ $salePosWidth }}mm" @endif aria-labelledby="pharmacy-invoice-title">
+    <article class="app-card app-invoice-document app-clinical-invoice app-pharmacy-invoice app-sale-invoice app-sale-invoice-{{ $invoicePaper }}" @if ($isPos) style="--sale-pos-width: {{ $salePosWidth }}mm" @endif aria-labelledby="pharmacy-invoice-title">
         @include('pharmacy::entries.partials.invoice-header')
 
         <div class="app-pharmacy-invoice-parties">
@@ -96,7 +98,7 @@
             </div>
         </div>
 
-        @include('pharmacy::entries.partials.invoice-financial-items', ['showVat' => $entry->vat > 0])
+        @include('pharmacy::entries.partials.invoice-financial-items', ['showVat' => $hasVat])
 
         <div class="app-pharmacy-invoice-summary">
             <div>
@@ -115,7 +117,7 @@
                         <dt>Total discounts</dt>
                         <dd>{{ moneyDecimal($entry->discount) }}</dd>
                     </div>
-                    @if ($entry->vat > 0)
+                    @if ($hasVat)
                         <div>
                             <dt>VAT {{ $entry->vat_percent }}% ({{ $entry->vat_mode === 'inclusive' ? 'included' : 'added' }})</dt>
                             <dd>{{ moneyDecimal($entry->vat) }}</dd>

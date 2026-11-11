@@ -13,7 +13,6 @@ use Modules\Hospital\Contracts\PharmacyCustomers;
 use Modules\Pharmacy\Http\Requests\SaleReturnRequest;
 use Modules\Pharmacy\Models\Sale;
 use Modules\Pharmacy\Models\SaleReturn;
-use Modules\Pharmacy\Services\PharmacyAccess;
 use Modules\Pharmacy\Services\SaleReturnService;
 use Modules\TenantCore\Models\PaymentType;
 
@@ -42,20 +41,22 @@ class SaleReturnController extends BaseController
         $view = $this->listData($request);
         $request->attributes->set('pharmacy_product_type', $view->getData()['filters']['product_type']);
         $actor = $request->user('web');
-        $access = app(PharmacyAccess::class);
+        $permissions = $request->attributes->get('navigation_permissions', []);
         $customerIds = $view->getData()['records']->pluck('customer_id')
             ->filter()
             ->unique()
             ->all();
 
-        return $view->with([
+        $data = [
             'resourceParameter' => $this->parameter,
-            'canCreate' => $access->allows($actor, 'pharmacy-sale-returns.create'),
-            'canUpdateReturns' => $access->allows($actor, 'pharmacy-sale-returns.update'),
-            'canDeleteReturns' => $access->allows($actor, 'pharmacy-sale-returns.delete'),
+            'canCreate' => isset($permissions['pharmacy-sale-returns.create']),
+            'canUpdateReturns' => isset($permissions['pharmacy-sale-returns.update']),
+            'canDeleteReturns' => isset($permissions['pharmacy-sale-returns.delete']),
             'customers' => $customerIds === [] ? [] : app(PharmacyCustomers::class)
                 ->findMany($actor, $customerIds),
-        ]);
+        ];
+
+        return $view->with($data);
     }
 
     public function store(SaleReturnRequest $request): RedirectResponse
@@ -67,26 +68,25 @@ class SaleReturnController extends BaseController
     {
         $request->attributes->set('pharmacy_product_type', $saleReturn->product_type);
 
-        return view(
-            $this->views.'.show',
-            $entries->invoiceData($request->user('web'), $saleReturn) + [
-                'routePrefix' => $this->routePrefix(),
-                'resourceParameter' => $this->parameter,
-            ]
-        );
+        $data = $entries->invoiceData($request->user('web'), $saleReturn) + [
+            'routePrefix' => $this->routePrefix(),
+            'resourceParameter' => $this->parameter,
+        ];
+
+        return view($this->views.'.show', $data);
     }
 
     protected function formData(Account $actor, Model $record): array
     {
-        $productType = $record->exists ? $record->product_type : request()
+        $request = request();
+        $productType = $record->exists ? $record->product_type : $request
             ->query('product_type', 'medicine');
         $productType = in_array($productType, ['medicine', 'optic'], true) ? $productType : 'medicine';
-        request()->attributes->set('pharmacy_product_type', $productType);
-        $sourceId = $record->exists ? $record->sale_id : getValue('sale_id', null, request('sale_id'));
+        $request->attributes->set('pharmacy_product_type', $productType);
+        $sourceId = $record->exists ? $record->sale_id : getValue('sale_id', null, $request->query('sale_id'));
         $sourceId = is_scalar($sourceId) && ctype_digit((string) $sourceId) ? $sourceId : null;
         $source = $this->selectedOption(
-            Sale::query()
-                ->where('product_type', $productType)
+            Sale::where('product_type', $productType)
                 ->whereNull('voided_at')
                 ->whereNotNull('posted_at')
                 ->with([
@@ -106,27 +106,20 @@ class SaleReturnController extends BaseController
         $customers = $customerId === null ? [] : app(PharmacyCustomers::class)
             ->findMany($actor, [$customerId]);
 
-        return [
+        $data = [
             'entry' => $record,
             'source' => $source,
             'sourceCustomer' => $customers[$customerId] ?? null,
-            'hasOldLines' => array_key_exists(
-                'lines',
-                request()
-                    ->session()
-                    ->getOldInput()
-            ),
+            'hasOldLines' => $request->session()->hasOldInput('lines'),
             'lineInputs' => $this->oldRows('lines'),
-            'savedLines' => $record->exists ? $record->lines->keyBy('sale_item_id') : collect(),
-            'returnQuantities' => $record->exists ? $record->lines()
-                ->pluck('base_quantity', 'sale_item_id') : collect(),
             'returnedAmounts' => $source === null ? collect() : app(SaleReturnService::class)
                 ->returnedAmounts($source, $record),
-            'paymentTypes' => PaymentType::query()
-                ->orderBy('ordering')
+            'paymentTypes' => PaymentType::orderBy('ordering')
                 ->orderBy('id')
                 ->get(['id', 'name']),
         ];
+
+        return $data;
     }
 
     public function reverse(Request $request, SaleReturn $saleReturn, SaleReturnService $entries): RedirectResponse

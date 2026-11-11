@@ -13,4 +13,6 @@ interface TenantAccounts
     public function adoptOwner(string $email): void;
 
     public function createOwner(string $name, string $email, string $password): void;
+
+    public function ensureDefaultBranch(string $name, string $address = ''): void;
 }

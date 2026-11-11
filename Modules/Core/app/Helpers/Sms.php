@@ -18,12 +18,19 @@ class Sms
         }
 
         $replacements = [
-            '{to}' => $to, '{message}' => $message, '{sender_id}' => $values['sender_id'],
-            '{api_key}' => $values['api_key'], '{username}' => $values['username'], '{password}' => $values['password'],
+            '{to}' => $to,
+            '{message}' => $message,
+            '{sender_id}' => $values['sender_id'],
+            '{api_key}' => $values['api_key'],
+            '{username}' => $values['username'],
+            '{password}' => $values['password'],
         ];
         $headers = $this->parameters($values['headers'] ?: '{}', $replacements);
         $parameters = $this->parameters($values['parameters'], $replacements);
-        $request = Http::connectTimeout(5)->timeout(20)->withoutRedirecting()->withHeaders($headers);
+        $request = Http::connectTimeout(5)
+            ->timeout(20)
+            ->withoutRedirecting()
+            ->withHeaders($headers);
 
         // Never retry a send automatically: the provider may already have accepted it.
         if ($values['method'] === 'GET') {

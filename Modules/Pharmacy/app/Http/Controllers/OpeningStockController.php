@@ -11,7 +11,6 @@ use Modules\Core\Http\Requests\ListRequest;
 use Modules\Core\Models\Account;
 use Modules\Pharmacy\Http\Requests\OpeningStockRequest;
 use Modules\Pharmacy\Models\OpeningStock;
-use Modules\Pharmacy\Services\PharmacyAccess;
 use Modules\Pharmacy\Services\ItemService;
 use Modules\Pharmacy\Services\OpeningStockService;
 
@@ -37,14 +36,16 @@ class OpeningStockController extends BaseController
 
     public function index(ListRequest $request): View
     {
-        $view = $this->listData($request);
+        $view           = $this->listData($request);
+        $permissions    = $request->attributes->get('navigation_permissions', []);
         $request->attributes->set('pharmacy_product_type', $view->getData()['filters']['product_type']);
 
-        return $view->with([
+        $data = [
             'resourceParameter' => 'opening_stock',
-            'canCreate' => app(PharmacyAccess::class)
-                ->allows($request->user('web'), 'pharmacy-opening-stock.create'),
-        ]);
+            'canCreate'         => isset($permissions['pharmacy-opening-stock.create']),
+        ];
+
+        return $view->with($data);
     }
 
     public function store(OpeningStockRequest $request): RedirectResponse
@@ -56,41 +57,39 @@ class OpeningStockController extends BaseController
     {
         $request->attributes->set('pharmacy_product_type', $openingStock->product_type);
 
-        return view(
-            'pharmacy::opening-stock.show',
-            $entries->invoiceData($request->user('web'), $openingStock) + [
-                'routePrefix' => $this->routePrefix(),
-                'resourceParameter' => 'opening_stock',
-            ]
-        );
+        $data = $entries->invoiceData($request->user('web'), $openingStock) + [
+            'routePrefix'       => $this->routePrefix(),
+            'resourceParameter' => 'opening_stock',
+        ];
+
+        return view('pharmacy::opening-stock.show', $data);
     }
 
     protected function formData(Account $actor, Model $record): array
     {
-        $productType = $record->exists ? $record->product_type : request()
-            ->query('product_type', 'medicine');
-        $productType = in_array($productType, ['medicine', 'optic'], true) ? $productType : 'medicine';
-        request()->attributes->set('pharmacy_product_type', $productType);
-        $lineInputs = $this->oldRows('lines');
-        $variants = app(ItemService::class)
-            ->selectedVariants($lineInputs);
+        $request        = request();
+        $productType    = $record->exists ? $record->product_type : $request->query('product_type', 'medicine');
+        $productType    = in_array($productType, ['medicine', 'optic'], true) ? $productType : 'medicine';
+        $request->attributes->set('pharmacy_product_type', $productType);
+        $lineInputs     = $this->oldRows('lines');
+        $variants       = app(ItemService::class)->selectedVariants($lineInputs);
 
-        return [
+        $data = [
             'entry' => $record,
             'lineInputs' => $lineInputs,
             'variants' => $variants,
         ];
+
+        return $data;
     }
 
     public function reverse(Request $request, OpeningStock $openingStock, OpeningStockService $entries): RedirectResponse
     {
         $entries->reverse($request->user('web'), $openingStock);
 
-        return redirect()
-            ->route('pharmacy.opening-stock.show', [
+        return redirect()->route('pharmacy.opening-stock.show', [
                 'opening_stock' => $openingStock,
-                'product_type' => $openingStock->product_type,
-            ])
-            ->with('status', 'Entry voided. Stock and balances have been reversed.');
+                'product_type'  => $openingStock->product_type,
+            ])->with('status', 'Entry voided. Stock and balances have been reversed.');
     }
 }

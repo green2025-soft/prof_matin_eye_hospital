@@ -46,20 +46,22 @@ class ProductVariantController extends BaseController
 
     protected function formData(Account $actor, Model $record): array
     {
+        $request = request();
         $productId = $record->exists ? $record->product_id : getValue('product_id', $record);
+
         if (! $record->exists && blank($productId)) {
-            $productId = request()
-                ->query('product_id');
+            $productId = $request->query('product_id');
         }
+
         $product = $this->selectedOption(Product::query(), $productId, ['id', 'name', 'type']);
         if ($product !== null) {
-            request()->attributes->set('pharmacy_product_type', $product->type);
+            $request->attributes->set('pharmacy_product_type', $product->type);
         }
-        $title = $product ? Product::types()[$product->type].' product variant' : 'product variant';
 
-        return [
+        $data = [
             'selectedProduct' => $product,
-            'pageTitle' => ($record->exists ? 'Edit ' : 'Create ').$title,
         ];
+
+        return $data;
     }
 }

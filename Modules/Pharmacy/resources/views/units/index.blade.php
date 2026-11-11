@@ -41,13 +41,13 @@
                                         <th scope="row">{{ $record->name }}</th>
                                         <td>{{ $record->symbol }}</td>
                                         <td>
-                                            <div class="d-flex justify-content-end gap-2">
-                                                @include('core::partials.row-actions', ['model' => $record, 'routePrefix' => $routePrefix])
-                                            </div>
+                                            @include('core::partials.row-actions', ['model' => $record, 'routePrefix' => $routePrefix])
                                         </td>
                                     </tr>
                                 @empty
-                                    <tr><td class="text-center text-body-secondary py-4" colspan="3">No records found.</td></tr>
+                                    <tr>
+                                        <td class="text-center text-body-secondary py-4" colspan="3">No records found.</td>
+                                    </tr>
                                 @endforelse
                             </tbody>
                         </table>

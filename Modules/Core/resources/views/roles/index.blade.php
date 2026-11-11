@@ -3,7 +3,7 @@
 @section('title', $pageTitle)
 
 @section('content')
-    @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Manage role names. Assign their access separately in Permissions.', 'create' => ['model' => \Modules\Core\Models\Role::class, 'url' => route('core.roles.create'), 'label' => 'New role']])
+    @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Manage role names. Assign their access separately in Permissions.', 'create' => ['model' => resourceModel('core.roles.create'), 'url' => route('core.roles.create'), 'label' => 'New role']])
     <section class="app-card overflow-hidden">
         <div class="app-card-heading d-flex align-items-center gap-2 px-3 px-md-4 py-3 border-bottom"><i class="fa-solid fa-shield-halved text-body-secondary" aria-hidden="true"></i><h2 class="h6 mb-0">Role directory</h2></div>
         <form class="px-3 px-md-4 py-3 border-bottom" action="{{ route('core.roles.index') }}" method="GET" aria-label="Filter roles">

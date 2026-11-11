@@ -16,13 +16,11 @@
     <label class="form-label small" for="line_{{ $lineIndex }}_unit">Unit</label>
     <select class="{{ inputClass('lines.'.$lineIndex.'.product_unit_id', 'form-select') }}" id="line_{{ $lineIndex }}_unit" name="lines[{{ $lineIndex }}][product_unit_id]" required {{ inputAttrs('lines.'.$lineIndex.'.product_unit_id', 'line_'.$lineIndex.'_unit') }}>
         <option value="">Unit</option>
-        @if ($variant)
-            @foreach ($variant->product->units as $unit)
-                <option value="{{ $unit->id }}" data-factor="{{ $unit->factor }}" @selected((string) ($lineValues['product_unit_id'] ?? '') === (string) $unit->id)>
-                    {{ $unit->unit->symbol ?: $unit->unit->name }} × {{ $unit->factor }}
-                </option>
-            @endforeach
-        @endif
+        @foreach ($variant?->product->units ?? [] as $unit)
+            <option value="{{ $unit->id }}" data-factor="{{ $unit->factor }}" @selected((string) ($lineValues['product_unit_id'] ?? '') === (string) $unit->id)>
+                {{ $unit->unit->symbol ?: $unit->unit->name }} × {{ $unit->factor }}
+            </option>
+        @endforeach
     </select>
     @error('lines.'.$lineIndex.'.product_unit_id')
         <div class="invalid-feedback d-block" id="line_{{ $lineIndex }}_unit-error">{{ $message }}</div>

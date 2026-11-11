@@ -3,7 +3,7 @@
 @section('title', $pageTitle)
 
 @section('content')
-    @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Manage workspaces and their domains.', 'create' => ['model' => \Modules\Core\Models\Tenant::class, 'url' => route('core.tenants.create'), 'label' => 'New Tenant']])
+    @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Manage workspaces and their domains.', 'create' => ['model' => resourceModel('core.tenants.create'), 'url' => route('core.tenants.create'), 'label' => 'New Tenant']])
     <section class="app-card overflow-hidden">
         <div class="app-card-heading d-flex align-items-center gap-2 px-3 px-md-4 py-3 border-bottom"><i class="fa-solid fa-building text-body-secondary" aria-hidden="true"></i><h2 class="h6 mb-0">Workspace directory</h2></div>
         <form class="px-3 px-md-4 py-3 border-bottom" action="{{ route('core.tenants.index') }}" method="GET" aria-label="Filter tenants">
@@ -72,7 +72,14 @@
                                                 </form>
                                             @endif
                                         @endcan
-                                        @include('core::partials.row-actions', ['model' => $tenant, 'routePrefix' => 'core.tenants', 'deleteConfirmation' => 'Permanently delete '.$tenant->name.'? The tenant database, all uploads, subscriptions, invoices and payments will be permanently deleted. This cannot be undone.'])
+                                        @include('core::partials.row-actions', [
+                                            'model' => $tenant,
+                                            'routePrefix' => 'core.tenants',
+                                            'deleteConfirmation' => 'Permanently delete '.$tenant->name.'? '
+                                                .'Registration, domains, uploads, subscriptions, invoices and payments will be removed. '
+                                                .'The database will be deleted only when access, ownership and deletion permission are verified. '
+                                                .'This cannot be undone.',
+                                        ])
                                     </div>
                                 </td>
                             </tr>

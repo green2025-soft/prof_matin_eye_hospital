@@ -1,6 +1,15 @@
 <?php
 
-$publicDiskRoot = env('PUBLIC_DISK_ROOT', storage_path('app/public'));
+$publicDirectory = str_replace('\\', '/', realpath(public_path()) ?: public_path());
+$defaultPublicDirectory = str_replace('\\', '/', realpath(base_path('public')) ?: base_path('public'));
+$publicStoragePath = public_path('storage');
+
+// A separate hosting web root serves uploads directly without a storage symlink.
+$publicDiskRoot = env('PUBLIC_DISK_ROOT') ?: (
+    $publicDirectory === $defaultPublicDirectory ? storage_path('app/public') : $publicStoragePath
+);
+$usesPublicStorageDirectory = rtrim(str_replace('\\', '/', $publicDiskRoot), '/')
+    === rtrim(str_replace('\\', '/', $publicStoragePath), '/');
 
 return [
 
@@ -75,7 +84,7 @@ return [
     |
     */
 
-    'links' => [
+    'links' => $usesPublicStorageDirectory ? [] : [
         public_path('storage') => $publicDiskRoot,
     ],
 

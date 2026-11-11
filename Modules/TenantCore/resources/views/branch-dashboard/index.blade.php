@@ -3,15 +3,18 @@
 @section('title', $pageTitle)
 
 @section('content')
-    <header class="app-selection-intro">
+    <header class="app-selection-intro d-flex align-items-start align-items-sm-center justify-content-between gap-3 mb-4">
         <div>
             <h1>Choose your branch</h1>
-            <p>Select a branch to continue working.</p>
+            <p class="mb-0">Select a branch to continue working.</p>
         </div>
-        <span class="app-selection-count"><strong>{{ number_format($records->total()) }}</strong><span>{{ $records->total() === 1 ? 'branch' : 'branches' }}</span></span>
+        <span class="app-selection-count d-inline-flex flex-shrink-0 align-items-center">
+            <strong>{{ number_format($records->total()) }}</strong><span>{{ $records->total() === 1 ? 'branch' : 'branches' }}</span>
+        </span>
     </header>
 
-    <form class="app-selection-search" action="{{ route($routePrefix.'.index') }}" method="GET" aria-label="Find a branch">
+    <form class="app-selection-search d-flex flex-wrap flex-sm-nowrap align-items-start"
+        action="{{ route($routePrefix.'.index') }}" method="GET" aria-label="Find a branch">
         <div class="app-selection-search-field">
             <label class="visually-hidden" for="branch-search">Search branches</label>
             <div class="app-input-wrap app-search-field">
@@ -28,39 +31,50 @@
             @include('core::partials.empty', ['title' => 'No matching branches', 'description' => 'Try another branch name or clear the filters.', 'icon' => 'location-dot'])
         </section>
     @else
-        <div class="app-selection-grid">
+        <div class="app-selection-grid row row-cols-1 row-cols-sm-2 row-cols-xl-3">
             @foreach ($records as $branch)
                 @php($isActive = $activeBranchId !== null && (string) $activeBranchId === (string) $branch->id)
-                <form class="app-selection-choice" action="{{ route('tenantcore.branch-dashboard.store', $branch->id) }}" method="POST">
+                <form class="col d-flex" action="{{ route('tenantcore.branch-dashboard.store', $branch->id) }}" method="POST">
                     @csrf
-                    <button class="app-selection-card{{ $isActive ? ' active' : '' }}" type="submit" aria-label="Open {{ $branch->name }} workspace" aria-describedby="branch-address-{{ $branch->id }}" @if ($isActive) aria-current="true" @endif>
-                        <span class="app-selection-card-content">
-                            <span class="app-selection-card-head">
-                                <span class="app-selection-mark">
+                    <button class="app-selection-card card w-100 h-100 overflow-hidden p-0 text-start text-decoration-none{{ $isActive ? ' active' : '' }}"
+                        type="submit" aria-label="Open {{ $branch->name }} workspace" aria-describedby="branch-address-{{ $branch->id }}"
+                        @if ($isActive) aria-current="true" @endif>
+                        <span class="d-flex flex-column flex-grow-1 p-4">
+                            <span class="app-selection-card-head d-flex align-items-center">
+                                <span class="app-selection-mark d-inline-flex flex-shrink-0 align-items-center justify-content-center overflow-hidden">
                                     @if ($branch->logo_path)
-                                        <img src="{{ $branch->logo_url }}" width="44" height="44" alt="">
+                                        <img class="mw-100 object-fit-contain" src="{{ $branch->logo_url }}" width="44" height="44" alt="">
                                     @else
                                         <i class="fa-solid fa-building" aria-hidden="true"></i>
                                     @endif
                                 </span>
                                 <span class="app-selection-name">{{ $branch->name }}</span>
                                 @if ($isActive)
-                                    <span class="app-selection-active" title="Active branch"><i class="fa-solid fa-check" aria-hidden="true"></i><span class="visually-hidden">Active branch</span></span>
+                                    <span class="app-selection-active d-inline-flex flex-shrink-0 align-items-center justify-content-center ms-auto rounded-circle" title="Active branch">
+                                        <i class="fa-solid fa-check" aria-hidden="true"></i><span class="visually-hidden">Active branch</span>
+                                    </span>
                                 @endif
                             </span>
                             <span class="app-selection-description" id="branch-address-{{ $branch->id }}">{{ $branch->address }}</span>
                             @if ($branch->mobile_no || $branch->telephone_no || $branch->email)
-                                <span class="app-selection-contacts">
+                                <span class="app-selection-contacts d-flex flex-column gap-2 mt-3">
                                     @if ($branch->mobile_no || $branch->telephone_no)
-                                        <span><i class="fa-solid fa-phone" aria-hidden="true"></i><span>{{ $branch->mobile_no ?: $branch->telephone_no }}@if ($branch->mobile_no && $branch->telephone_no) &middot; {{ $branch->telephone_no }}@endif</span></span>
+                                        <span class="d-flex align-items-baseline">
+                                            <i class="fa-solid fa-phone flex-shrink-0 text-center" aria-hidden="true"></i>
+                                            <span>{{ $branch->mobile_no ?: $branch->telephone_no }}@if ($branch->mobile_no && $branch->telephone_no) &middot; {{ $branch->telephone_no }}@endif</span>
+                                        </span>
                                     @endif
                                     @if ($branch->email)
-                                        <span><i class="fa-solid fa-envelope" aria-hidden="true"></i><span>{{ $branch->email }}</span></span>
+                                        <span class="d-flex align-items-baseline">
+                                            <i class="fa-solid fa-envelope flex-shrink-0 text-center" aria-hidden="true"></i><span>{{ $branch->email }}</span>
+                                        </span>
                                     @endif
                                 </span>
                             @endif
                         </span>
-                        <span class="app-selection-open"><span>Open</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+                        <span class="app-selection-open d-flex align-items-center justify-content-between gap-3 px-4">
+                            <span>Open</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                        </span>
                     </button>
                 </form>
             @endforeach

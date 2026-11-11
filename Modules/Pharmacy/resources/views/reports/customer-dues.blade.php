@@ -9,7 +9,11 @@
         <div class="row g-2 align-items-end">
             <div class="col-md-7 col-lg-5">
                 <label class="form-label small" for="customer_id">Customer</label>
-                <select class="{{ inputClass('customer_id', 'form-select') }}" id="customer_id" name="customer_id" data-ajax-select data-url="{{ route('pharmacy.payments.customers', ['product_type' => $filters['product_type']]) }}" data-label-field="text" data-placeholder="Patient ID, name or mobile" {{ inputAttrs('customer_id') }}>
+                <select class="{{ inputClass('customer_id', 'form-select') }}" id="customer_id" name="customer_id"
+                    data-ajax-select data-url="{{ route('pharmacy.payments.customers', ['product_type' => $filters['product_type']]) }}"
+                    data-label-field="text"
+                    data-placeholder="Patient ID, name or mobile"
+                    {{ inputAttrs('customer_id') }}>
                     <option value=""></option>
                     @if ($selectedCustomer !== null)
                         <option value="{{ $selectedCustomer['id'] }}" selected>{{ $selectedCustomer['text'] }}</option>

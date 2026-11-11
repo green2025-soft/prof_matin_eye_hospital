@@ -1,7 +1,10 @@
 @extends('core::layouts.app')
+
 @php
-$pageTitle = 'Medicine/Product'
- @endphp
+    $pageTitle = 'Medicine/Product';
+    $isMedicine = ($filters['type'] ?? 'medicine') === 'medicine';
+@endphp
+
 @section('title', $pageTitle)
 
 @section('content')
@@ -38,7 +41,7 @@ $pageTitle = 'Medicine/Product'
                         <tr>
                             <th scope="col">Medicine/Product</th>
                             <th scope="col">Generic/Category </th>
-                            @if (($filters['type'] ?? 'medicine') === 'medicine')
+                            @if ($isMedicine)
                                 <th scope="col">Dose Type</th>
                             @endif
                             <th scope="col">Supplier</th>
@@ -69,7 +72,7 @@ $pageTitle = 'Medicine/Product'
                                     </small>
                                 </th>
                                 <td class="small text-break">{{ $record->category?->name ?? '—' }}</td>
-                                @if (($filters['type'] ?? 'medicine') === 'medicine')
+                                @if ($isMedicine)
                                     <td class="small text-break">{{ $record->dosage?->name ?? '—' }}</td>
                                 @endif
                                 <td class="small text-break">{{ $record->supplier?->name ?? '—' }}</td>

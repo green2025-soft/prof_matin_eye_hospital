@@ -34,7 +34,9 @@
                     justify-content-between gap-3">
                     <div>
                         <h2>{{ request()->attributes->get('application_name') }}</h2>
-                        <p>{{ request()->attributes->get('branch_name') }}</p>
+                        @if (filled(request()->attributes->get('branch_name')))
+                            <p>{{ request()->attributes->get('branch_name') }}</p>
+                        @endif
                     </div>
                     <div class="">
                         @if ($canCreatePatient)

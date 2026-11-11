@@ -32,6 +32,9 @@ class DashboardController extends Controller
         $subscription = $central ? null : Subscription::forTenant(Tenant::current());
         $request->attributes->set('application_subscription', $subscription);
         $plan = $subscription?->isUsable() ? $subscription->plan : null;
+        $permissions = $request->attributes->get('navigation_permissions')
+            ?? $access->navigationPermissions($actor, $plan);
+        $request->attributes->set('navigation_permissions', $permissions);
         $accountRoutePrefix = $central ? 'core.accounts' : 'tenantcore.accounts';
         $canViewTenants = $central && Gate::allows('viewAny', Tenant::class);
         $canViewAccounts = ($central || $plan?->allowsRoutePermission('accounts.view')) && Gate::allows('viewAny', $accountModel);
@@ -42,8 +45,7 @@ class DashboardController extends Controller
         if ($canViewTenants) {
             $metrics[] = [
                 'label' => 'Tenants',
-                'value' => Tenant::query()
-                    ->count(),
+                'value' => Tenant::count(),
                 'caption' => 'Registered workspaces',
                 'icon' => 'building',
                 'tone' => 'primary',
@@ -54,8 +56,7 @@ class DashboardController extends Controller
         if ($canViewAccounts) {
             $metrics[] = [
                 'label' => $central ? 'Administrators' : 'Users',
-                'value' => $accountModel::query()
-                    ->count(),
+                'value' => $accountModel::count(),
                 'caption' => $central ? 'Platform accounts' : 'Workspace accounts',
                 'icon' => 'users',
                 'tone' => 'success',
@@ -66,8 +67,7 @@ class DashboardController extends Controller
         if ($canViewRoles) {
             $metrics[] = [
                 'label' => 'Roles',
-                'value' => Role::query()
-                    ->where('guard_name', 'web')
+                'value' => Role::where('guard_name', 'web')
                     ->count(),
                 'caption' => 'Access roles in this workspace',
                 'icon' => 'shield-halved',
@@ -94,10 +94,8 @@ class DashboardController extends Controller
 
         if ($canViewRecent) {
             $query = $central
-                ? Tenant::query()
-                    ->select(['id', 'name', 'slug', 'status', 'created_at'])
-                : $accountModel::query()
-                    ->select(['id', 'name', 'email', 'created_at']);
+                ? Tenant::select(['id', 'name', 'slug', 'status', 'created_at'])
+                : $accountModel::select(['id', 'name', 'email', 'created_at']);
 
             if (! $central && $canUpdateAccounts && ! $access->isOwner($actor)) {
                 $query->with(['roles.permissions', 'permissions']);
@@ -124,7 +122,6 @@ class DashboardController extends Controller
         if ($central && Gate::allows('create', Tenant::class)) {
             $quickActions[] = [
                 'label' => 'Create tenant',
-                'description' => 'Set up a new workspace',
                 'icon' => 'building',
                 'url' => route('core.tenants.create'),
                 'tone' => 'primary',
@@ -134,7 +131,6 @@ class DashboardController extends Controller
         if (($central || $plan?->allowsRoutePermission('accounts.create')) && Gate::allows('create', $accountModel)) {
             $quickActions[] = [
                 'label' => $central ? 'Add administrator' : 'Add user',
-                'description' => 'Add an account to your team',
                 'icon' => 'user-plus',
                 'url' => route($accountRoutePrefix.'.create'),
                 'tone' => 'success',
@@ -144,16 +140,87 @@ class DashboardController extends Controller
         if (($central || $plan?->allowsRoutePermission('roles.create')) && Gate::allows('create', Role::class)) {
             $quickActions[] = [
                 'label' => 'Create role',
-                'description' => 'Define access for your team',
                 'icon' => 'shield-halved',
                 'url' => route('core.roles.create'),
                 'tone' => 'warning',
             ];
         }
 
+        if ($canViewTenants) {
+            $quickActions[] = [
+                'label' => 'Tenants',
+                'icon' => 'building',
+                'url' => route('core.tenants.index'),
+                'tone' => 'danger',
+            ];
+        }
+
+        if ($canViewAccounts) {
+            $quickActions[] = [
+                'label' => $central ? 'Administrators' : 'Users',
+                'icon' => 'users',
+                'url' => route($accountRoutePrefix.'.index'),
+                'tone' => 'primary',
+            ];
+        }
+
+        if ($canViewRoles) {
+            $quickActions[] = [
+                'label' => 'Roles',
+                'icon' => 'shield-halved',
+                'url' => route('core.roles.index'),
+                'tone' => 'warning',
+            ];
+        }
+
+        if (isset($permissions['permissions.view'])) {
+            $quickActions[] = [
+                'label' => 'Permissions',
+                'icon' => 'key',
+                'url' => route('core.permissions.index'),
+                'tone' => 'info',
+            ];
+        }
+
+        if (! $central && isset($permissions['audit-logs.view'])) {
+            $quickActions[] = [
+                'label' => 'Audit logs',
+                'icon' => 'clock-rotate-left',
+                'url' => route('tenantcore.audit-logs.index'),
+                'tone' => 'primary',
+            ];
+        }
+
+        if (! $central && Tenant::current()?->has_branches && isset($permissions['branches.view'])) {
+            $quickActions[] = [
+                'label' => 'Branches',
+                'icon' => 'building',
+                'url' => route('tenantcore.branches.index'),
+                'tone' => 'success',
+            ];
+        }
+
+        if (! $central && isset($permissions['billing.view'])) {
+            $quickActions[] = [
+                'label' => 'Billing',
+                'icon' => 'file-invoice-dollar',
+                'url' => route('tenantcore.billing.index'),
+                'tone' => 'danger',
+            ];
+        }
+
+        if (isset($permissions['settings.view'])) {
+            $quickActions[] = [
+                'label' => 'Settings',
+                'icon' => 'gear',
+                'url' => route($central ? 'core.settings.index' : 'tenantcore.settings.index'),
+                'tone' => 'secondary',
+            ];
+        }
+
         $date = now();
 
-        return view('core::home', [
+        $data = [
             'metrics' => $metrics,
             'contextName' => $request->attributes->get('application_name', 'Workspace'),
             'dateLabel' => $date->format('l, d F Y'),
@@ -173,6 +240,8 @@ class DashboardController extends Controller
                 ->all(),
             'accountEditUrl' => ($central || $plan?->allowsRoutePermission($actor->profileUpdatePermission())) && Gate::allows('update', $actor)
                 ? route($actor->profileRoutePrefix().'.edit', $actor) : null,
-        ]);
+        ];
+
+        return view('core::home', $data);
     }
 }

@@ -41,9 +41,7 @@
                                         <th scope="row">{{ $record->name }}</th>
                                         <td>{{ $record->ordering }}</td>
                                         <td>
-                                            <div class="d-flex justify-content-end gap-2">
-                                                @include('core::partials.row-actions', ['model' => $record, 'routePrefix' => $routePrefix])
-                                            </div>
+                                            @include('core::partials.row-actions', ['model' => $record, 'routePrefix' => $routePrefix])
                                         </td>
                                     </tr>
                                 @empty

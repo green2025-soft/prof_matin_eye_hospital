@@ -3,7 +3,7 @@
 @section('title', 'Sign in')
 
 @section('content')
-    <div class="app-auth-heading">
+    <div class="app-auth-heading mb-4">
         <h2>Welcome back</h2>
         <p class="text-body-secondary mb-0">Sign in to continue.</p>
     </div>
@@ -47,14 +47,14 @@
                 <div class="invalid-feedback d-block" id="password-error">{{ $message }}</div>
             @enderror
         </div>
-        <div class="app-auth-options">
-            <div class="form-check">
-                <input class="form-check-input" id="remember" name="remember" type="checkbox" value="1" {{ getChecked(1, 'remember', null, 0) }}>
-                <label class="form-check-label" for="remember">Keep me signed in</label>
+        <div class="app-auth-options d-flex flex-wrap align-items-center justify-content-between row-gap-1 column-gap-3 mb-3">
+            <div class="form-check d-flex align-items-center gap-2 m-0 p-0">
+                <input class="form-check-input float-none flex-shrink-0 m-0" id="remember" name="remember" type="checkbox" value="1" {{ getChecked(1, 'remember', null, 0) }}>
+                <label class="form-check-label d-inline-flex align-items-center" for="remember">Keep me signed in</label>
             </div>
-            <a class="small" href="{{ route('auth.password.request', $tenantLogin ? ['account_type' => getValue('account_type', null, $accountType)] : []) }}">Forgot password?</a>
+            <a class="small d-inline-flex align-items-center" href="{{ route('auth.password.request', $tenantLogin ? ['account_type' => getValue('account_type', null, $accountType)] : []) }}">Forgot password?</a>
         </div>
-        <button class="btn btn-primary app-auth-submit w-100" type="submit">
+        <button class="btn btn-primary w-100" type="submit">
             Sign in<i class="fa-solid fa-arrow-right ms-2" aria-hidden="true"></i>
         </button>
     </form>

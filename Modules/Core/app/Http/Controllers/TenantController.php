@@ -41,8 +41,7 @@ class TenantController extends BaseController
     public function enter(Request $request, Tenant $tenant, AccessManager $access): RedirectResponse
     {
         return $access->transaction($request->user('web'), function (Account $actor) use ($request, $tenant): RedirectResponse {
-            $current = Tenant::query()
-                ->whereKey($tenant->getKey())
+            $current = Tenant::whereKey($tenant->getKey())
                 ->lockForUpdate()
                 ->firstOrFail();
             Gate::forUser($actor)

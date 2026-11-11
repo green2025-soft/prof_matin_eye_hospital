@@ -17,17 +17,9 @@
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label" for="invoice-id">Invoice ID</label>
-                    <input
-                        class="{{ inputClass('invoice_id') }}"
-                        id="invoice-id"
-                        name="invoice_id"
-                        type="text"
-                        inputmode="numeric"
-                        list="payment-invoices"
-                        value="{{ getValue('invoice_id') }}"
-                        required
-                        {{ inputAttrs('invoice_id', 'invoice-id', 'invoice-id-help') }}
-                    >
+                    <input class="{{ inputClass('invoice_id') }}" id="invoice-id" name="invoice_id" type="text"
+                        inputmode="numeric" list="payment-invoices" value="{{ getValue('invoice_id') }}" required
+                        {{ inputAttrs('invoice_id', 'invoice-id', 'invoice-id-help') }}>
                     <datalist id="payment-invoices">
                         @foreach ($invoices as $invoice)
                             <option value="{{ $invoice->id }}">
@@ -44,17 +36,8 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label" for="amount">Amount received</label>
-                    <input
-                        class="{{ inputClass('amount') }}"
-                        id="amount"
-                        name="amount"
-                        type="text"
-                        inputmode="decimal"
-                        value="{{ getValue('amount') }}"
-                        placeholder="0.00"
-                        required
-                        {{ inputAttrs('amount') }}
-                    >
+                    <input class="{{ inputClass('amount') }}" id="amount" name="amount" type="text" inputmode="decimal"
+                        value="{{ getValue('amount') }}" placeholder="0.00" required {{ inputAttrs('amount') }}>
                     @error('amount')
                         <div class="invalid-feedback d-block" id="amount-error">{{ $message }}</div>
                     @enderror

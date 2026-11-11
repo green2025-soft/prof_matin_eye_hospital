@@ -57,21 +57,21 @@ class ProductController extends BaseController
 
     protected function formData(Account $actor, Model $record): array
     {
-        $type = $record->exists ? $record->type : request()
-            ->query('type', 'medicine');
-        if (! is_string($type) || ! array_key_exists($type, Product::types())) {
+        $request = request();
+        $type = $record->exists ? $record->type : $request->query('type', 'medicine');
+
+        if (! in_array($type, array_keys(Product::types()), true)) {
             $type = 'medicine';
         }
-        if (! request()->attributes->has('pharmacy_product_type')) {
-            request()->attributes->set('pharmacy_product_type', $type);
-        }
+
+        $request->attributes->set('pharmacy_product_type', $type);
+        $gate = Gate::forUser($actor);
         $canViewSetup = $record->exists
-            && Gate::forUser($actor)
-                ->allows('viewAny', ProductVariant::class)
-            && Gate::forUser($actor)
-                ->allows('viewAny', ProductUnit::class);
+            && $gate->allows('viewAny', ProductVariant::class)
+            && $gate->allows('viewAny', ProductUnit::class);
         $setupVariants = collect();
         $setupUnits = collect();
+
         if ($canViewSetup) {
             $record->loadCount(['variants', 'units']);
             $setupVariants = $record->variants()
@@ -86,28 +86,26 @@ class ProductController extends BaseController
                 ->get(['id', 'product_id', 'unit_id', 'factor']);
         }
 
-        return [
+        $data = [
             'defaultType' => $type,
-            'pageTitle' => ($record->exists ? 'Edit ' : 'Create ').Product::types()[$type].' product',
             'selectedCategory' => $this->selectedOption(
-                ProductCategory::query()
-                    ->where('type', $type),
+                ProductCategory::where('type', $type),
                 getValue('category_id', $record)
             ),
             'selectedDosage' => $this->selectedOption(Dosage::query(), getValue('dosage_id', $record)),
             'selectedSupplier' => $this->selectedOption(
-                Supplier::query()
-                    ->where('type', $type),
+                Supplier::where('type', $type),
                 getValue('supplier_id', $record)
             ),
             'selectedShelf' => $this->selectedOption(
-                Shelf::query()
-                    ->where('type', $type),
+                Shelf::where('type', $type),
                 getValue('shelf_id', $record)
             ),
             'canViewSetup' => $canViewSetup,
             'setupVariants' => $setupVariants,
             'setupUnits' => $setupUnits,
         ];
+
+        return $data;
     }
 }

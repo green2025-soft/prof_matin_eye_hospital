@@ -40,9 +40,7 @@ class DashboardController extends BaseController
         }
 
         if ($canViewGlass) {
-            $glassToday = GlassPrescription::query()
-                ->where('prescription_date', $today->toDateString())
-                ->count();
+            $glassToday = GlassPrescription::where('prescription_date', $today->toDateString())->count();
             $recentGlass = $this->recentPrescriptions(GlassPrescription::query());
         }
 

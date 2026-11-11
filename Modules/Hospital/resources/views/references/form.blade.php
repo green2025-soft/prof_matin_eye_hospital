@@ -51,21 +51,27 @@
                     @if ($percentageFields['consultation_percent'])
                         <div class="col-md-4">
                             <label class="form-label" for="consultation_percent">Consultation % <span class="text-danger" aria-hidden="true">*</span></label>
-                            <input class="{{ inputClass('consultation_percent') }}" id="consultation_percent" name="consultation_percent" type="number" inputmode="decimal" value="{{ getValue('consultation_percent', $reference, $percentageDefaults['consultation_percent']) }}" min="0" max="100" step="0.01" required {{ inputAttrs('consultation_percent') }}>
+                            <input class="{{ inputClass('consultation_percent') }}" id="consultation_percent" name="consultation_percent" type="number" inputmode="decimal"
+                                value="{{ getValue('consultation_percent', $reference, $percentageDefaults['consultation_percent']) }}" min="0" max="100" step="0.01" required
+                                {{ inputAttrs('consultation_percent') }}>
                             @error('consultation_percent')<div class="invalid-feedback d-block" id="consultation_percent-error">{{ $message }}</div>@enderror
                         </div>
                     @endif
                     @if ($percentageFields['investigation_percent'])
                         <div class="col-md-4">
                             <label class="form-label" for="investigation_percent">Investigation % <span class="text-danger" aria-hidden="true">*</span></label>
-                            <input class="{{ inputClass('investigation_percent') }}" id="investigation_percent" name="investigation_percent" type="number" inputmode="decimal" value="{{ getValue('investigation_percent', $reference, $percentageDefaults['investigation_percent']) }}" min="0" max="100" step="0.01" required {{ inputAttrs('investigation_percent') }}>
+                            <input class="{{ inputClass('investigation_percent') }}" id="investigation_percent" name="investigation_percent" type="number" inputmode="decimal"
+                                value="{{ getValue('investigation_percent', $reference, $percentageDefaults['investigation_percent']) }}" min="0" max="100" step="0.01" required
+                                {{ inputAttrs('investigation_percent') }}>
                             @error('investigation_percent')<div class="invalid-feedback d-block" id="investigation_percent-error">{{ $message }}</div>@enderror
                         </div>
                     @endif
                     @if ($percentageFields['operation_percent'])
                         <div class="col-md-4">
                             <label class="form-label" for="operation_percent">Operation % <span class="text-danger" aria-hidden="true">*</span></label>
-                            <input class="{{ inputClass('operation_percent') }}" id="operation_percent" name="operation_percent" type="number" inputmode="decimal" value="{{ getValue('operation_percent', $reference, $percentageDefaults['operation_percent']) }}" min="0" max="100" step="0.01" required {{ inputAttrs('operation_percent') }}>
+                            <input class="{{ inputClass('operation_percent') }}" id="operation_percent" name="operation_percent" type="number" inputmode="decimal"
+                                value="{{ getValue('operation_percent', $reference, $percentageDefaults['operation_percent']) }}" min="0" max="100" step="0.01" required
+                                {{ inputAttrs('operation_percent') }}>
                             @error('operation_percent')<div class="invalid-feedback d-block" id="operation_percent-error">{{ $message }}</div>@enderror
                         </div>
                     @endif

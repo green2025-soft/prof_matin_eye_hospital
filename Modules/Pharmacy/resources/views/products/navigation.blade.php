@@ -4,7 +4,7 @@
             <i class="fa-solid fa-arrow-left me-1" aria-hidden="true"></i>{{ ucfirst($productType) }} products
         </a>
     @endcan
-    @if ($selectedProduct !== null && $selectedProduct->exists)
+    @if ($selectedProduct?->exists)
         @can('update', $selectedProduct)
             <a class="btn btn-sm {{ $activeSection === 'details' ? 'btn-primary' : 'btn-outline-secondary' }}" href="{{ route('pharmacy.products.edit', ['product' => $selectedProduct->id, 'type' => $productType] + menuParameters()) }}">Product details</a>
         @endcan

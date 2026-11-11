@@ -32,7 +32,9 @@ class AccountService
         $save = fn (): Model => $this->persist($actor, $record, $values);
         $tenant = Tenant::current();
 
-        return ! $record?->exists && $tenant !== null ? $this->subscriptions->createUser($tenant, $actor, $save) : $save();
+        return ! $record?->exists && $tenant !== null
+            ? $this->subscriptions->createUser($tenant, $actor, $save)
+            : $save();
     }
 
     private function persist(Account $actor, ?Model $record, #[SensitiveParameter] array $values): Model
@@ -41,7 +43,10 @@ class AccountService
             return $this->access->transaction($actor, function (Account $freshActor) use ($record, $values): Account {
                 $model = Account::modelForProvider($freshActor instanceof Admin ? 'admins' : 'users');
                 $target = $record?->exists
-                    ? $record->newQuery()->whereKey($record->getKey())->lockForUpdate()->firstOrFail()
+                    ? $record->newQuery()
+                        ->whereKey($record->getKey())
+                        ->lockForUpdate()
+                        ->firstOrFail()
                     : new $model;
 
                 $allowed = $target->exists
@@ -75,7 +80,9 @@ class AccountService
                 $target->save();
 
                 if ($roles !== null) {
-                    $currentRoles = $target->roles()->get(['id', 'name', 'guard_name']);
+                    // Reuse authorization's roles; new accounts need their first role read here.
+                    $target->loadMissing('roles:id,name,guard_name');
+                    $currentRoles = $target->roles;
                     $removedRoles = $currentRoles->diff($roles);
                     $addedRoles = $roles->diff($currentRoles);
 
@@ -102,7 +109,10 @@ class AccountService
         }
 
         $this->access->transaction($actor, function (Account $freshActor) use ($record): void {
-            $target = $record->newQuery()->whereKey($record->getKey())->lockForUpdate()->firstOrFail();
+            $target = $record->newQuery()
+                ->whereKey($record->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
 
             if (! $this->policy->delete($freshActor, $target)) {
                 throw new AuthorizationException;
@@ -124,10 +134,24 @@ class AccountService
 
         $canAssignRoles = $this->policy->assignRoles($actor, $record->exists ? $record : null);
         $isTenantUser = ! $actor instanceof Admin;
+        $hasBranches = $isTenantUser && (bool) Tenant::current()?->has_branches;
         $branches = new Collection;
+        $roles = $canAssignRoles
+            ? $this->access->rolesQuery($actor)
+                ->orderBy('name')
+                ->orderBy('id')
+                ->get(['id', 'name', 'guard_name'])
+            : new Collection;
 
-        if ($isTenantUser) {
-            $branches = $record->branch()->getRelated()->newQuery()->orderBy('name')->orderBy('id')->limit(100)->get(['id', 'name']);
+        if ($hasBranches) {
+            $branches = $record->branch()
+                ->getRelated()
+                ->newQuery()
+                ->where('is_default', false)
+                ->orderBy('name')
+                ->orderBy('id')
+                ->limit(100)
+                ->get(['id', 'name']);
 
             if ($record->branch_id !== null && ! $branches->contains('id', $record->branch_id) && $record->branch !== null) {
                 $branches->push($record->branch);
@@ -136,17 +160,13 @@ class AccountService
 
         return [
             'account' => $record,
-            'roles' => $canAssignRoles ? $this->assignableRoles($actor) : new Collection,
+            'roles' => $roles,
             'selectedRoles' => $record->roles->modelKeys(),
             'canAssignRoles' => $canAssignRoles,
             'isTenantUser' => $isTenantUser,
+            'hasBranches' => $hasBranches,
             'branches' => $branches,
         ];
-    }
-
-    private function assignableRoles(Account $actor): Collection
-    {
-        return $this->access->rolesQuery($actor)->orderBy('name')->orderBy('id')->get(['id', 'name', 'guard_name']);
     }
 
     private function assertOwnerRemains(Account $account, Collection $roles): void
@@ -156,8 +176,12 @@ class AccountService
             return;
         }
 
-        $anotherOwner = $account->newQuery()->whereKeyNot($account->getKey())
-            ->whereHas('roles', fn ($query) => $query->where('guard_name', 'web')->where('name', Role::OWNER_NAME))->exists();
+        $anotherOwner = $account->newQuery()
+            ->whereKeyNot($account->getKey())
+            ->whereHas('roles', fn ($query) => $query
+                ->where('guard_name', 'web')
+                ->where('name', Role::OWNER_NAME))
+            ->exists();
 
         if (! $anotherOwner) {
             throw ValidationException::withMessages(['roles' => 'Keep at least one super administrator.']);

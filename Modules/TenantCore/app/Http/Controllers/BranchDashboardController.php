@@ -22,11 +22,13 @@ class BranchDashboardController extends BaseController
 
     public function index(BranchDashboardRequest $request): View
     {
-        return $this->listData($request, [
+        $data = [
             'records' => (new Branch)->paginateRecords($request->validated()),
             'pageTitle' => $this->title,
             'activeBranchId' => $request->attributes->get('branch_id'),
-        ]);
+        ];
+
+        return $this->listData($request, $data);
     }
 
     public function store(Request $request, Branch $branch): RedirectResponse

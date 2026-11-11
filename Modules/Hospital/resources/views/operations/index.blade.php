@@ -6,7 +6,7 @@
     @include('core::partials.heading', [
         'title' => $pageTitle,
         'description' => 'Manage operations, categories, rates, and commissions.',
-        'create' => ['model' => \Modules\Hospital\Models\Operation::class, 'url' => route($routePrefix.'.create'), 'label' => 'New operation'],
+        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New operation'],
     ])
 
     <section class="app-card overflow-hidden">

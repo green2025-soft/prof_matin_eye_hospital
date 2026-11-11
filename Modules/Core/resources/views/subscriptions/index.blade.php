@@ -3,7 +3,7 @@
 @section('title', $pageTitle)
 
 @section('content')
-    @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Manage tenant access periods and renewal settings.', 'create' => ['model' => \Modules\Core\Models\Subscription::class, 'url' => route('core.subscriptions.create'), 'label' => 'Assign subscription']])
+    @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Manage tenant access periods and renewal settings.', 'create' => ['model' => resourceModel('core.subscriptions.create'), 'url' => route('core.subscriptions.create'), 'label' => 'Assign subscription']])
     <section class="app-card overflow-hidden">
         <form class="px-3 px-md-4 py-3 border-bottom" action="{{ route($routePrefix.'.index') }}" method="GET" aria-label="Filter subscriptions">
             <div class="row g-2 align-items-end">

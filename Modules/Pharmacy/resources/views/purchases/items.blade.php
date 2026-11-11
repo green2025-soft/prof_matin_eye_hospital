@@ -26,13 +26,10 @@
         <div class="row g-2 align-items-center">
             <div class="col-12 col-md-8 col-lg-5 col-xl-4">
                 <label class="form-label" id="pharmacy-product-picker-label" for="pharmacy_product_picker">Add product</label>
-                <select class="{{ inputClass('lines', 'form-select') }}" id="pharmacy_product_picker"
-                data-ajax-select
-                data-url="{{
-                route('pharmacy.items.options',
-                ['product_type' => request()->attributes->get('pharmacy_product_type', 'medicine'), 'purpose' => 'purchase']) }}"
-                 data-placeholder="Search product name or SKU to add"
-                 aria-keyshortcuts="F2" {{ inputAttrs('lines', 'pharmacy_product_picker', 'pharmacy-product-feedback') }}>
+                <select class="{{ inputClass('lines', 'form-select') }}" id="pharmacy_product_picker" data-ajax-select
+                    data-url="{{ route('pharmacy.items.options', ['product_type' => $productType, 'purpose' => 'purchase']) }}"
+                    data-placeholder="Search product name or SKU to add" aria-keyshortcuts="F2"
+                    {{ inputAttrs('lines', 'pharmacy_product_picker', 'pharmacy-product-feedback') }}>
                     <option value=""></option>
                 </select>
                 <p class="small text-body-secondary mt-2 mb-0" id="pharmacy-product-feedback" role="status" aria-live="polite">Select a product to start.</p>
@@ -44,7 +41,6 @@
                 <h3 class="small text-body-secondary mb-1">Add item</h3>
                 <strong class="d-block app-pharmacy-entry-name"></strong>
                 <small class="d-block text-body-secondary"></small>
-
             </div>
         </div>
         <div class="mt-2" data-pharmacy-editor-panel hidden>

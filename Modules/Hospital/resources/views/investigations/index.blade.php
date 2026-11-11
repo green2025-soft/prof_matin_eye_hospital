@@ -6,7 +6,7 @@
     @include('core::partials.heading', [
         'title' => $pageTitle,
         'description' => 'Manage investigations, categories, and rates.',
-        'create' => ['model' => \Modules\Hospital\Models\Investigation::class, 'url' => route($routePrefix.'.create'), 'label' => 'New investigation'],
+        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New investigation'],
     ])
 
     <section class="app-card overflow-hidden">

@@ -5,7 +5,6 @@ namespace Modules\Hospital\Http\Requests;
 use Illuminate\Validation\Rule;
 use Modules\Core\Http\Requests\ListRequest;
 use Modules\Hospital\Models\PatientInvestigation;
-use Modules\Hospital\Services\ClinicalEntryService;
 
 class DeliveryInvestigationRequest extends ListRequest
 {
@@ -13,10 +12,7 @@ class DeliveryInvestigationRequest extends ListRequest
 
     public function authorize(): bool
     {
-        return app(ClinicalEntryService::class)->allowsInvestigationDelivery(
-            $this->user('web'), $this->isUpdate() ? 'update' : 'view',
-            (int) $this->attributes->get('branch_id'), $this->isUpdate() ? $this->record() : null,
-        );
+        return true;
     }
 
     public function rules(): array

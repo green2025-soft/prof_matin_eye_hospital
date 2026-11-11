@@ -8,11 +8,12 @@ return new class extends Migration
     public function up(): void
     {
         $connection = DB::connection('tenant');
+        $dropCheck = $connection->isMaria() ? 'DROP CONSTRAINT' : 'DROP CHECK';
 
         // MySQL requires separate foreign-key drop/add phases while checks remain enabled.
-        $connection->statement(<<<'SQL'
+        $connection->statement(<<<SQL
             ALTER TABLE refunds
-                DROP CHECK refunds_one_source_check,
+                {$dropCheck} refunds_one_source_check,
                 DROP FOREIGN KEY refunds_patient_investigation_id_branch_id_foreign,
                 DROP FOREIGN KEY refunds_patient_operation_id_branch_id_foreign,
                 DROP FOREIGN KEY refunds_refund_cause_id_foreign
@@ -46,10 +47,11 @@ return new class extends Migration
     public function down(): void
     {
         $connection = DB::connection('tenant');
+        $dropCheck = $connection->isMaria() ? 'DROP CONSTRAINT' : 'DROP CHECK';
 
-        $connection->statement(<<<'SQL'
+        $connection->statement(<<<SQL
             ALTER TABLE refunds
-                DROP CHECK refunds_one_source_check,
+                {$dropCheck} refunds_one_source_check,
                 DROP FOREIGN KEY refunds_investigation_branch_foreign,
                 DROP FOREIGN KEY refunds_operation_branch_foreign,
                 DROP FOREIGN KEY refunds_cause_id_foreign

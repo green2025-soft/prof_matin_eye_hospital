@@ -24,7 +24,7 @@ class ReportComposer
         $view->with([
             'reportBrand' => [
                 'name' => $name,
-                'branch_name' => $branch->name !== $name ? $branch->name : '',
+                'branch_name' => ! $branch->is_default && $branch->name !== $name ? $branch->name : '',
                 'tagline' => $branding['tagline'],
                 'address' => $branch->address ?: $company['address'],
                 'contact' => implode(' · ', array_filter([$phone ?: $company['phone'], $branch->email ?: $company['email']])),

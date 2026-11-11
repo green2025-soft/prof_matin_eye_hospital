@@ -3,10 +3,11 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Pharmacy\Http\Controllers\AdjustmentController;
 use Modules\Pharmacy\Http\Controllers\CustomerController;
+use Modules\Pharmacy\Http\Controllers\DashboardController;
 use Modules\Pharmacy\Http\Controllers\DosageController;
-use Modules\Pharmacy\Http\Controllers\PharmacySelectorController;
 use Modules\Pharmacy\Http\Controllers\OpeningStockController;
 use Modules\Pharmacy\Http\Controllers\PaymentController;
+use Modules\Pharmacy\Http\Controllers\PharmacySelectorController;
 use Modules\Pharmacy\Http\Controllers\ProductCategoryController;
 use Modules\Pharmacy\Http\Controllers\ProductController;
 use Modules\Pharmacy\Http\Controllers\ProductUnitController;
@@ -23,38 +24,58 @@ use Modules\Pharmacy\Http\Controllers\Reports\StockReportController;
 use Modules\Pharmacy\Http\Controllers\Reports\SupplierDueReportController;
 use Modules\Pharmacy\Http\Controllers\SaleController;
 use Modules\Pharmacy\Http\Controllers\SaleReturnController;
+use Modules\Pharmacy\Http\Controllers\SettingController;
 use Modules\Pharmacy\Http\Controllers\ShelfController;
 use Modules\Pharmacy\Http\Controllers\SupplierController;
 use Modules\Pharmacy\Http\Controllers\TransferController;
 use Modules\Pharmacy\Http\Controllers\UnitController;
 use Modules\Pharmacy\Http\Controllers\WastageController;
-use Modules\TenantCore\Http\Controllers\ModuleDashboardController;
 
 Route::middleware(['web', 'auth', 'tenant'])->prefix('pharmacy')->name('pharmacy.')->group(function (): void {
-    Route::get('selectors/categories', [ProductCategoryController::class, 'options'])->name('categories.options');
-    Route::get('selectors/dosages', [DosageController::class, 'options'])->name('dosages.options');
-    Route::get('selectors/units', [UnitController::class, 'options'])->name('units.options');
-    Route::get('selectors/shelves', [ShelfController::class, 'options'])->name('shelves.options');
-    Route::get('selectors/suppliers', [SupplierController::class, 'options'])->name('suppliers.options');
-    Route::get('selectors/products', [ProductController::class, 'options'])->name('products.options');
-    Route::get('selectors/variants', [ProductVariantController::class, 'options'])->name('variants.options');
-    Route::get('selectors/product-units', [ProductUnitController::class, 'options'])->name('product-units.options');
+    Route::prefix('selectors')->group(function (): void {
+        Route::get('categories', [ProductCategoryController::class, 'options'])->name('categories.options');
+        Route::get('dosages', [DosageController::class, 'options'])->name('dosages.options');
+        Route::get('units', [UnitController::class, 'options'])->name('units.options');
+        Route::get('shelf', [ShelfController::class, 'options'])->name('shelf.options');
+        Route::get('suppliers', [SupplierController::class, 'options'])->name('suppliers.options');
+        Route::get('products', [ProductController::class, 'options'])->name('products.options');
+        Route::get('variants', [ProductVariantController::class, 'options'])->name('variants.options');
+        Route::get('product-units', [ProductUnitController::class, 'options'])->name('product-units.options');
+    });
 
-    Route::middleware(['subscribed', 'permission:pharmacy.view', 'branch:required'])->group(function (): void {
-        Route::get('/', [ModuleDashboardController::class, 'show'])->defaults('module', 'Pharmacy')->name('dashboard');
-        Route::get('selectors/items', [PharmacySelectorController::class, 'items'])->name('items.options');
-        Route::get('selectors/report-products', [PharmacySelectorController::class, 'reportProducts'])->name('reports.products');
-        Route::get('selectors/lots', [PharmacySelectorController::class, 'lots'])->name('lots.options');
-        Route::get('selectors/purchase-sources', [PharmacySelectorController::class, 'purchaseSources'])->name('purchase-sources.options');
-        Route::get('selectors/sale-sources', [PharmacySelectorController::class, 'saleSources'])->name('sale-sources.options');
-        Route::get('selectors/customers', [CustomerController::class, 'choices'])->name('customers.options');
-        Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');
-        Route::post('customers', [CustomerController::class, 'store'])->name('customers.store');
+    Route::middleware(['subscribed', 'pharmacy.permission'])->group(function (): void {
+        Route::resource('settings', SettingController::class)->only(['index', 'update']);
+    });
+
+    Route::middleware(['subscribed', 'branch:required', 'pharmacy.permission'])->group(function (): void {
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+        Route::prefix('selectors')->group(function (): void {
+            Route::controller(PharmacySelectorController::class)->group(function (): void {
+                Route::get('items', 'items')->name('items.options');
+                Route::get('report-products', 'reportProducts')->name('reports.products');
+                Route::get('purchase-sources', 'purchaseSources')->name('purchase-sources.options');
+                Route::get('sale-sources', 'saleSources')->name('sale-sources.options');
+                Route::get('lots', 'lots')->name('lots.options');
+            });
+
+            Route::get('customers', [CustomerController::class, 'choices'])->name('customers.options');
+
+            Route::controller(PaymentController::class)->group(function (): void {
+                Route::get('payment-customers', 'customers')->name('payments.customers');
+                Route::get('payment-suppliers', 'suppliers')->name('payments.suppliers');
+            });
+        });
+
+        Route::controller(CustomerController::class)->prefix('customers')->name('customers.')->group(function (): void {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+        });
 
         Route::resource('categories', ProductCategoryController::class)->parameters(['categories' => 'product_category'])->except('show');
         Route::resource('dosages', DosageController::class)->parameters(['dosages' => 'dosage'])->except('show');
         Route::resource('units', UnitController::class)->parameters(['units' => 'unit'])->except('show');
-        Route::resource('shelves', ShelfController::class)->parameters(['shelves' => 'shelf'])->except('show');
+        Route::resource('shelf', ShelfController::class)->parameters(['shelf' => 'shelf'])->except('show');
         Route::resource('suppliers', SupplierController::class)->parameters(['suppliers' => 'supplier'])->except('show');
         Route::resource('products', ProductController::class)->parameters(['products' => 'product'])->except('show');
         Route::resource('variants', ProductVariantController::class)->parameters(['variants' => 'product_variant'])->except('show');
@@ -77,11 +98,12 @@ Route::middleware(['web', 'auth', 'tenant'])->prefix('pharmacy')->name('pharmacy
         Route::post('transfers/{transfer}/void', [TransferController::class, 'reverse'])->name('transfers.void');
         Route::resource('transfers', TransferController::class)->only(['index', 'create', 'store', 'show']);
 
-        Route::get('payments/invoices', [PaymentController::class, 'invoices'])->name('payments.invoices');
-        Route::get('selectors/payment-customers', [PaymentController::class, 'customers'])->name('payments.customers');
-        Route::get('selectors/payment-suppliers', [PaymentController::class, 'suppliers'])->name('payments.suppliers');
-        Route::post('payments/{payment}/void', [PaymentController::class, 'reverse'])->name('payments.void');
+        Route::controller(PaymentController::class)->prefix('payments')->name('payments.')->group(function (): void {
+            Route::get('invoices', 'invoices')->name('invoices');
+            Route::post('{payment}/void', 'reverse')->name('void');
+        });
         Route::resource('payments', PaymentController::class)->only(['index', 'create', 'store', 'show']);
+
         Route::prefix('reports')->name('reports.')->group(function (): void {
             Route::get('/', [StockReportController::class, 'index'])->name('index');
             Route::get('stock', [StockReportController::class, 'index'])->name('stock');

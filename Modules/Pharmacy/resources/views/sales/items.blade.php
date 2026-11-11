@@ -1,7 +1,7 @@
 <section class="app-form-section mt-3" aria-labelledby="pharmacy-products-heading">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
         <h2 class="h6 mb-0" id="pharmacy-products-heading">Products</h2>
-        <span class="small text-body-secondary"><span data-pharmacy-line-count>{{ $hasOldLines ? count($lineInputs) : min(100, $savedLines->count()) }}</span> items</span>
+        <span class="small text-body-secondary"><span data-pharmacy-line-count>{{ count($itemRows) }}</span> items</span>
     </div>
     <details class="app-pharmacy-shortcuts mb-2">
         <summary>Keyboard shortcuts</summary>
@@ -22,7 +22,11 @@
         <div class="row g-2 align-items-center">
             <div class="col-12 col-md-8 col-lg-5 col-xl-4">
                 <label class="form-label" id="pharmacy-product-picker-label" for="pharmacy_product_picker">Add product</label>
-                <select class="{{ inputClass('lines', 'form-select') }}" id="pharmacy_product_picker" data-ajax-select data-url="{{ route('pharmacy.items.options', ['product_type' => $productType, 'purpose' => 'sale']) }}" data-placeholder="Search product name or SKU to add" aria-keyshortcuts="F2" {{ inputAttrs('lines', 'pharmacy_product_picker', 'pharmacy-product-feedback') }}>
+                <select class="{{ inputClass('lines', 'form-select') }}" id="pharmacy_product_picker"
+                data-ajax-select
+                data-url="{{ route('pharmacy.items.options', ['product_type' => $productType, 'purpose' => 'sale']) }}"
+                data-placeholder="Search product name or SKU to add"
+                aria-keyshortcuts="F2" {{ inputAttrs('lines', 'pharmacy_product_picker', 'pharmacy-product-feedback') }}>
                     <option value=""></option>
                 </select>
                 <p class="small text-body-secondary mt-2 mb-0" id="pharmacy-product-feedback" role="status" aria-live="polite">Select a product to start.</p>
@@ -45,7 +49,7 @@
         </div>
     </section>
     <div hidden data-pharmacy-line-storage>
-        @foreach (($hasOldLines ? $lineInputs : $savedLines->take(100)) as $index => $row)
+        @foreach ($itemRows as $index => $row)
             @php
                 $lineIndex = $hasOldLines ? $index : $loop->index;
                 $lineValues = $hasOldLines ? $row : [];

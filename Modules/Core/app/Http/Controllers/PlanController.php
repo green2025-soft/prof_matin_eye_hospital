@@ -34,7 +34,6 @@ class PlanController extends BaseController
     {
         return [
             'price' => $record->price,
-            'featuresText' => implode("\n", array_keys(array_filter($record->features ?? []))),
             'currency' => $record->currency ?? config('billing.currency', 'BDT'),
             'intervals' => Plan::INTERVALS,
         ];

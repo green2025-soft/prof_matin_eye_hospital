@@ -11,7 +11,6 @@
 <fieldset
     disabled
     data-pharmacy-line
-    data-index="{{ $lineIndex }}"
     data-sale-price="{{ $variant?->product?->sale_price ?? '0.00' }}"
 >
     <legend class="visually-hidden">Item details</legend>
@@ -38,9 +37,7 @@
         </div>
         <div class="col-sm-6 col-lg-4 col-xl-2">
             <label class="form-label" for="trade_{{ $lineIndex }}_quantity">Qty <span class="text-danger" aria-hidden="true">*</span></label>
-            <div>
-                <input class="{{ inputClass('lines.'.$lineIndex.'.quantity', 'form-control text-end') }}" id="trade_{{ $lineIndex }}_quantity" name="lines[{{ $lineIndex }}][quantity]" type="number" inputmode="numeric" min="1" max="1000000000" step="1" value="{{ $quantity }}" required {{ inputAttrs('lines.'.$lineIndex.'.quantity', 'trade_'.$lineIndex.'_quantity') }}>
-            </div>
+            <input class="{{ inputClass('lines.'.$lineIndex.'.quantity', 'form-control text-end') }}" id="trade_{{ $lineIndex }}_quantity" name="lines[{{ $lineIndex }}][quantity]" type="number" inputmode="numeric" min="1" max="1000000000" step="1" value="{{ $quantity }}" required {{ inputAttrs('lines.'.$lineIndex.'.quantity', 'trade_'.$lineIndex.'_quantity') }}>
             @error('lines.'.$lineIndex.'.quantity')<div class="invalid-feedback d-block" id="trade_{{ $lineIndex }}_quantity-error">{{ $message }}</div>@enderror
         </div>
         <div class="col-sm-6 col-lg-4 col-xl-2">
@@ -49,12 +46,10 @@
         </div>
         <div class="col-sm-6 col-lg-4 col-xl-2">
             <label class="form-label" for="trade_{{ $lineIndex }}_price">Rate <span class="text-danger" aria-hidden="true">*</span></label>
-            <div>
-                <input class="{{ inputClass('lines.'.$lineIndex.'.unit_price', 'form-control text-end') }}" id="trade_{{ $lineIndex }}_price" name="lines[{{ $lineIndex }}][unit_price]" type="number" inputmode="decimal" min="0" step="0.01" value="{{ $unitPrice }}" required {{ inputAttrs('lines.'.$lineIndex.'.unit_price', 'trade_'.$lineIndex.'_price') }}>
-            </div>
+            <input class="{{ inputClass('lines.'.$lineIndex.'.unit_price', 'form-control text-end') }}" id="trade_{{ $lineIndex }}_price" name="lines[{{ $lineIndex }}][unit_price]" type="number" inputmode="decimal" min="0" step="0.01" value="{{ $unitPrice }}" required {{ inputAttrs('lines.'.$lineIndex.'.unit_price', 'trade_'.$lineIndex.'_price') }}>
             @error('lines.'.$lineIndex.'.unit_price')<div class="invalid-feedback d-block" id="trade_{{ $lineIndex }}_price-error">{{ $message }}</div>@enderror
         </div>
-        <fieldset class="col-sm-6 col-lg-4 col-xl-2" @unless ($itemFields['discount']) disabled hidden data-pharmacy-hidden-item-field="discount" @endunless>
+        <fieldset class="col-sm-6 col-lg-4 col-xl-2" @unless ($itemFields['discount']) disabled hidden data-pharmacy-hidden-item-field @endunless>
             <legend class="visually-hidden">Discount</legend>
             <label class="form-label" for="trade_{{ $lineIndex }}_discount">Discount</label>
             <input class="{{ inputClass('lines.'.$lineIndex.'.discount', 'form-control text-end') }}" id="trade_{{ $lineIndex }}_discount" name="lines[{{ $lineIndex }}][discount]" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" value="{{ $discountValue }}" {{ inputAttrs('lines.'.$lineIndex.'.discount', 'trade_'.$lineIndex.'_discount') }}>

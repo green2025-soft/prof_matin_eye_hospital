@@ -26,8 +26,10 @@ class TransferService extends StockEntryService
         $entry->reason = $values['reason'] ?? null;
         $entry->stock_method = $settings['stock_method'];
         $destinationId = (int) ($values['destination_branch_id'] ?? 0);
-        $destination = Branch::query()
-            ->where('id', $destinationId)->lockForUpdate()->first(['id']);
+        $destination = Branch::whereKey($destinationId)
+            ->where('is_default', false)
+            ->lockForUpdate()
+            ->first(['id']);
         if ($destinationId === $entry->branch_id || $destination === null) {
             throw ValidationException::withMessages(['destination_branch_id' => 'Choose another branch.']);
         }
@@ -35,12 +37,8 @@ class TransferService extends StockEntryService
             throw ValidationException::withMessages(['reason' => 'Enter a reason for this branch transfer.']);
         }
         $entry->destination_branch_id = $destinationId;
-        $lines = $this->items->prepareQuantities($entry, $values['lines'] ?? []);
-        foreach ($lines as $index => $line) {
-            $lines[$index]['cost'] = 0;
-        }
 
-        return $lines;
+        return $this->items->prepareQuantities($entry, $values['lines'] ?? []);
     }
 
     protected function postStock(StockEntry $entry): int

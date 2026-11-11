@@ -1,11 +1,13 @@
 @extends('core::layouts.app')
 
-@section('title', $invoice->number ? $pageTitle : 'Invoice #'.$invoice->id)
+@php($invoiceTitle = $invoice->number ? $pageTitle : 'Invoice #'.$invoice->id)
+
+@section('title', $invoiceTitle)
 
 @section('content')
     <div class="app-print-hidden">
         @include('core::partials.heading', [
-            'title' => $invoice->number ? $pageTitle : 'Invoice #'.$invoice->id,
+            'title' => $invoiceTitle,
             'description' => 'Invoice details and payment history.',
         ])
         <div class="d-flex flex-wrap gap-2 mb-4">
@@ -17,11 +19,8 @@
                 <a class="btn btn-outline-secondary" href="{{ route('core.invoices.edit', $invoice) }}">Edit draft</a>
             @endcan
             @can('issue', $invoice)
-                <form
-                    action="{{ route('core.invoices.issue', $invoice) }}"
-                    method="POST"
-                    data-confirm="Issue this invoice? Its details will become final."
-                >
+                <form action="{{ route('core.invoices.issue', $invoice) }}" method="POST"
+                    data-confirm="Issue this invoice? Its details will become final.">
                     @csrf
                     <button class="btn btn-primary" type="submit">Issue</button>
                 </form>
@@ -231,12 +230,8 @@
     @endif
 
     @can('void', $invoice)
-        <form
-            class="app-card p-3 p-md-4 mt-4 app-print-hidden"
-            action="{{ route('core.invoices.void', $invoice) }}"
-            method="POST"
-            data-confirm="Void this unpaid invoice?"
-        >
+        <form class="app-card p-3 p-md-4 mt-4 app-print-hidden" action="{{ route('core.invoices.void', $invoice) }}"
+            method="POST" data-confirm="Void this unpaid invoice?">
             @csrf
             <label class="form-label" for="reason">Void reason</label>
             <textarea class="{{ inputClass('reason') }}" id="reason" name="reason" rows="2" required {{ inputAttrs('reason') }}>{{ getValue('reason') }}</textarea>

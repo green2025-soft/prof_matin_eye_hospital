@@ -2,6 +2,7 @@
 
 namespace Modules\Pharmacy\Services;
 
+use Brick\Math\BigInteger;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -13,9 +14,12 @@ abstract class TradeEntryService extends StockEntryService
 {
     protected function reverseStock(StockEntry $entry): void
     {
-        $hasReturns = $entry->returns()->whereNull('voided_at')->exists();
+        $hasReturns = $entry->returns()
+            ->whereNull('voided_at')
+            ->exists();
         $hasPayments = $entry->paymentAllocations()
-            ->whereHas('payment', fn ($query) => $query->whereNull('voided_at'))->exists();
+            ->whereHas('payment', fn ($query) => $query->whereNull('voided_at'))
+            ->exists();
         if ($hasReturns || $hasPayments) {
             throw ValidationException::withMessages(['record' => 'Void linked payments and returns before changing this invoice.']);
         }
@@ -32,7 +36,11 @@ abstract class TradeEntryService extends StockEntryService
             if ($entry->product_type !== $values['product_type']) {
                 throw ValidationException::withMessages(['product_type' => 'An invoice must retain its original product type.']);
             }
-            $previousLines = $entry->lines()->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+            $previousLines = $entry->lines()
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
         }
         $this->validateOriginalLines($values['lines'] ?? [], $previousLines);
         if ($entry->exists) {
@@ -42,9 +50,16 @@ abstract class TradeEntryService extends StockEntryService
         }
         $entry->forceFill([
             'payment_type_id' => $values['payment_type_id'] ?? null,
-            'subtotal' => 0, 'discount' => 0, 'vat' => 0, 'total' => 0,
-            'paid' => 0, 'initial_paid' => 0, 'returned' => 0, 'refunded' => 0,
-            'settlement_discount' => 0, 'outstanding' => 0,
+            'subtotal' => 0,
+            'discount' => 0,
+            'vat' => 0,
+            'total' => 0,
+            'paid' => 0,
+            'initial_paid' => 0,
+            'returned' => 0,
+            'refunded' => 0,
+            'settlement_discount' => 0,
+            'outstanding' => 0,
         ]);
 
         return $previousLines;
@@ -69,22 +84,6 @@ abstract class TradeEntryService extends StockEntryService
     protected function calculateTotals(StockEntry $entry, array $lines, array $values): array
     {
         $discount = Money::minor($values['discount'] ?? '0');
-        $this->setDiscountTotals($entry, $lines, $discount);
-        [$lines, $netAmounts] = $this->allocateInvoiceDiscount($lines, $discount);
-        $lines = $this->applyVat($entry, $lines, $netAmounts);
-        $lines = $this->completeLineAmounts($lines, $netAmounts);
-
-        $entry->vat = $this->items->sum(array_column($lines, 'vat'));
-        $entry->total = $this->items->sum(array_column($lines, 'total'));
-        $this->applyPayment($entry, Money::minor($values['paid_amount'] ?? '0'));
-
-        return $lines;
-    }
-
-    abstract protected function applyVat(StockEntry $entry, array $lines, array $weights): array;
-
-    private function setDiscountTotals(StockEntry $entry, array $lines, int $discount): void
-    {
         $subtotal = $this->items->sum(array_column($lines, 'subtotal'));
         $lineDiscount = $this->items->sum(array_column($lines, 'discount'));
         if ($discount > $subtotal - $lineDiscount) {
@@ -93,7 +92,21 @@ abstract class TradeEntryService extends StockEntryService
 
         $entry->subtotal = $subtotal;
         $entry->discount = $lineDiscount + $discount;
+        [$lines, $netAmounts] = $this->allocateInvoiceDiscount($lines, $discount);
+        $lines = $this->applyVat($entry, $lines, $netAmounts);
+        $lines = $this->completeTotals($entry, $lines, $netAmounts);
+
+        $paid = Money::minor($values['paid_amount'] ?? '0');
+        if ($paid > $entry->total) {
+            throw ValidationException::withMessages(['paid_amount' => 'Payment cannot exceed the invoice total.']);
+        }
+        $entry->paid = $paid;
+        $entry->initial_paid = $paid;
+
+        return $lines;
     }
+
+    abstract protected function applyVat(StockEntry $entry, array $lines, array $weights): array;
 
     private function allocateInvoiceDiscount(array $lines, int $discount): array
     {
@@ -109,23 +122,21 @@ abstract class TradeEntryService extends StockEntryService
         return [$lines, $netAmounts];
     }
 
-    private function completeLineAmounts(array $lines, array $netAmounts): array
+    private function completeTotals(StockEntry $entry, array $lines, array $netAmounts): array
     {
+        $vat = BigInteger::zero();
+        $total = BigInteger::zero();
+
         foreach ($lines as $index => $line) {
             $line['total'] = $netAmounts[$index] + ($line['vat_mode'] === 'exclusive' ? $line['vat'] : 0);
             $line['cost'] = $line['total'];
             $lines[$index] = $line;
+            $vat = $vat->plus($line['vat']);
+            $total = $total->plus($line['total']);
         }
+        $entry->vat = $this->items->bounded($vat);
+        $entry->total = $this->items->bounded($total);
 
         return $lines;
-    }
-
-    private function applyPayment(StockEntry $entry, int $paid): void
-    {
-        if ($paid > $entry->total) {
-            throw ValidationException::withMessages(['paid_amount' => 'Payment cannot exceed the invoice total.']);
-        }
-        $entry->paid = $paid;
-        $entry->initial_paid = $paid;
     }
 }

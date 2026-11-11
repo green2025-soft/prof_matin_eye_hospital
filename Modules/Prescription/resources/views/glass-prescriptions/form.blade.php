@@ -140,7 +140,7 @@
         <div class="row g-3">
             @if ($settings['glass_pd_enabled'])
                 <div class="col-sm-4 col-lg-3">
-                    <label class="form-label" for="glass_pd">PD (mm)</label>
+                    <label class="form-label" for="glass_pd">I.P.D (mm)</label>
                     <input class="{{ inputClass('pd') }}" id="glass_pd" name="pd" type="text" maxlength="30" value="{{ getValue('pd', $record) }}" {{ inputAttrs('pd', 'glass_pd') }}>
                     @error('pd')<div class="invalid-feedback d-block" id="glass_pd-error">{{ $message }}</div>@enderror
                 </div>
@@ -162,7 +162,7 @@
             @endif
             @if ($settings['glass_disclaimer_enabled'])
                 <div class="col-12">
-                    <label class="form-label" for="glass_disclaimer">Disclaimer / advice</label>
+                    <label class="form-label" for="glass_disclaimer">Remarks</label>
                     <textarea class="{{ inputClass('disclaimer') }}" id="glass_disclaimer" name="disclaimer" rows="2" maxlength="2000" {{ inputAttrs('disclaimer', 'glass_disclaimer') }}>{{ getValue('disclaimer', $record) }}</textarea>
                     @error('disclaimer')<div class="invalid-feedback d-block" id="glass_disclaimer-error">{{ $message }}</div>@enderror
                 </div>

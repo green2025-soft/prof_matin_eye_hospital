@@ -13,7 +13,7 @@
 
     <article class="app-card app-invoice-document app-clinical-invoice" aria-labelledby="clinical-invoice-title">
         <header class="app-clinical-invoice-header">
-            <div class="app-clinical-invoice-brand">
+            <div class="app-clinical-invoice-brand d-flex align-items-center justify-content-center text-center">
                 @if ($logoUrl)
                     <img class="app-clinical-invoice-logo" src="{{ $logoUrl }}" alt="" width="76" height="76">
                 @endif
@@ -22,14 +22,14 @@
                     @if ($company['address'] ?? '')
                         <p class="app-clinical-invoice-address">{{ $company['address'] }}</p>
                     @endif
-                    <div class="app-clinical-invoice-contact">
+                    <div class="app-clinical-invoice-contact d-flex flex-wrap justify-content-center">
                         @if ($company['phone'] ?? '')<span>Phone: {{ $company['phone'] }}</span>@endif
                         @if ($company['email'] ?? '')<span>{{ $company['email'] }}</span>@endif
                         @if ($company['tax_id'] ?? '')<span>Tax ID: {{ $company['tax_id'] }}</span>@endif
                     </div>
                 </div>
             </div>
-            <div class="app-clinical-invoice-title-row">
+            <div class="app-clinical-invoice-title-row d-flex align-items-center justify-content-between">
                 <div>
                     <h1 id="clinical-invoice-title">{{ $documentTitle }}</h1>
                     <p class="mb-0 fw-semibold">{{ $invoiceNumber }}</p>
@@ -41,18 +41,18 @@
             </div>
         </header>
 
-        <dl class="app-clinical-invoice-meta">
-            <div><dt>Patient ID</dt><dd>{{ $patient?->patient_id ?? '-' }}</dd></div>
-            <div><dt>Patient name</dt><dd>{{ $patient?->name ?? '-' }}</dd></div>
-            <div><dt>Mobile no.</dt><dd>{{ $patient?->mobile_no ?? '-' }}</dd></div>
-            <div><dt>Age / Gender</dt><dd>{{ $patient?->age ?? '-' }} / {{ $patientGenderLabel }}</dd></div>
-            <div><dt>Doctor</dt><dd>{{ $doctor?->name ?? '-' }}</dd></div>
-            <div><dt>{{ $entryDateLabel }}</dt><dd>{{ $entryDate }} @if ($entryTime !== '')<span class="text-nowrap">{{ $entryTime }}</span>@endif</dd></div>
+        <dl class="row row-cols-2 row-cols-sm-3 g-3 mb-3">
+            <div class="col"><dt class="small text-body-secondary text-uppercase fw-semibold mb-1">Patient ID</dt><dd class="fw-semibold text-break mb-0">{{ $patient?->patient_id ?? '-' }}</dd></div>
+            <div class="col"><dt class="small text-body-secondary text-uppercase fw-semibold mb-1">Patient name</dt><dd class="fw-semibold text-break mb-0">{{ $patient?->name ?? '-' }}</dd></div>
+            <div class="col"><dt class="small text-body-secondary text-uppercase fw-semibold mb-1">Mobile no.</dt><dd class="fw-semibold text-break mb-0">{{ $patient?->mobile_no ?? '-' }}</dd></div>
+            <div class="col"><dt class="small text-body-secondary text-uppercase fw-semibold mb-1">Age / Gender</dt><dd class="fw-semibold text-break mb-0">{{ $patient?->age ?? '-' }} / {{ $patientGenderLabel }}</dd></div>
+            <div class="col"><dt class="small text-body-secondary text-uppercase fw-semibold mb-1">Doctor</dt><dd class="fw-semibold text-break mb-0">{{ $doctor?->name ?? '-' }}</dd></div>
+            <div class="col"><dt class="small text-body-secondary text-uppercase fw-semibold mb-1">{{ $entryDateLabel }}</dt><dd class="fw-semibold text-break mb-0">{{ $entryDate }} @if ($entryTime !== '')<span class="text-nowrap">{{ $entryTime }}</span>@endif</dd></div>
         </dl>
 
         @yield('invoice-content')
 
-        <footer class="app-clinical-invoice-footer">
+        <footer class="app-clinical-invoice-footer d-flex align-items-end justify-content-between">
             <div class="small text-body-secondary">
                 <p class="mb-1">Printed by: {{ $printedBy }}</p>
                 <p class="mb-0">Printed at: {{ $printedAt }}</p>

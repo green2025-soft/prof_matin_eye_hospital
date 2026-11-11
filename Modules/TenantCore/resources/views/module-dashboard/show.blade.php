@@ -13,15 +13,19 @@
 
     <section class="app-card p-3 p-md-4" aria-labelledby="module-title">
         <div class="d-flex align-items-start gap-3">
-            <span class="app-selection-mark"><i class="fa-solid fa-{{ $module['icon'] }}" aria-hidden="true"></i></span>
+            <span class="app-selection-mark d-inline-flex flex-shrink-0 align-items-center justify-content-center overflow-hidden">
+                <i class="fa-solid fa-{{ $module['icon'] }}" aria-hidden="true"></i>
+            </span>
             <div class="overflow-hidden">
                 <h1 class="h4 fw-semibold mb-2 text-break" id="module-title">{{ $pageTitle }}</h1>
                 <p class="text-body-secondary mb-0">{{ $module['description'] }}</p>
             </div>
         </div>
-        <div class="border-top mt-4 pt-4">
-            <h2 class="h6">Working in this module</h2>
-            <p class="small text-body-secondary mb-0">Choose a branch when opening a branch-based feature.</p>
-        </div>
+        @if ($canSelectBranch)
+            <div class="border-top mt-4 pt-4">
+                <h2 class="h6">Working in this module</h2>
+                <p class="small text-body-secondary mb-0">Choose a branch when opening a branch-based feature.</p>
+            </div>
+        @endif
     </section>
 @endsection

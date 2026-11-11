@@ -33,7 +33,10 @@
                 </div>
                 <div class="col-md-6 col-xl-3">
                     <label class="form-label small" for="filter_patient_id">Patient</label>
-                    <select class="{{ inputClass('filter_patient_id', 'form-select') }}" id="filter_patient_id" name="filter_patient_id" data-ajax-select data-url="{{ route('hospital.patients.options') }}" data-value-field="id" data-label-field="text" data-placeholder="All patients" {{ inputAttrs('filter_patient_id') }}>
+                    <select class="{{ inputClass('filter_patient_id', 'form-select') }}" id="filter_patient_id" name="filter_patient_id"
+                        data-ajax-select data-url="{{ route('hospital.patients.options') }}"
+                        data-value-field="id" data-label-field="text" data-placeholder="All patients"
+                        {{ inputAttrs('filter_patient_id') }}>
                         <option value=""></option>
                         @if ($filterPatient !== null)
                             <option value="{{ $filterPatient->id }}" selected>{{ $filterPatient->patient_id }} — {{ $filterPatient->name }} — {{ $filterPatient->mobile_no }}</option>

@@ -642,6 +642,10 @@ function initializePermissionEditor(editor) {
     const $area = $editor.find('[data-permission-area]');
     const $group = $editor.find('[data-permission-group]');
     const $search = $editor.find('[data-permission-search]');
+    const $count = $editor.find('[data-permission-count]');
+    const $state = $editor.find('[data-permission-state]');
+    const $save = $editor.find('[data-permission-save]');
+    const $form = $editor.find('[data-permission-form]');
     const $recordSelect = $editor.find('[data-permission-record-select]');
     const originalRecord = $recordSelect.val();
     const $unrestricted = $editor.find('[data-permission-unrestricted]');
@@ -654,6 +658,22 @@ function initializePermissionEditor(editor) {
         : new Set(initialValue.split(',').filter(id => id !== ''));
     let dirty = false;
 
+    // Permission labels stay fixed; prepare searchable text once for this editor.
+    $rows.each((_, row) => {
+        const $row = $(row);
+        const context = [
+            $row.find('.app-permission-area span').text(),
+            $row.find('.app-permission-group span').text(),
+        ].join(' ');
+
+        $row.find('.app-permission-option').each((_, option) => {
+            const $option = $(option);
+            const text = `${context} ${$option.attr('title') ?? ''} ${$option.text()}`
+                .replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+            $option.data('permissionSearch', text);
+        });
+    });
+
     function selectedIds() {
         return new Set($items.filter(':checked').map((_, item) => $(item).val()).get());
     }
@@ -665,7 +685,7 @@ function initializePermissionEditor(editor) {
     }
 
     function matchingItems($visible, attribute, key) {
-        return $visible.filter((_, item) => $(item).attr(attribute) === key);
+        return $visible.filter((_, item) => $(item).closest('[data-permission-row]').attr(attribute) === key);
     }
 
     function updateToggle(toggle, $matching) {
@@ -691,17 +711,16 @@ function initializePermissionEditor(editor) {
 
         $editor.find('[data-permission-visible-toggle]').each((_, toggle) => updateToggle(toggle, $visible));
         $editor.find('[data-permission-group-toggle]').each((_, toggle) => {
-            updateToggle(toggle, matchingItems($visible, 'data-group-key', $(toggle).attr('data-group-key')));
+            updateToggle(toggle, matchingItems($visible, 'data-permission-group-key', $(toggle).attr('data-group-key')));
         });
         $editor.find('[data-permission-area-toggle]').each((_, toggle) => {
-            updateToggle(toggle, matchingItems($visible, 'data-area-key', $(toggle).attr('data-area-key')));
+            updateToggle(toggle, matchingItems($visible, 'data-permission-area-key', $(toggle).attr('data-area-key')));
         });
 
-        $editor.find('[data-permission-count]').text(`${selected.size} of ${total} selected`);
-        $editor.find('[data-permission-state]').text(readOnly ? 'Read-only access' : dirty ? 'Unsaved changes' : 'All changes saved')
+        $count.text(`${selected.size} of ${total} selected`);
+        $state.text(readOnly ? 'Read-only access' : dirty ? 'Unsaved changes' : 'All changes saved')
             .toggleClass('is-dirty', dirty);
-        $editor.find('[data-permission-save]').prop('disabled', readOnly || !dirty
-            || submittingForms.has($editor.find('[data-permission-form]')[0]));
+        $save.prop('disabled', readOnly || !dirty || submittingForms.has($form[0]));
     }
 
     function filterRows() {
@@ -714,16 +733,11 @@ function initializePermissionEditor(editor) {
             const $row = $(row);
             const matchesScope = (!area || $row.attr('data-permission-area-key') === area)
                 && (!group || $row.attr('data-permission-group-key') === group);
-            const context = [
-                $row.find('.app-permission-area span').text(),
-                $row.find('.app-permission-group span').text(),
-            ].join(' ');
             let matches = false;
 
             $row.find('.app-permission-option').each((_, option) => {
                 const $option = $(option);
-                const text = `${context} ${$option.attr('title') ?? ''} ${$option.text()}`
-                    .replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+                const text = $option.data('permissionSearch');
                 const hidden = !matchesScope || (search !== '' && !text.includes(search));
                 $option.prop('hidden', hidden);
 
@@ -789,9 +803,9 @@ function initializePermissionEditor(editor) {
 
         const $toggle = $(this);
         if ($toggle.is('[data-permission-group-toggle]')) {
-            $matching = matchingItems($matching, 'data-group-key', $toggle.attr('data-group-key'));
+            $matching = matchingItems($matching, 'data-permission-group-key', $toggle.attr('data-group-key'));
         } else if ($toggle.is('[data-permission-area-toggle]')) {
-            $matching = matchingItems($matching, 'data-area-key', $toggle.attr('data-area-key'));
+            $matching = matchingItems($matching, 'data-permission-area-key', $toggle.attr('data-area-key'));
         }
 
         $matching.filter(':enabled').prop('checked', $toggle.prop('checked'));

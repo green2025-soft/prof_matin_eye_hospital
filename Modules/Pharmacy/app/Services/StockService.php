@@ -41,24 +41,34 @@ class StockService
             return collect();
         }
 
-        return $this->stockAvailability($productType, $saleDate)->whereIn('variant_id', $variantIds)
-            ->pluck('available_quantity', 'variant_id')->map(fn ($quantity): int => (int) $quantity);
+        return $this->stockAvailability($productType, $saleDate)
+            ->whereIn('variant_id', $variantIds)
+            ->pluck('available_quantity', 'variant_id')
+            ->map(fn ($quantity): int => (int) $quantity);
     }
 
     public function saleRevisionQuantities(Sale $sale, string $stockDate): Collection
     {
         $eligibleLot = function (Builder $query) use ($sale, $stockDate): void {
-            $query->where('branch_id', $sale->branch_id)->whereNull('reversed_at')->where('received_at', '<=', $stockDate);
+            $query->where('branch_id', $sale->branch_id)
+                ->whereNull('reversed_at')
+                ->where('received_at', '<=', $stockDate);
             if ($sale->product_type === 'medicine') {
                 $expiryDate = max(now(config('app.timezone'))->toDateString(), $stockDate);
-                $query->where(fn (Builder $query) => $query->whereNull('expiry_date')->orWhere('expiry_date', '>=', $expiryDate));
+                $query->where(fn (Builder $query) => $query->whereNull('expiry_date')
+                    ->orWhere('expiry_date', '>=', $expiryDate));
             }
         };
-        $originalAllocation = fn ($query) => $query->whereNull('source_allocation_id')->whereNull('reversed_at');
-        $lines = $sale->lines()->select(['id', 'sale_id', 'variant_id'])
-            ->withSum(['allocations as eligible_quantity' => fn (Builder $query) => $originalAllocation($query)->whereHas('lot', $eligibleLot)], 'quantity')
+        $originalAllocation = fn ($query) => $query->whereNull('source_allocation_id')
+            ->whereNull('reversed_at');
+        $lines = $sale->lines()
+            ->select(['id', 'sale_id', 'variant_id'])
+            ->withSum(['allocations as eligible_quantity' => fn (Builder $query) => $originalAllocation($query)
+                ->whereHas('lot', $eligibleLot)], 'quantity')
             ->withSum(['shortageSettlements as settled_quantity' => fn (Builder $query) => $query
-                ->whereNull($query->getModel()->qualifyColumn('reversed_at'))->whereHas('lot', $eligibleLot)], 'quantity')->get();
+                ->whereNull($query->getModel()->qualifyColumn('reversed_at'))
+                ->whereHas('lot', $eligibleLot)], 'quantity')
+            ->get();
         $quantities = collect();
         // A sale has at most 100 lines; the database sums each line's eligible allocations and settlements.
         foreach ($lines as $line) {
@@ -74,28 +84,18 @@ class StockService
     public function stockAvailability(string $productType, string $stockDate): Builder
     {
         $expiryDate = max(now(config('app.timezone'))->toDateString(), $stockDate);
-        $activeLot = fn (Builder $query) => $query->whereNull('reversed_at')->where('remaining_quantity', '>', 0);
-        $available = function (Builder $query) use ($activeLot, $productType, $stockDate, $expiryDate): void {
-            $activeLot($query)->where('received_at', '<=', $stockDate);
+        $available = function (Builder $query) use ($productType, $stockDate, $expiryDate): void {
+            $query->whereNull('reversed_at')
+                ->where('remaining_quantity', '>', 0)
+                ->where('received_at', '<=', $stockDate);
             if ($productType === 'medicine') {
-                $query->where(fn (Builder $query) => $query->whereNull('expiry_date')->orWhere('expiry_date', '>=', $expiryDate));
+                $query->where(fn (Builder $query) => $query->whereNull('expiry_date')
+                    ->orWhere('expiry_date', '>=', $expiryDate));
             }
         };
-        $expired = function (Builder $query) use ($activeLot, $productType, $stockDate, $expiryDate): void {
-            $activeLot($query)->where('received_at', '<=', $stockDate)->where('expiry_date', '<', $expiryDate);
-            if ($productType !== 'medicine') {
-                $query->whereKey([]);
-            }
-        };
-        $future = fn (Builder $query) => $activeLot($query)->where('received_at', '>', $stockDate);
 
-        return StockBalance::query()->select('variant_id')
-            ->withSum(['lots as available_quantity' => $available], 'remaining_quantity')
-            ->withSum(['lots as available_cost' => $available], 'remaining_cost')
-            ->withSum(['lots as expired_quantity' => $expired], 'remaining_quantity')
-            ->withSum(['lots as expired_cost' => $expired], 'remaining_cost')
-            ->withSum(['lots as future_quantity' => $future], 'remaining_quantity')
-            ->withSum(['lots as future_cost' => $future], 'remaining_cost');
+        return StockBalance::select('variant_id')
+            ->withSum(['lots as available_quantity' => $available], 'remaining_quantity');
     }
 
     public function receive(Purchase|OpeningStock $entry): int
@@ -105,12 +105,29 @@ class StockService
 
     public function issueSale(Sale $entry, ?string $minimumExpiryDate = null, bool $allowShortage = false): int
     {
-        return $this->postLines($entry, fn (Connection $connection, StockEntry $entry, StockItem $line): int => $this->consumeLine($connection, $entry, $line, $minimumExpiryDate, null, $allowShortage));
+        return $this->postLines(
+            $entry,
+            fn (Connection $connection, StockEntry $entry, StockItem $line): int => $this->consumeLine(
+                $connection,
+                $entry,
+                $line,
+                minimumExpiryDate: $minimumExpiryDate,
+                allowShortage: $allowShortage,
+            ),
+        );
     }
 
     public function issueWastage(Wastage $entry): int
     {
-        return $this->postLines($entry, fn (Connection $connection, Wastage $entry, WastageItem $line): int => $this->consumeLine($connection, $entry, $line, null, $line->stock_lot_id));
+        return $this->postLines(
+            $entry,
+            fn (Connection $connection, Wastage $entry, WastageItem $line): int => $this->consumeLine(
+                $connection,
+                $entry,
+                $line,
+                selectedLotId: $line->stock_lot_id,
+            ),
+        );
     }
 
     public function transfer(StockEntry $entry): int
@@ -121,9 +138,15 @@ class StockService
     public function returnSale(SaleReturn $entry): int
     {
         $this->requireTransaction($entry->getConnection());
-        $sale = $entry->sale()->lockForUpdate()->firstOrFail();
-        $sale->lines()->whereIn('id', $entry->lines()->select('sale_item_id'))
-            ->orderBy('id')->lockForUpdate()->get();
+        $sale = $entry->sale()
+            ->lockForUpdate()
+            ->firstOrFail();
+        $sale->lines()
+            ->whereIn('id', $entry->lines()
+                ->select('sale_item_id'))
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
 
         return $this->postLines($entry, $this->returnSaleLine(...), ['saleItem.sale']);
     }
@@ -131,9 +154,15 @@ class StockService
     public function returnPurchase(PurchaseReturn $entry): int
     {
         $this->requireTransaction($entry->getConnection());
-        $purchase = $entry->purchase()->lockForUpdate()->firstOrFail();
-        $purchase->lines()->whereIn('id', $entry->lines()->select('purchase_item_id'))
-            ->orderBy('id')->lockForUpdate()->get();
+        $purchase = $entry->purchase()
+            ->lockForUpdate()
+            ->firstOrFail();
+        $purchase->lines()
+            ->whereIn('id', $entry->lines()
+                ->select('purchase_item_id'))
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
 
         return $this->postLines($entry, $this->returnPurchaseLine(...), ['purchaseItem.purchase']);
     }
@@ -166,7 +195,11 @@ class StockService
             throw ValidationException::withMessages(['record' => 'This entry has already been posted.']);
         }
 
-        $lines = $entry->lines()->with(['variant.product', ...$relations])->orderBy('variant_id')->orderBy('id')->get();
+        $lines = $entry->lines()
+            ->with(['variant.product', ...$relations])
+            ->orderBy('variant_id')
+            ->orderBy('id')
+            ->get();
         $this->lockBalances($connection, $entry, $lines);
         $totalCost = 0;
 
@@ -195,31 +228,52 @@ class StockService
             throw ValidationException::withMessages(['record' => 'This entry cannot be reversed again.']);
         }
 
-        $lines = $entry->lines()->orderBy('variant_id')->orderBy('id')->get();
+        $lines = $entry->lines()
+            ->orderBy('variant_id')
+            ->orderBy('id')
+            ->get();
         $this->lockBalances($connection, $entry, $lines);
         $lineIds = $lines->modelKeys();
         $lineType = $entry->lines()->getRelated()->getMorphClass();
-        $allocations = StockAllocation::on($connection->getName())->where('stock_item_type', $lineType)
-            ->whereIn('stock_item_id', $lineIds)->pluck('id');
-        if (StockAllocation::on($connection->getName())->whereIn('source_allocation_id', $allocations)
-            ->whereNull('reversed_at')->exists()) {
+        $allocations = StockAllocation::on($connection->getName())
+            ->where('stock_item_type', $lineType)
+            ->whereIn('stock_item_id', $lineIds)
+            ->pluck('id');
+        if (StockAllocation::on($connection->getName())
+            ->whereIn('source_allocation_id', $allocations)
+            ->whereNull('reversed_at')
+            ->exists()) {
             throw ValidationException::withMessages(['record' => 'This sale has a stock return. Reverse that return first.']);
         }
         $this->shortages->restore($entry, $lines);
-        $movements = StockMovement::on($connection->getName())->withoutGlobalScope('branch')
-            ->where('stock_entry_type', $entry->getMorphClass())->where('stock_entry_id', $entry->id)
+        $movements = StockMovement::on($connection->getName())
+            ->withoutGlobalScope('branch')
+            ->where('stock_entry_type', $entry->getMorphClass())
+            ->where('stock_entry_id', $entry->id)
             ->where('stock_item_type', $lineType)
-            ->whereIn('stock_item_id', $lines->modelKeys())
+            ->whereIn('stock_item_id', $lineIds)
             ->where('type', '!=', 'stock_variance')
-            ->where('is_reversal', false)->orderByDesc('quantity')->orderBy('id')->get();
-        $lots = StockLot::on($connection->getName())->withoutGlobalScope('branch')
-            ->whereIn('id', $movements->pluck('lot_id')->filter()->unique())
+            ->where('is_reversal', false)
+            ->orderByDesc('quantity')
+            ->orderBy('id')
+            ->get();
+        $lots = StockLot::on($connection->getName())
+            ->withoutGlobalScope('branch')
+            ->whereIn('id', $movements->pluck('lot_id')
+                ->filter()
+                ->unique())
             ->withExists([
                 'allocations as has_active_allocations' => fn (Builder $query) => $query
-                    ->whereNull('source_allocation_id')->whereNull('reversed_at'),
+                    ->whereNull('source_allocation_id')
+                    ->whereNull('reversed_at'),
                 'childLots as has_active_children' => fn (Builder $query) => $query
-                    ->withoutGlobalScope('branch')->whereNull('reversed_at'),
-            ])->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+                    ->withoutGlobalScope('branch')
+                    ->whereNull('reversed_at'),
+            ])
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('id');
 
         foreach ($movements as $movement) {
             $lot = $lots->get($movement->lot_id);
@@ -233,30 +287,53 @@ class StockService
                     || $lot->has_active_allocations || $lot->has_active_children) {
                     throw ValidationException::withMessages(['record' => 'Stock from this receipt has been used. Reverse the later movements first.']);
                 }
-                StockLot::on($connection->getName())->withoutGlobalScope('branch')->whereKey($lot->id)->update([
-                    'remaining_quantity' => 0, 'remaining_cost' => 0, 'reversed_at' => now(), 'updated_at' => now(),
+                StockLot::on($connection->getName())
+                    ->withoutGlobalScope('branch')
+                    ->whereKey($lot->id)
+                    ->update([
+                        'remaining_quantity' => 0,
+                        'remaining_cost' => 0,
+                        'reversed_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                $lot->forceFill([
+                    'remaining_quantity' => 0,
+                    'remaining_cost' => 0,
+                    'reversed_at' => now(),
                 ]);
-                $lot->forceFill(['remaining_quantity' => 0, 'remaining_cost' => 0, 'reversed_at' => now()]);
             } elseif ($lot !== null) {
                 $this->restoreLot($connection, $lot, -(int) $movement->quantity, -(int) $movement->cost);
             }
 
             $this->changeBalance($connection, (int) $movement->branch_id, (int) $movement->variant_id,
                 -(int) $movement->quantity, -(int) $movement->cost);
-            StockMovement::on($connection->getName())->insert([
-                'branch_id' => $movement->branch_id, 'variant_id' => $movement->variant_id,
-                'stock_entry_type' => $entry->getMorphClass(), 'stock_entry_id' => $entry->id,
-                'stock_item_type' => $lineType, 'stock_item_id' => $movement->stock_item_id,
-                'lot_id' => $movement->lot_id, 'type' => $movement->type,
-                'quantity' => -(int) $movement->quantity, 'cost' => -(int) $movement->cost,
-                'movement_date' => now(config('app.timezone'))->toDateString(), 'is_reversal' => true,
-                'created_at' => now(), 'updated_at' => now(),
-            ]);
+            StockMovement::on($connection->getName())
+                ->insert([
+                    'branch_id' => $movement->branch_id,
+                    'variant_id' => $movement->variant_id,
+                    'stock_entry_type' => $entry->getMorphClass(),
+                    'stock_entry_id' => $entry->id,
+                    'stock_item_type' => $lineType,
+                    'stock_item_id' => $movement->stock_item_id,
+                    'lot_id' => $movement->lot_id,
+                    'type' => $movement->type,
+                    'quantity' => -(int) $movement->quantity,
+                    'cost' => -(int) $movement->cost,
+                    'movement_date' => now(config('app.timezone'))->toDateString(),
+                    'is_reversal' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
         }
 
-        StockAllocation::on($connection->getName())->where('stock_item_type', $lineType)
+        StockAllocation::on($connection->getName())
+            ->where('stock_item_type', $lineType)
             ->whereIn('stock_item_id', $lineIds)
-            ->whereNull('reversed_at')->update(['reversed_at' => now(), 'updated_at' => now()]);
+            ->whereNull('reversed_at')
+            ->update([
+                'reversed_at' => now(),
+                'updated_at' => now(),
+            ]);
 
         $entry->stock_reversed_at = now();
         $entry->save();
@@ -293,9 +370,13 @@ class StockService
         $direction = $entry->stock_method === 'lifo' ? 'desc' : 'asc';
         $remaining = $line->base_quantity;
         $cost = 0;
-        $lots->orderBy('received_at', $direction)->orderBy('id', $direction);
+        $lots->orderBy('received_at', $direction)
+            ->orderBy('id', $direction);
         while ($remaining > 0) {
-            $batch = (clone $lots)->limit(100)->lockForUpdate()->get();
+            $batch = (clone $lots)
+                ->limit(100)
+                ->lockForUpdate()
+                ->get();
             if ($batch->isEmpty()) {
                 if (! $allowShortage) {
                     throw ValidationException::withMessages(['lines' => 'There is not enough eligible stock for the selected product and date.']);
@@ -319,11 +400,16 @@ class StockService
 
     private function eligibleLots(Connection $connection, int $branchId, string $stockDate, ?string $minimumExpiryDate): Builder
     {
-        $query = StockLot::on($connection->getName())->withoutGlobalScope('branch')->where('branch_id', $branchId)
-            ->whereNull('reversed_at')->where('remaining_quantity', '>', 0)->where('received_at', '<=', $stockDate);
+        $query = StockLot::on($connection->getName())
+            ->withoutGlobalScope('branch')
+            ->where('branch_id', $branchId)
+            ->whereNull('reversed_at')
+            ->where('remaining_quantity', '>', 0)
+            ->where('received_at', '<=', $stockDate);
         if ($minimumExpiryDate !== null) {
             $query->where(function (Builder $query) use ($minimumExpiryDate): void {
-                $query->whereNull('expiry_date')->orWhere('expiry_date', '>=', $minimumExpiryDate);
+                $query->whereNull('expiry_date')
+                    ->orWhere('expiry_date', '>=', $minimumExpiryDate);
             });
         }
 
@@ -334,11 +420,16 @@ class StockService
     {
         $price = $line->variant?->product?->purchase_price;
         $cost = $this->supportedInteger(BigInteger::of(Money::minor((string) ($price ?? '0')))->multipliedBy($quantity));
-        StockAllocation::on($connection->getName())->insert([
-            'stock_item_type' => $line->getMorphClass(), 'stock_item_id' => $line->id,
-            'lot_id' => null, 'quantity' => $quantity,
-            'cost' => $cost, 'created_at' => now(), 'updated_at' => now(),
-        ]);
+        StockAllocation::on($connection->getName())
+            ->insert([
+                'stock_item_type' => $line->getMorphClass(),
+                'stock_item_id' => $line->id,
+                'lot_id' => null,
+                'quantity' => $quantity,
+                'cost' => $cost,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         $this->movement($connection, $entry, $line, $entry->branch_id, null, -$quantity, -$cost);
 
         return $cost;
@@ -351,8 +442,10 @@ class StockService
         }
 
         $cost = $this->consumeLine($connection, $entry, $line);
-        $allocations = $line->allocations()->with(['lot' => fn ($query) => $query->withoutGlobalScope('branch')])
-            ->orderBy('id')->get();
+        $allocations = $line->allocations()
+            ->with(['lot' => fn ($query) => $query->withoutGlobalScope('branch')])
+            ->orderBy('id')
+            ->get();
         foreach ($allocations as $allocation) {
             $this->receiveLot($connection, $entry, $line, $entry->destination_branch_id,
                 (int) $allocation->quantity, (int) $allocation->cost, $allocation->lot->batch_no,
@@ -367,10 +460,15 @@ class StockService
         $source = $line->saleItem;
         $source = $this->returnSource($entry, $line, $source, $source?->sale, $entry->sale_id);
         $activeReturn = fn (Builder $query) => $query->whereNull('reversed_at');
-        $allocations = $source->allocations()->whereNull('source_allocation_id')->whereNull('reversed_at')
+        $allocations = $source->allocations()
+            ->whereNull('source_allocation_id')
+            ->whereNull('reversed_at')
             ->withSum(['returns as returned_quantity' => $activeReturn], 'quantity')
             ->withSum(['returns as returned_cost' => $activeReturn], 'cost')
-            ->with('lot')->orderBy('id')->lockForUpdate()->get();
+            ->with('lot')
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
         $remaining = $line->base_quantity;
         $cost = 0;
 
@@ -421,16 +519,21 @@ class StockService
             return $cost;
         }
 
-        $activeSettlement = fn (Builder $query) => $query->where('allocation_id', $allocation->id)->whereNull('reversed_at');
+        $activeSettlement = fn (Builder $query) => $query->where('allocation_id', $allocation->id)
+            ->whereNull('reversed_at');
         $previousReturn = fn (Builder $query) => $query->whereHas('allocations', fn (Builder $query) => $query
-            ->where('source_allocation_id', $allocation->id)->whereNull('reversed_at'));
-        $receiptLots = StockLot::on($connection->getName())->withoutGlobalScope('branch')
+            ->where('source_allocation_id', $allocation->id)
+            ->whereNull('reversed_at'));
+        $receiptLots = StockLot::on($connection->getName())
+            ->withoutGlobalScope('branch')
             ->whereHas('shortageSettlements', $activeSettlement)
             ->withSum(['shortageSettlements as settled_quantity' => $activeSettlement], 'quantity')
             ->withSum(['shortageSettlements as settled_cost' => $activeSettlement], 'receipt_cost')
             ->withSum(['childLots as returned_quantity' => $previousReturn], 'initial_quantity')
             ->withSum(['childLots as returned_cost' => $previousReturn], 'initial_cost')
-            ->orderBy('id')->lockForUpdate()->lazyById(100);
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->lazyById(100);
 
         foreach ($receiptLots as $originalLot) {
             $available = (int) $originalLot->settled_quantity - (int) $originalLot->returned_quantity;
@@ -461,20 +564,31 @@ class StockService
     private function recordReturnAllocation(Connection $connection, StockItem $line, StockAllocation $source, ?int $lotId,
         int $quantity, int $snapshotCost): void
     {
-        StockAllocation::on($connection->getName())->insert([
-            'stock_item_type' => $line->getMorphClass(), 'stock_item_id' => $line->id,
-            'lot_id' => $lotId, 'source_allocation_id' => $source->id,
-            'quantity' => $quantity, 'cost' => $snapshotCost, 'created_at' => now(), 'updated_at' => now(),
-        ]);
+        StockAllocation::on($connection->getName())
+            ->insert([
+                'stock_item_type' => $line->getMorphClass(),
+                'stock_item_id' => $line->id,
+                'lot_id' => $lotId,
+                'source_allocation_id' => $source->id,
+                'quantity' => $quantity,
+                'cost' => $snapshotCost,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
     }
 
     private function returnPurchaseLine(Connection $connection, PurchaseReturn $entry, PurchaseReturnItem $line): int
     {
         $source = $line->purchaseItem;
         $source = $this->returnSource($entry, $line, $source, $source?->purchase, $entry->purchase_id);
-        $lot = StockLot::on($connection->getName())->where('source_item_type', $source->getMorphClass())
+        $lot = StockLot::on($connection->getName())
+            ->where('source_item_type', $source->getMorphClass())
             ->where('source_item_id', $source->id)
-            ->where('branch_id', $entry->branch_id)->whereNull('reversed_at')->orderBy('id')->lockForUpdate()->first();
+            ->where('branch_id', $entry->branch_id)
+            ->whereNull('reversed_at')
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->first();
         if ($lot === null || (int) $lot->remaining_quantity < $line->base_quantity) {
             throw ValidationException::withMessages(['lines' => 'Only remaining stock from the original purchase can be returned.']);
         }
@@ -501,15 +615,24 @@ class StockService
     private function takeLot(Connection $connection, StockEntry $entry, StockItem $line, StockLot $lot, int $quantity): int
     {
         $cost = $this->portion((int) $lot->remaining_cost, $quantity, (int) $lot->remaining_quantity);
-        StockLot::on($connection->getName())->withoutGlobalScope('branch')->whereKey($lot->id)->update([
-            'remaining_quantity' => (int) $lot->remaining_quantity - $quantity,
-            'remaining_cost' => (int) $lot->remaining_cost - $cost, 'updated_at' => now(),
-        ]);
-        StockAllocation::on($connection->getName())->insert([
-            'stock_item_type' => $line->getMorphClass(), 'stock_item_id' => $line->id,
-            'lot_id' => $lot->id, 'quantity' => $quantity,
-            'cost' => $cost, 'created_at' => now(), 'updated_at' => now(),
-        ]);
+        StockLot::on($connection->getName())
+            ->withoutGlobalScope('branch')
+            ->whereKey($lot->id)
+            ->update([
+                'remaining_quantity' => (int) $lot->remaining_quantity - $quantity,
+                'remaining_cost' => (int) $lot->remaining_cost - $cost,
+                'updated_at' => now(),
+            ]);
+        StockAllocation::on($connection->getName())
+            ->insert([
+                'stock_item_type' => $line->getMorphClass(),
+                'stock_item_id' => $line->id,
+                'lot_id' => $lot->id,
+                'quantity' => $quantity,
+                'cost' => $cost,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         $this->movement($connection, $entry, $line, $entry->branch_id, (int) $lot->id, -$quantity, -$cost);
 
         return $cost;
@@ -518,14 +641,23 @@ class StockService
     private function receiveLot(Connection $connection, StockEntry $entry, StockItem $line, int $branchId, int $quantity,
         int $cost, ?string $batchNo, ?string $expiryDate, ?int $parentLotId = null): int
     {
-        $lotId = StockLot::on($connection->getName())->insertGetId([
-            'branch_id' => $branchId, 'variant_id' => $line->variant_id,
-            'source_item_type' => $line->getMorphClass(), 'source_item_id' => $line->id,
-            'parent_lot_id' => $parentLotId, 'received_at' => $entry->entry_date->toDateString(),
-            'initial_quantity' => $quantity, 'remaining_quantity' => $quantity,
-            'initial_cost' => $cost, 'remaining_cost' => $cost,
-            'batch_no' => $batchNo, 'expiry_date' => $expiryDate, 'created_at' => now(), 'updated_at' => now(),
-        ]);
+        $lotId = StockLot::on($connection->getName())
+            ->insertGetId([
+                'branch_id' => $branchId,
+                'variant_id' => $line->variant_id,
+                'source_item_type' => $line->getMorphClass(),
+                'source_item_id' => $line->id,
+                'parent_lot_id' => $parentLotId,
+                'received_at' => $entry->entry_date->toDateString(),
+                'initial_quantity' => $quantity,
+                'remaining_quantity' => $quantity,
+                'initial_cost' => $cost,
+                'remaining_cost' => $cost,
+                'batch_no' => $batchNo,
+                'expiry_date' => $expiryDate,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         $this->movement($connection, $entry, $line, $branchId, $lotId, $quantity, $cost);
 
         return $lotId;
@@ -535,24 +667,39 @@ class StockService
         int $quantity, int $cost): void
     {
         $this->changeBalance($connection, $branchId, $line->variant_id, $quantity, $cost);
-        StockMovement::on($connection->getName())->insert([
-            'branch_id' => $branchId, 'variant_id' => $line->variant_id,
-            'stock_entry_type' => $entry->getMorphClass(), 'stock_entry_id' => $entry->id,
-            'stock_item_type' => $line->getMorphClass(), 'stock_item_id' => $line->id,
-            'lot_id' => $lotId, 'type' => $entry::TYPE,
-            'quantity' => $quantity, 'cost' => $cost, 'movement_date' => $entry->entry_date->toDateString(),
-            'is_reversal' => false, 'created_at' => now(), 'updated_at' => now(),
-        ]);
+        StockMovement::on($connection->getName())
+            ->insert([
+                'branch_id' => $branchId,
+                'variant_id' => $line->variant_id,
+                'stock_entry_type' => $entry->getMorphClass(),
+                'stock_entry_id' => $entry->id,
+                'stock_item_type' => $line->getMorphClass(),
+                'stock_item_id' => $line->id,
+                'lot_id' => $lotId,
+                'type' => $entry::TYPE,
+                'quantity' => $quantity,
+                'cost' => $cost,
+                'movement_date' => $entry->entry_date->toDateString(),
+                'is_reversal' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
     }
 
     private function changeBalance(Connection $connection, int $branchId, int $variantId, int $quantity, int $cost): void
     {
-        $query = StockBalance::on($connection->getName())->withoutGlobalScope('branch')
-            ->where('branch_id', $branchId)->where('variant_id', $variantId);
+        $query = StockBalance::on($connection->getName())
+            ->withoutGlobalScope('branch')
+            ->where('branch_id', $branchId)
+            ->where('variant_id', $variantId);
         $balance = $query->first();
         $newQuantity = $this->supportedInteger(BigInteger::of($balance->quantity)->plus($quantity));
         $newCost = $this->supportedInteger(BigInteger::of($balance->cost)->plus($cost));
-        $query->update(['quantity' => $newQuantity, 'cost' => $newCost, 'updated_at' => now()]);
+        $query->update([
+            'quantity' => $newQuantity,
+            'cost' => $newCost,
+            'updated_at' => now(),
+        ]);
     }
 
     private function restoreLot(Connection $connection, StockLot $lot, int $quantity, int $cost): void
@@ -563,10 +710,18 @@ class StockService
             throw ValidationException::withMessages(['record' => 'The original stock allocation cannot be restored twice.']);
         }
 
-        StockLot::on($connection->getName())->withoutGlobalScope('branch')->whereKey($lot->id)->update([
-            'remaining_quantity' => $newQuantity, 'remaining_cost' => $newCost, 'updated_at' => now(),
+        StockLot::on($connection->getName())
+            ->withoutGlobalScope('branch')
+            ->whereKey($lot->id)
+            ->update([
+                'remaining_quantity' => $newQuantity,
+                'remaining_cost' => $newCost,
+                'updated_at' => now(),
+            ]);
+        $lot->forceFill([
+            'remaining_quantity' => $newQuantity,
+            'remaining_cost' => $newCost,
         ]);
-        $lot->forceFill(['remaining_quantity' => $newQuantity, 'remaining_cost' => $newCost]);
     }
 
     private function portion(int $cost, int $quantity, int $available): int
@@ -575,8 +730,8 @@ class StockService
             throw ValidationException::withMessages(['lines' => 'Use a positive quantity within the available stock.']);
         }
 
-        // The last units retain every rounding remainder from the original receipt.
-        return $quantity === $available ? $cost : $this->supportedInteger(BigInteger::of($cost)->multipliedBy($quantity)->quotient($available));
+        // Taking every remaining piece also takes the receipt's full rounding remainder.
+        return $this->supportedInteger(BigInteger::of($cost)->multipliedBy($quantity)->quotient($available));
     }
 
     private function supportedInteger(BigInteger $value): int
@@ -590,19 +745,36 @@ class StockService
 
     private function lockBalances(Connection $connection, StockEntry $entry, Collection $lines): void
     {
-        $branches = $entry->stockBranchIds();
+        $branches = array_unique($entry->stockBranchIds());
         sort($branches, SORT_NUMERIC);
-        $variantIds = $lines->pluck('variant_id')->unique()->sort()->values();
+        $variantIds = $lines->pluck('variant_id')
+            ->unique()
+            ->sort()
+            ->values();
 
-        foreach (array_unique($branches) as $branchId) {
+        foreach ($branches as $branchId) {
+            $balances = [];
             foreach ($variantIds as $variantId) {
-                StockBalance::on($connection->getName())->insertOrIgnore([
-                    'branch_id' => $branchId, 'variant_id' => $variantId, 'quantity' => 0,
-                    'cost' => 0, 'created_at' => now(), 'updated_at' => now(),
-                ]);
-                StockBalance::on($connection->getName())->withoutGlobalScope('branch')->where('branch_id', $branchId)
-                    ->where('variant_id', $variantId)->lockForUpdate()->first();
+                $balances[] = [
+                    'branch_id' => $branchId,
+                    'variant_id' => $variantId,
+                    'quantity' => 0,
+                    'cost' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
             }
+
+            // Create and lock balances in the same branch/variant order for every posting.
+            StockBalance::on($connection->getName())
+                ->insertOrIgnore($balances);
+            StockBalance::on($connection->getName())
+                ->withoutGlobalScope('branch')
+                ->where('branch_id', $branchId)
+                ->whereIn('variant_id', $variantIds)
+                ->orderBy('variant_id')
+                ->lockForUpdate()
+                ->get(['id']);
         }
     }
 

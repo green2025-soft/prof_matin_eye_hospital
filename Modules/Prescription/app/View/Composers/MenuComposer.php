@@ -17,7 +17,7 @@ class MenuComposer
             && $this->request->routeIs(
                 'pharmacy.products.*',
                 'pharmacy.categories.*',
-                'pharmacy.shelves.*',
+                'pharmacy.shelf.*',
                 'pharmacy.variants.*',
                 'pharmacy.product-units.*',
             );
@@ -26,10 +26,13 @@ class MenuComposer
             return;
         }
 
-        $actor = $this->request->user('web');
-        $subscription = $this->request->attributes->get('application_subscription');
-        $plan = $subscription?->isUsable() ? $subscription->plan : null;
-        $permissions = $this->access->navigationPermissions($actor, $plan);
+        $permissions = $this->request->attributes->get('navigation_permissions');
+        if ($permissions === null) {
+            $actor = $this->request->user('web');
+            $subscription = $this->request->attributes->get('application_subscription');
+            $plan = $subscription?->isUsable() ? $subscription->plan : null;
+            $permissions = $this->access->navigationPermissions($actor, $plan);
+        }
 
         if ($catalogContext && ! ($permissions['prescription.view'] ?? false)) {
             return;

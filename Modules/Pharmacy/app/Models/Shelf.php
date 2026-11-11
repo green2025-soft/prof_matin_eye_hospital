@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['type', 'name', 'number'])]
 class Shelf extends BaseModel
 {
-    protected $table = 'phr_shelves';
+    protected $table = 'phr_shelf';
 
-    protected string $crudPermission = 'pharmacy-shelves';
+    protected string $crudPermission = 'pharmacy-shelf';
 
     protected array $exposed = ['id', 'type', 'name', 'number', 'created_at'];
 

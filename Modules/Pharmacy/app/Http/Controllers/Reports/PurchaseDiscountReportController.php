@@ -12,21 +12,21 @@ class PurchaseDiscountReportController extends BaseController
     public function index(DateRangeReportRequest $request): View
     {
         $filters = $request->filters();
-        $query = Purchase::query()
-            ->with('supplier:id,name')
+        $query = Purchase::with('supplier:id,name')
             ->whereNull('voided_at')
             ->where('product_type', $filters['product_type'])
             ->whereBetween('entry_date', [$filters['from_date'], $filters['to_date']])
             ->withSum('lines as line_discount', 'discount');
+        $records = $this->paginateQuery(
+            $query->orderByDesc('entry_date')
+                ->orderByDesc('id'),
+            $filters
+        );
 
         $data = [
             'pageTitle' => 'Purchase Discounts',
             'filters' => $filters,
-            'records' => $this->paginateQuery(
-                $query->orderByDesc('entry_date')
-                    ->orderByDesc('id'),
-                $filters
-            ),
+            'records' => $records,
         ];
 
         return view('pharmacy::reports.purchase-discounts', $data);

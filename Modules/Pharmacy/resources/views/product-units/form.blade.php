@@ -20,7 +20,10 @@
                     @if ($product_unit->exists)
                         <input type="hidden" name="product_id" value="{{ $product_unit->product_id }}">
                     @endif
-                    <select class="{{ inputClass('product_id', 'form-select') }}" id="product_id" name="product_id" data-ajax-select data-url="{{ route('pharmacy.products.options') }}" data-placeholder="Select product" required @disabled($product_unit->exists) {{ inputAttrs('product_id') }}>
+                    <select class="{{ inputClass('product_id', 'form-select') }}" id="product_id" name="product_id"
+                        data-ajax-select data-url="{{ route('pharmacy.products.options') }}"
+                        data-placeholder="Select product" required @disabled($product_unit->exists)
+                        {{ inputAttrs('product_id') }}>
                         <option value=""></option>
                         @if ($selectedProduct !== null)
                             <option value="{{ $selectedProduct->id }}" selected>{{ $selectedProduct->name }}</option>
@@ -33,7 +36,10 @@
                     @if ($product_unit->exists)
                         <input type="hidden" name="unit_id" value="{{ $product_unit->unit_id }}">
                     @endif
-                    <select class="{{ inputClass('unit_id', 'form-select') }}" id="unit_id" name="unit_id" data-ajax-select data-url="{{ route('pharmacy.units.options') }}" data-placeholder="Select unit" required @disabled($product_unit->exists) {{ inputAttrs('unit_id') }}>
+                    <select class="{{ inputClass('unit_id', 'form-select') }}" id="unit_id" name="unit_id"
+                        data-ajax-select data-url="{{ route('pharmacy.units.options') }}"
+                        data-placeholder="Select unit" required @disabled($product_unit->exists)
+                        {{ inputAttrs('unit_id') }}>
                         <option value=""></option>
                         @if ($selectedUnit !== null)
                             <option value="{{ $selectedUnit->id }}" selected>{{ $selectedUnit->name }}</option>
@@ -43,7 +49,9 @@
                 </div>
                 <div class="col-sm-6 col-xl-4">
                     <label class="form-label" for="factor">Pieces per unit <span class="text-danger" aria-hidden="true">*</span></label>
-                    <input class="{{ inputClass('factor') }}" id="factor" name="factor" type="number" value="{{ $unitLocked ? $product_unit->factor : getValue('factor', $product_unit, 1) }}" min="1" max="1000000" step="1" inputmode="numeric" required @readonly($unitLocked) {{ inputAttrs('factor', 'factor', 'factor-help') }}>
+                    <input class="{{ inputClass('factor') }}" id="factor" name="factor" type="number"
+                        value="{{ $unitLocked ? $product_unit->factor : getValue('factor', $product_unit, 1) }}" min="1" max="1000000" step="1" inputmode="numeric" required @readonly($unitLocked)
+                        {{ inputAttrs('factor', 'factor', 'factor-help') }}>
                     <div class="form-text" id="factor-help">{{ $unitLocked ? 'Used conversions are locked.' : 'Piece: 1 · Strip of 10: 10.' }}</div>
                     @error('factor')<div class="invalid-feedback d-block" id="factor-error">{{ $message }}</div>@enderror
                 </div>

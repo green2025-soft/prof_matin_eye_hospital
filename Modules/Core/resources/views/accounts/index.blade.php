@@ -28,13 +28,15 @@
         @else
             <div class="table-responsive">
                 <table class="table app-table align-middle mb-0">
-                    <caption class="visually-hidden">{{ $isTenantUser ? 'Users, assigned roles, and branch access' : 'User accounts and assigned roles' }}</caption>
+                    <caption class="visually-hidden">{{ $hasBranches ? 'Users, assigned roles, and branch access' : 'User accounts and assigned roles' }}</caption>
                     <thead>
                         <tr>
                             <th scope="col">{{ $isTenantUser ? 'User' : 'Account' }}</th>
                             <th scope="col">Roles</th>
-                            @if ($isTenantUser)
+                            @if ($hasBranches)
                                 <th scope="col">Branch</th>
+                            @endif
+                            @if ($isTenantUser)
                                 <th scope="col">Redirect URL</th>
                             @endif
                             <th scope="col">Created</th>
@@ -51,8 +53,10 @@
                                     </div>
                                 </th>
                                 <td>@include('core::partials.tags', ['labels' => $account->roles->pluck('name'), 'empty' => 'No roles'])</td>
-                                @if ($isTenantUser)
+                                @if ($hasBranches)
                                     <td class="small text-body-secondary">{{ $account->branch?->name ?? 'None' }}</td>
+                                @endif
+                                @if ($isTenantUser)
                                     <td class="small text-body-secondary text-break">{{ $account->redirect_url ?: 'Dashboard' }}</td>
                                 @endif
                                 <td class="small text-body-secondary text-nowrap">{{ $account->created_at?->format('d M Y') ?? '—' }}</td>

@@ -6,7 +6,7 @@
     @include('core::partials.heading', [
         'title' => $pageTitle,
         'description' => 'Review refunds at the selected branch.',
-        'create' => ['model' => \Modules\Hospital\Models\Refund::class, 'url' => route($routePrefix.'.create'), 'label' => 'New refund'],
+        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New refund'],
     ])
 
     <section class="app-card overflow-hidden">

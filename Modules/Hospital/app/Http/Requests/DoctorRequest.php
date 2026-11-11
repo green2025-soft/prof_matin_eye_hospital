@@ -60,7 +60,7 @@ class DoctorRequest extends BaseRequest
             'pad_footer_text' => ['nullable', 'string', 'max:4000'],
             'email' => ['bail', 'required', 'string', 'email:rfc', 'max:255', $this->unique('email')],
             'password' => [$this->onCreate('required', 'nullable'), 'string', 'min:'.config('auth.password_min_length', 5), 'max:4096'],
-            'picture' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp,gif', 'extensions:png,jpg,jpeg,webp,gif', 'mimetypes:image/png,image/jpeg,image/webp,image/gif', 'max:2048'],
+            'picture' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp,gif', 'extensions:png,jpg,jpeg,webp,gif', 'max:2048'],
         ];
     }
 

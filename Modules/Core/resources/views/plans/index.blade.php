@@ -3,7 +3,7 @@
 @section('title', $pageTitle)
 
 @section('content')
-    @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Manage subscription pricing, limits, and available features.', 'create' => ['model' => \Modules\Core\Models\Plan::class, 'url' => route('core.plans.create'), 'label' => 'New plan']])
+    @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Manage subscription pricing, limits, and available features.', 'create' => ['model' => resourceModel('core.plans.create'), 'url' => route('core.plans.create'), 'label' => 'New plan']])
     <section class="app-card overflow-hidden">
         <form class="px-3 px-md-4 py-3 border-bottom" action="{{ route($routePrefix.'.index') }}" method="GET" aria-label="Filter plans">
             <div class="row g-2 align-items-end">

@@ -63,7 +63,8 @@
                             @foreach ($refundPreview['items'] ?? [] as $item)
                                 <tr>
                                     <td>
-                                        <input class="{{ inputClass('item_ids', 'form-check-input') }}" id="refund_item_{{ $item['id'] }}" name="item_ids[]" type="checkbox" value="{{ $item['id'] }}" data-refund-item data-amount="{{ $item['amount'] }}" @checked(in_array((int) $item['id'], $selectedItemIds, true)) @disabled($refund->exists) aria-describedby="refund_items-help">
+                                        <input class="{{ inputClass('item_ids', 'form-check-input') }}" id="refund_item_{{ $item['id'] }}" name="item_ids[]" type="checkbox"
+                                            value="{{ $item['id'] }}" data-refund-item data-amount="{{ $item['amount'] }}" @checked(in_array((int) $item['id'], $selectedItemIds, true)) @disabled($refund->exists) aria-describedby="refund_items-help">
                                     </td>
                                     <th class="fw-normal text-break" scope="row"><label class="mb-0" for="refund_item_{{ $item['id'] }}">{{ $item['name'] }}</label></th>
                                     <td>{{ filled($item['room']) ? $item['room'] : '-' }}</td>

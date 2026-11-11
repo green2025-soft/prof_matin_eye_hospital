@@ -3,10 +3,12 @@
 namespace Modules\Hospital\Providers;
 
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Modules\Core\Http\Middleware\EnsureModulePermission;
 use Modules\Hospital\Contracts\PharmacyCustomers;
 use Modules\Hospital\Models\Doctor;
 use Modules\Hospital\Services\HospitalUserProvider;
@@ -21,8 +23,10 @@ class HospitalServiceProvider extends ServiceProvider
         $this->app->bind(PharmacyCustomers::class, PatientService::class);
     }
 
-    public function boot(): void
+    public function boot(Router $router): void
     {
+        $router->aliasMiddleware('hospital.permission', EnsureModulePermission::class.':hospital.view');
+
         Event::listen(['eloquent.saved: '.Permission::class, 'eloquent.deleted: '.Permission::class], static function (Permission $permission): void {
             if ($permission->getConnection()->getName() === 'tenant') {
                 Doctor::forgetSharedPermissions();

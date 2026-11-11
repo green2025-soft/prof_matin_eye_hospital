@@ -25,10 +25,10 @@
 
 @section('report-summary')
     <div class="app-report-summary row row-cols-2 row-cols-lg-4 g-3">
-        <div class="col"><span>Products / SKUs</span><strong>{{ $summary->product_count }}</strong></div>
-        <div class="col"><span>Net sales (BDT)</span><strong>{{ moneyDecimal($summary->net_revenue) }}</strong></div>
-        <div class="col"><span>Cost (BDT)</span><strong>{{ moneyDecimal($summary->cost) }}</strong></div>
-        <div class="col"><span>Product profit / loss (BDT)</span><strong>{{ moneyDecimal($summary->profit) }}</strong></div>
+        <div class="col"><span class="d-block">Products / SKUs</span><strong class="d-block">{{ $summary->product_count }}</strong></div>
+        <div class="col"><span class="d-block">Net sales (BDT)</span><strong class="d-block">{{ moneyDecimal($summary->net_revenue) }}</strong></div>
+        <div class="col"><span class="d-block">Cost (BDT)</span><strong class="d-block">{{ moneyDecimal($summary->cost) }}</strong></div>
+        <div class="col"><span class="d-block">Product profit / loss (BDT)</span><strong class="d-block">{{ moneyDecimal($summary->profit) }}</strong></div>
     </div>
 @endsection
 
@@ -54,7 +54,8 @@
                 @forelse ($records as $record)
                     <tr>
                         <th scope="row">
-                            <a class="text-decoration-none" href="{{ route('pharmacy.reports.movements', ['product_type' => $filters['product_type'], 'variant_id' => $record->id, 'from_date' => $filters['from_date'], 'to_date' => $filters['to_date']]) }}">{{ $record->product->name }}</a>
+                            <a class="text-decoration-none"
+                                href="{{ route('pharmacy.reports.movements', ['product_type' => $filters['product_type'], 'variant_id' => $record->id, 'from_date' => $filters['from_date'], 'to_date' => $filters['to_date']]) }}">{{ $record->product->name }}</a>
                             <small class="d-block fw-normal text-body-secondary">{{ $record->description() }}</small>
                         </th>
                         <td class="text-end">{{ $record->sale_quantity }}</td>
@@ -90,9 +91,9 @@
     <p class="small px-3 py-2 mb-0">Other +/-: stock adjustments + cost variance - damage / wastage. Product profit excludes payment settlement discounts.</p>
     @if ($showInvoiceAdjustments)
         <div class="app-report-summary row row-cols-1 row-cols-md-3 g-3 border-top">
-            <div class="col"><span>Customer settlement discounts (-)</span><strong>{{ moneyDecimal($summary->customer_discount) }}</strong></div>
-            <div class="col"><span>Supplier settlement discounts (+)</span><strong>{{ moneyDecimal($summary->supplier_discount) }}</strong></div>
-            <div class="col"><span>Net profit / loss (BDT)</span><strong>{{ moneyDecimal($summary->net_profit) }}</strong></div>
+            <div class="col"><span class="d-block">Customer settlement discounts (-)</span><strong class="d-block">{{ moneyDecimal($summary->customer_discount) }}</strong></div>
+            <div class="col"><span class="d-block">Supplier settlement discounts (+)</span><strong class="d-block">{{ moneyDecimal($summary->supplier_discount) }}</strong></div>
+            <div class="col"><span class="d-block">Net profit / loss (BDT)</span><strong class="d-block">{{ moneyDecimal($summary->net_profit) }}</strong></div>
         </div>
     @endif
 @endsection

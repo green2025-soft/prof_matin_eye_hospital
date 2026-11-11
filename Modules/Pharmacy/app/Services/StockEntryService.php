@@ -36,6 +36,7 @@ abstract class StockEntryService
                 $this->pharmacy->authorize($freshActor, $entry->crudPermission().'.'.$action);
                 $previousLines = $this->prepareForWrite($freshActor, $entry, $values);
                 $settings = Setting::values('pharmacy', $entry->getConnectionName());
+
                 $this->fillHeader($entry, $values);
                 $lines = $this->prepareEntry($freshActor, $entry, $values, $settings, $previousLines);
                 if (! $entry->exists) {
@@ -43,9 +44,7 @@ abstract class StockEntryService
                 }
 
                 $entry->save();
-                foreach ($lines as $line) {
-                    $entry->lines()->forceCreate($line);
-                }
+                $entry->lines()->forceCreateMany($lines);
                 $entry->cost = $this->postStock($entry);
                 $entry->posted_at = now(config('app.timezone'));
                 $entry->save();
@@ -95,14 +94,15 @@ abstract class StockEntryService
     public function invoiceData(Account $actor, StockEntry $record): array
     {
         $model = $this->model;
-        $entry = $model::query()->findOrFail($record->id);
+        $entry = $model::findOrFail($record->id);
         Gate::forUser($actor)->authorize('view', $entry);
         $entry->load([
-            'lines.variant.product:id,name,type', 'lines.productUnit.unit:id,name,symbol',
+            'lines.variant.product:id,name,type',
+            'lines.productUnit.unit:id,name,symbol',
         ]);
         $company = Setting::values('company', $entry->getConnectionName());
         $branding = Setting::values('branding', $entry->getConnectionName());
-        $branch = Branch::query()->find($entry->branch_id);
+        $branch = Branch::find($entry->branch_id);
         $phone = implode(' / ', array_filter([$branch?->mobile_no, $branch?->telephone_no], fn ($value): bool => filled($value)));
         $logoPath = $branch?->logo_path ?: $branding['logo_path'];
         $companyName = $company['name'] ?: $branding['app_name'];
@@ -111,13 +111,15 @@ abstract class StockEntryService
             'entry' => $entry,
             'company' => [
                 'name' => $companyName,
-                'branch_name' => $branch?->name && $branch->name !== $companyName ? $branch->name : '',
+                'branch_name' => $branch !== null && ! $branch->is_default && $branch->name !== $companyName ? $branch->name : '',
                 'address' => $branch?->address ?: $company['address'],
-                'phone' => $phone ?: $company['phone'], 'email' => $branch?->email ?: $company['email'],
+                'phone' => $phone ?: $company['phone'],
+                'email' => $branch?->email ?: $company['email'],
                 'tax_id' => $company['tax_id'],
             ],
             'logoUrl' => filled($logoPath) ? Storage::disk('public')->url($logoPath) : null,
-            'printedBy' => $actor->name, 'printedAt' => now(config('app.timezone'))->format('d M Y h:i A'),
+            'printedBy' => $actor->name,
+            'printedAt' => now(config('app.timezone'))->format('d M Y h:i A'),
             'canVoid' => Gate::forUser($actor)->allows('void', $entry),
         ];
     }
@@ -132,7 +134,9 @@ abstract class StockEntryService
             throw ValidationException::withMessages(['record' => 'Choose an entry belonging to this resource.']);
         }
 
-        return $model::query()->whereKey($record->id)->lockForUpdate()->firstOrFail();
+        return $model::whereKey($record->id)
+            ->lockForUpdate()
+            ->firstOrFail();
     }
 
     protected function prepareForWrite(Account $actor, StockEntry $entry, array $values): Collection
@@ -165,7 +169,9 @@ abstract class StockEntryService
             'product_type' => $values['product_type'],
             'entry_date' => $values['entry_date'],
             'notes' => $values['notes'] ?? null,
-            'posted_at' => null, 'stock_reversed_at' => null, 'voided_at' => null,
+            'posted_at' => null,
+            'stock_reversed_at' => null,
+            'voided_at' => null,
             'cost' => 0,
         ]);
         if (! in_array($entry->product_type, ['medicine', 'optic'], true)) {
@@ -189,8 +195,13 @@ abstract class StockEntryService
     private function nextNumber(StockEntry $entry, array $settings): string
     {
         $scope = $entry::TYPE.':'.$entry->branch_id;
-        PharmacySequence::query()->insertOrIgnore(['scope' => $scope, 'last_number' => 0]);
-        $sequence = PharmacySequence::query()->whereKey($scope)->lockForUpdate()->firstOrFail();
+        PharmacySequence::insertOrIgnore([
+            'scope' => $scope,
+            'last_number' => 0,
+        ]);
+        $sequence = PharmacySequence::whereKey($scope)
+            ->lockForUpdate()
+            ->firstOrFail();
         $number = (int) $sequence->last_number + 1;
         if ($number > 999999999999) {
             throw ValidationException::withMessages(['record' => 'The transaction numbering sequence is exhausted.']);
@@ -200,8 +211,10 @@ abstract class StockEntryService
 
         $defaultPattern = strtoupper(str_replace('_', '-', $entry::TYPE)).'-B{BRANCH}-{SEQ:6}';
         $formatted = strtr($settings[$entry::TYPE.'_invoice_pattern'] ?? $defaultPattern, [
-            '{YYYY}' => $entry->entry_date->format('Y'), '{MM}' => $entry->entry_date->format('m'),
-            '{DD}' => $entry->entry_date->format('d'), '{BRANCH}' => (string) $entry->branch_id,
+            '{YYYY}' => $entry->entry_date->format('Y'),
+            '{MM}' => $entry->entry_date->format('m'),
+            '{DD}' => $entry->entry_date->format('d'),
+            '{BRANCH}' => (string) $entry->branch_id,
             '{PRODUCT}' => $entry->product_type === 'medicine' ? 'MED' : 'OPT',
         ]);
         $formatted = preg_replace_callback('/\{SEQ(?::([1-9]|1[0-2]))?\}/',

@@ -21,7 +21,7 @@ class PasswordController extends Controller
         $tenantPassword = $request->attributes->get('application_provider') === 'users';
         $accountType = $request->validated('account_type', 'user');
 
-        return view('core::auth.password', [
+        $data = [
             'pageTitle' => $token === null ? 'Forgot password' : 'Reset password',
             'description' => $token === null
                 ? 'Enter your account email to receive a password reset link.'
@@ -37,7 +37,9 @@ class PasswordController extends Controller
             'loginUrl' => route('auth.login', $tenantPassword ? [
                 'account_type' => $accountType,
             ] : []),
-        ]);
+        ];
+
+        return view('core::auth.password', $data);
     }
 
     public function store(PasswordRequest $request): RedirectResponse

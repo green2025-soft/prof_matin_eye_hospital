@@ -15,10 +15,12 @@ class ModuleDashboardController extends Controller
 {
     public function index(Request $request): View
     {
-        return view('tenantcore::module-dashboard.index', $this->navigation($request) + [
+        $data = $this->navigation($request) + [
             'pageTitle' => 'Modules',
             'modules' => $this->availableModules($request),
-        ]);
+        ];
+
+        return view('tenantcore::module-dashboard.index', $data);
     }
 
     public function show(Request $request): View
@@ -27,10 +29,12 @@ class ModuleDashboardController extends Controller
         abort_unless($module['route'] === $request->route()
             ->getName(), 404);
 
-        return view('tenantcore::module-dashboard.show', $this->navigation($request) + [
+        $data = $this->navigation($request) + [
             'pageTitle' => $module['label'],
             'module' => $module,
-        ]);
+        ];
+
+        return view('tenantcore::module-dashboard.show', $data);
     }
 
     private function availableModules(Request $request): array

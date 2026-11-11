@@ -29,7 +29,10 @@
                     </div>
                     <div class="col-md-6 col-xxl-3">
                         <label class="form-label small" for="filter_doctor_id">Doctor</label>
-                        <select class="{{ inputClass('filter_doctor_id', 'form-select') }}" id="filter_doctor_id" name="filter_doctor_id" data-ajax-select data-url="{{ route('hospital.doctors.options') }}" data-value-field="id" data-label-field="text" data-placeholder="All doctors" {{ inputAttrs('filter_doctor_id') }}>
+                        <select class="{{ inputClass('filter_doctor_id', 'form-select') }}" id="filter_doctor_id" name="filter_doctor_id"
+                            data-ajax-select data-url="{{ route('hospital.doctors.options') }}"
+                            data-value-field="id" data-label-field="text" data-placeholder="All doctors"
+                            {{ inputAttrs('filter_doctor_id') }}>
                             <option value=""></option>
                             @if (($filterDoctor ?? null) !== null)
                                 <option value="{{ $filterDoctor->id }}" selected>{{ $filterDoctor->doctor_id ?: $filterDoctor->id }} — {{ $filterDoctor->name }}</option>
@@ -39,7 +42,10 @@
                     </div>
                     <div class="col-md-8 col-xxl-4">
                         <label class="form-label small" for="filter_patient_id">Patient</label>
-                        <select class="{{ inputClass('filter_patient_id', 'form-select') }}" id="filter_patient_id" name="filter_patient_id" data-ajax-select data-url="{{ route('hospital.patients.options') }}" data-value-field="id" data-label-field="text" data-placeholder="All patients" {{ inputAttrs('filter_patient_id') }}>
+                        <select class="{{ inputClass('filter_patient_id', 'form-select') }}" id="filter_patient_id" name="filter_patient_id"
+                            data-ajax-select data-url="{{ route('hospital.patients.options') }}"
+                            data-value-field="id" data-label-field="text" data-placeholder="All patients"
+                            {{ inputAttrs('filter_patient_id') }}>
                             <option value=""></option>
                             @if (($filterPatient ?? null) !== null)
                                 <option value="{{ $filterPatient->id }}" selected>{{ $filterPatient->patient_id }} — {{ $filterPatient->name }} — {{ $filterPatient->mobile_no }}</option>
@@ -90,11 +96,11 @@
                                             @if ($appointment->consultation !== null)
                                                 @can('update', $appointment->consultation)
                                                     <a class="btn btn-outline-primary btn-sm app-action-button" href="{{ route('hospital.consultations.edit', $appointment->consultation) }}" aria-label="Edit consultation for appointment {{ $appointment->id }}" title="Edit consultation"><i class="fa-solid fa-notes-medical" aria-hidden="true"></i></a>
-                                                @elsecan('viewAny', \Modules\Hospital\Models\Consultation::class)
+                                                @elsecan('viewAny', resourceModel('hospital.consultations.index'))
                                                     <a class="btn btn-outline-primary btn-sm app-action-button" href="{{ route('hospital.consultations.index', ['search' => $appointment->consultation->id]) }}" aria-label="Find consultation for appointment {{ $appointment->id }}" title="Find consultation"><i class="fa-solid fa-notes-medical" aria-hidden="true"></i></a>
                                                 @endcan
                                             @else
-                                                @can('create', \Modules\Hospital\Models\Consultation::class)
+                                                @can('create', resourceModel('hospital.consultations.create'))
                                                     <a class="btn btn-outline-primary btn-sm app-action-button" href="{{ route('hospital.consultations.create', ['appointment' => $appointment->id]) }}" aria-label="Create consultation for appointment {{ $appointment->id }}" title="Create consultation"><i class="fa-solid fa-notes-medical" aria-hidden="true"></i></a>
                                                 @endcan
                                             @endif

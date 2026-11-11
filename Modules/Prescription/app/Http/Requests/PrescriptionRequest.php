@@ -14,8 +14,6 @@ class PrescriptionRequest extends BaseRequest
 
     protected function prepareForValidation(): void
     {
-        parent::prepareForValidation();
-
         $actor = $this->user('web');
         if ($actor instanceof Doctor) {
             $this->merge(['doctor_id' => $actor->getKey()]);
@@ -71,8 +69,8 @@ class PrescriptionRequest extends BaseRequest
         $settings = Setting::values('prescription');
 
         return [
-            'patient_id' => ['bail', 'required', 'integer', 'min:1', $this->existsIn('patients')->where('branch_id', $branchId)],
-            'doctor_id' => ['bail', 'required', 'integer', 'min:1', $this->existsIn('doctors')->where('branch_id', $branchId)],
+            'patient_id' => ['bail', 'required', 'integer', $this->existsIn('patients')->where('branch_id', $branchId)],
+            'doctor_id' => ['bail', 'required', 'integer', $this->existsIn('doctors')->where('branch_id', $branchId)],
             'prescription_date' => ['required', 'date_format:Y-m-d'],
             'chief_complaints' => [Rule::excludeIf(! $settings['general_chief_complaints_enabled']), 'nullable', 'string', 'max:5000'],
             'history' => [Rule::excludeIf(! $settings['general_history_enabled']), 'nullable', 'string', 'max:5000'],
@@ -107,9 +105,9 @@ class PrescriptionRequest extends BaseRequest
             'examination_details.bp_systolic' => ['nullable', 'string', 'max:50'],
             'examination_details.bp_diastolic' => ['nullable', 'string', 'max:50'],
             'examination_details.pulse' => ['nullable', 'string', 'max:50'],
-            'examination_details.pulse_rhythm' => ['nullable', 'string', Rule::in(['regular', 'irregular', 'drop_beat'])],
+            'examination_details.pulse_rhythm' => ['nullable', Rule::in(['regular', 'irregular', 'drop_beat'])],
             'examination_details.temperature' => ['nullable', 'string', 'max:50'],
-            'examination_details.temperature_unit' => ['nullable', 'string', Rule::in(['f', 'c'])],
+            'examination_details.temperature_unit' => ['nullable', Rule::in(['f', 'c'])],
             'examination_details.temperature_normal' => ['boolean'],
             'examination_details.weight' => ['nullable', 'string', 'max:50'],
             'examination_details.weight_visible' => ['boolean'],
@@ -162,9 +160,10 @@ class PrescriptionRequest extends BaseRequest
             'section_details.*.*.notes' => ['nullable', 'string', 'max:1000'],
             'medicines' => ['array', 'max:100'],
             'medicines.*' => ['array:product_id,medicine_name,dosage_type,dose,frequency,duration,instructions'],
-            'medicines.*.product_id' => ['bail', 'nullable', 'integer', 'min:1', $this->existsIn('phr_products')->where('type', 'medicine')],
-            'medicines.*.medicine_name' => ['required', 'string', 'max:255'],
-            'medicines.*.dosage_type' => ['nullable', 'string', Rule::in(array_keys(PrescriptionMedicine::dosageTypes()))],
+            // PrescriptionService checks catalog IDs together in its locked medicine query.
+            'medicines.*.product_id' => ['bail', 'nullable', 'integer', 'min:1'],
+            'medicines.*.medicine_name' => ['nullable', 'required_without:medicines.*.product_id', 'string', 'max:255'],
+            'medicines.*.dosage_type' => ['nullable', Rule::in(array_keys(PrescriptionMedicine::dosageTypes()))],
             'medicines.*.dose' => ['nullable', 'string', 'max:100'],
             'medicines.*.frequency' => ['nullable', 'string', 'max:100'],
             'medicines.*.duration' => ['nullable', 'string', 'max:100'],
