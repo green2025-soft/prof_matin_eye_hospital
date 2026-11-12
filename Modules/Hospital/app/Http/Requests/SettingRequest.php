@@ -5,6 +5,7 @@ namespace Modules\Hospital\Http\Requests;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 use Modules\Core\Http\Requests\BaseRequest;
+use Modules\Core\Models\SmsAccount;
 
 class SettingRequest extends BaseRequest
 {
@@ -12,22 +13,25 @@ class SettingRequest extends BaseRequest
 
     public function authorize(): bool
     {
-        return parent::authorize() && $this->record()->group === 'hospital';
+        return parent::authorize() && $this->record()->group === 'hospital'
+            && ($this->input('section') !== 'sms'
+                || array_intersect_key(SmsAccount::availableFeatures(), config('settings.hospital_sms_notifications')) !== []);
     }
 
     public function rules(): array
     {
         $sections = config('settings.hospital_sections');
-        $fields = Arr::only(config('settings.rules.hospital'), $sections[$this->hospitalSection()]);
+        $section = $this->hospitalSection();
+        $sectionFields = $sections[$section];
+
+        if ($section === 'sms') {
+            $notifications = Arr::only(config('settings.hospital_sms_notifications'), array_keys(SmsAccount::availableFeatures()));
+            $sectionFields = array_merge(array_column($notifications, 'enabled'), array_column($notifications, 'template'));
+        }
+
+        $fields = Arr::only(config('settings.rules.hospital'), $sectionFields);
         $rules = [
-            'group' => ['missing'],
             'section' => ['required', Rule::in(array_keys($sections))],
-            'secrets' => ['missing'],
-            'credentials' => ['missing'],
-            'logo_path' => ['missing'],
-            'favicon_path' => ['missing'],
-            'logo' => ['missing'],
-            'favicon' => ['missing'],
             'data' => ['required', 'array:'.implode(',', array_keys($fields))],
         ] + Arr::prependKeysWith($fields, 'data.');
 
@@ -57,22 +61,11 @@ class SettingRequest extends BaseRequest
     public function payload(): array
     {
         $values = $this->safe()->only(['data']);
-        $switches = [
-            'consultation_serial_enabled',
-            'consultation_invoice_enabled',
-            'reference_defaults_enabled',
-            'reference_percentages_enabled',
-            'reference_consultation_percent_enabled',
-            'reference_investigation_percent_enabled',
-            'reference_operation_percent_enabled',
-            'consultation_reference_enabled',
-            'investigation_reference_enabled',
-            'operation_reference_enabled',
-        ];
+        $defaults = config('settings.defaults.hospital');
 
         // Normalize posted switches without changing values in another section.
-        foreach ($switches as $field) {
-            if (array_key_exists($field, $values['data'])) {
+        foreach ($values['data'] as $field => $value) {
+            if (is_bool($defaults[$field])) {
                 $values['data'][$field] = $this->boolean('data.'.$field);
             }
         }
@@ -97,40 +90,37 @@ class SettingRequest extends BaseRequest
     private function validateHospitalNumberPattern(string $prefix, string $pattern, \Closure $fail): void
     {
         $identityPattern = in_array($prefix, ['patient_id', 'patient_branch_id', 'doctor_id', 'doctor_branch_id', 'reference_id', 'reference_branch_id'], true);
-        $identityLabel = match (true) {
-            str_starts_with($prefix, 'doctor') => 'Doctor',
-            str_starts_with($prefix, 'reference') => 'Reference',
-            default => 'Patient',
-        };
         if (! preg_match('/\A(?:[\p{L}\p{N} ._\/-]|\{(?:YYYY|MM|DD|BRANCH|DOCTOR|SEQ(?::(?:[1-9]|1[0-2]))?)\})+\z/u', $pattern)) {
             $fail('Use letters, numbers, spaces, . _ / -, and supported numbering tokens only.');
 
             return;
         }
 
-        if (preg_match_all('/\{SEQ(?::(?:[1-9]|1[0-2]))?\}/', $pattern) !== 1) {
+        $rendered = strtr($pattern, [
+            '{YYYY}' => '9999',
+            '{MM}' => '99',
+            '{DD}' => '99',
+            '{BRANCH}' => str_repeat('9', 20),
+            '{DOCTOR}' => str_repeat('9', 20),
+        ]);
+        $rendered = preg_replace('/\{SEQ(?::(?:[1-9]|1[0-2]))?\}/', str_repeat('9', 12), $rendered, -1, $sequenceCount);
+        if ($sequenceCount !== 1) {
             $fail('Include exactly one {SEQ} or {SEQ:1} to {SEQ:12} token.');
 
             return;
         }
 
         if ($identityPattern && str_contains($pattern, '{DOCTOR}')) {
-            $fail($identityLabel.' ID patterns use {SEQ}, not a Doctor token.');
+            $fail('ID patterns use {SEQ}, not a Doctor token.');
 
             return;
         }
         if (in_array($prefix, ['patient_branch_id', 'doctor_branch_id', 'reference_branch_id'], true) && ! str_contains($pattern, '{BRANCH}')) {
-            $fail('Include {BRANCH} in the branch '.$identityLabel.' ID pattern.');
+            $fail('Include {BRANCH} in the branch ID pattern.');
 
             return;
         }
 
-        $rendered = str_replace(
-            ['{YYYY}', '{MM}', '{DD}', '{BRANCH}', '{DOCTOR}'],
-            ['9999', '99', '99', str_repeat('9', 20), str_repeat('9', 20)],
-            $pattern,
-        );
-        $rendered = preg_replace('/\{SEQ(?::(?:[1-9]|1[0-2]))?\}/', str_repeat('9', 12), $rendered);
         $maximumLength = $identityPattern ? 40 : 120;
         if (mb_strlen($rendered) > $maximumLength) {
             $fail('The generated number must fit within '.$maximumLength.' characters. Shorten the pattern.');

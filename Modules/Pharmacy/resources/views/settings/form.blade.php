@@ -153,6 +153,50 @@
                     </tbody>
                 </table>
             </div>
+        @elseif ($activePharmacySection === 'sms')
+            <p class="small text-body-secondary mb-2">Send SMS for new records only. Edits and reversals do not send another message. Platform access and SMS balance apply.</p>
+            <details class="small text-body-secondary mb-3">
+                <summary>Message placeholders</summary>
+                <p class="mt-2 mb-1">Organization: {organization}, {organization_phone}, {organization_address}.</p>
+                <p class="mb-1">{name}, {invoice}, {date}, {total}, {paid}, {due}, {amount}</p>
+                <p class="mb-1">Customer SMS can also use {patient_name}, {patient_mobile}, {patient_address}, {patient_id}, {patient_age}, {father_husband_name}. Choose the patient details needed in your message.</p>
+                <p class="mb-1">Sales returns also support {source_invoice}, {refund}, {due_adjustment}. Payments support {direction}.</p>
+                <p class="mb-0">Return total is invoice credit; refund is cash returned. For payments, total includes cash and discount; amount and paid are cash. Payment due is the party's remaining balance in this branch.</p>
+            </details>
+            <div class="row g-3">
+                @foreach (collect($smsNotifications)->groupBy('type') as $typeLabel => $notifications)
+                    <section class="col-lg-6" aria-labelledby="pharmacy-sms-{{ strtolower($typeLabel) }}-heading">
+                        <h3 class="h6 fw-semibold mb-3" id="pharmacy-sms-{{ strtolower($typeLabel) }}-heading">{{ $typeLabel }}</h3>
+                        <div class="vstack gap-3">
+                            @foreach ($notifications as $notification)
+                                @php
+                                    $enabledField = $notification['enabled'];
+                                    $templateField = $notification['template'];
+                                @endphp
+                                <div class="border rounded p-3">
+                                    <div class="form-check form-switch mb-2">
+                                        <input name="data[{{ $enabledField }}]" type="hidden" value="0">
+                                        <input class="{{ inputClass('data.'.$enabledField, 'form-check-input') }}" id="pharmacy-{{ $enabledField }}"
+                                            name="data[{{ $enabledField }}]" type="checkbox" value="1" role="switch"
+                                            {{ getChecked(1, 'data.'.$enabledField, null, $values['data'][$enabledField]) }}
+                                            {{ inputAttrs('data.'.$enabledField, 'pharmacy-'.$enabledField) }}>
+                                        <label class="form-check-label fw-medium" for="pharmacy-{{ $enabledField }}">{{ $notification['label'] }} SMS</label>
+                                    </div>
+                                    @error('data.'.$enabledField)
+                                        <div class="invalid-feedback d-block mb-2" id="pharmacy-{{ $enabledField }}-error">{{ $message }}</div>
+                                    @enderror
+                                    <label class="form-label small mb-1" for="pharmacy-{{ $templateField }}">Message</label>
+                                    <textarea class="{{ inputClass('data.'.$templateField) }}" id="pharmacy-{{ $templateField }}" name="data[{{ $templateField }}]" rows="2"
+                                        {{ inputAttrs('data.'.$templateField, 'pharmacy-'.$templateField) }}>{{ getValue('data.'.$templateField, null, $values['data'][$templateField]) }}</textarea>
+                                    @error('data.'.$templateField)
+                                        <div class="invalid-feedback d-block" id="pharmacy-{{ $templateField }}-error">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            @endforeach
+                        </div>
+                    </section>
+                @endforeach
+            </div>
         @endif
     </fieldset>
     @if ($canUpdate)

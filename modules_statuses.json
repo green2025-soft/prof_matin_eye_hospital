@@ -3,5 +3,6 @@
     "TenantCore": true,
     "Hospital": true,
     "Pharmacy": true,
-    "Prescription": true
+    "Prescription": true,
+    "Accounting": true
 }

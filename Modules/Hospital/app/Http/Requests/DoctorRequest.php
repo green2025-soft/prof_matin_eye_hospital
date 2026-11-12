@@ -2,24 +2,15 @@
 
 namespace Modules\Hospital\Http\Requests;
 
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Modules\Core\Http\Requests\BaseRequest;
-use Modules\Hospital\Models\Doctor;
 
 class DoctorRequest extends BaseRequest
 {
     public function authorize(): bool
     {
-        if ($this->routeIs('hospital.doctors.permissions')) {
-            return Gate::allows('viewPermissions', Doctor::class);
-        }
-
-        if ($this->routeIs('hospital.doctors.permissions-update')) {
-            return Gate::allows('managePermissions', Doctor::class);
-        }
-
-        return parent::authorize();
+        return $this->routeIs('hospital.doctors.permissions', 'hospital.doctors.permissions-update')
+            || parent::authorize();
     }
 
     public function rules(): array
@@ -36,12 +27,12 @@ class DoctorRequest extends BaseRequest
             ];
         }
 
-        $feeRules = ['required', 'string', 'regex:/\A\d{1,10}(?:\.\d{1,2})?\z/'];
+        $feeRules = ['required', 'string', 'decimal:0,2', 'between:0,9999999999.99'];
 
         return [
             'name' => ['required', 'string', 'max:255'],
             'bn_name' => ['nullable', 'string', 'max:255'],
-            'mobile_no' => ['required', 'string', 'max:30', 'regex:/\A(?=.*[0-9])[0-9+() .-]+\z/'],
+            'mobile_no' => ['required', 'string', 'max:30'],
             'designation' => ['nullable', 'string', 'max:255'],
             'department_id' => ['bail', 'required', 'integer', 'min:1', $this->existsIn('departments')],
             'specialist' => ['nullable', 'string', 'max:255'],

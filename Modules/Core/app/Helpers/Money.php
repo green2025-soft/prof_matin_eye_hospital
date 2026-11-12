@@ -9,11 +9,20 @@ final class Money
 {
     public static function minor(string|int $amount): int
     {
-        if (! preg_match('/^(\d{1,10})(?:\.(\d{1,2}))?$/D', (string) $amount, $parts)) {
+        // Accept native decimal input without converting money through floating point.
+        $amount = trim((string) $amount);
+        if (! preg_match('/^([+-]?)(\d*)(?:\.(\d{0,2}))?$/D', $amount, $parts)
+            || ($parts[2] === '' && ($parts[3] ?? '') === '')
+            || strlen(ltrim($parts[2], '0')) > 10) {
             throw new InvalidArgumentException('Use a positive amount with at most two decimal places.');
         }
 
-        return ((int) $parts[1] * 100) + (int) str_pad($parts[2] ?? '', 2, '0');
+        $minor = ((int) $parts[2] * 100) + (int) str_pad($parts[3] ?? '', 2, '0');
+        if ($parts[1] === '-' && $minor !== 0) {
+            throw new InvalidArgumentException('Use a positive amount with at most two decimal places.');
+        }
+
+        return $minor;
     }
 
     public static function decimal(int|string $minor): string

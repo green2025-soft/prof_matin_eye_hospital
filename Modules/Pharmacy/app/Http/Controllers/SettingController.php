@@ -9,6 +9,7 @@ use Illuminate\View\View;
 use Modules\Core\Http\Controllers\BaseController;
 use Modules\Core\Http\Requests\ListRequest;
 use Modules\Core\Models\Setting;
+use Modules\Core\Models\SmsAccount;
 use Modules\Pharmacy\Http\Requests\SettingRequest;
 
 class SettingController extends BaseController
@@ -23,6 +24,9 @@ class SettingController extends BaseController
     {
         $section = $request->query('section', 'general');
         abort_unless(is_string($section) && array_key_exists($section, config('settings.pharmacy_sections')), 404);
+        $smsFeatures = SmsAccount::availableFeatures();
+        $smsNotifications = array_filter(config('settings.pharmacy_sms_notifications'), fn (array $notification): bool => isset($smsFeatures[$notification['feature']]));
+        abort_if($section === 'sms' && $smsNotifications === [], 403);
 
         $setting = Setting::where('group', 'pharmacy')
             ->firstOrFail(['id', 'group', 'data', 'updated_at']);
@@ -31,6 +35,7 @@ class SettingController extends BaseController
             'pageTitle' => $this->title,
             'setting' => $setting,
             'activePharmacySection' => $section,
+            'smsNotifications' => $smsNotifications,
             'formAction' => route('pharmacy.settings.update', $setting),
             'values' => [
                 'data' => $setting->publicValues(),

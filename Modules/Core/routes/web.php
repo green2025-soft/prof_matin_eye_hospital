@@ -11,10 +11,13 @@ use Modules\Core\Http\Controllers\PlanController;
 use Modules\Core\Http\Controllers\PlanPermissionController;
 use Modules\Core\Http\Controllers\RoleController;
 use Modules\Core\Http\Controllers\SettingController;
+use Modules\Core\Http\Controllers\SmsAccountController;
+use Modules\Core\Http\Controllers\SmsMessageController;
+use Modules\Core\Http\Controllers\SmsRechargeController;
 use Modules\Core\Http\Controllers\SubscriptionController;
 use Modules\Core\Http\Controllers\TenantController;
 
-Route::middleware(['web', 'auth'])->prefix('core')->name('core.')->group(function (): void {
+Route::middleware(['web', 'auth', 'core.permission'])->prefix('core')->name('core.')->group(function (): void {
     Route::middleware('central')->group(function (): void {
         Route::post('tenants/{tenant}/enter', [TenantController::class, 'enter'])->middleware('throttle:10,1')->name('tenants.enter');
         Route::resource('tenants', TenantController::class)->except('show');
@@ -30,6 +33,11 @@ Route::middleware(['web', 'auth'])->prefix('core')->name('core.')->group(functio
         Route::resource('invoices', InvoiceController::class)->except('destroy');
         Route::resource('payments', PaymentController::class)->only(['index', 'create', 'store', 'show']);
         Route::resource('settings', SettingController::class)->only(['index', 'edit', 'update']);
+        Route::resource('sms-accounts', SmsAccountController::class)->parameters(['sms-accounts' => 'sms_account'])->only(['index', 'create', 'store', 'edit', 'update']);
+        Route::get('sms-recharges/{sms_recharge}/proof', [SmsRechargeController::class, 'proof'])->name('sms-recharges.proof');
+        Route::resource('sms-recharges', SmsRechargeController::class)->parameters(['sms-recharges' => 'sms_recharge'])->only(['index', 'show', 'update']);
+        Route::post('sms-history/{sms_message}/resolve', [SmsMessageController::class, 'resolve'])->name('sms-history.resolve');
+        Route::resource('sms-history', SmsMessageController::class)->parameters(['sms-history' => 'sms_message'])->only(['index', 'show']);
         Route::controller(CheckoutController::class)->prefix('checkouts/{checkout}')->name('checkouts.')->group(function (): void {
             Route::post('approve', 'approve')->name('approve');
             Route::post('reject', 'reject')->name('reject');

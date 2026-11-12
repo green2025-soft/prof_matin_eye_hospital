@@ -7,6 +7,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 use Modules\Core\Helpers\Money;
 use Modules\Core\Http\Requests\BaseRequest;
+use Modules\Core\Models\SmsAccount;
 
 class SettingRequest extends BaseRequest
 {
@@ -14,14 +15,24 @@ class SettingRequest extends BaseRequest
 
     public function authorize(): bool
     {
-        return parent::authorize() && $this->record()->group === 'pharmacy';
+        return parent::authorize() && $this->record()->group === 'pharmacy'
+            && ($this->input('section') !== 'sms'
+                || array_intersect(array_column(config('settings.pharmacy_sms_notifications'), 'feature'), array_keys(SmsAccount::availableFeatures())) !== []);
     }
 
     public function rules(): array
     {
         $section = $this->pharmacySection();
         $sections = config('settings.pharmacy_sections');
-        $fields = Arr::only(config('settings.rules.pharmacy'), $sections[$section]);
+        $sectionFields = $sections[$section];
+
+        if ($section === 'sms') {
+            $smsFeatures = SmsAccount::availableFeatures();
+            $notifications = array_filter(config('settings.pharmacy_sms_notifications'), fn (array $notification): bool => isset($smsFeatures[$notification['feature']]));
+            $sectionFields = array_merge(array_column($notifications, 'enabled'), array_column($notifications, 'template'));
+        }
+
+        $fields = Arr::only(config('settings.rules.pharmacy'), $sectionFields);
 
         $rules = [
             'group' => ['missing'],

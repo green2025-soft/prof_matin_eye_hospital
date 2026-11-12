@@ -14,22 +14,23 @@ use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionService
 {
-    public function __construct(private AccessManager $access, private PermissionCatalog $catalog) {}
+    public function __construct(private PermissionCatalog $catalog) {}
 
     public function pageData(Account $actor, array $filters): array
     {
-        $this->access->assertActorContext($actor);
+        $actor->assertApplicationContext();
         Gate::forUser($actor)
             ->authorize('viewPermissions', Role::class);
 
         $roleId = $filters['role'] ?? null;
         $roleSearch = $filters['role_search'] ?? '';
-        $query = $this->access->rolesQuery($actor)
+        $query = Role::on($actor->getConnectionName())
+            ->assignableBy($actor)
             ->select(['id', 'name', 'guard_name']);
 
         if ($roleSearch !== '') {
-            $prefix = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $roleSearch);
-            $query->whereRaw("name LIKE ? ESCAPE '!'", [$prefix.'%']);
+            $prefix = addcslashes($roleSearch, '\\%_');
+            $query->whereLike('name', $prefix.'%');
         }
 
         $matches = $query->orderBy('name')
@@ -41,7 +42,8 @@ class RolePermissionService
 
         if ($roleId !== null) {
             $selectedRole = $matches->firstWhere('id', $roleId)
-                ?? $this->access->rolesQuery($actor)
+                ?? Role::on($actor->getConnectionName())
+                    ->assignableBy($actor)
                     ->findOrFail($roleId, ['id', 'name', 'guard_name']);
             $actorRoles = $actor->relationLoaded('roles') ? $actor->getRelation('roles') : new Collection;
             $actorRole = $actorRoles->find($selectedRole->getKey());
@@ -59,7 +61,7 @@ class RolePermissionService
 
         $permissions = Permission::on($actor->getConnection()->getName())
             ->where('guard_name', 'web')
-            ->whereIn('name', $this->access->permissionNames($actor))
+            ->whereIn('name', $actor->permissionNames())
             ->orderBy('name')
             ->limit(501)
             ->get(['id', 'name', 'guard_name']);
@@ -83,7 +85,7 @@ class RolePermissionService
 
     public function save(Account $actor, ?Model $record, array $values): Role
     {
-        $this->access->assertActorContext($actor);
+        $actor->assertApplicationContext();
 
         if (! $record instanceof Role || ! $record->exists) {
             throw new AuthorizationException;
@@ -94,7 +96,7 @@ class RolePermissionService
         Gate::forUser($actor)
             ->authorize('managePermissions', $role);
 
-        return $this->access->transaction($actor, function (Account $freshActor) use ($role, $permissionIds): Role {
+        return $actor->withAccessLock(function (Account $freshActor) use ($role, $permissionIds): Role {
             $connection = $freshActor->getConnection()->getName();
             $record = Role::on($connection)
                 ->where('guard_name', 'web')
@@ -105,20 +107,16 @@ class RolePermissionService
             Gate::forUser($freshActor)
                 ->authorize('managePermissions', $record);
 
-            if (count($permissionIds) > 500) {
-                throw ValidationException::withMessages(['permissions' => 'Select no more than 500 permissions.']);
-            }
-
             $permissions = Permission::on($connection)
                 ->where('guard_name', 'web')
                 ->whereIn('id', $permissionIds)
                 ->get(['id', 'name', 'guard_name']);
 
-            if ($permissions->count() !== count(array_unique($permissionIds))) {
+            if ($permissions->count() !== count($permissionIds)) {
                 throw ValidationException::withMessages(['permissions' => 'Select permissions from the current application.']);
             }
 
-            if (! $this->access->permissionsWithinActor($freshActor, $permissions)) {
+            if (! $freshActor->canGrantPermissions($permissions)) {
                 throw ValidationException::withMessages(['permissions' => 'You may grant only permissions you hold yourself.']);
             }
 

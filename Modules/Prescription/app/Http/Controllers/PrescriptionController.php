@@ -11,7 +11,6 @@ use Modules\Core\Http\Controllers\BaseController;
 use Modules\Core\Http\Requests\ListRequest;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Setting;
-use Modules\Core\Services\AccessManager;
 use Modules\Hospital\Models\Doctor;
 use Modules\Hospital\Models\Patient;
 use Modules\Pharmacy\Models\Product;
@@ -87,49 +86,49 @@ class PrescriptionController extends BaseController
             'medicines.generic:phr_product_categories.id,phr_product_categories.name',
         ]);
 
-        $settings       = Setting::values('prescription');
-        $routePrefix    = $this->routePrefix();
+        $settings = Setting::values('prescription');
+        $routePrefix = $this->routePrefix();
         $sectionDetails = $prescription->section_details;
 
-        $settingsKey    = fn($key) => $settings["general_$key"]?? null;
+        $settingsKey = fn ($key) => $settings["general_$key"] ?? null;
         $customPaperSize = [
-            'width'     => $settingsKey('custom_width'),
-            'height'    => $settingsKey('custom_height'),
+            'width' => $settingsKey('custom_width'),
+            'height' => $settingsKey('custom_height'),
         ];
         $printMargins = [
-            'top'       => $settingsKey('margin_top'),
-            'right'     => $settingsKey('margin_right'),
-            'bottom'    => $settingsKey('margin_bottom'),
-            'left'      => $settingsKey('margin_left'),
+            'top' => $settingsKey('margin_top'),
+            'right' => $settingsKey('margin_right'),
+            'bottom' => $settingsKey('margin_bottom'),
+            'left' => $settingsKey('margin_left'),
         ];
 
-        $enableNote     = fn($key) => $settingsKey($key."_enabled") ? collect($sectionDetails?->$key ?? null) : null;
+        $enableNote = fn ($key) => $settingsKey($key.'_enabled') ? collect($sectionDetails?->$key ?? null) : null;
 
         $data = [
-            'prescription'      => $prescription,
-            'patient'           => $prescription->patient,
-            'patientAge'        => $prescription->patient?->ageLabel() ?? '--',
-            'doctor'            => $prescription->doctor,
-            'medicines'         => $prescription->medicines,
-            'chiefComplaints'   => $enableNote('chief_complaints'),
-            'historyNotes'      => $enableNote('history'),
-            'examinationNotes'  => $enableNote('examination'),
-            'diagnosisNotes'    => $enableNote('diagnosis'),
+            'prescription' => $prescription,
+            'patient' => $prescription->patient,
+            'patientAge' => $prescription->patient?->ageLabel() ?? '--',
+            'doctor' => $prescription->doctor,
+            'medicines' => $prescription->medicines,
+            'chiefComplaints' => $enableNote('chief_complaints'),
+            'historyNotes' => $enableNote('history'),
+            'examinationNotes' => $enableNote('examination'),
+            'diagnosisNotes' => $enableNote('diagnosis'),
             'investigationNotes' => $enableNote('investigations'),
-            'adviceNotes'       => $enableNote('advice'),
-            'showFollowUp'      => $settings['general_follow_up_enabled'],
-            'entryDate'         => $prescription->prescription_date->format('d-m-Y'),
-            'referenceNumber'   => $prescription->rx_number ?? '#'.$prescription->id,
-            'documentTitle'     => 'Prescription',
-            'backUrl'           => route($routePrefix.'.index'),
-            'canEdit'           => Gate::forUser($actor)->allows('update', $prescription),
-            'editUrl'           => route($routePrefix.'.edit', $prescription),
-            'canCreate'         => Gate::forUser($actor)->allows('create', Prescription::class),
-            'copyUrl'           => route($routePrefix.'.create', ['copy' => $prescription->id]),
-            'paperSize'         => $settings['general_paper'],
-            'customPaperSize'   => $customPaperSize,
-            'showHeader'        => $settings['general_header_enabled'],
-            'printMargins'      => $printMargins,
+            'adviceNotes' => $enableNote('advice'),
+            'showFollowUp' => $settings['general_follow_up_enabled'],
+            'entryDate' => $prescription->prescription_date->format('d-m-Y'),
+            'referenceNumber' => $prescription->rx_number ?? '#'.$prescription->id,
+            'documentTitle' => 'Prescription',
+            'backUrl' => route($routePrefix.'.index'),
+            'canEdit' => Gate::forUser($actor)->allows('update', $prescription),
+            'editUrl' => route($routePrefix.'.edit', $prescription),
+            'canCreate' => Gate::forUser($actor)->allows('create', Prescription::class),
+            'copyUrl' => route($routePrefix.'.create', ['copy' => $prescription->id]),
+            'paperSize' => $settings['general_paper'],
+            'customPaperSize' => $customPaperSize,
+            'showHeader' => $settings['general_header_enabled'],
+            'printMargins' => $printMargins,
         ];
 
         return view('prescription::prescriptions.show', $data);
@@ -137,7 +136,7 @@ class PrescriptionController extends BaseController
 
     protected function formData(Account $actor, Model $record): array
     {
-        $request  = request();
+        $request = request();
         $branchId = (int) $request->attributes->get('branch_id', 0);
 
         // A copied prescription starts with its doctor only.
@@ -157,7 +156,7 @@ class PrescriptionController extends BaseController
         $doctorQuery = Doctor::where('branch_id', $branchId);
 
         $doctorLocked = $actor instanceof Doctor;
-        $doctorId     = $doctorLocked ? $actor->getKey() : getValue('doctor_id', $record, $request->query('doctor_id'));
+        $doctorId = $doctorLocked ? $actor->getKey() : getValue('doctor_id', $record, $request->query('doctor_id'));
 
         $selectedPatient = $this->selectedOption(
             $patientQuery,
@@ -170,14 +169,12 @@ class PrescriptionController extends BaseController
             ['id', 'doctor_id', 'name'],
         );
 
-        $subscription = $request->attributes->get('application_subscription');
-        $plan         = $subscription?->isUsable() ? $subscription->plan : null;
-        $permissions  = app(AccessManager::class)->navigationPermissions($actor, $plan);
+        $permissions = $request->attributes->get('navigation_permissions', []);
 
         // Flashed empty medicine rows must override the saved prescription rows.
-        $medicineInputs  = $this->oldRows('medicines', [], 100);
+        $medicineInputs = $this->oldRows('medicines', [], 100);
         $hasOldMedicines = $request->session()->hasOldInput('medicines');
-        $medicineIds     = $hasOldMedicines
+        $medicineIds = $hasOldMedicines
             ? array_column($medicineInputs, 'product_id')
             : $record->medicines->pluck('product_id')->all();
 
@@ -186,23 +183,23 @@ class PrescriptionController extends BaseController
             ->findMany($medicineIds, ['id', 'name', 'category_id', 'dosage_id'])
             ->keyBy('id');
 
-        $canCreatePatient = isset($permissions['hospital.view'], $permissions['patients.create'])&& Gate::forUser($actor)->allows('create', Patient::class);
+        $canCreatePatient = isset($permissions['hospital.view'], $permissions['patients.create']) && Gate::forUser($actor)->allows('create', Patient::class);
         $canCreateOptions = isset($permissions['prescription-options.create']) && Gate::forUser($actor)->allows('create', PrescriptionOption::class);
-        $entryDate        = $record->prescription_date?->toDateString() ?? now()->toDateString();
+        $entryDate = $record->prescription_date?->toDateString() ?? now()->toDateString();
 
         $data = [
-            'record'           => $record,
-            'selectedPatient'  => $selectedPatient,
-            'selectedDoctor'   => $selectedDoctor,
-            'doctorLocked'     => $doctorLocked,
+            'record' => $record,
+            'selectedPatient' => $selectedPatient,
+            'selectedDoctor' => $selectedDoctor,
+            'doctorLocked' => $doctorLocked,
             'canCreatePatient' => $canCreatePatient,
             'canCreateOptions' => $canCreateOptions,
-            'entryDate'        => $entryDate,
-            'settings'         => Setting::values('prescription'),
-            'medicineInputs'   => $medicineInputs,
+            'entryDate' => $entryDate,
+            'settings' => Setting::values('prescription'),
+            'medicineInputs' => $medicineInputs,
             'medicineProducts' => $medicineProducts,
-            'dosageTypes'      => PrescriptionMedicine::dosageTypes(),
-            'hasOldMedicines'  => $hasOldMedicines,
+            'dosageTypes' => PrescriptionMedicine::dosageTypes(),
+            'hasOldMedicines' => $hasOldMedicines,
         ];
 
         return $data;

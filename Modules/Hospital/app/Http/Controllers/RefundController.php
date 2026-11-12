@@ -14,7 +14,7 @@ use Modules\Core\Models\Account;
 use Modules\Hospital\Http\Requests\RefundRequest;
 use Modules\Hospital\Models\Refund;
 use Modules\Hospital\Models\RefundCause;
-use Modules\Hospital\Services\ClinicalEntryService;
+use Modules\Hospital\Services\RefundService;
 
 class RefundController extends BaseController
 {
@@ -22,7 +22,7 @@ class RefundController extends BaseController
 
     protected string $title = 'Refund';
 
-    protected string $service = ClinicalEntryService::class;
+    protected string $service = RefundService::class;
 
     protected string $views = 'hospital::refunds';
 
@@ -33,9 +33,9 @@ class RefundController extends BaseController
         return $this->listData($request);
     }
 
-    public function store(RefundRequest $request, ClinicalEntryService $entries): RedirectResponse
+    public function store(RefundRequest $request, RefundService $entries): RedirectResponse
     {
-        $refund = $entries->saveRefund(
+        $refund = $entries->save(
             $request->user('web'),
             $this->record($request),
             $request->payload(),
@@ -46,16 +46,16 @@ class RefundController extends BaseController
             ->with('status', 'Refund'.($this->isUpdate($request) ? ' updated.' : ' created.'));
     }
 
-    public function show(Request $request, ClinicalEntryService $entries): View
+    public function show(Request $request, RefundService $entries): View
     {
         $data = $entries->invoiceData($request->user('web'), $this->record($request));
 
         return view('hospital::refunds.invoice', $data);
     }
 
-    public function invoice(RefundRequest $request, ClinicalEntryService $entries): JsonResponse
+    public function invoice(RefundRequest $request, RefundService $entries): JsonResponse
     {
-        $data = $entries->refundPreview(
+        $data = $entries->preview(
             $request->user('web'),
             $request->validated('invoice'),
             (int) $request->attributes->get('branch_id'),
@@ -64,9 +64,9 @@ class RefundController extends BaseController
         return response()->json($data);
     }
 
-    public function invoices(RefundRequest $request, ClinicalEntryService $entries): JsonResponse
+    public function invoices(RefundRequest $request, RefundService $entries): JsonResponse
     {
-        $records = $entries->refundInvoices($request->user('web'), (int) $request->attributes->get('branch_id'), $request->validated());
+        $records = $entries->invoices($request->user('web'), (int) $request->attributes->get('branch_id'), $request->validated());
         $data = [
             'records' => $records,
         ];
@@ -78,14 +78,14 @@ class RefundController extends BaseController
     {
         $branchId = max(0, (int) request()->attributes->get('branch_id', 0));
         $selectedService = $record->exists ? $record->serviceType() : getValue('service', null, 'investigation');
-        $entries = app(ClinicalEntryService::class);
+        $entries = app(RefundService::class);
         $invoice = (string) getValue('invoice');
         $refundPreview = null;
         if ($record->exists) {
-            $refundPreview = $entries->refundPreview($actor, '', $branchId, $record);
+            $refundPreview = $entries->preview($actor, '', $branchId, $record);
         } elseif ($invoice !== '') {
             try {
-                $refundPreview = $entries->refundPreview($actor, $invoice, $branchId);
+                $refundPreview = $entries->preview($actor, $invoice, $branchId);
             } catch (ValidationException) {
                 // Leave a stale invoice selection empty when reopening the form.
             }

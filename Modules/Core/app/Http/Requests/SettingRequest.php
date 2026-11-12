@@ -67,11 +67,6 @@ class SettingRequest extends BaseRequest
         $configured = $setting->configuredCredentials();
         $enabled = in_array($this->input('data.enabled'), [1, '1', true], true);
         $rules = [
-            'group' => ['missing'],
-            'section' => ['missing'],
-            'secrets' => ['missing'],
-            'logo_path' => ['missing'],
-            'favicon_path' => ['missing'],
             'logo' => $setting->group === 'branding'
                 ? [
                     'nullable', 'image',
@@ -90,11 +85,7 @@ class SettingRequest extends BaseRequest
                 : ['missing'],
             'data' => ['required', 'array:'.implode(',', array_keys($fields))],
             'credentials' => $credentials === [] ? ['missing'] : ['sometimes', 'array:'.implode(',', array_keys($credentials))],
-        ];
-
-        foreach ($fields as $field => $fieldRules) {
-            $rules['data.'.$field] = $fieldRules;
-        }
+        ] + Arr::prependKeysWith($fields, 'data.');
 
         foreach ($credentials as $field => $definition) {
             $rules['credentials.'.$field] = ['bail', Rule::requiredIf($enabled && ! ($definition['optional'] ?? false) && ! ($configured[$field] ?? false)), 'nullable', 'string', 'max:'.$definition['max']];

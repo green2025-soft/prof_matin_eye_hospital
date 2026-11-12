@@ -7,9 +7,9 @@
 
     <div class="d-flex flex-wrap gap-2 mb-4">
         <a class="btn btn-outline-secondary btn-sm" href="{{ route($routePrefix.'.index') }}"><i class="fa-solid fa-arrow-left me-2" aria-hidden="true"></i>Doctors</a>
-        @can('update', $doctor)
+        @if (isset($permissions['doctors.update']) && auth()->user()->can('update', $doctor))
             <a class="btn btn-primary btn-sm" href="{{ route($routePrefix.'.edit', $doctor) }}"><i class="fa-solid fa-pen-to-square me-2" aria-hidden="true"></i>Edit</a>
-        @endcan
+        @endif
     </div>
 
     <div class="row g-3 align-items-start">

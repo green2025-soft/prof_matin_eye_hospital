@@ -6,14 +6,13 @@ use Closure;
 use Illuminate\Http\Request;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Tenant;
-use Modules\Core\Services\AccessManager;
 use Modules\Core\Services\ContextCache;
 use Modules\TenantCore\Models\Branch;
 use Symfony\Component\HttpFoundation\Response;
 
 class ResolveBranch
 {
-    public function __construct(private AccessManager $access, private ContextCache $contextCache) {}
+    public function __construct(private ContextCache $contextCache) {}
 
     public function handle(Request $request, Closure $next, string $selection = 'optional'): Response
     {
@@ -23,7 +22,7 @@ class ResolveBranch
 
         $user = $request->user('web');
 
-        if (! $user instanceof Account || ! $this->access->actorMatchesContext($user)) {
+        if (! $user instanceof Account || ! $user->matchesApplication()) {
             return $next($request);
         }
 

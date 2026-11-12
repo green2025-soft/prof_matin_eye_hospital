@@ -16,7 +16,7 @@ class CommissionRequest extends FormRequest
 
     public function rules(): array
     {
-        $branchId = max(0, (int) $this->attributes->get('branch_id'));
+        $branchId = (int) $this->attributes->get('branch_id');
         $rules = [
             'date_from' => ['bail', 'nullable', 'date_format:Y-m-d'],
             'date_to' => ['bail', 'nullable', 'date_format:Y-m-d', Rule::when(filled($this->query('date_from')), ['after_or_equal:date_from'])],
@@ -35,7 +35,7 @@ class CommissionRequest extends FormRequest
     public function validationData(): array
     {
         return $this->routeIs('hospital.commissions.update')
-            ? [...$this->query(), 'target_status' => $this->post('target_status')]: $this->query();
+            ? [...$this->query(), 'target_status' => $this->post('target_status')] : $this->query();
     }
 
     public function filters(): array

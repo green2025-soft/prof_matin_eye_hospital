@@ -16,7 +16,6 @@ use Modules\Core\Http\Requests\ListRequest;
 use Modules\Core\Http\Requests\SettingRequest;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Setting;
-use Throwable;
 
 class SettingController extends BaseController
 {
@@ -82,51 +81,40 @@ class SettingController extends BaseController
 
         $setting = $this->record($request);
         $disk = Storage::disk('public');
-        $uploads = [];
-        $committed = false;
+        $setting->writeTransaction($request->user('web'), function (Account $actor) use ($setting, $request, $disk): void {
+            $target = $setting->newQuery()
+                ->whereKey($setting->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+            Gate::forUser($actor)->authorize('update', $target);
+            $values = $request->payload();
+            $previous = $target->publicValues();
 
-        try {
             foreach (['logo', 'favicon'] as $field) {
                 if (! $request->hasFile($field)) {
                     continue;
                 }
 
                 $path = $disk->putFile('branding', $request->file($field));
-                if (! is_string($path)) {
+                if ($path === false) {
                     throw ValidationException::withMessages([
                         $field => 'The image could not be stored. Please try again.',
                     ]);
                 }
 
-                $uploads[$field.'_path'] = $path;
-            }
-
-            $setting->writeTransaction($request->user('web'), function (Account $actor) use ($setting, $request, $disk, $uploads, &$committed): void {
-                $target = $setting->newQuery()
-                    ->whereKey($setting->getKey())
-                    ->lockForUpdate()
-                    ->firstOrFail();
-                Gate::forUser($actor)
-                    ->authorize('update', $target);
-                $previous = Arr::only($target->publicValues(), array_keys($uploads));
-                $values = $request->payload();
-                $values['data'] = array_replace($values['data'], $uploads);
-                $target->fill($values)
-                    ->save();
-
                 $target->getConnection()
-                    ->afterCommit(function () use ($disk, $previous, &$committed): void {
-                        $committed = true;
-                        $disk->delete(array_values(array_filter($previous)));
-                    });
-            });
-        } catch (Throwable $exception) {
-            if (! $committed) {
-                $disk->delete(array_values($uploads));
+                    ->afterRollBack(fn () => $disk->delete($path));
+                $values['data'][$field.'_path'] = $path;
+
+                if ($oldPath = $previous[$field.'_path']) {
+                    $target->getConnection()
+                        ->afterCommit(fn () => $disk->delete($oldPath));
+                }
             }
 
-            throw $exception;
-        }
+            $target->fill($values)
+                ->save();
+        });
 
         return $this->redirectAfterWrite($setting)
             ->with('status', 'Branding updated.');

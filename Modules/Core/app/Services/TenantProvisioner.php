@@ -2,7 +2,6 @@
 
 namespace Modules\Core\Services;
 
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -17,6 +16,13 @@ use Illuminate\Validation\ValidationException;
 use LogicException;
 use Modules\Core\Contracts\TenantAccounts;
 use Modules\Core\Models\Account;
+use Modules\Core\Models\CheckoutAttempt;
+use Modules\Core\Models\Invoice;
+use Modules\Core\Models\InvoiceItem;
+use Modules\Core\Models\Payment;
+use Modules\Core\Models\SmsAccount;
+use Modules\Core\Models\SmsMessage;
+use Modules\Core\Models\SmsRecharge;
 use Modules\Core\Models\Subscription;
 use Modules\Core\Models\Tenant;
 use PDOException;
@@ -25,33 +31,45 @@ use Throwable;
 
 class TenantProvisioner
 {
-    public function __construct(private DatabaseInstaller $databases, private TenantAccounts $accounts, private AccessManager $access, private Kernel $console) {}
+    public function __construct(private DatabaseInstaller $databases, private TenantAccounts $accounts, private Kernel $console) {}
 
     public function delete(Account $actor, Model $record): void
     {
         $this->ensureCentral();
-        if (! $record instanceof Tenant) {
-            throw new AuthorizationException;
-        }
         Gate::forUser($actor)->authorize('delete', $record);
 
         $this->databases->locked($record->database, function () use ($actor, $record): void {
             $databaseVerified = $record->execute(fn () => $this->databases->verifyTenantDeletion($record->database, $record->database_token));
-            $tenant = $this->access->transaction($actor, function (Account $freshActor) use ($record): Tenant {
-                $tenant = Tenant::query()->whereKey($record->getKey())->lockForUpdate()->firstOrFail();
+            $tenant = $actor->withAccessLock(function (Account $freshActor) use ($record): Tenant {
+                $tenant = Tenant::whereKey($record->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail();
                 Gate::forUser($freshActor)->authorize('delete', $tenant);
                 $connection = $tenant->getConnection();
-                $invoices = $connection->table('invoices')->where('tenant_id', $tenant->getKey())->select('id');
-                $pending = $connection->table('checkout_attempts')->whereIn('invoice_id', $invoices)
-                    ->whereNotNull('active_invoice_id')->where('provider', '!=', 'manual')->lockForUpdate()->first(['id']);
+                $invoices = Invoice::where('tenant_id', $tenant->getKey())
+                    ->select('id');
+                $pending = CheckoutAttempt::whereIn('invoice_id', $invoices)
+                    ->whereNotNull('active_invoice_id')
+                    ->where('provider', '!=', 'manual')
+                    ->lockForUpdate()
+                    ->first(['id']);
 
                 if ($pending !== null) {
                     throw ValidationException::withMessages(['tenant' => 'Resolve pending online payments before deleting this tenant.']);
                 }
 
+                $pendingSms = SmsMessage::where('tenant_id', $tenant->getKey())
+                    ->whereIn('status', ['sending', 'uncertain'])
+                    ->lockForUpdate()
+                    ->first(['id']);
+                if ($pendingSms !== null) {
+                    throw ValidationException::withMessages(['tenant' => 'Resolve in-progress SMS submissions before deleting this tenant.']);
+                }
+
                 $tenant->status = Tenant::STATUS_DELETING;
                 $tenant->save();
-                Subscription::query()->where('tenant_id', $tenant->getKey())->update(['status' => Subscription::STATUS_CANCELLED]);
+                Subscription::where('tenant_id', $tenant->getKey())
+                    ->update(['status' => Subscription::STATUS_CANCELLED]);
                 app(ContextCache::class)->flush($connection->getName(), 'subscriptions');
 
                 return $tenant;
@@ -64,14 +82,20 @@ class TenantProvisioner
             $this->deleteFiles($tenant);
 
             $tenant->getConnection()->transaction(function () use ($tenant): void {
-                $current = Tenant::query()->whereKey($tenant->getKey())->lockForUpdate()->firstOrFail();
+                $current = Tenant::whereKey($tenant->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail();
                 $connection = $current->getConnection();
-                $invoices = $connection->table('invoices')->where('tenant_id', $current->getKey())->select('id');
-                $connection->table('checkout_attempts')->whereIn('invoice_id', $invoices)->delete();
-                $connection->table('payments')->where('tenant_id', $current->getKey())->delete();
-                $connection->table('invoice_items')->whereIn('invoice_id', $invoices)->delete();
-                $connection->table('invoices')->where('tenant_id', $current->getKey())->delete();
-                $connection->table('subscriptions')->where('tenant_id', $current->getKey())->delete();
+                $invoices = Invoice::where('tenant_id', $current->getKey())
+                    ->select('id');
+                CheckoutAttempt::whereIn('invoice_id', $invoices)->delete();
+                Payment::where('tenant_id', $current->getKey())->delete();
+                InvoiceItem::whereIn('invoice_id', $invoices)->delete();
+                Invoice::where('tenant_id', $current->getKey())->delete();
+                Subscription::where('tenant_id', $current->getKey())->delete();
+                SmsRecharge::where('tenant_id', $current->getKey())->delete();
+                SmsMessage::where('tenant_id', $current->getKey())->delete();
+                SmsAccount::where('tenant_id', $current->getKey())->delete();
                 app(ContextCache::class)->flush($connection->getName(), 'subscriptions');
                 $current->domains()->delete();
                 $current->delete();
@@ -103,10 +127,6 @@ class TenantProvisioner
 
     public function save(Account $actor, ?Model $record, #[\SensitiveParameter] array $values): Model
     {
-        if ($record !== null && ! $record instanceof Tenant) {
-            throw new AuthorizationException;
-        }
-
         $this->ensureCentral();
         Gate::forUser($actor)->authorize($record?->exists ? 'update' : 'create', $record?->exists ? $record : Tenant::class);
         $details = Arr::only($values, ['address', 'phone', 'has_branches']);
@@ -144,7 +164,7 @@ class TenantProvisioner
                 $details,
             );
         } catch (Throwable $exception) {
-            if ($newLogo !== null && ! Tenant::query()->where('logo_path', $newLogo)->exists()) {
+            if ($newLogo !== null && ! Tenant::where('logo_path', $newLogo)->exists()) {
                 $disk->delete($newLogo);
             }
 
@@ -154,10 +174,6 @@ class TenantProvisioner
 
     public function formData(Account $actor, Model $record): array
     {
-        if (! $record instanceof Tenant) {
-            throw new AuthorizationException;
-        }
-
         Gate::forUser($actor)->authorize($record->exists ? 'update' : 'create', $record->exists ? $record : Tenant::class);
 
         $credentials = [
@@ -274,7 +290,9 @@ class TenantProvisioner
         try {
             return $this->databases->locked($tenant->database, function () use ($tenant, $name, $slug, $domains, $status, $details): Tenant {
                 return $tenant->getConnection()->transaction(function () use ($tenant, $name, $slug, $domains, $status, $details): Tenant {
-                    $current = Tenant::query()->whereKey($tenant->getKey())->lockForUpdate()->firstOrFail();
+                    $current = Tenant::whereKey($tenant->getKey())
+                        ->lockForUpdate()
+                        ->firstOrFail();
                     if ($current->status === Tenant::STATUS_DELETING) {
                         throw new LogicException('Finish deleting this tenant before changing its settings.');
                     }
@@ -322,9 +340,6 @@ class TenantProvisioner
 
     private function register(string $name, string $slug, array $domains, #[\SensitiveParameter] array $credentials, string $email, array $details = []): Tenant
     {
-        $this->ensureCentral();
-        $this->databases->validateTenantDatabase($credentials['database']);
-
         try {
             return (new Tenant)->getConnection()->transaction(function () use ($name, $slug, $domains, $credentials, $email, $details): Tenant {
                 $tenant = new Tenant(['name' => $name, 'slug' => $slug] + Arr::only($details, ['address', 'phone', 'has_branches']));

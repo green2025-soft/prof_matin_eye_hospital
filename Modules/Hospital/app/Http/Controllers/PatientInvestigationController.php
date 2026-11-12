@@ -17,7 +17,7 @@ use Modules\Hospital\Models\Investigation;
 use Modules\Hospital\Models\Patient;
 use Modules\Hospital\Models\PatientInvestigation;
 use Modules\Hospital\Models\Reference;
-use Modules\Hospital\Services\ClinicalEntryService;
+use Modules\Hospital\Services\PatientInvestigationService;
 use Modules\TenantCore\Models\PaymentType;
 
 class PatientInvestigationController extends BaseController
@@ -26,20 +26,24 @@ class PatientInvestigationController extends BaseController
 
     protected string $title = 'Patient investigation';
 
-    protected string $service = ClinicalEntryService::class;
+    protected string $service = PatientInvestigationService::class;
 
     protected string $views = 'hospital::patient-investigations';
 
     protected string $parameter = 'patient_investigation';
 
-    public function index(ListRequest $request): View
+    public function index(ListRequest $request, PatientInvestigationService $investigations): View
     {
         $branchId = max(0, (int) $request->attributes->get('branch_id', 0));
         $view = $this->listData($request);
 
         $data = [
-            'invoiceBalances' => app(ClinicalEntryService::class)
-                ->listInvoiceBalances($request->user('web'), new PatientInvestigation, $view->getData()['records']->modelKeys(), $branchId),
+            'invoiceBalances' => $investigations->listInvoiceBalances(
+                $request->user('web'),
+                new PatientInvestigation,
+                $view->getData()['records']->modelKeys(),
+                $branchId,
+            ),
             'filterDoctor' => $this->selectedOption(
                 Doctor::where('branch_id', $branchId),
                 $request->validated('filter_doctor_id'),
@@ -55,16 +59,16 @@ class PatientInvestigationController extends BaseController
         return $view->with($data);
     }
 
-    public function show(Request $request, ClinicalEntryService $entries): View
+    public function show(Request $request, PatientInvestigationService $investigations): View
     {
-        $data = $entries->invoiceData($request->user('web'), $this->record($request));
+        $data = $investigations->invoiceData($request->user('web'), $this->record($request));
 
         return view('hospital::patient-investigations.invoice', $data);
     }
 
-    public function store(PatientInvestigationRequest $request, ClinicalEntryService $entries): RedirectResponse
+    public function store(PatientInvestigationRequest $request, PatientInvestigationService $investigations): RedirectResponse
     {
-        $investigation = $entries->saveInvestigation(
+        $investigation = $investigations->save(
             $request->user('web'),
             $this->record($request),
             $request->payload(),
@@ -80,7 +84,8 @@ class PatientInvestigationController extends BaseController
         $branchId = max(0, (int) request()->attributes->get('branch_id', 0));
         $today = now(config('app.timezone'))
             ->toDateString();
-        $referenceEnabled = (bool) Setting::values('hospital', $record->getConnectionName())['investigation_reference_enabled'];
+        $settings = Setting::values('hospital', $record->getConnectionName());
+        $referenceEnabled = (bool) $settings['investigation_reference_enabled'];
         $savedIds = $record->investigations->modelKeys();
         $selectedIds = getValue('investigation_ids', null, $savedIds);
         $selectedIds = array_filter(
@@ -105,6 +110,7 @@ class PatientInvestigationController extends BaseController
         }
 
         return [
+            'paymentDefault' => $settings['investigation_payment_default'],
             'referenceEnabled' => $referenceEnabled,
             'canCreatePatient' => Gate::forUser($actor)->allows('create', Patient::class),
             'selectedReference' => $referenceEnabled ? $this->selectedOption(Reference::query(), getValue('reference_id', $record), ['id', 'reference_id', 'name', 'contact_no']) : null,

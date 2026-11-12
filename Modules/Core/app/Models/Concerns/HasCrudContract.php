@@ -33,8 +33,7 @@ trait HasCrudContract
         $exposed = $this->exposed ?? [];
         $columns = $this->listColumns ?? $exposed;
 
-        if ($exposed === [] || $columns === [] || array_filter($exposed, fn ($column): bool => ! is_string($column) || ! preg_match('/^[a-z_][a-z0-9_]*$/i', $column))
-            || array_diff($columns, $exposed) !== []) {
+        if ($exposed === [] || $columns === [] || array_diff($columns, $exposed) !== []) {
             throw new LogicException(static::class.' must declare explicit safe CRUD fields.');
         }
 

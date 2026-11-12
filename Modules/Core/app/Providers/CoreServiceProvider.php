@@ -29,8 +29,8 @@ use Modules\Core\Console\Commands\RetryTenantCommand;
 use Modules\Core\Console\Commands\SyncSubscriptionsCommand;
 use Modules\Core\Helpers\WorkspaceMail;
 use Modules\Core\Models\Account;
+use Modules\Core\Models\BaseModel;
 use Modules\Core\Routing\ResourceRegistrar;
-use Modules\Core\Services\AccessManager;
 use Modules\Core\Services\CachedUserProvider;
 use Modules\Core\Services\ContextCache;
 use Modules\Core\View\Composers\LayoutComposer;
@@ -48,7 +48,7 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->bind(LaravelResourceRegistrar::class, ResourceRegistrar::class);
     }
 
-    public function boot(AccessManager $access): void
+    public function boot(): void
     {
         Auth::provider('cached-eloquent', fn (Application $app, array $configuration): CachedUserProvider => new CachedUserProvider(
             $app['hash'], $configuration['model'],
@@ -74,7 +74,13 @@ class CoreServiceProvider extends ServiceProvider
 
         // Native policies retain precedence over these opt-in CRUD permission gates.
         foreach (['viewAny' => 'view', 'view' => 'view', 'create' => 'create', 'update' => 'update', 'delete' => 'delete'] as $ability => $action) {
-            Gate::define($ability, fn (Account $actor, mixed $subject = null): bool => $access->allowsCrud($actor, $subject, $action));
+            Gate::define($ability, static function (Account $actor, mixed $subject = null) use ($action): bool {
+                if (is_string($subject) && is_subclass_of($subject, BaseModel::class)) {
+                    $subject = new $subject;
+                }
+
+                return $subject instanceof BaseModel && $subject->allowsCrud($actor, $action);
+            });
         }
 
         View::composer('core::layouts.app', LayoutComposer::class);

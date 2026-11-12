@@ -48,6 +48,21 @@ abstract class BaseModel extends Model
         return true;
     }
 
+    public function allowsCrud(Account $actor, string $action): bool
+    {
+        $permissions = request()->attributes->get('navigation_permissions', []);
+
+        return $actor->matchesApplication()
+            && $this->crudPermission !== ''
+            && isset($permissions[$this->crudPermission.'.'.$action])
+            && $this->getConnection()->getName() === $actor->getConnection()->getName()
+            && $this->getConnection()->getDatabaseName() === $actor->getConnection()->getDatabaseName()
+            && $this->matchesBranchContext()
+            && $this->isCrudEnabled()
+            && (in_array($action, ['view', 'create'], true) || $this->exists)
+            && ($action !== 'delete' || ! $this->hasReferences());
+    }
+
     public function matchesBranchContext(): bool
     {
         if (! $this->branchScoped) {

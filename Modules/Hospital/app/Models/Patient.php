@@ -56,6 +56,20 @@ class Patient extends BaseModel
         return implode(' ', array_filter($parts)) ?: '0d';
     }
 
+    public function smsValues(): array
+    {
+        $age = $this->ageLabel();
+
+        return [
+            'patient_name' => (string) $this->name,
+            'patient_mobile' => (string) $this->mobile_no,
+            'patient_address' => (string) $this->address,
+            'patient_id' => (string) $this->patient_id,
+            'patient_age' => $age === '--' ? '' : $age,
+            'father_husband_name' => (string) $this->father_husband_name,
+        ];
+    }
+
     public function division(): BelongsTo
     {
         return $this->belongsTo(Division::class);

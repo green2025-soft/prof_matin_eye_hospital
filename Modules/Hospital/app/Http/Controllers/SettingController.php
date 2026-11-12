@@ -4,11 +4,13 @@ namespace Modules\Hospital\Http\Controllers;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Modules\Core\Http\Controllers\BaseController;
 use Modules\Core\Http\Requests\ListRequest;
 use Modules\Core\Models\Setting;
+use Modules\Core\Models\SmsAccount;
 use Modules\Hospital\Http\Requests\SettingRequest;
 
 class SettingController extends BaseController
@@ -26,6 +28,8 @@ class SettingController extends BaseController
         $section = $request->query('section', 'patient');
         abort_unless(is_string($section) && array_key_exists($section, config('settings.hospital_sections')), 404);
         $routePrefix = $this->routePrefix();
+        $smsNotifications = Arr::only(config('settings.hospital_sms_notifications'), array_keys(SmsAccount::availableFeatures()));
+        abort_if($section === 'sms' && $smsNotifications === [], 403);
 
         $setting = Setting::where('group', 'hospital')
             ->firstOrFail(['id', 'group', 'data', 'updated_at']);
@@ -39,6 +43,7 @@ class SettingController extends BaseController
             'groupLabel' => config('settings.groups.hospital.label'),
             'groupIcon' => config('settings.groups.hospital.icon'),
             'activeHospitalSection' => $section,
+            'smsNotifications' => $smsNotifications,
             'routePrefix' => $routePrefix,
             'formAction' => route($routePrefix.'.update', $setting),
             'canUpdate' => Gate::forUser($request->user('web'))

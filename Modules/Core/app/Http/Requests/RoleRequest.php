@@ -10,9 +10,6 @@ class RoleRequest extends BaseRequest
     {
         return [
             'name' => ['required', 'string', 'max:255', $this->unique('name')->where('guard_name', 'web'), 'not_regex:/\A'.preg_quote(Role::OWNER_NAME, '/').'\z/i'],
-            'guard_name' => ['missing'],
-            'permissions_present' => ['missing'],
-            'permissions' => ['missing'],
         ];
     }
 }

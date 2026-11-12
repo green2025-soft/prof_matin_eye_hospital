@@ -118,6 +118,12 @@ class Product extends BaseModel
         return $rules;
     }
 
+    public function listQuery(): Builder
+    {
+        return parent::listQuery()
+            ->withExists(['variants', 'units']);
+    }
+
     protected function applySearch(Builder $query, string $search, array $fields, array $containsSearch): void
     {
         $query->where(function (Builder $searchQuery) use ($search, $fields, $containsSearch): void {
@@ -202,6 +208,7 @@ class Product extends BaseModel
 
     public function hasReferences(): bool
     {
-        return $this->variants()->exists() || $this->units()->exists();
+        return ($this->variants_exists ?? $this->variants()->exists())
+            || ($this->units_exists ?? $this->units()->exists());
     }
 }

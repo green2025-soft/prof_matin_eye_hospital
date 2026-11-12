@@ -15,8 +15,8 @@ class TenantRules
         $slug = $base;
         $suffix = 1;
 
-        while (Tenant::query()->where('slug', $slug)->exists()
-            || Domain::query()->where('domain', static::defaultDomain($slug))->exists()
+        while (Tenant::where('slug', $slug)->exists()
+            || Domain::where('domain', static::defaultDomain($slug))->exists()
             || in_array(static::defaultDomain($slug), config('multitenancy.central_domains', []), true)) {
             $ending = '-'.++$suffix;
             $slug = rtrim(substr($base, 0, 63 - strlen($ending)), '-').$ending;
@@ -75,7 +75,7 @@ class TenantRules
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:80', 'regex:/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', Rule::unique('central.tenants', 'slug')->ignore($tenant?->getKey())],
             'address' => ['nullable', 'string', 'max:2000'],
-            'phone' => ['nullable', 'string', 'max:30', 'regex:/\A[0-9]+\z/'],
+            'phone' => ['nullable', 'string', 'max:30'],
             'has_branches' => ['sometimes', 'boolean'],
             'domains' => ['required', 'array', 'min:1', 'max:20'],
             'domains.*' => [

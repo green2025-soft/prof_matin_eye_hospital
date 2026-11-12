@@ -34,7 +34,11 @@ class DoctorController extends BaseController
 
     public function index(ListRequest $request): View
     {
-        return $this->listData($request);
+        $data = [
+            'permissions' => $request->attributes->get('navigation_permissions', []),
+        ];
+
+        return $this->listData($request)->with($data);
     }
 
     public function options(SelectorRequest $request): JsonResponse
@@ -75,6 +79,7 @@ class DoctorController extends BaseController
             'genderLabel' => genders()[$doctor->gender] ?? $doctor->gender,
             'bloodGroupLabel' => bloodGroups()[$doctor->blood_group] ?? '-',
             'routePrefix' => $this->routePrefix(),
+            'permissions' => $request->attributes->get('navigation_permissions', []),
         ];
 
         return view('hospital::doctors.show', $data);
@@ -83,6 +88,8 @@ class DoctorController extends BaseController
     public function permissions(DoctorRequest $request, DoctorService $doctors): View
     {
         $data = $doctors->permissionPageData($request->user('web'));
+        $permissions = $request->attributes->get('navigation_permissions', []);
+        $data['canManagePermissions'] = isset($permissions['doctor-permissions.manage']);
 
         return view('hospital::doctors.permissions', $data);
     }
@@ -98,11 +105,31 @@ class DoctorController extends BaseController
 
     protected function formData(Account $actor, Model $record): array
     {
+        $permissions = request()->attributes->get('navigation_permissions', []);
+
         return [
             'selectedDepartment' => $this->selectedOption(Department::query(), getValue('department_id', $record)),
             'genders' => genders(),
             'bloodGroups' => bloodGroups(),
             'passwordMinLength' => config('auth.password_min_length', 5),
+            'listAllowed' => isset($permissions['doctors.view']),
         ];
+    }
+
+    protected function redirectAfterWrite(?Model $record = null): RedirectResponse
+    {
+        $permissions = request()->attributes->get('navigation_permissions', []);
+
+        if (isset($permissions['doctors.view'])) {
+            return redirect()->route($this->routePrefix().'.index', $this->routeParameters($record));
+        }
+        if ($record && isset($permissions['doctors.update']) && ! request()->routeIs($this->routePrefix().'.destroy')
+            && Gate::allows('update', $record)) {
+            return redirect()->route($this->routePrefix().'.edit', [
+                $this->parameter => $record,
+            ] + $this->routeParameters($record));
+        }
+
+        return redirect()->route('home');
     }
 }

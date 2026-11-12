@@ -20,12 +20,10 @@ class PatientRequest extends BaseRequest
 
     public function rules(): array
     {
-        $record = $this->record();
-        $divisionId = $this->integer('division_id', $record?->division_id ?? 0);
-        $districtId = $this->integer('district_id', $record?->district_id ?? 0);
+        $divisionId = $this->integer('division_id');
+        $districtId = $this->integer('district_id');
         $ageInput = $this->input('age_input');
-        $ageRequired = $ageInput !== 'date_of_birth'
-            && (! $this->isUpdate() || $ageInput === 'age')
+        $ageRequired = (! $this->isUpdate() || $ageInput === 'age')
             && ! $this->filled('age_months') && ! $this->filled('age_days');
 
         return [
@@ -46,7 +44,7 @@ class PatientRequest extends BaseRequest
             ],
             'gender' => ['required', 'string', Rule::in(array_keys(genders()))],
             'blood_group' => ['nullable', 'string', Rule::in(array_keys(bloodGroups()))],
-            'mobile_no' => ['nullable', 'string', 'max:30', 'regex:/\A(?=.*[0-9])[0-9+() .-]+\z/'],
+            'mobile_no' => ['nullable', 'string', 'max:30'],
             'division_id' => ['bail', 'nullable', 'required_with:district_id', 'integer', 'min:1', $this->existsIn('divisions')],
             'district_id' => ['bail', 'nullable', 'required_with:thana_id', 'integer', 'min:1', $this->existsIn('districts')->where('division_id', $divisionId)],
             'thana_id' => ['bail', 'nullable', 'integer', 'min:1', $this->existsIn('thanas')->where('district_id', $districtId)],

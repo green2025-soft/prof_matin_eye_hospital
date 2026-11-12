@@ -15,7 +15,12 @@ class Plan extends CoreModel
 {
     public const INTERVALS = ['monthly' => 'Monthly', 'yearly' => 'Yearly'];
 
-    protected $attributes = ['price_minor' => 0, 'billing_interval' => 'monthly', 'trial_days' => 0, 'is_active' => true];
+    protected $attributes = [
+        'price_minor' => 0,
+        'billing_interval' => 'monthly',
+        'trial_days' => 0,
+        'is_active' => true,
+    ];
 
     protected array $exposed = ['id', 'name', 'slug', 'description', 'price_minor', 'currency', 'billing_interval', 'trial_days', 'features', 'user_limit', 'is_active', 'created_at'];
 
@@ -25,7 +30,10 @@ class Plan extends CoreModel
 
     protected array $sortable = ['name', 'price_minor', 'id'];
 
-    protected array $filterable = ['billing_interval' => self::INTERVALS, 'is_active' => ['0', '1']];
+    protected array $filterable = [
+        'billing_interval' => self::INTERVALS,
+        'is_active' => ['0', '1'],
+    ];
 
     protected array $exposedCounts = ['subscriptions'];
 
@@ -39,7 +47,14 @@ class Plan extends CoreModel
 
     protected function casts(): array
     {
-        return ['price_minor' => 'integer', 'trial_days' => 'integer', 'features' => 'array', 'route_permissions' => 'array', 'user_limit' => 'integer', 'is_active' => 'boolean'];
+        return [
+            'price_minor' => 'integer',
+            'trial_days' => 'integer',
+            'features' => 'array',
+            'route_permissions' => 'array',
+            'user_limit' => 'integer',
+            'is_active' => 'boolean',
+        ];
     }
 
     public function subscriptions(): HasMany

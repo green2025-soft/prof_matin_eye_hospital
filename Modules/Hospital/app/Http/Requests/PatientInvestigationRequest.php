@@ -14,8 +14,8 @@ class PatientInvestigationRequest extends BaseRequest
     {
         $branchId = max(0, (int) $this->attributes->get('branch_id', 0));
         $referenceEnabled = (bool) Setting::values('hospital')['investigation_reference_enabled'];
-        $moneyRules = ['required', 'string', 'regex:/\A\d{1,10}(?:\.\d{1,2})?\z/'];
-        $percentRules = ['required', 'numeric', 'regex:/\A\d{1,3}(?:\.\d{1,2})?\z/', 'between:0,100'];
+        $moneyRules = ['required', 'string', 'decimal:0,2', 'between:0,9999999999.99'];
+        $percentRules = ['required', 'decimal:0,2', 'between:0,100'];
 
         return [
             'reference_id' => $referenceEnabled ? ['bail', 'nullable', 'integer', 'min:1', $this->existsIn('references')->where('branch_id', $branchId)] : ['prohibited'],

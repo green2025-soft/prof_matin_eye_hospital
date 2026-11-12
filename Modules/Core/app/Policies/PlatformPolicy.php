@@ -5,17 +5,14 @@ namespace Modules\Core\Policies;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Admin;
-use Modules\Core\Services\AccessManager;
 
 abstract class PlatformPolicy
 {
     protected string $permission;
 
-    public function __construct(protected AccessManager $access) {}
-
     public function before(Account $actor): ?bool
     {
-        return $this->access->actorMatchesContext($actor) ? null : false;
+        return $actor->matchesApplication() ? null : false;
     }
 
     public function viewAny(Account $actor): bool
@@ -45,7 +42,7 @@ abstract class PlatformPolicy
 
     protected function allowed(Account $actor, string $action): bool
     {
-        return $actor instanceof Admin && $this->access->actorMatchesContext($actor)
-            && ($this->access->isOwner($actor) || $actor->can($this->permission.'.'.$action));
+        return $actor instanceof Admin && $actor->matchesApplication()
+            && (request()->attributes->get('navigation_permissions', [])[$this->permission.'.'.$action] ?? false);
     }
 }

@@ -3,6 +3,7 @@
 namespace Modules\Pharmacy\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['type', 'name', 'contact_no', 'address', 'active'])]
@@ -42,8 +43,18 @@ class Supplier extends BaseModel
 
     public function hasReferences(): bool
     {
-        return $this->products()->exists()
-            || $this->purchases()->withoutGlobalScope('branch')->withTrashed()->exists()
-            || $this->purchaseReturns()->withoutGlobalScope('branch')->withTrashed()->exists();
+        return ($this->products_exists ?? $this->products()->exists())
+            || ($this->purchases_exists ?? $this->purchases()->withoutGlobalScope('branch')->withTrashed()->exists())
+            || ($this->purchase_returns_exists ?? $this->purchaseReturns()->withoutGlobalScope('branch')->withTrashed()->exists());
+    }
+
+    public function listQuery(): Builder
+    {
+        return parent::listQuery()
+            ->withExists([
+                'products',
+                'purchases' => fn (Builder $purchases) => $purchases->withoutGlobalScope('branch')->withTrashed(),
+                'purchaseReturns' => fn (Builder $returns) => $returns->withoutGlobalScope('branch')->withTrashed(),
+            ]);
     }
 }

@@ -16,8 +16,11 @@ trait HandlesModelQueries
         $contract = $model->queryContract();
         $columns = array_unique([...$contract['listColumns'], $contract['defaultSort'], $model->getKeyName()]);
 
-        return $model->newQuery()->where($contract['constraints'])->select(array_map($model->qualifyColumn(...), $columns))
-            ->with($contract['listWith'])->withCount($contract['exposedCounts']);
+        return $model->newQuery()
+            ->where($contract['constraints'])
+            ->select(array_map($model->qualifyColumn(...), $columns))
+            ->with($contract['listWith'])
+            ->withCount($contract['exposedCounts']);
     }
 
     public function queryRules(): array
@@ -116,7 +119,8 @@ trait HandlesModelQueries
         $page = $all ? 1 : max(1, (int) ($filters['page'] ?? 1));
         $perPage = $all ? fn (int $total): int => max(1, $total) : $size;
 
-        return $query->paginate($perPage, $query->getQuery()->getColumns(), 'page', $page)
+        return $query
+            ->paginate($perPage, $query->getQuery()->getColumns(), 'page', $page)
             ->appends($applied + ['per_page' => $size]);
     }
 
@@ -130,7 +134,8 @@ trait HandlesModelQueries
         }
 
         $columns = array_unique([...$columns, $this->getKeyName()]);
-        $query = $this->newQuery()->where($contract['constraints'])
+        $query = $this->newQuery()
+            ->where($contract['constraints'])
             ->select(array_map($this->qualifyColumn(...), $columns));
 
         foreach ($relations as $relation => $relationColumns) {

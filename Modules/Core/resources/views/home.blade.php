@@ -3,15 +3,20 @@
 @section('title', 'Dashboard')
 
 @section('content')
+    @php
+        $recentTitle = $central ? 'Recent tenants' : 'Recently added users';
+        $recentDescription = $central ? 'The newest workspaces on your platform.' : 'The newest accounts in your workspace.';
+        $recentRoutePrefix = $central ? 'core.tenants' : $accountRoutePrefix;
+    @endphp
     <header class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
         <div>
             <p class="small fw-semibold text-primary mb-1">{{ $contextName }}</p>
             <h1 class="h4 fw-bold mb-1">Dashboard</h1>
-            <p class="small text-body-secondary mb-0">Welcome back, {{ $accountName }}. Your workspace at a glance.</p>
+            <p class="small text-body-secondary mb-0">Welcome back, {{ $actor->name }}. Your workspace at a glance.</p>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-3">
-            <time class="small text-body-secondary" datetime="{{ $dateIso }}">
-                <i class="fa-solid fa-calendar-days me-2" aria-hidden="true"></i>{{ $dateLabel }}
+            <time class="small text-body-secondary" datetime="{{ $today->toDateString() }}">
+                <i class="fa-solid fa-calendar-days me-2" aria-hidden="true"></i>{{ $today->format('l, d F Y') }}
             </time>
             @unless ($central)
                 <a class="btn btn-primary btn-sm" href="{{ route('tenantcore.module-dashboard.index') }}">
@@ -22,6 +27,91 @@
     </header>
 
     <section class="mb-3" aria-labelledby="quick-actions-heading">
+        @php
+            $quickActions = [
+                'tenants.create' => [
+                    'label' => 'Create tenant',
+                    'icon' => 'building',
+                    'url' => route('core.tenants.create'),
+                    'tone' => 'primary',
+                    'available' => $central,
+                ],
+                'accounts.create' => [
+                    'label' => $central ? 'Add administrator' : 'Add user',
+                    'icon' => 'user-plus',
+                    'url' => route($accountRoutePrefix.'.create'),
+                    'tone' => 'success',
+                    'available' => true,
+                ],
+                'roles.create' => [
+                    'label' => 'Create role',
+                    'icon' => 'shield-halved',
+                    'url' => route('core.roles.create'),
+                    'tone' => 'warning',
+                    'available' => true,
+                ],
+                'tenants.view' => [
+                    'label' => 'Tenants',
+                    'icon' => 'building',
+                    'url' => route('core.tenants.index'),
+                    'tone' => 'danger',
+                    'available' => $central,
+                ],
+                'accounts.view' => [
+                    'label' => $central ? 'Administrators' : 'Users',
+                    'icon' => 'users',
+                    'url' => route($accountRoutePrefix.'.index'),
+                    'tone' => 'primary',
+                    'available' => true,
+                ],
+                'roles.view' => [
+                    'label' => 'Roles',
+                    'icon' => 'shield-halved',
+                    'url' => route('core.roles.index'),
+                    'tone' => 'warning',
+                    'available' => true,
+                ],
+                'permissions.view' => [
+                    'label' => 'Permissions',
+                    'icon' => 'key',
+                    'url' => route('core.permissions.index'),
+                    'tone' => 'info',
+                    'available' => true,
+                ],
+                'audit-logs.view' => [
+                    'label' => 'Audit logs',
+                    'icon' => 'clock-rotate-left',
+                    'url' => route('tenantcore.audit-logs.index'),
+                    'tone' => 'primary',
+                    'available' => ! $central,
+                ],
+                'branches.view' => [
+                    'label' => 'Branches',
+                    'icon' => 'building',
+                    'url' => route('tenantcore.branches.index'),
+                    'tone' => 'success',
+                    'available' => ! $central && $hasBranches,
+                ],
+                'billing.view' => [
+                    'label' => 'Billing',
+                    'icon' => 'file-invoice-dollar',
+                    'url' => route('tenantcore.billing.index'),
+                    'tone' => 'danger',
+                    'available' => ! $central,
+                ],
+                'settings.view' => [
+                    'label' => 'Settings',
+                    'icon' => 'gear',
+                    'url' => route($central ? 'core.settings.index' : 'tenantcore.settings.index'),
+                    'tone' => 'secondary',
+                    'available' => true,
+                ],
+            ];
+            $quickActions = array_filter(
+                array_intersect_key($quickActions, $permissions),
+                static fn (array $action): bool => $action['available'],
+            );
+        @endphp
         <h2 class="h6 fw-semibold mb-2" id="quick-actions-heading">Quick actions</h2>
         <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xl-6 justify-content-center g-3">
             @forelse ($quickActions as $action)
@@ -41,6 +131,43 @@
     </section>
 
     <section class="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-3 mb-3" aria-label="Workspace overview">
+        @php
+            $metrics = [
+                [
+                    'label' => 'Tenants',
+                    'value' => $tenantCount,
+                    'caption' => 'Registered workspaces',
+                    'icon' => 'building',
+                    'tone' => 'primary',
+                    'url' => route('core.tenants.index'),
+                ],
+                [
+                    'label' => $central ? 'Administrators' : 'Users',
+                    'value' => $accountCount,
+                    'caption' => $central ? 'Platform accounts' : 'Workspace accounts',
+                    'icon' => 'users',
+                    'tone' => 'success',
+                    'url' => route($accountRoutePrefix.'.index'),
+                ],
+                [
+                    'label' => 'Roles',
+                    'value' => $roleCount,
+                    'caption' => 'Access roles in this workspace',
+                    'icon' => 'shield-halved',
+                    'tone' => 'warning',
+                    'url' => route('core.roles.index'),
+                ],
+                [
+                    'label' => 'Your permissions',
+                    'value' => $permissionCount,
+                    'caption' => 'Assigned access permissions',
+                    'icon' => 'key',
+                    'tone' => 'info',
+                    'url' => null,
+                ],
+            ];
+            $metrics = array_filter($metrics, static fn (array $metric): bool => $metric['value'] !== null);
+        @endphp
         @foreach ($metrics as $metric)
             <div class="col flex-grow-1">
                 <article class="card d-flex flex-row align-items-center gap-3 bg-{{ $metric['tone'] }}-subtle text-{{ $metric['tone'] }}-emphasis border-0 rounded-3 h-100 p-3">
@@ -70,14 +197,14 @@
                         <h2 class="h6 fw-semibold mb-1" id="recent-heading">{{ $recentTitle }}</h2>
                         <p class="small text-body-secondary mb-0">{{ $recentDescription }}</p>
                     </div>
-                    @if ($recentListUrl)
-                        <a class="btn btn-primary btn-sm" href="{{ $recentListUrl }}">
+                    @if ($recentRecords !== null)
+                        <a class="btn btn-primary btn-sm" href="{{ route($recentRoutePrefix.'.index') }}">
                             View all <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i>
                         </a>
                     @endif
                 </header>
 
-                @if (! $canViewRecent)
+                @if ($recentRecords === null)
                     <div class="text-center p-4">
                         <i class="fa-solid fa-lock fs-3 text-body-secondary mb-3" aria-hidden="true"></i>
                         <h3 class="h6">This list is restricted</h3>
@@ -105,27 +232,27 @@
                                 @foreach ($recentRecords as $record)
                                     <tr>
                                         <th class="px-3 py-3" scope="row">
-                                            <div class="fw-semibold text-break">{{ $record['name'] }}</div>
-                                            <div class="small text-body-secondary fw-normal text-break">{{ $record['detail'] }}</div>
+                                            <div class="fw-semibold text-break">{{ $record->name }}</div>
+                                            <div class="small text-body-secondary fw-normal text-break">{{ $central ? $record->slug : $record->email }}</div>
                                         </th>
                                         @if ($central)
                                             <td class="px-3 py-3">
-                                                <span class="app-status app-status-{{ $record['status'] }}">{{ $record['statusLabel'] }}</span>
+                                                <span class="app-status app-status-{{ $record->status }}">{{ $recentStatusOptions[$record->status] ?? $record->status }}</span>
                                             </td>
                                         @endif
                                         <td class="small text-nowrap px-3 py-3">
-                                            @if ($record['createdIso'])
-                                                <time datetime="{{ $record['createdIso'] }}">{{ $record['created'] }}</time>
+                                            @if ($record->created_at)
+                                                <time datetime="{{ $record->created_at->toDateString() }}">{{ $record->created_at->format('d M Y') }}</time>
                                             @else
-                                                {{ $record['created'] }}
+                                                —
                                             @endif
                                         </td>
                                         <td class="text-end px-3 py-3">
-                                            @if ($record['url'])
-                                                <a class="btn btn-outline-primary btn-sm" href="{{ $record['url'] }}" aria-label="Edit {{ $record['name'] }}">
+                                            @can('update', $record)
+                                                <a class="btn btn-outline-primary btn-sm" href="{{ route($recentRoutePrefix.'.edit', $record) }}" aria-label="Edit {{ $record->name }}">
                                                     <i class="fa-solid fa-pen" aria-hidden="true"></i>
                                                 </a>
-                                            @endif
+                                            @endcan
                                         </td>
                                     </tr>
                                 @endforeach
@@ -147,8 +274,8 @@
                     <div class="d-flex align-items-center gap-3 mb-3">
                         <span class="flex-shrink-0 bg-primary-subtle text-primary-emphasis rounded-3 px-3 py-2 fs-5 fw-bold" aria-hidden="true">{{ $accountInitials }}</span>
                         <div class="overflow-hidden">
-                            <p class="fw-semibold mb-1 text-break">{{ $accountName }}</p>
-                            <p class="small text-body-secondary mb-0 text-break">{{ $accountEmail }}</p>
+                            <p class="fw-semibold mb-1 text-break">{{ $actor->name }}</p>
+                            <p class="small text-body-secondary mb-0 text-break">{{ $actor->email }}</p>
                         </div>
                     </div>
                     <dl class="row gy-2 small mb-0">

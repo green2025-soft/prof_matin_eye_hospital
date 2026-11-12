@@ -7,7 +7,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Modules\Core\Helpers\Money;
 use Modules\Core\Models\Account;
-use Modules\Core\Services\AccessManager;
 use Modules\Hospital\Contracts\PharmacyCustomers;
 use Modules\Pharmacy\Models\Purchase;
 use Modules\Pharmacy\Models\StockEntry;
@@ -33,14 +32,13 @@ class PurchaseService extends TradeEntryService
     }
 
     public function __construct(
-        AccessManager $access,
         PharmacyAccess $pharmacy,
         PharmacyCustomers $customers,
         StockService $stock,
         ItemService $items,
         private PurchaseItemService $purchaseItems,
     ) {
-        parent::__construct($access, $pharmacy, $customers, $stock, $items);
+        parent::__construct($pharmacy, $customers, $stock, $items);
     }
 
     public function save(Account $actor, ?StockEntry $record, array $values): StockEntry

@@ -3,6 +3,7 @@
 namespace Modules\Pharmacy\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['type', 'name', 'ordering'])]
@@ -29,6 +30,12 @@ class ProductCategory extends BaseModel
         return ['ordering' => 'integer'];
     }
 
+    public function listQuery(): Builder
+    {
+        return parent::listQuery()
+            ->withExists('products');
+    }
+
     public function products(): HasMany
     {
         return $this->hasMany(Product::class, 'category_id');
@@ -36,6 +43,6 @@ class ProductCategory extends BaseModel
 
     public function hasReferences(): bool
     {
-        return $this->products()->exists();
+        return $this->products_exists ?? $this->products()->exists();
     }
 }

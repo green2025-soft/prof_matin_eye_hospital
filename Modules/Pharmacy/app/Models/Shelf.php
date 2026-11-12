@@ -3,6 +3,7 @@
 namespace Modules\Pharmacy\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['type', 'name', 'number'])]
@@ -25,8 +26,14 @@ class Shelf extends BaseModel
         return $this->hasMany(Product::class);
     }
 
+    public function listQuery(): Builder
+    {
+        return parent::listQuery()
+            ->withExists('products');
+    }
+
     public function hasReferences(): bool
     {
-        return $this->products()->exists();
+        return $this->products_exists ?? $this->products()->exists();
     }
 }

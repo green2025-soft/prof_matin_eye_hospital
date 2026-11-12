@@ -1,0 +1,10 @@
+{
+    "name": "prof-matin/accounting",
+    "description": "Accounting module",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Modules\\Accounting\\": "app/"
+        }
+    }
+}

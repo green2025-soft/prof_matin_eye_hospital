@@ -37,6 +37,7 @@ return [
         ],
         'tenant' => array_values(array_filter([
             base_path('Modules/Core/database/migrations/shared'),
+            base_path('Modules/Core/database/migrations/tenant'),
             base_path('Modules/TenantCore/database/migrations'),
             base_path('Modules/Hospital/database/migrations'),
             base_path('Modules/Pharmacy/database/migrations'),

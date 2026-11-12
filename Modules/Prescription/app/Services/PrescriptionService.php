@@ -7,7 +7,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Modules\Core\Models\Account;
-use Modules\Core\Services\AccessManager;
 use Modules\Hospital\Models\Doctor;
 use Modules\Hospital\Models\Patient;
 use Modules\Pharmacy\Models\Product;
@@ -15,35 +14,21 @@ use Modules\Prescription\Models\Prescription;
 
 class PrescriptionService
 {
-    public function __construct(private AccessManager $access) {}
-
     public function save(Account $actor, ?Prescription $record, array $values): Prescription
     {
-        return $this->access->transaction($actor, function (Account $freshActor) use ($record, $values): Prescription {
-            $prescription = $record === null
-                ? new Prescription
-                : Prescription::query()
-                    ->whereKey($record->getKey())
-                    ->lockForUpdate()
-                    ->firstOrFail();
+        return $actor->withAccessLock(function (Account $freshActor) use ($record, $values): Prescription {
+            $prescription = $record === null ? new Prescription : Prescription::whereKey($record->getKey())->lockForUpdate()->firstOrFail();
 
-            Gate::forUser($freshActor)
-                ->authorize(
-                    $prescription->exists ? 'update' : 'create',
-                    $prescription->exists ? $prescription : Prescription::class,
-                );
+            Gate::forUser($freshActor)->authorize(
+                $prescription->exists ? 'update' : 'create',
+                $prescription->exists ? $prescription : Prescription::class,
+            );
 
             $branchId = (int) request()->attributes->get('branch_id', 0);
-            $patient = Patient::query()
-                ->whereKey($values['patient_id'])
-                ->where('branch_id', $branchId)
-                ->lockForUpdate()
-                ->first();
-            $doctor = Doctor::query()
-                ->whereKey($values['doctor_id'])
-                ->where('branch_id', $branchId)
-                ->lockForUpdate()
-                ->first();
+            $patient = Patient::whereKey($values['patient_id'])
+                ->where('branch_id', $branchId)->lockForUpdate()->first();
+            $doctor = Doctor::whereKey($values['doctor_id'])
+                ->where('branch_id', $branchId)->lockForUpdate()->first();
 
             if ($patient === null || $doctor === null) {
                 throw ValidationException::withMessages(['record' => 'Choose a patient and doctor from the selected branch.']);
@@ -63,8 +48,7 @@ class PrescriptionService
                     : $followUpDate->addDays($interval)->toDateString();
             }
 
-            $prescription->fill(Arr::except($values, ['medicines']))
-                ->save();
+            $prescription->fill(Arr::except($values, ['medicines']))->save();
             $prescription->medicines()->delete();
             $prescription->medicines()->createMany($medicines);
 
@@ -74,13 +58,9 @@ class PrescriptionService
 
     public function delete(Account $actor, Prescription $record): void
     {
-        $this->access->transaction($actor, function (Account $freshActor) use ($record): void {
-            $prescription = Prescription::query()
-                ->whereKey($record->getKey())
-                ->lockForUpdate()
-                ->firstOrFail();
-            Gate::forUser($freshActor)
-                ->authorize('delete', $prescription);
+        $actor->withAccessLock(function (Account $freshActor) use ($record): void {
+            $prescription = Prescription::whereKey($record->getKey())->lockForUpdate()->firstOrFail();
+            Gate::forUser($freshActor)->authorize('delete', $prescription);
             $prescription->delete();
         });
     }
@@ -88,13 +68,8 @@ class PrescriptionService
     private function medicineRows(array $inputs): array
     {
         $productIds = array_values(array_unique(array_filter(array_column($inputs, 'product_id'))));
-        $products = Product::query()
-            ->where('type', 'medicine')
-            ->whereIn('id', $productIds)
-            ->orderBy('id')
-            ->lockForUpdate()
-            ->get(['id', 'name'])
-            ->keyBy('id');
+        $products = Product::where('type', 'medicine')->whereIn('id', $productIds)
+            ->orderBy('id')->lockForUpdate()->get(['id', 'name'])->keyBy('id');
         $rows = [];
 
         foreach ($inputs as $index => $input) {

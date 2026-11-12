@@ -3,6 +3,8 @@
 namespace Modules\Hospital\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +13,10 @@ use Modules\TenantCore\Models\PaymentType;
 #[Fillable(['patient_id', 'doctor_id', 'entry_date', 'payment_type_id', 'eye_type', 'amount', 'discount_mode', 'discount_percent', 'discount_amount', 'extra_discount_percent', 'extra_discount_amount', 'paid_amount', 'payable_amount', 'due_amount', 'due_date', 'delivery_date'])]
 class PatientInvestigation extends BaseModel
 {
+    public const SERVICE = 'investigation';
+
+    public const REFUND_RELATION = 'refunds';
+
     public const DELIVERY_STATUSES = ['pending' => 'Pending', 'delivered' => 'Delivered'];
 
     protected string $crudPermission = 'patient-investigations';
@@ -77,9 +83,21 @@ class PatientInvestigation extends BaseModel
         return $this->hasMany(Refund::class, 'investigation_id');
     }
 
+    public function refundedItems(): BelongsToMany
+    {
+        return $this->belongsToMany(Investigation::class, 'refund_items', 'invoice_id', 'item_id')
+            ->withPivot(['refund_id', 'rate', 'amount', 'eye_type', 'position']);
+    }
+
     public function dueCollections(): HasMany
     {
         return $this->hasMany(DueCollection::class, 'investigation_id');
+    }
+
+    #[Scope]
+    protected function withRefundedGross(Builder $query): void
+    {
+        $query->withSum('refundedItems as refunded_gross', 'refund_items.rate');
     }
 
     public function hasReferences(): bool

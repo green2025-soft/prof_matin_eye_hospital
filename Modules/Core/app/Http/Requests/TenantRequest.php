@@ -19,7 +19,7 @@ class TenantRequest extends BaseRequest
             $rules[$field] = $this->onCreate($fieldRules);
         }
 
-        $rules['password_confirmation'] = $this->onCreate(['required', 'string', 'min:'.config('auth.password_min_length', 5), 'max:4096']);
+        $rules['password_confirmation'] = $this->onCreate(['required', 'string']);
         $rules['logo'] = TenantRules::logo();
         $rules['logo_path'] = ['prohibited'];
         $rules['database'] = ['prohibited'];

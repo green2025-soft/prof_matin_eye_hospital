@@ -8,18 +8,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Modules\Core\Http\Controllers\BaseController;
-use Modules\Core\Services\AccessManager;
 use Modules\Prescription\Models\GlassPrescription;
 use Modules\Prescription\Models\Prescription;
 
 class DashboardController extends BaseController
 {
-    public function index(Request $request, AccessManager $access): View
+    public function index(Request $request): View
     {
         $actor = $request->user('web');
-        $subscription = $request->attributes->get('application_subscription');
-        $plan = $subscription?->isUsable() ? $subscription->plan : null;
-        $permissions = $access->navigationPermissions($actor, $plan);
+        $permissions = $request->attributes->get('navigation_permissions', []);
         $gate = Gate::forUser($actor);
         $today = now(config('app.timezone'));
 

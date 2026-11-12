@@ -3,6 +3,7 @@
 namespace Modules\Pharmacy\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -105,6 +106,14 @@ class ProductVariant extends BaseModel
 
     public function hasReferences(): bool
     {
-        return $this->balances()->withoutGlobalScope('branch')->exists();
+        return $this->balances_exists ?? $this->balances()->withoutGlobalScope('branch')->exists();
+    }
+
+    public function listQuery(): Builder
+    {
+        return parent::listQuery()
+            ->withExists([
+                'balances' => fn (Builder $balances) => $balances->withoutGlobalScope('branch'),
+            ]);
     }
 }

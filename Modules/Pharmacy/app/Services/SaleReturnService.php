@@ -4,7 +4,9 @@ namespace Modules\Pharmacy\Services;
 
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
+use Modules\Core\Helpers\Money;
 use Modules\Core\Models\Account;
+use Modules\Core\Services\SmsService;
 use Modules\Pharmacy\Models\ProductUnit;
 use Modules\Pharmacy\Models\Sale;
 use Modules\Pharmacy\Models\SaleReturn;
@@ -140,5 +142,44 @@ class SaleReturnService extends ReturnEntryService
     protected function postStock(StockEntry $entry): int
     {
         return $this->stock->returnSale($entry);
+    }
+
+    protected function afterCreated(Account $actor, StockEntry $entry, array $settings): void
+    {
+        $prefix = 'sms_'.$entry->product_type.'_sale_return';
+        $enabled = (bool) ($settings[$prefix.'_enabled'] ?? false);
+        if (! $enabled) {
+            return;
+        }
+
+        $customer = $this->customers->findMany($actor, [$entry->customer_id])[$entry->customer_id] ?? null;
+        if (blank($customer['mobile_no'] ?? null)) {
+            return;
+        }
+
+        $sale = $entry->sale()
+            ->firstOrFail(['id', 'number', 'outstanding']);
+
+        app(SmsService::class)->queue(
+            $entry,
+            'pharmacy.'.$entry->product_type.'.sale_return',
+            'pharmacy.sale_return.created:'.$entry->getKey(),
+            $customer['mobile_no'],
+            $enabled,
+            $settings[$prefix.'_template'] ?? '',
+            [
+                ...($customer['sms_values'] ?? []),
+                'name' => $customer['name'],
+                'invoice' => $entry->number,
+                'source_invoice' => $sale->number,
+                'date' => $entry->entry_date->format('d-m-Y'),
+                'total' => Money::decimal($entry->total),
+                'paid' => Money::decimal($entry->initial_paid),
+                'due' => Money::decimal($sale->outstanding),
+                'amount' => Money::decimal($entry->total),
+                'refund' => Money::decimal($entry->initial_paid),
+                'due_adjustment' => Money::decimal($entry->total - $entry->initial_paid),
+            ],
+        );
     }
 }

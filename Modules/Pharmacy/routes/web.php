@@ -31,7 +31,7 @@ use Modules\Pharmacy\Http\Controllers\TransferController;
 use Modules\Pharmacy\Http\Controllers\UnitController;
 use Modules\Pharmacy\Http\Controllers\WastageController;
 
-Route::middleware(['web', 'auth', 'tenant'])->prefix('pharmacy')->name('pharmacy.')->group(function (): void {
+Route::middleware(['web', 'auth', 'tenant', 'access'])->prefix('pharmacy')->name('pharmacy.')->group(function (): void {
     Route::prefix('selectors')->group(function (): void {
         Route::get('categories', [ProductCategoryController::class, 'options'])->name('categories.options');
         Route::get('dosages', [DosageController::class, 'options'])->name('dosages.options');

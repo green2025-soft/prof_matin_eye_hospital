@@ -8,6 +8,7 @@ use Illuminate\Validation\ValidationException;
 use Modules\Core\Helpers\Money;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Setting;
+use Modules\Core\Services\SmsService;
 use Modules\Pharmacy\Models\Sale;
 use Modules\Pharmacy\Models\StockEntry;
 
@@ -101,5 +102,38 @@ class SaleService extends TradeEntryService
         $settings = Setting::values('pharmacy', $entry->getConnectionName());
 
         return $this->stock->issueSale($entry, $minimumExpiryDate, (bool) $settings[$entry->product_type.'_sale_without_stock_enabled']);
+    }
+
+    protected function afterCreated(Account $actor, StockEntry $entry, array $settings): void
+    {
+        $prefix = 'sms_'.$entry->product_type.'_sale';
+        $enabled = (bool) ($settings[$prefix.'_enabled'] ?? false);
+        if (! $enabled) {
+            return;
+        }
+
+        $customer = $this->customers->findMany($actor, [$entry->customer_id])[$entry->customer_id] ?? null;
+        if (blank($customer['mobile_no'] ?? null)) {
+            return;
+        }
+
+        app(SmsService::class)->queue(
+            $entry,
+            'pharmacy.'.$entry->product_type.'.sale',
+            'pharmacy.sale.created:'.$entry->getKey(),
+            $customer['mobile_no'],
+            $enabled,
+            $settings[$prefix.'_template'] ?? '',
+            [
+                ...($customer['sms_values'] ?? []),
+                'name' => $customer['name'],
+                'invoice' => $entry->number,
+                'date' => $entry->entry_date->format('d-m-Y'),
+                'total' => Money::decimal($entry->total),
+                'paid' => Money::decimal($entry->paid),
+                'due' => Money::decimal($entry->outstanding),
+                'amount' => Money::decimal($entry->total),
+            ],
+        );
     }
 }

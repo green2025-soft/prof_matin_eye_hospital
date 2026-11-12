@@ -8,7 +8,7 @@ use Illuminate\Validation\ValidationException;
 use Modules\Core\Helpers\Money;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Setting;
-use Modules\Core\Services\AccessManager;
+use Modules\Core\Services\SmsService;
 use Modules\Hospital\Contracts\PharmacyCustomers;
 use Modules\Pharmacy\Models\Payment;
 use Modules\Pharmacy\Models\PharmacySequence;
@@ -20,14 +20,14 @@ use Modules\TenantCore\Models\PaymentType;
 
 class PaymentService
 {
-    public function __construct(private AccessManager $access, private PharmacyAccess $pharmacy, private PharmacyCustomers $customers) {}
+    public function __construct(private PharmacyAccess $pharmacy, private PharmacyCustomers $customers) {}
 
     public function save(Account $actor, ?Payment $record, array $values): Payment
     {
         abort_if($record !== null, 405, 'Posted payments cannot be edited.');
 
         try {
-            return $this->access->transaction($actor, function (Account $freshActor) use ($values): Payment {
+            return $actor->withAccessLock(function (Account $freshActor) use ($values): Payment {
                 $this->pharmacy->authorize($freshActor, 'pharmacy-payments.create');
                 if (Carbon::parse($values['payment_date'])->startOfDay()->gt(now()->startOfDay())) {
                     throw ValidationException::withMessages(['payment_date' => 'The payment date cannot be in the future.']);
@@ -36,19 +36,31 @@ class PaymentService
                 $direction = $values['direction'];
                 $customerId = $direction === 'customer' ? (int) $values['customer_id'] : null;
                 $supplierId = $direction === 'supplier' ? (int) $values['supplier_id'] : null;
+                $customer = $customerId === null
+                    ? null
+                    : ($this->customers->findMany($freshActor, [$customerId])[$customerId] ?? null);
+                $supplier = $supplierId === null ? null : Supplier::find($supplierId, ['id', 'name', 'contact_no']);
 
-                if ($customerId !== null && ! isset($this->customers->findMany($freshActor, [$customerId])[$customerId])) {
+                if ($customerId !== null && $customer === null) {
                     throw ValidationException::withMessages(['customer_id' => 'Select a valid customer.']);
                 }
-                if ($supplierId !== null && ! Supplier::whereKey($supplierId)->exists()) {
+                if ($supplierId !== null && $supplier === null) {
                     throw ValidationException::withMessages(['supplier_id' => 'Select a valid supplier.']);
                 }
 
                 if (! empty($values['payment_type_id']) && ! PaymentType::whereKey($values['payment_type_id'])->exists()) {
                     throw ValidationException::withMessages(['payment_type_id' => 'Choose a valid payment type.']);
                 }
+                $settings = Setting::values('pharmacy', $payment->getConnectionName());
+                $number = $this->nextNumber(
+                    (int) request()->attributes->get('branch_id'),
+                    $values['product_type'],
+                    $values['payment_date'],
+                    $settings,
+                );
+
                 $payment->forceFill([
-                    'number' => $this->nextNumber((int) request()->attributes->get('branch_id'), $values['product_type'], $values['payment_date']),
+                    'number' => $number,
                     'direction' => $direction,
                     'product_type' => $values['product_type'],
                     'payment_date' => $values['payment_date'],
@@ -58,9 +70,9 @@ class PaymentService
                     'notes' => $values['notes'] ?? null,
                 ]);
                 if ($direction === 'customer') {
-                    $this->collectCustomerPayment($freshActor, $payment, $values);
+                    $this->collectCustomerPayment($freshActor, $payment, $values, $customer, $settings);
                 } else {
-                    $this->paySupplier($freshActor, $payment, $values);
+                    $this->paySupplier($freshActor, $payment, $values, $supplier, $settings);
                 }
 
                 return $payment;
@@ -74,7 +86,7 @@ class PaymentService
         }
     }
 
-    private function collectCustomerPayment(Account $actor, Payment $payment, array $values): void
+    private function collectCustomerPayment(Account $actor, Payment $payment, array $values, array $customer, array $settings): void
     {
         $ids = array_column($values['allocations'], 'sale_id');
         $sales = Sale::where('customer_id', $payment->customer_id)
@@ -97,9 +109,40 @@ class PaymentService
         }
         $this->saveTotals($payment, $allocations);
         $payment->saleAllocations()->forceCreateMany($allocations);
+
+        $prefix = 'sms_'.$payment->product_type.'_customer_payment';
+        $enabled = (bool) ($settings[$prefix.'_enabled'] ?? false);
+        if (! $enabled || blank($customer['mobile_no'] ?? null)) {
+            return;
+        }
+
+        $due = Sale::outstanding()
+            ->where('customer_id', $payment->customer_id)
+            ->where('product_type', $payment->product_type)
+            ->sum('outstanding');
+
+        app(SmsService::class)->queue(
+            $payment,
+            'pharmacy.'.$payment->product_type.'.payment',
+            'pharmacy.payment.created:'.$payment->getKey(),
+            $customer['mobile_no'],
+            $enabled,
+            $settings[$prefix.'_template'] ?? '',
+            [
+                ...($customer['sms_values'] ?? []),
+                'name' => $customer['name'],
+                'invoice' => $payment->number,
+                'date' => $payment->payment_date->format('d-m-Y'),
+                'total' => Money::decimal($payment->amount + $payment->discount),
+                'paid' => Money::decimal($payment->amount),
+                'due' => Money::decimal($due),
+                'amount' => Money::decimal($payment->amount),
+                'direction' => 'Customer collection',
+            ],
+        );
     }
 
-    private function paySupplier(Account $actor, Payment $payment, array $values): void
+    private function paySupplier(Account $actor, Payment $payment, array $values, Supplier $supplier, array $settings): void
     {
         $ids = array_column($values['allocations'], 'purchase_id');
         $purchases = Purchase::where('supplier_id', $payment->supplier_id)
@@ -122,6 +165,36 @@ class PaymentService
         }
         $this->saveTotals($payment, $allocations);
         $payment->purchaseAllocations()->forceCreateMany($allocations);
+
+        $prefix = 'sms_'.$payment->product_type.'_supplier_payment';
+        $enabled = (bool) ($settings[$prefix.'_enabled'] ?? false);
+        if (! $enabled || blank($supplier->contact_no)) {
+            return;
+        }
+
+        $due = Purchase::outstanding()
+            ->where('supplier_id', $payment->supplier_id)
+            ->where('product_type', $payment->product_type)
+            ->sum('outstanding');
+
+        app(SmsService::class)->queue(
+            $payment,
+            'pharmacy.'.$payment->product_type.'.payment',
+            'pharmacy.payment.created:'.$payment->getKey(),
+            $supplier->contact_no,
+            $enabled,
+            $settings[$prefix.'_template'] ?? '',
+            [
+                'name' => $supplier->name,
+                'invoice' => $payment->number,
+                'date' => $payment->payment_date->format('d-m-Y'),
+                'total' => Money::decimal($payment->amount + $payment->discount),
+                'paid' => Money::decimal($payment->amount),
+                'due' => Money::decimal($due),
+                'amount' => Money::decimal($payment->amount),
+                'direction' => 'Supplier payment',
+            ],
+        );
     }
 
     private function applyAllocation(Account $actor, ?StockEntry $invoice, int $amount, int $discount, string $paymentDate, int|string $index): array
@@ -159,9 +232,8 @@ class PaymentService
         ])->save();
     }
 
-    private function nextNumber(int $branchId, string $productType, string $paymentDate): string
+    private function nextNumber(int $branchId, string $productType, string $paymentDate, array $settings): string
     {
-        $connection = (new Payment)->getConnection();
         $scope = 'payment:'.$branchId;
         PharmacySequence::insertOrIgnore([
             'scope' => $scope,
@@ -177,7 +249,6 @@ class PaymentService
         $sequence->last_number = $number;
         $sequence->save();
 
-        $settings = Setting::values('pharmacy', $connection->getName());
         $pattern = $settings['payment_invoice_pattern'] ?? 'PAY-{BRANCH}-{SEQ:6}';
         $date = Carbon::parse($paymentDate, config('app.timezone'));
         $formatted = strtr($pattern, [
@@ -197,7 +268,7 @@ class PaymentService
 
     public function reverse(Account $actor, Payment $record): void
     {
-        $this->access->transaction($actor, function (Account $freshActor) use ($record): void {
+        $actor->withAccessLock(function (Account $freshActor) use ($record): void {
             $this->pharmacy->authorize($freshActor, 'pharmacy-payments.void');
             $payment = Payment::whereKey($record->id)
                 ->lockForUpdate()

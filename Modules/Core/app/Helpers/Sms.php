@@ -9,9 +9,9 @@ use Modules\Core\Models\Setting;
 
 class Sms
 {
-    public function send(string $to, string $message): Response
+    public function send(string $to, string $message, ?array $configuration = null): Response
     {
-        $values = Setting::values('sms', 'central');
+        $values = $configuration ?? Setting::values('sms', 'central');
 
         if (! $values['enabled']) {
             throw new LogicException('SMS delivery is disabled in platform settings.');
@@ -27,8 +27,8 @@ class Sms
         ];
         $headers = $this->parameters($values['headers'] ?: '{}', $replacements);
         $parameters = $this->parameters($values['parameters'], $replacements);
-        $request = Http::connectTimeout(5)
-            ->timeout(20)
+        $request = Http::connectTimeout(3)
+            ->timeout(8)
             ->withoutRedirecting()
             ->withHeaders($headers);
 
@@ -43,6 +43,50 @@ class Sms
 
         // A 2xx response is transport acceptance; callers must interpret the provider's result.
         return $request->post($values['api_url'], $parameters)->throw();
+    }
+
+    // GSM extension characters use two septets; Unicode uses UTF-16 code units.
+    public function segments(string $message): int
+    {
+        $basic = <<<'GSM'
+@£$¥èéùìòÇØøÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà
+GSM;
+        $basic .= "\n\r";
+        $extensions = "\f^{}\\[~]|€";
+        $gsmWidths = [];
+        $unicodeWidths = [];
+
+        foreach (mb_str_split($message) as $character) {
+            $unicodeWidths[] = mb_ord($character) > 0xFFFF ? 2 : 1;
+            if (str_contains($basic, $character)) {
+                $gsmWidths[] = 1;
+            } elseif (str_contains($extensions, $character)) {
+                $gsmWidths[] = 2;
+            } else {
+                $gsmWidths[] = null;
+            }
+        }
+
+        $unicode = in_array(null, $gsmWidths, true);
+        $widths = $unicode ? $unicodeWidths : $gsmWidths;
+        $singleLimit = $unicode ? 70 : 160;
+        $partLimit = $unicode ? 67 : 153;
+        if (array_sum($widths) <= $singleLimit) {
+            return 1;
+        }
+
+        $parts = 1;
+        $used = 0;
+        // Keep escape sequences and surrogate pairs together at each part boundary.
+        foreach ($widths as $width) {
+            if ($used + $width > $partLimit) {
+                $parts++;
+                $used = 0;
+            }
+            $used += $width;
+        }
+
+        return $parts;
     }
 
     private function parameters(string $template, array $replacements): array

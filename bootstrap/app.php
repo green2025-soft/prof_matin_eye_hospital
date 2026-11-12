@@ -9,7 +9,9 @@ use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Modules\Core\Http\Middleware\EnsureActiveSubscription;
 use Modules\Core\Http\Middleware\EnsureCentralApplication;
+use Modules\Core\Http\Middleware\EnsureModulePermission;
 use Modules\Core\Http\Middleware\EnsureSessionScope;
+use Modules\Core\Http\Middleware\ProcessPendingSms;
 use Modules\Core\Http\Middleware\ResolveApplication;
 use Spatie\Multitenancy\Exceptions\NoCurrentTenant;
 use Spatie\Multitenancy\Http\Middleware\NeedsTenant;
@@ -27,10 +29,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(fn (): string => route('auth.login'));
         $middleware->redirectUsersTo(fn (): string => route('home'));
-        $middleware->trimStrings(except: ['credentials.*']);
+        $middleware->trimStrings(except: ['credentials.*', 'gateway.api_key', 'gateway.username', 'gateway.password', 'gateway.headers', 'gateway.parameters']);
         $middleware->validateCsrfTokens(except: ['core/payments/callback/*', 'core/payments/notify/*']);
 
-        $middleware->web(prepend: [ResolveApplication::class], append: [EnsureSessionScope::class, AuthenticateSession::class]);
+        $middleware->web(prepend: [ResolveApplication::class], append: [EnsureSessionScope::class, AuthenticateSession::class, ProcessPendingSms::class]);
         $middleware->prependToPriorityList(EncryptCookies::class, ResolveApplication::class);
         $middleware->appendToPriorityList(StartSession::class, EnsureSessionScope::class);
         $middleware->prependToPriorityList(AuthenticatesRequests::class, EnsureCentralApplication::class);
@@ -39,6 +41,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'central' => EnsureCentralApplication::class,
             'subscribed' => EnsureActiveSubscription::class,
+            'access' => EnsureModulePermission::class,
+            'core.permission' => EnsureModulePermission::class,
+            'tenantcore.permission' => EnsureModulePermission::class,
+            'prescription.permission' => EnsureModulePermission::class.':prescription.view',
             'tenant' => NeedsTenant::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
@@ -47,7 +53,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->map(NoCurrentTenant::class, fn (NoCurrentTenant $exception): NotFoundHttpException => new NotFoundHttpException(previous: $exception));
-        $exceptions->dontFlash(['remember_token', 'credentials', 'token']);
+        $exceptions->dontFlash(['remember_token', 'credentials', 'gateway', 'token']);
     })->create();
 
 // Set the deployed web root here when public files live outside the project.

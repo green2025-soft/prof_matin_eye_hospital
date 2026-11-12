@@ -14,11 +14,19 @@ use Modules\TenantCore\Http\Controllers\DistrictController;
 use Modules\TenantCore\Http\Controllers\DivisionController;
 use Modules\TenantCore\Http\Controllers\ModuleDashboardController;
 use Modules\TenantCore\Http\Controllers\PaymentTypeController;
+use Modules\TenantCore\Http\Controllers\SmsController;
+use Modules\TenantCore\Http\Controllers\SmsRechargeController;
 use Modules\TenantCore\Http\Controllers\ThanaController;
 
-Route::middleware(['web', 'auth', 'tenant'])->name('tenantcore.')->group(function (): void {
+Route::middleware(['web', 'auth', 'tenant', 'tenantcore.permission'])->name('tenantcore.')->group(function (): void {
     Route::get('module-dashboard', [ModuleDashboardController::class, 'index'])->name('module-dashboard.index');
     Route::get('workspace', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::prefix('sms')->group(function (): void {
+        Route::get('/', [SmsController::class, 'index'])->name('sms.index');
+        Route::get('recharges/{sms_recharge}/proof', [SmsRechargeController::class, 'proof'])->name('sms-recharges.proof');
+        Route::resource('recharges', SmsRechargeController::class)->parameters(['recharges' => 'sms_recharge'])->names('sms-recharges')->only(['index', 'create', 'store']);
+    });
 
     Route::controller(BranchDashboardController::class)->prefix('branch-dashboard')->name('branch-dashboard.')->group(function (): void {
         Route::get('/', 'index')->name('index');

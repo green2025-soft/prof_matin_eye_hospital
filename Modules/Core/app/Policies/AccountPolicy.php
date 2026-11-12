@@ -5,12 +5,9 @@ namespace Modules\Core\Policies;
 use Modules\Core\Enums\AccessPermission;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Admin;
-use Modules\Core\Services\AccessManager;
 
 class AccountPolicy
 {
-    public function __construct(private AccessManager $access) {}
-
     public function viewAny(Account $actor): bool
     {
         return $this->permitted($actor, AccessPermission::ViewAccounts);
@@ -43,19 +40,17 @@ class AccountPolicy
     private function canManageTarget(Account $actor, Account $account): bool
     {
         $model = Account::modelForProvider($actor instanceof Admin ? 'admins' : 'users');
-        if (get_class($account) !== $model || ! $this->access->actorMatchesContext($account)) {
+        if (get_class($account) !== $model || ! $account->matchesApplication()) {
             return false;
         }
 
-        return $this->access->isOwner($actor)
-            || (! $this->access->isOwner($account)
-                && $this->access->permissionsWithinActor($actor, $account->getAllPermissions()));
+        return $actor->isOwner()
+            || (! $account->isOwner() && $actor->canGrantPermissions($account->getAllPermissions()));
     }
 
     private function permitted(Account $actor, AccessPermission $permission): bool
     {
-        return $this->access->actorMatchesContext($actor)
-            && ($this->access->isOwner($actor)
-                || $this->access->permissionNames($actor)->contains($permission->value));
+        return $actor->matchesApplication()
+            && (request()->attributes->get('navigation_permissions', [])[$permission->value] ?? false);
     }
 }

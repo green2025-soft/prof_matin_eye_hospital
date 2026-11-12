@@ -4,16 +4,13 @@ namespace Modules\TenantCore\Policies;
 
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Tenant;
-use Modules\Core\Services\AccessManager;
 use Modules\TenantCore\Models\Branch;
 
 class BranchPolicy
 {
-    public function __construct(private readonly AccessManager $access) {}
-
     public function before(Account $actor): ?bool
     {
-        return $this->access->actorMatchesContext($actor) && $actor->getConnectionName() === 'tenant' ? null : false;
+        return $actor->matchesApplication() && $actor->getConnectionName() === 'tenant' ? null : false;
     }
 
     public function selectAny(Account $actor): bool

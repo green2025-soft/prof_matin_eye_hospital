@@ -10,13 +10,13 @@ use Modules\Hospital\Http\Requests\DeliveryInvestigationRequest;
 use Modules\Hospital\Models\Doctor;
 use Modules\Hospital\Models\Patient;
 use Modules\Hospital\Models\PatientInvestigation;
-use Modules\Hospital\Services\ClinicalEntryService;
+use Modules\Hospital\Services\InvestigationDeliveryService;
 
 class DeliveryInvestigationController extends BaseController
 {
     protected string $model = PatientInvestigation::class;
 
-    protected string $title = 'Delivery investigation';
+    protected string $title = 'Report Delivery';
 
     protected string $views = 'hospital::delivery-investigations';
 
@@ -60,13 +60,12 @@ class DeliveryInvestigationController extends BaseController
         return $this->listData($request, $data);
     }
 
-    public function update(DeliveryInvestigationRequest $request, ClinicalEntryService $entries): RedirectResponse
+    public function update(DeliveryInvestigationRequest $request, InvestigationDeliveryService $entries): RedirectResponse
     {
         $record = $entries->setInvestigationDeliveryStatus(
             $request->user('web'),
             $this->record($request),
             $request->validated('target_status'),
-            (int) $request->attributes->get('branch_id'),
         );
 
         return redirect()

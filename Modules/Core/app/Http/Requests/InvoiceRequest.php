@@ -27,7 +27,7 @@ class InvoiceRequest extends BaseRequest
             'items' => ['required', 'array', 'min:1', 'max:100'],
             'items.*.description' => ['required', 'string', 'max:1000'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:100000'],
-            'items.*.unit_amount' => ['required', 'string', 'regex:/^\d{1,10}(?:\.\d{1,2})?$/D'],
+            'items.*.unit_amount' => ['required', 'string', 'decimal:0,2', 'between:0,9999999999.99'],
             'status' => ['sometimes', 'required', Rule::in([Invoice::STATUS_DRAFT, Invoice::STATUS_ISSUED])],
         ];
     }

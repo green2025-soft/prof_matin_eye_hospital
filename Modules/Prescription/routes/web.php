@@ -7,7 +7,7 @@ use Modules\Prescription\Http\Controllers\PrescriptionController;
 use Modules\Prescription\Http\Controllers\PrescriptionOptionController;
 use Modules\Prescription\Http\Controllers\SettingController;
 
-Route::middleware(['web', 'auth', 'tenant', 'subscribed', 'permission:prescription.view'])
+Route::middleware(['web', 'auth', 'tenant', 'subscribed', 'prescription.permission'])
     ->prefix('prescription')
     ->name('prescription.')
     ->group(function (): void {

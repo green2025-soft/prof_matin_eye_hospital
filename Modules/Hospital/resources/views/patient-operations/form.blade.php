@@ -11,6 +11,7 @@
         action="{{ $formAction }}"
         method="POST"
         data-clinical-entry="operation"
+        data-default-payment="{{ ! $patient_operation->exists && ! session()->hasOldInput('paid_amount') ? $paymentDefault : 'manual' }}"
         data-record-exists="{{ $patient_operation->exists ? '1' : '0' }}"
         data-initial-amount="{{ $patient_operation->amount ?? '0.00' }}"
         data-original-source-ids="{{ json_encode(($patient_operation->exists ? [$patient_operation->operation_id] : [])) }}"

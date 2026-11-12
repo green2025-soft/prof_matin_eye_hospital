@@ -8,11 +8,11 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Modules\Hospital\Http\Requests\CommissionRequest;
 use Modules\Hospital\Models\Reference;
-use Modules\Hospital\Services\ClinicalEntryService;
+use Modules\Hospital\Services\CommissionService;
 
 class CommissionController extends Controller
 {
-    public function index(CommissionRequest $request, ClinicalEntryService $entries): View
+    public function index(CommissionRequest $request, CommissionService $entries): View
     {
         $actor = $request->user('web');
         $permissions = $request->attributes->get('navigation_permissions', []);
@@ -37,7 +37,7 @@ class CommissionController extends Controller
         return view('hospital::commissions.index', $data);
     }
 
-    public function update(CommissionRequest $request, ClinicalEntryService $entries): RedirectResponse
+    public function update(CommissionRequest $request, CommissionService $entries): RedirectResponse
     {
         $invoiceId = filter_var(
             $request->route('invoice'),

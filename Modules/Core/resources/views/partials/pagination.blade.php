@@ -1,6 +1,6 @@
 @php($paginator->appends(menuParameters()))
 <div class="app-pagination d-flex flex-wrap align-items-center justify-content-between gap-3 border-top px-3 px-md-4 py-3">
-    <form class="d-flex flex-wrap align-items-center gap-2" action="{{ $paginator->path() }}" method="GET" data-page-size-form>
+    <form class="d-flex flex-wrap align-items-center gap-2" action="{{ $paginator->path() }}" method="GET">
         @foreach (\Illuminate\Support\Arr::except($filters + menuParameters(), ['page', 'per_page']) as $key => $value)
             @if (is_scalar($value) && $value !== '')
                 <input name="{{ $key }}" type="hidden" value="{{ $value }}">

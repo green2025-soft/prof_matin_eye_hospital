@@ -30,7 +30,13 @@ class CheckoutAttempt extends CoreModel
 
     protected function casts(): array
     {
-        return ['amount_minor' => 'integer', 'extra_charge_minor' => 'integer', 'credential_snapshot' => 'encrypted:array', 'expires_at' => 'immutable_datetime', 'checked_at' => 'immutable_datetime'];
+        return [
+            'amount_minor' => 'integer',
+            'extra_charge_minor' => 'integer',
+            'credential_snapshot' => 'encrypted:array',
+            'expires_at' => 'immutable_datetime',
+            'checked_at' => 'immutable_datetime',
+        ];
     }
 
     public function invoice(): BelongsTo

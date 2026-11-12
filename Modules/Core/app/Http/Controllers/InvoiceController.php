@@ -26,10 +26,9 @@ class InvoiceController extends BaseController
 
     protected string $parameter = 'invoice';
 
-    public function index(ListRequest $request): View
+    public function index(ListRequest $request, InvoiceService $invoices): View
     {
-        $data = app(InvoiceService::class)
-            ->indexData($request->user('web'), $request->validated());
+        $data = $invoices->indexData($request->user('web'), $request->validated());
 
         return $this->listData($request, $data);
     }

@@ -14,6 +14,9 @@
         <button class="btn btn-sm {{ $activeHospitalSection === 'operation' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="operation" aria-pressed="{{ $activeHospitalSection === 'operation' ? 'true' : 'false' }}">Operation</button>
         <button class="btn btn-sm {{ $activeHospitalSection === 'refund' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="refund" aria-pressed="{{ $activeHospitalSection === 'refund' ? 'true' : 'false' }}">Refund</button>
         <button class="btn btn-sm {{ $activeHospitalSection === 'due_collection' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="due_collection" aria-pressed="{{ $activeHospitalSection === 'due_collection' ? 'true' : 'false' }}">Due Collection</button>
+        @if ($smsNotifications !== [])
+            <button class="btn btn-sm {{ $activeHospitalSection === 'sms' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="sms" aria-pressed="{{ $activeHospitalSection === 'sms' ? 'true' : 'false' }}">SMS</button>
+        @endif
     </form>
 
     @include('hospital::settings.form')

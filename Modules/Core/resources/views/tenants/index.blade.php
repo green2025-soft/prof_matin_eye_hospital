@@ -66,7 +66,7 @@
                                     <div class="d-flex justify-content-end align-items-center gap-2 text-nowrap">
                                         @can('enter', $tenant)
                                             @if ($tenant->domains->isNotEmpty())
-                                                <form action="{{ route('core.tenants.enter', $tenant) }}" method="POST">
+                                                <form action="{{ route('core.tenants.enter', $tenant) }}" target="_blank" method="POST">
                                                     @csrf
                                                     <button class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2" type="submit" aria-label="Open {{ $tenant->name }} dashboard" title="Open dashboard"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Dashboard</span></button>
                                                 </form>

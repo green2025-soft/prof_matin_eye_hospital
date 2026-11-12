@@ -9,13 +9,11 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Setting;
-use Modules\Core\Models\Subscription;
 use Modules\Core\Models\Tenant;
-use Modules\Core\Services\AccessManager;
 
 class LayoutComposer
 {
-    public function __construct(private Request $request, private readonly AccessManager $access) {}
+    public function __construct(private Request $request) {}
 
     public function compose(View $view): void
     {
@@ -34,12 +32,7 @@ class LayoutComposer
         $permissions = [];
 
         if ($actor !== null) {
-            $subscription = $central ? null : ($this->request->attributes->has('application_subscription')
-                ? $this->request->attributes->get('application_subscription')
-                : Subscription::forTenant(Tenant::current()));
-            $plan = $subscription?->isUsable() ? $subscription->plan : null;
-            $permissions = $this->request->attributes->get('navigation_permissions')
-                ?? $this->access->navigationPermissions($actor, $plan);
+            $permissions = $this->request->attributes->get('navigation_permissions', []);
             $gate = Gate::forUser($actor);
 
             $user = [
@@ -47,7 +40,7 @@ class LayoutComposer
                 'email' => $actor->email,
                 'initial' => Str::upper(Str::substr($actor->name, 0, 1)),
                 'label' => $central ? 'Platform account' : 'Workspace account',
-                'editUrl' => $gate->allows('update', $actor) && ($central || $plan?->allowsRoutePermission($actor->profileUpdatePermission()))
+                'editUrl' => isset($permissions[$actor->profileUpdatePermission()]) && $gate->allows('update', $actor)
                     ? route($actor->profileRoutePrefix().'.edit', $actor->getKey()) : null,
             ];
 

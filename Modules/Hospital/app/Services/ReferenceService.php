@@ -10,15 +10,10 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Setting;
-use Modules\Core\Models\Subscription;
-use Modules\Core\Models\Tenant;
-use Modules\Core\Services\AccessManager;
 use Modules\Hospital\Models\Reference;
 
 class ReferenceService
 {
-    public function __construct(private AccessManager $access) {}
-
     public function save(Account $actor, ?Reference $record, array $values, int $branchId): Reference
     {
         Gate::forUser($actor)->authorize($record ? 'update' : 'create', $record ?? Reference::class);
@@ -28,18 +23,9 @@ class ReferenceService
         }
 
         try {
-            return $this->access->transaction($actor, function (Account $freshActor) use ($record, $values, $branchId): Reference {
+            return $actor->withAccessLock(function (Account $freshActor) use ($record, $values, $branchId): Reference {
                 $reference = $record ? $record->newQuery()->whereKey($record->getKey())->lockForUpdate()->firstOrFail() : new Reference;
                 Gate::forUser($freshActor)->authorize($reference->exists ? 'update' : 'create', $reference);
-                $tenant = Tenant::current();
-                $subscription = $tenant === null ? null : Subscription::forTenant($tenant);
-                if (! $subscription?->isUsable()
-                    || ! $subscription->plan->allowsRoutePermission('hospital.view')
-                    || ! $subscription->plan->allowsRoutePermission($reference->exists ? 'references.update' : 'references.create')
-                    || (! $this->access->isOwner($freshActor) && ! $freshActor->can('hospital.view'))) {
-                    throw new AuthorizationException('Your account and plan must allow this Hospital action.');
-                }
-
                 $settings = Setting::values('hospital', $reference->getConnectionName());
                 foreach (['consultation_percent', 'investigation_percent', 'operation_percent'] as $field) {
                     if (! $settings['reference_percentages_enabled'] || ! $settings['reference_'.$field.'_enabled']) {

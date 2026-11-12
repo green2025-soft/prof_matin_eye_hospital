@@ -78,7 +78,7 @@
                         <div>
                             <h2 class="small fw-medium text-success-emphasis mb-1">Today's patients</h2>
                             <p class="h3 fw-bold text-body-emphasis mb-1">{{ number_format($patientCount) }}</p>
-                            <p class="small text-body-secondary mb-0">New registrations</p>
+                            <p class="small text-body-secondary mb-0">New Registration</p>
                         </div>
                     </article>
                 </div>
@@ -90,7 +90,7 @@
                             <i class="fa-solid fa-calendar-check fs-4" aria-hidden="true"></i>
                         </span>
                         <div>
-                            <h2 class="small fw-medium text-primary-emphasis mb-1">Appointments</h2>
+                            <h2 class="small fw-medium text-primary-emphasis mb-1">Appointment</h2>
                             <p class="h3 fw-bold text-body-emphasis mb-1">{{ number_format($appointmentCount) }}</p>
                             <p class="small text-body-secondary mb-0">Scheduled for today</p>
                         </div>
@@ -104,7 +104,7 @@
                             <i class="fa-solid fa-notes-medical fs-4" aria-hidden="true"></i>
                         </span>
                         <div>
-                            <h2 class="small fw-medium text-info-emphasis mb-1">Consultations</h2>
+                            <h2 class="small fw-medium text-info-emphasis mb-1">Consultation</h2>
                             <p class="h3 fw-bold text-body-emphasis mb-1">{{ number_format($consultationCount) }}</p>
                             <p class="small text-body-secondary text-break mb-0">&#2547; {{ $consultationPayable }} billed today</p>
                         </div>
@@ -118,7 +118,7 @@
                             <i class="fa-solid fa-flask fs-4" aria-hidden="true"></i>
                         </span>
                         <div>
-                            <h2 class="small fw-medium text-warning-emphasis mb-1">Investigations</h2>
+                            <h2 class="small fw-medium text-warning-emphasis mb-1">Investigation</h2>
                             <p class="h3 fw-bold text-body-emphasis mb-1">{{ number_format($investigationCount) }}</p>
                             <p class="small text-body-secondary text-break mb-0">&#2547; {{ $investigationPayable }} billed today</p>
                         </div>
@@ -132,7 +132,7 @@
                             <i class="fa-solid fa-stethoscope fs-4" aria-hidden="true"></i>
                         </span>
                         <div>
-                            <h2 class="small fw-medium text-danger-emphasis mb-1">Operations</h2>
+                            <h2 class="small fw-medium text-danger-emphasis mb-1">Operation</h2>
                             <p class="h3 fw-bold text-body-emphasis mb-1">{{ number_format($operationCount) }}</p>
                             <p class="small text-body-secondary text-break mb-0">&#2547; {{ $operationPayable }} billed today</p>
                         </div>
@@ -148,8 +148,8 @@
                 <section class="app-card h-100 overflow-hidden" aria-labelledby="hospital-recent-appointments-heading">
                     <header class="d-flex align-items-center justify-content-between gap-3 p-3 border-bottom bg-primary-subtle text-primary-emphasis">
                         <div>
-                            <h2 class="h6 fw-semibold mb-1" id="hospital-recent-appointments-heading">Recent appointments</h2>
-                            <p class="small text-body-secondary mb-0">Latest 5 appointments</p>
+                            <h2 class="h6 fw-semibold mb-1" id="hospital-recent-appointments-heading">Recent Appointment</h2>
+                            <p class="small text-body-secondary mb-0">Latest 5 Appointments</p>
                         </div>
                         <a class="btn btn-primary btn-sm" href="{{ route('hospital.appointments.index') }}">View all</a>
                     </header>
@@ -176,7 +176,7 @@
                                         </td>
                                     </tr>
                                 @empty
-                                    <tr><td class="text-center text-body-secondary py-5" colspan="3">No appointments yet.</td></tr>
+                                    <tr><td class="text-center text-body-secondary py-5" colspan="3">No appointment yet.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -189,8 +189,8 @@
                 <section class="app-card h-100 overflow-hidden" aria-labelledby="hospital-recent-patients-heading">
                     <header class="d-flex align-items-center justify-content-between gap-3 p-3 border-bottom bg-success-subtle text-success-emphasis">
                         <div>
-                            <h2 class="h6 fw-semibold mb-1" id="hospital-recent-patients-heading">Recent patients</h2>
-                            <p class="small text-body-secondary mb-0">Latest 5 registrations</p>
+                            <h2 class="h6 fw-semibold mb-1" id="hospital-recent-patients-heading">Recent Patient</h2>
+                            <p class="small text-body-secondary mb-0">Latest 5 Registration</p>
                         </div>
                         <a class="btn btn-success btn-sm" href="{{ route('hospital.patients.index') }}">View all</a>
                     </header>

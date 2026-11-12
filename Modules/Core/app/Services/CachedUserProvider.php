@@ -69,11 +69,7 @@ class CachedUserProvider extends EloquentUserProvider
     private function permissionsFromSnapshot(array $attributes, string $connection): Collection
     {
         $permissionModel = config('permission.models.permission');
-        $permissions = new Collection;
-        foreach ($attributes as $permissionAttributes) {
-            $permissions->push((new $permissionModel)->newFromBuilder($permissionAttributes, $connection));
-        }
 
-        return $permissions;
+        return $permissionModel::on($connection)->hydrate($attributes);
     }
 }

@@ -1254,6 +1254,7 @@ function initializeClinicalEntry(form) {
     const $extraDiscountPercent = $form.find('[name="extra_discount_percent"]');
     const $paidAmount = $form.find('[name="paid_amount"]');
     const recordExists = $form.attr('data-record-exists') === '1';
+    let followPayable = !recordExists && $form.attr('data-default-payment') === 'paid';
     const initialAmount = $form.attr('data-initial-amount');
     const originalEyeType = $form.attr('data-original-eye-type') || 'left';
     let discountMode = kind === 'operation' || $discountModeField.val() === 'amount' ? 'amount' : 'percent';
@@ -1458,6 +1459,9 @@ function initializeClinicalEntry(form) {
             payable -= roundRatio(payable * extraPercent, 10000n);
         }
         $form.find('[data-clinical-payable]').val(formatAmount(payable));
+        if (followPayable) {
+            $paidAmount.val(formatAmount(payable));
+        }
         const paid = parseClinicalDecimal($paidAmount.val());
         if (paid !== null && paid <= payable) {
             $form.find('[data-clinical-due]').val(formatAmount(payable - paid));
@@ -1498,6 +1502,9 @@ function initializeClinicalEntry(form) {
         renderPayment();
     });
     $form.on('input.clinicalEntry change.clinicalEntry', '[name="discount_percent"], [name="discount_amount"], [name="extra_discount_percent"], [name="paid_amount"]', function () {
+        if (this.name === 'paid_amount') {
+            followPayable = false;
+        }
         if (this.name === 'discount_percent' || this.name === 'discount_amount') {
             discountMode = this.name === 'discount_percent' ? 'percent' : 'amount';
             $discountModeField.val(discountMode);

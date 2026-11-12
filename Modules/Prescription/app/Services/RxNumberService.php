@@ -17,14 +17,13 @@ class RxNumberService
 
         $date = $record->prescription_date;
         $number = strtr($pattern, [
-            '{YYYY}' => $date->format('Y'),
-            '{YY}' => $date->format('y'),
-            '{MM}' => $date->format('m'),
-            '{DD}' => $date->format('d'),
-            '{BRANCH}' => (string) $record->branch_id,
+            '{YYYY}'    => $date->format('Y'),
+            '{YY}'      => $date->format('y'),
+            '{MM}'      => $date->format('m'),
+            '{DD}'      => $date->format('d'),
+            '{BRANCH}'  => (string) $record->branch_id,
         ]);
-        $number = preg_replace_callback(
-            '/\{SEQ(?::([1-9]|1[0-2]))?\}/',
+        $number = preg_replace_callback('/\{SEQ(?::([1-9]|1[0-2]))?\}/',
             fn (array $token): string => str_pad((string) $record->getKey(), (int) ($token[1] ?? 6), '0', STR_PAD_LEFT),
             $number,
         );

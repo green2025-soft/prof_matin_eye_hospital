@@ -18,11 +18,11 @@ use SensitiveParameter;
 
 class AccountService
 {
-    public function __construct(private AccessManager $access, private AccountPolicy $policy, private SubscriptionService $subscriptions) {}
+    public function __construct(private AccountPolicy $policy, private SubscriptionService $subscriptions) {}
 
     public function save(Account $actor, ?Model $record, #[SensitiveParameter] array $values): Model
     {
-        $this->access->assertActorContext($actor);
+        $actor->assertApplicationContext();
         $model = Account::modelForProvider($actor instanceof Admin ? 'admins' : 'users');
 
         if ($record !== null && (! $record instanceof Account || get_class($record) !== $model)) {
@@ -40,7 +40,7 @@ class AccountService
     private function persist(Account $actor, ?Model $record, #[SensitiveParameter] array $values): Model
     {
         try {
-            return $this->access->transaction($actor, function (Account $freshActor) use ($record, $values): Account {
+            return $actor->withAccessLock(function (Account $freshActor) use ($record, $values): Account {
                 $model = Account::modelForProvider($freshActor instanceof Admin ? 'admins' : 'users');
                 $target = $record?->exists
                     ? $record->newQuery()
@@ -64,7 +64,7 @@ class AccountService
                         throw new AuthorizationException;
                     }
 
-                    $roles = $this->access->rolesForAssignment($freshActor, $values['roles'] ?? []);
+                    $roles = $this->rolesForAssignment($freshActor, $values['roles'] ?? []);
                     $this->assertOwnerRemains($target, $roles);
                 }
 
@@ -108,7 +108,7 @@ class AccountService
             throw new AuthorizationException;
         }
 
-        $this->access->transaction($actor, function (Account $freshActor) use ($record): void {
+        $actor->withAccessLock(function (Account $freshActor) use ($record): void {
             $target = $record->newQuery()
                 ->whereKey($record->getKey())
                 ->lockForUpdate()
@@ -125,7 +125,7 @@ class AccountService
 
     public function formData(Account $actor, Model $record): array
     {
-        $this->access->assertActorContext($actor);
+        $actor->assertApplicationContext();
         $model = Account::modelForProvider($actor instanceof Admin ? 'admins' : 'users');
 
         if (! $record instanceof Account || get_class($record) !== $model) {
@@ -137,7 +137,8 @@ class AccountService
         $hasBranches = $isTenantUser && (bool) Tenant::current()?->has_branches;
         $branches = new Collection;
         $roles = $canAssignRoles
-            ? $this->access->rolesQuery($actor)
+            ? Role::on($actor->getConnectionName())
+                ->assignableBy($actor)
                 ->orderBy('name')
                 ->orderBy('id')
                 ->get(['id', 'name', 'guard_name'])
@@ -169,9 +170,26 @@ class AccountService
         ];
     }
 
+    private function rolesForAssignment(Account $actor, array $roleIds): Collection
+    {
+        $roles = Role::on($actor->getConnectionName())
+            ->assignableBy($actor)
+            ->whereIn('id', $roleIds)
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->with('permissions')
+            ->get();
+
+        if ($roles->count() !== count($roleIds)) {
+            throw ValidationException::withMessages(['roles' => 'Select roles from this application within your own access.']);
+        }
+
+        return $roles;
+    }
+
     private function assertOwnerRemains(Account $account, Collection $roles): void
     {
-        if (! $account->exists || ! $this->access->isOwner($account)
+        if (! $account->exists || ! $account->isOwner()
             || $roles->contains(fn (Role $role): bool => $role->isReserved())) {
             return;
         }

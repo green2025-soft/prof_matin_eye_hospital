@@ -3,6 +3,7 @@
 namespace Modules\Pharmacy\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['name', 'symbol'])]
@@ -21,8 +22,14 @@ class Unit extends BaseModel
         return $this->hasMany(ProductUnit::class);
     }
 
+    public function listQuery(): Builder
+    {
+        return parent::listQuery()
+            ->withExists('productUnits');
+    }
+
     public function hasReferences(): bool
     {
-        return $this->productUnits()->exists();
+        return $this->product_units_exists ?? $this->productUnits()->exists();
     }
 }

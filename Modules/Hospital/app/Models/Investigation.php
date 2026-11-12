@@ -4,6 +4,7 @@ namespace Modules\Hospital\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 #[Fillable(['name', 'category_id', 'single_rate', 'both_rate', 'room_no', 'ordering'])]
 class Investigation extends BaseModel
@@ -32,5 +33,10 @@ class Investigation extends BaseModel
     public function category(): BelongsTo
     {
         return $this->belongsTo(InvestigationCategory::class, 'category_id');
+    }
+
+    public function refunds(): BelongsToMany
+    {
+        return $this->belongsToMany(Refund::class, 'refund_items', 'item_id', 'refund_id');
     }
 }

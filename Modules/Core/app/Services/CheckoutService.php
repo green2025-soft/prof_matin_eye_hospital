@@ -30,8 +30,10 @@ class CheckoutService
         $manualInstructions = '';
 
         if ($canPay) {
-            $settings = Setting::on('central')->whereIn('group', $available)
-                ->where('data->enabled', true)->get(['group', 'data']);
+            $settings = Setting::on('central')
+                ->whereIn('group', $available)
+                ->where('data->enabled', true)
+                ->get(['group', 'data']);
 
             foreach ($settings as $setting) {
                 $values = $setting->publicValues();
@@ -48,7 +50,7 @@ class CheckoutService
             }
         }
 
-        $active = $canPay ? CheckoutAttempt::query()->where('active_invoice_id', $invoice->getKey())
+        $active = $canPay ? CheckoutAttempt::where('active_invoice_id', $invoice->getKey())
             ->first(['id', 'provider', 'status', 'redirect_url', 'submitted_reference', 'amount_minor', 'extra_charge_minor', 'created_at']) : null;
 
         return [
@@ -77,7 +79,7 @@ class CheckoutService
             throw new AuthorizationException;
         }
 
-        $invoice = Invoice::query()->findOrFail($values['invoice_id']);
+        $invoice = Invoice::findOrFail($values['invoice_id']);
         abort_unless($this->policy->pay($actor, $invoice), 403);
         $provider = $values['provider'];
         $settings = Setting::values($provider, 'central');
@@ -91,7 +93,9 @@ class CheckoutService
         $attempt = $invoice->locked(function (Invoice $current) use ($actor, $values, $provider, $settings): CheckoutAttempt {
             abort_if($current->tenant()->lockForUpdate()->value('status') === Tenant::STATUS_DELETING, 409, 'This tenant is being deleted.');
             abort_unless($this->policy->pay($actor, $current), 403);
-            $active = CheckoutAttempt::query()->where('active_invoice_id', $current->getKey())->lockForUpdate()->first();
+            $active = CheckoutAttempt::where('active_invoice_id', $current->getKey())
+                ->lockForUpdate()
+                ->first();
 
             if ($active !== null) {
                 if ($active->provider !== $provider || $active->status === CheckoutAttempt::STATUS_CREATING) {
@@ -161,7 +165,9 @@ class CheckoutService
 
     public function verify(string $provider, #[SensitiveParameter] string $token, array $callback = []): CheckoutAttempt
     {
-        $attempt = CheckoutAttempt::query()->where('token', $token)->where('provider', $provider)->firstOrFail();
+        $attempt = CheckoutAttempt::where('token', $token)
+            ->where('provider', $provider)
+            ->firstOrFail();
 
         if (in_array($attempt->status, [CheckoutAttempt::STATUS_PAID, CheckoutAttempt::STATUS_FAILED], true)) {
             return $attempt;
@@ -176,7 +182,9 @@ class CheckoutService
         }
 
         return $attempt->invoice->locked(function (Invoice $invoice) use ($attempt, $result): CheckoutAttempt {
-            $current = CheckoutAttempt::query()->whereKey($attempt->getKey())->lockForUpdate()->firstOrFail();
+            $current = CheckoutAttempt::whereKey($attempt->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
 
             if (in_array($current->status, [CheckoutAttempt::STATUS_PAID, CheckoutAttempt::STATUS_FAILED], true)) {
                 return $current;
@@ -214,11 +222,13 @@ class CheckoutService
 
     public function approve(Account $actor, CheckoutAttempt $attempt): CheckoutAttempt
     {
-        return app(AccessManager::class)->transaction($actor, function (Account $freshActor) use ($attempt): CheckoutAttempt {
+        return $actor->withAccessLock(function (Account $freshActor) use ($attempt): CheckoutAttempt {
             Gate::forUser($freshActor)->authorize('create', Payment::class);
 
             return $attempt->invoice->locked(function (Invoice $invoice) use ($freshActor, $attempt): CheckoutAttempt {
-                $current = CheckoutAttempt::query()->whereKey($attempt->getKey())->lockForUpdate()->firstOrFail();
+                $current = CheckoutAttempt::whereKey($attempt->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
                 if ($current->status === CheckoutAttempt::STATUS_PAID) {
                     return $current;
@@ -243,11 +253,13 @@ class CheckoutService
 
     public function reconcile(CheckoutAttempt $attempt): CheckoutAttempt
     {
-        $current = CheckoutAttempt::query()->whereKey($attempt->getKey())->firstOrFail();
+        $current = CheckoutAttempt::whereKey($attempt->getKey())->firstOrFail();
 
         if ($current->status === CheckoutAttempt::STATUS_CREATING) {
             $current = $current->invoice->locked(function () use ($current): CheckoutAttempt {
-                $pending = CheckoutAttempt::query()->whereKey($current->getKey())->lockForUpdate()->firstOrFail();
+                $pending = CheckoutAttempt::whereKey($current->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
                 // No checkout URL reached the customer before this interrupted initialization.
                 if ($pending->status === CheckoutAttempt::STATUS_CREATING
@@ -271,11 +283,13 @@ class CheckoutService
 
     public function reject(Account $actor, CheckoutAttempt $attempt, ?string $reason): CheckoutAttempt
     {
-        return app(AccessManager::class)->transaction($actor, function (Account $freshActor) use ($attempt, $reason): CheckoutAttempt {
+        return $actor->withAccessLock(function (Account $freshActor) use ($attempt, $reason): CheckoutAttempt {
             Gate::forUser($freshActor)->authorize('create', Payment::class);
 
             return $attempt->invoice->locked(function () use ($attempt, $reason): CheckoutAttempt {
-                $current = CheckoutAttempt::query()->whereKey($attempt->getKey())->lockForUpdate()->firstOrFail();
+                $current = CheckoutAttempt::whereKey($attempt->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail();
                 $this->assertReviewable($current);
                 $current->forceFill(['status' => CheckoutAttempt::STATUS_FAILED, 'active_invoice_id' => null,
                     'notes' => filled($reason) ? $reason : $current->notes])->save();
@@ -295,7 +309,9 @@ class CheckoutService
     private function finishStart(CheckoutAttempt $attempt, #[SensitiveParameter] array $values): CheckoutAttempt
     {
         return $attempt->invoice->locked(function () use ($attempt, $values): CheckoutAttempt {
-            $current = CheckoutAttempt::query()->whereKey($attempt->getKey())->lockForUpdate()->firstOrFail();
+            $current = CheckoutAttempt::whereKey($attempt->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
 
             if ($current->status === CheckoutAttempt::STATUS_CREATING) {
                 $current->forceFill($values)->save();

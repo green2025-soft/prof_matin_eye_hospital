@@ -83,10 +83,10 @@
                 <tbody>
                     @foreach ($items as $item)
                         <tr>
-                            <td class="text-break">{{ $item['description'] }}</td>
-                            <td class="text-end">{{ $item['quantity'] }}</td>
-                            <td class="text-end">{{ $item['unit'] }}</td>
-                            <td class="text-end">{{ $item['total'] }}</td>
+                            <td class="text-break">{{ $item->description }}</td>
+                            <td class="text-end">{{ $item->quantity }}</td>
+                            <td class="text-end">{{ moneyDecimal($item->unit_amount_minor) }}</td>
+                            <td class="text-end">{{ moneyDecimal($item->line_total_minor) }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -196,7 +196,7 @@
         </section>
     @endif
 
-    @if ($payments !== [])
+    @if ($payments->isNotEmpty())
         <section class="app-card mt-4 overflow-hidden">
             <div class="app-card-heading px-3 py-3 border-bottom">
                 <h2 class="h6 mb-0">Recent payments (latest 20)</h2>
@@ -214,12 +214,12 @@
                     <tbody>
                         @foreach ($payments as $payment)
                             <tr>
-                                <td>{{ $payment['date'] }}</td>
-                                <td>{{ $payment['provider'] }}</td>
-                                <td class="text-break">{{ $payment['reference'] ?? '-' }}</td>
+                                <td>{{ $payment->paid_at->format('d M Y') }}</td>
+                                <td>{{ $payment->provider }}</td>
+                                <td class="text-break">{{ $payment->provider_reference ?? '-' }}</td>
                                 <td class="text-end">
-                                    {{ $invoice->currency }} {{ $payment['received'] }}
-                                    <div class="small text-body-secondary">Invoice {{ $payment['amount'] }} + extra {{ $payment['extraCharge'] }}</div>
+                                    {{ $invoice->currency }} {{ moneyDecimal($payment->amount_minor + $payment->extra_charge_minor) }}
+                                    <div class="small text-body-secondary">Invoice {{ moneyDecimal($payment->amount_minor) }} + extra {{ moneyDecimal($payment->extra_charge_minor) }}</div>
                                 </td>
                             </tr>
                         @endforeach

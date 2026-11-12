@@ -4,7 +4,7 @@
         'accounts.view', 'payment-types.view',
         'divisions.view', 'districts.view', 'thanas.view',
         'roles.view', 'audit-logs.view', 'permissions.view',
-        'billing.view', 'settings.view',
+        'billing.view', 'settings.view', 'sms.view',
     ]);
 @endphp
 
@@ -88,4 +88,8 @@
         'url' => route('tenantcore.settings.index'),
         'active' => request()->routeIs('tenantcore.settings.*'),
     ])
+@endif
+
+@if ($layout['permissions']['sms.view'] ?? false)
+    @include('core::partials.navigation-link', ['label' => 'SMS wallet', 'icon' => 'comment-sms', 'url' => route('tenantcore.sms.index'), 'active' => request()->routeIs('tenantcore.sms.*', 'tenantcore.sms-recharges.*')])
 @endif

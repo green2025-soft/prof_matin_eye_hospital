@@ -3,17 +3,13 @@
 namespace Modules\TenantCore\Policies;
 
 use Modules\Core\Models\Account;
-use Modules\Core\Services\AccessManager;
 use Modules\TenantCore\Models\AuditLog;
 
 class AuditLogPolicy
 {
-    public function __construct(private AccessManager $access) {}
-
     public function viewAny(Account $actor): bool
     {
-        return $actor->getConnectionName() === 'tenant' && $this->access->actorMatchesContext($actor)
-            && ($this->access->isOwner($actor) || $actor->can('audit-logs.view'));
+        return $actor->getConnectionName() === 'tenant' && $actor->matchesApplication();
     }
 
     public function view(Account $actor, AuditLog $auditLog): bool

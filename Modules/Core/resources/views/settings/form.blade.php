@@ -213,6 +213,7 @@
                 $smsBodyFormat = ($configuredCredentials['parameters'] ?? false) ? $values['data']['body_format'] : 'form';
                 $showSmsAdvanced = $errors->hasAny([
                     'data.provider', 'data.method', 'data.body_format',
+                    'data.success_field', 'data.success_value', 'data.failure_values',
                     'credentials.username', 'credentials.password', 'credentials.headers', 'credentials.parameters',
                 ]);
             @endphp
@@ -271,6 +272,31 @@
                             <option value="form" {{ getSelected('form', 'data.body_format', null, $smsBodyFormat) }}>Form encoded</option>
                         </select>
                         @error('data.body_format')<div class="invalid-feedback d-block" id="sms-body-format-error">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="sms-success-field">Success response field</label>
+                        <input class="{{ inputClass('data.success_field') }}" id="sms-success-field" name="data[success_field]" type="text"
+                            value="{{ getValue('data.success_field', null, $values['data']['success_field'] ?? '') }}"
+                            maxlength="100" placeholder="response_code" {{ inputAttrs('data.success_field', 'sms-success-field', 'sms-success-help') }}>
+                        @error('data.success_field')<div class="invalid-feedback d-block" id="sms-success-field-error">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="sms-success-value">Success value</label>
+                        <input class="{{ inputClass('data.success_value') }}" id="sms-success-value" name="data[success_value]" type="text"
+                            value="{{ getValue('data.success_value', null, $values['data']['success_value'] ?? '') }}"
+                            maxlength="100" placeholder="202" {{ inputAttrs('data.success_value', 'sms-success-value', 'sms-success-help') }}>
+                        @error('data.success_value')<div class="invalid-feedback d-block" id="sms-success-value-error">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-12">
+                        <p class="form-text mb-0" id="sms-success-help">Leave the response field blank to use HTTP success only. Otherwise match the field and value in your provider's JSON response.</p>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="sms-failure-values">Confirmed rejection values</label>
+                        <input class="{{ inputClass('data.failure_values') }}" id="sms-failure-values" name="data[failure_values]" type="text"
+                            value="{{ getValue('data.failure_values', null, $values['data']['failure_values'] ?? '') }}"
+                            maxlength="1000" placeholder="false" {{ inputAttrs('data.failure_values', 'sms-failure-values', 'sms-failure-help') }}>
+                        <div class="form-text" id="sms-failure-help">Comma-separated response values that confirm rejection in your provider's documentation. Leave blank when unsure; other unmatched responses remain uncertain.</div>
+                        @error('data.failure_values')<div class="invalid-feedback d-block" id="sms-failure-values-error">{{ $message }}</div>@enderror
                     </div>
                     @include('core::settings.credentials', ['credentialFields' => array_diff_key($credentialFields, ['api_key' => true])])
                 </div>

@@ -4,7 +4,6 @@ namespace Modules\Core\Http\Requests;
 
 use Illuminate\Validation\Rule;
 use Modules\Core\Models\Account;
-use Modules\Core\Services\AccessManager;
 
 class SelectorRequest extends BaseRequest
 {
@@ -17,7 +16,7 @@ class SelectorRequest extends BaseRequest
     {
         $actor = $this->user('web');
 
-        return $actor instanceof Account && app(AccessManager::class)->actorMatchesContext($actor);
+        return $actor instanceof Account && $actor->matchesApplication();
     }
 
     public function rules(): array

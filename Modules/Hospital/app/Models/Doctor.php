@@ -87,6 +87,7 @@ class Doctor extends Account
         return $this->hasDirectPermission($permission);
     }
 
+    // Gates and middleware read the shared Doctor grants through this Spatie API.
     public function getAllPermissions(): Collection
     {
         $cache = app(ContextCache::class);
@@ -98,19 +99,13 @@ class Doctor extends Account
         }
 
         $connection = $this->getConnection()->getName();
-        $snapshot = $cache->remember($connection, 'doctor-permissions', 'shared', function (): array {
-            $table = config('permission.table_names.permissions');
-
-            return Permission::on($this->getConnectionName())
-                ->join('doctor_permissions', 'doctor_permissions.permission_id', '=', $table.'.id')
-                ->where($table.'.guard_name', $this->permissionGuardName())
-                ->orderBy($table.'.id')->get([$table.'.id', $table.'.name', $table.'.guard_name'])
-                ->map(fn (Permission $permission): array => $permission->getAttributes())->all();
-        });
-        $permissions = (new Permission)->newCollection();
-        foreach ($snapshot as $attributes) {
-            $permissions->push((new Permission)->newFromBuilder($attributes, $connection));
-        }
+        $snapshot = $cache->remember($connection, 'doctor-permissions', 'shared', fn (): array => Permission::on($connection)
+            ->whereIn('id', DoctorPermission::on($connection)->select('permission_id'))
+            ->where('guard_name', $this->permissionGuardName())
+            ->orderBy('id')
+            ->get(['id', 'name', 'guard_name'])
+            ->toArray());
+        $permissions = Permission::on($connection)->hydrate($snapshot);
 
         if ($cacheable) {
             request()->attributes->set($cacheKey, $permissions);
@@ -151,6 +146,7 @@ class Doctor extends Account
         return $this->getAllPermissions()->pluck('name');
     }
 
+    // Doctor permissions change through the shared set, never through individual grants.
     public function givePermissionTo(...$permissions): static
     {
         throw new AuthorizationException('Manage the shared Doctor permissions instead of individual grants.');

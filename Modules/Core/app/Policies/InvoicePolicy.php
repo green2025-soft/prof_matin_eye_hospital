@@ -22,7 +22,7 @@ class InvoicePolicy extends PlatformPolicy
         }
 
         return $record->issued_at !== null && Tenant::current()?->getKey() === $record->tenant_id
-            && ($actor->hasOwnerRole() || $actor->can('billing.view'));
+            && (request()->attributes->get('navigation_permissions', [])['billing.view'] ?? false);
     }
 
     public function update(Account $actor, Model $record): bool

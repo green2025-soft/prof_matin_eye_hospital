@@ -3,6 +3,8 @@
 namespace Modules\Hospital\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -11,6 +13,10 @@ use Modules\TenantCore\Models\PaymentType;
 #[Fillable(['appointment_id', 'patient_id', 'doctor_id', 'entry_date', 'payment_type_id', 'patient_type', 'amount', 'discount_mode', 'discount_percent', 'discount_amount', 'paid_amount', 'payable_amount', 'due_amount', 'due_date'])]
 class Consultation extends BaseModel
 {
+    public const SERVICE = 'consultation';
+
+    public const REFUND_RELATION = 'refund';
+
     protected string $crudPermission = 'consultations';
 
     protected bool $branchScoped = true;
@@ -73,6 +79,16 @@ class Consultation extends BaseModel
     public function dueCollections(): HasMany
     {
         return $this->hasMany(DueCollection::class, 'consultation_id');
+    }
+
+    #[Scope]
+    protected function withRefundedGross(Builder $query): void
+    {
+        $query->addSelect([
+            'refunded_gross' => Refund::select($this->qualifyColumn('amount'))
+                ->whereColumn($this->refund()->getQualifiedForeignKeyName(), $this->getQualifiedKeyName())
+                ->limit(1),
+        ]);
     }
 
     public function hasReferences(): bool

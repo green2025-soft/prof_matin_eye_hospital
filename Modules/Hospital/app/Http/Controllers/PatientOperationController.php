@@ -17,7 +17,7 @@ use Modules\Hospital\Models\Operation;
 use Modules\Hospital\Models\Patient;
 use Modules\Hospital\Models\PatientOperation;
 use Modules\Hospital\Models\Reference;
-use Modules\Hospital\Services\ClinicalEntryService;
+use Modules\Hospital\Services\PatientOperationService;
 use Modules\TenantCore\Models\PaymentType;
 
 class PatientOperationController extends BaseController
@@ -26,20 +26,24 @@ class PatientOperationController extends BaseController
 
     protected string $title = 'Patient operation';
 
-    protected string $service = ClinicalEntryService::class;
+    protected string $service = PatientOperationService::class;
 
     protected string $views = 'hospital::patient-operations';
 
     protected string $parameter = 'patient_operation';
 
-    public function index(ListRequest $request): View
+    public function index(ListRequest $request, PatientOperationService $operations): View
     {
         $branchId = max(0, (int) $request->attributes->get('branch_id', 0));
         $view = $this->listData($request);
 
         $data = [
-            'invoiceBalances' => app(ClinicalEntryService::class)
-                ->listInvoiceBalances($request->user('web'), new PatientOperation, $view->getData()['records']->modelKeys(), $branchId),
+            'invoiceBalances' => $operations->listInvoiceBalances(
+                $request->user('web'),
+                new PatientOperation,
+                $view->getData()['records']->modelKeys(),
+                $branchId,
+            ),
             'filterDoctor' => $this->selectedOption(
                 Doctor::where('branch_id', $branchId),
                 $request->validated('filter_doctor_id'),
@@ -55,16 +59,16 @@ class PatientOperationController extends BaseController
         return $view->with($data);
     }
 
-    public function show(Request $request, ClinicalEntryService $entries): View
+    public function show(Request $request, PatientOperationService $operations): View
     {
-        $data = $entries->invoiceData($request->user('web'), $this->record($request));
+        $data = $operations->invoiceData($request->user('web'), $this->record($request));
 
         return view('hospital::patient-operations.invoice', $data);
     }
 
-    public function store(PatientOperationRequest $request, ClinicalEntryService $entries): RedirectResponse
+    public function store(PatientOperationRequest $request, PatientOperationService $operations): RedirectResponse
     {
-        $operation = $entries->saveOperation(
+        $operation = $operations->save(
             $request->user('web'),
             $this->record($request),
             $request->payload(),
@@ -80,9 +84,11 @@ class PatientOperationController extends BaseController
         $branchId = max(0, (int) request()->attributes->get('branch_id', 0));
         $today = now(config('app.timezone'))
             ->toDateString();
-        $referenceEnabled = (bool) Setting::values('hospital', $record->getConnectionName())['operation_reference_enabled'];
+        $settings = Setting::values('hospital', $record->getConnectionName());
+        $referenceEnabled = (bool) $settings['operation_reference_enabled'];
 
         return [
+            'paymentDefault' => $settings['operation_payment_default'],
             'referenceEnabled' => $referenceEnabled,
             'canCreatePatient' => Gate::forUser($actor)->allows('create', Patient::class),
             'selectedReference' => $referenceEnabled ? $this->selectedOption(Reference::query(), getValue('reference_id', $record), ['id', 'reference_id', 'name', 'contact_no']) : null,

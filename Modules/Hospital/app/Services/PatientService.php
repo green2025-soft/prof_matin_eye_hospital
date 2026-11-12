@@ -13,16 +13,11 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Setting;
-use Modules\Core\Models\Subscription;
-use Modules\Core\Models\Tenant;
-use Modules\Core\Services\AccessManager;
 use Modules\Hospital\Contracts\PharmacyCustomers;
 use Modules\Hospital\Models\Patient;
 
 class PatientService implements PharmacyCustomers
 {
-    public function __construct(private AccessManager $access) {}
-
     public function paginate(Account $actor, array $filters): LengthAwarePaginator
     {
         $this->authorizePharmacyCustomers($actor);
@@ -89,9 +84,14 @@ class PatientService implements PharmacyCustomers
         $customers = [];
         foreach (array_chunk(array_unique($ids), 500) as $chunk) {
             $records = Patient::withoutGlobalScope('branch')->whereIn('id', $chunk)
-                ->get(['id', 'patient_id', 'name', 'mobile_no', 'type']);
+                ->get([
+                    'id', 'patient_id', 'name', 'mobile_no', 'type', 'address',
+                    'age', 'age_months', 'age_days', 'date_of_birth', 'father_husband_name',
+                ]);
             foreach ($records as $patient) {
-                $customers[$patient->id] = $this->customerOption($patient);
+                $customers[$patient->id] = $this->customerOption($patient) + [
+                    'sms_values' => $patient->smsValues(),
+                ];
             }
         }
 
@@ -101,7 +101,7 @@ class PatientService implements PharmacyCustomers
     public function create(Account $actor, array $values, int $branchId): array
     {
         try {
-            return $this->access->transaction($actor, function (Account $freshActor) use ($values, $branchId): array {
+            return $actor->withAccessLock(function (Account $freshActor) use ($values, $branchId): array {
                 $this->authorizePharmacyCustomers($freshActor, creating: true);
                 if ($branchId < 1 || $branchId !== (int) request()->attributes->get('branch_id')) {
                     throw new AuthorizationException('Select a branch before creating a customer.');
@@ -126,32 +126,19 @@ class PatientService implements PharmacyCustomers
 
     private function authorizePharmacyCustomers(Account $actor, bool $creating = false): void
     {
-        $this->access->assertActorContext($actor);
-        $tenant = Tenant::current();
-        $subscription = $tenant === null ? null : Subscription::forTenant($tenant);
-        $plan = $subscription?->plan;
-        $isOwner = $this->access->isOwner($actor);
-        if (! $subscription?->isUsable() || ! $plan->allowsRoutePermission('pharmacy.view')
-            || (! $isOwner && ! $actor->can('pharmacy.view'))) {
-            throw new AuthorizationException('Pharmacy access is required.');
-        }
-
+        $actor->assertApplicationContext();
+        $navigationPermissions = request()->attributes->get('navigation_permissions', []);
         $permissions = $creating ? ['pharmacy-sales.create', 'pharmacy-customers.create'] : [
             'pharmacy-sales.view', 'pharmacy-sales.create', 'pharmacy-sales.update',
             'pharmacy-sale-returns.view', 'pharmacy-sale-returns.create', 'pharmacy-sale-returns.update',
             'pharmacy-customers.view', 'pharmacy-payments.view', 'pharmacy-payments.create',
             'pharmacy-reports.view',
         ];
-        $allowedCount = 0;
-        foreach ($permissions as $permission) {
-            if ($plan->allowsRoutePermission($permission) && ($isOwner || $actor->can($permission))) {
-                $allowedCount++;
-            }
-        }
+        $allowed = array_intersect_key(array_filter($navigationPermissions), array_flip($permissions));
 
         // Creation needs both grants; reading accepts any approved customer workflow.
         $requiredCount = $creating ? count($permissions) : 1;
-        if ($allowedCount < $requiredCount) {
+        if (! ($navigationPermissions['pharmacy.view'] ?? false) || count($allowed) < $requiredCount) {
             throw new AuthorizationException('Your account or plan does not include this customer action.');
         }
     }
@@ -170,7 +157,7 @@ class PatientService implements PharmacyCustomers
         }
 
         try {
-            return $this->access->transaction($actor, function (Account $freshActor) use ($record, $values, $branchId): Patient {
+            return $actor->withAccessLock(function (Account $freshActor) use ($record, $values, $branchId): Patient {
                 $patient = $record ? $record->newQuery()->whereKey($record->getKey())->lockForUpdate()->firstOrFail() : new Patient;
 
                 if (! $patient->exists) {
@@ -178,19 +165,6 @@ class PatientService implements PharmacyCustomers
                 }
 
                 Gate::forUser($freshActor)->authorize($patient->exists ? 'update' : 'create', $patient);
-
-                $tenant = Tenant::current();
-                $subscription = $tenant === null ? null : Subscription::forTenant($tenant);
-                if (! $subscription?->isUsable()) {
-                    throw new AuthorizationException('An active subscription is required to save patients.');
-                }
-                if (! $subscription->plan->allowsRoutePermission('hospital.view')
-                    || ! $subscription->plan->allowsRoutePermission($patient->exists ? 'patients.update' : 'patients.create')) {
-                    throw new AuthorizationException('Your plan does not include this action.');
-                }
-                if (! $this->access->isOwner($freshActor) && ! $freshActor->can('hospital.view')) {
-                    throw new AuthorizationException('Hospital access is required to save patients.');
-                }
 
                 if (! $patient->exists) {
                     $patient->patient_id = $this->nextPatientId($patient);

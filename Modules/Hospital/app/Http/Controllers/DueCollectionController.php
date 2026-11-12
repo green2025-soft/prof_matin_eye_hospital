@@ -13,7 +13,7 @@ use Modules\Core\Http\Requests\ListRequest;
 use Modules\Core\Models\Account;
 use Modules\Hospital\Http\Requests\DueCollectionRequest;
 use Modules\Hospital\Models\DueCollection;
-use Modules\Hospital\Services\ClinicalEntryService;
+use Modules\Hospital\Services\DueCollectionService;
 use Modules\TenantCore\Models\PaymentType;
 
 class DueCollectionController extends BaseController
@@ -22,7 +22,7 @@ class DueCollectionController extends BaseController
 
     protected string $title = 'Due collection';
 
-    protected string $service = ClinicalEntryService::class;
+    protected string $service = DueCollectionService::class;
 
     protected string $views = 'hospital::due-collections';
 
@@ -33,9 +33,9 @@ class DueCollectionController extends BaseController
         return $this->listData($request);
     }
 
-    public function store(DueCollectionRequest $request, ClinicalEntryService $entries): RedirectResponse
+    public function store(DueCollectionRequest $request, DueCollectionService $entries): RedirectResponse
     {
-        $collection = $entries->saveDueCollection(
+        $collection = $entries->save(
             $request->user('web'),
             $this->record($request),
             $request->payload(),
@@ -46,16 +46,16 @@ class DueCollectionController extends BaseController
             ->with('status', 'Due collection'.($this->isUpdate($request) ? ' updated.' : ' created.'));
     }
 
-    public function show(Request $request, ClinicalEntryService $entries): View
+    public function show(Request $request, DueCollectionService $entries): View
     {
         $data = $entries->invoiceData($request->user('web'), $this->record($request));
 
         return view('hospital::due-collections.invoice', $data);
     }
 
-    public function invoices(DueCollectionRequest $request, ClinicalEntryService $entries): JsonResponse
+    public function invoices(DueCollectionRequest $request, DueCollectionService $entries): JsonResponse
     {
-        $records = $entries->dueInvoices($request->user('web'), (int) $request->attributes->get('branch_id'), $request->validated());
+        $records = $entries->invoices($request->user('web'), (int) $request->attributes->get('branch_id'), $request->validated());
         $data = [
             'records' => $records,
         ];
@@ -63,9 +63,9 @@ class DueCollectionController extends BaseController
         return JsonResponse::fromJsonString(view('hospital::selectors.invoices', $data)->render());
     }
 
-    public function invoice(DueCollectionRequest $request, ClinicalEntryService $entries): JsonResponse
+    public function invoice(DueCollectionRequest $request, DueCollectionService $entries): JsonResponse
     {
-        $data = $entries->dueCollectionPreview(
+        $data = $entries->preview(
             $request->user('web'),
             $request->validated('invoice'),
             (int) $request->attributes->get('branch_id'),
@@ -78,14 +78,14 @@ class DueCollectionController extends BaseController
     {
         $branchId = max(0, (int) request()->attributes->get('branch_id', 0));
         $selectedService = $record->exists ? $record->serviceType() : getValue('service', null, 'all');
-        $entries = app(ClinicalEntryService::class);
+        $entries = app(DueCollectionService::class);
         $invoice = (string) getValue('invoice');
         $collectionPreview = null;
         if ($record->exists) {
-            $collectionPreview = $entries->dueCollectionPreview($actor, '', $branchId, $record);
+            $collectionPreview = $entries->preview($actor, '', $branchId, $record);
         } elseif ($invoice !== '') {
             try {
-                $collectionPreview = $entries->dueCollectionPreview($actor, $invoice, $branchId);
+                $collectionPreview = $entries->preview($actor, $invoice, $branchId);
             } catch (ValidationException) {
                 // Leave a stale invoice selection empty when reopening the form.
             }

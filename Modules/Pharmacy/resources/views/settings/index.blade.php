@@ -9,6 +9,9 @@
         <button class="btn btn-sm {{ $activePharmacySection === 'general' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="general" aria-pressed="{{ $activePharmacySection === 'general' ? 'true' : 'false' }}">General</button>
         <button class="btn btn-sm {{ $activePharmacySection === 'numbering' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="numbering" aria-pressed="{{ $activePharmacySection === 'numbering' ? 'true' : 'false' }}">Numbering</button>
         <button class="btn btn-sm {{ $activePharmacySection === 'items' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="items" aria-pressed="{{ $activePharmacySection === 'items' ? 'true' : 'false' }}">Item fields</button>
+        @if ($smsNotifications !== [])
+            <button class="btn btn-sm {{ $activePharmacySection === 'sms' ? 'btn-primary' : 'btn-outline-secondary' }}" type="submit" name="section" value="sms" aria-pressed="{{ $activePharmacySection === 'sms' ? 'true' : 'false' }}">SMS</button>
+        @endif
     </form>
 
     @include('pharmacy::settings.form')

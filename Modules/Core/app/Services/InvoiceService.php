@@ -25,7 +25,9 @@ class InvoiceService
     {
         return (new Invoice)->getConnection()->transaction(function () use ($actor, $record, $values): Invoice {
             $invoice = $record?->exists
-                ? Invoice::query()->whereKey($record->getKey())->lockForUpdate()->firstOrFail()
+                ? Invoice::whereKey($record->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail()
                 : new Invoice;
 
             Gate::forUser($actor)->authorize(
@@ -60,7 +62,9 @@ class InvoiceService
     public function forSubscription(Subscription $subscription): Invoice
     {
         return $subscription->getConnection()->transaction(function () use ($subscription): Invoice {
-            $current = Subscription::query()->whereKey($subscription->getKey())->lockForUpdate()->firstOrFail();
+            $current = Subscription::whereKey($subscription->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
             $start = $current->current_period_starts_at;
             $end = $current->current_period_ends_at;
 
@@ -69,11 +73,11 @@ class InvoiceService
                 throw ValidationException::withMessages(['subscription' => 'Stage a valid paid subscription period before invoicing.']);
             }
 
-            $existing = Invoice::query()
-                ->where('subscription_id', $current->getKey())
+            $existing = Invoice::where('subscription_id', $current->getKey())
                 ->where('period_start', $start)
                 ->where('period_end', $end)
-                ->lockForUpdate()->first();
+                ->lockForUpdate()
+                ->first();
 
             if ($existing !== null) {
                 return $existing;
@@ -124,7 +128,11 @@ class InvoiceService
         return $invoice->locked(function (Invoice $current) use ($actor, $reason): Invoice {
             Gate::forUser($actor)->authorize('void', $current);
 
-            if (CheckoutAttempt::query()->where('active_invoice_id', $current->getKey())->lockForUpdate()->first() !== null) {
+            $activeCheckout = CheckoutAttempt::where('active_invoice_id', $current->getKey())
+                ->lockForUpdate()
+                ->first();
+
+            if ($activeCheckout !== null) {
                 throw ValidationException::withMessages(['invoice' => 'Resolve the active checkout before voiding this invoice.']);
             }
 
@@ -151,15 +159,12 @@ class InvoiceService
 
         return [
             'invoice' => $record,
-            'tenantSuggestions' => Tenant::query()->orderBy('name')->orderBy('id')->limit(100)->get(['id', 'name']),
+            'tenantSuggestions' => Tenant::orderBy('name')
+                ->orderBy('id')
+                ->limit(100)
+                ->get(['id', 'name']),
             'currency' => $record->currency ?? ($this->billing()['currency'] ?? 'BDT'),
-            'items' => $record->exists
-                ? $record->items->map(fn ($item): array => [
-                    'description' => $item->description,
-                    'quantity' => $item->quantity,
-                    'unit_amount' => Money::decimal($item->unit_amount_minor),
-                ])->all()
-                : [['description' => '', 'quantity' => 1, 'unit_amount' => '0.00']],
+            'items' => $record->items,
         ];
     }
 
@@ -167,7 +172,9 @@ class InvoiceService
     {
         Gate::forUser($actor)->authorize('view', $invoice);
         $invoice->load(['items', 'tenant:id,name,owner_email']);
-        $payments = $invoice->payments()->limit(20)->get();
+        $payments = $invoice->payments()
+            ->limit(20)
+            ->get();
 
         return [
             'invoice' => $invoice,
@@ -178,12 +185,7 @@ class InvoiceService
                 'name' => $invoice->tenant->name,
                 'email' => $invoice->tenant->owner_email,
             ],
-            'items' => $invoice->items->map(fn ($item): array => [
-                'description' => $item->description,
-                'quantity' => $item->quantity,
-                'unit' => Money::decimal($item->unit_amount_minor),
-                'total' => Money::decimal($item->line_total_minor),
-            ])->all(),
+            'items' => $invoice->items,
             'subtotal' => Money::decimal($invoice->subtotal_minor),
             'total' => Money::decimal($invoice->total_minor),
             'paid' => Money::decimal($invoice->paid_minor),
@@ -193,15 +195,7 @@ class InvoiceService
             'periodLabel' => $invoice->period_start && $invoice->period_end
                 ? $invoice->period_start->format('d M Y').' – '.$invoice->period_end->format('d M Y')
                 : null,
-            'payments' => $payments->map(fn ($payment): array => [
-                'id' => $payment->getKey(),
-                'date' => $payment->paid_at->format('d M Y'),
-                'amount' => Money::decimal($payment->amount_minor),
-                'extraCharge' => Money::decimal($payment->extra_charge_minor),
-                'received' => Money::decimal($payment->amount_minor + $payment->extra_charge_minor),
-                'provider' => $payment->provider,
-                'reference' => $payment->provider_reference,
-            ])->all(),
+            'payments' => $payments,
             'canRecordPayment' => $invoice->isPayable() && Gate::forUser($actor)->allows('create', Payment::class),
             'checkout' => app(CheckoutService::class)->options($actor, $invoice),
         ];
@@ -234,52 +228,39 @@ class InvoiceService
         $query = $model->listQuery();
 
         if ($tenant !== null) {
-            $query->where('tenant_id', $tenant->getKey())->whereNotNull('issued_at');
+            $query->where('tenant_id', $tenant->getKey())
+                ->whereNotNull('issued_at');
         }
 
-        $summaries = (clone $query)->withoutEagerLoads()->reorder()->select('currency')
+        $summaries = (clone $query)
+            ->withoutEagerLoads()
+            ->reorder()
+            ->select('currency')
             ->selectRaw('COUNT(*) as invoice_count, SUM(total_minor) as total, SUM(paid_minor) as paid, SUM(total_minor - paid_minor) as balance')
             ->whereIn('status', [Invoice::STATUS_ISSUED, Invoice::STATUS_PARTIALLY_PAID, Invoice::STATUS_PAID])
-            ->groupBy('currency')->orderBy('currency')->toBase()->get()
-            ->map(fn ($summary): array => [
-                'currency' => $summary->currency,
-                'invoiceCount' => $summary->invoice_count,
-                'total' => Money::decimal($summary->total),
-                'paid' => Money::decimal($summary->paid),
-                'balance' => Money::decimal($summary->balance),
-            ])->all();
+            ->groupBy('currency')
+            ->orderBy('currency')
+            ->toBase()
+            ->get();
 
         $canReviewPayments = $isPlatform && Gate::forUser($actor)->allows('create', Payment::class);
-        $manualSubmissions = [];
+        $manualSubmissions = collect();
 
         if (! $isPlatform || $canReviewPayments) {
-            $submissions = CheckoutAttempt::query()->where('provider', 'manual')
-                ->with('invoice:id,number,tenant_id,issued_at')->orderByDesc('id')->limit(20);
+            $submissions = CheckoutAttempt::where('provider', 'manual')
+                ->with('invoice:id,number,tenant_id,issued_at')
+                ->orderByDesc('id')
+                ->limit(20);
 
             if ($isPlatform) {
                 $submissions->where('status', CheckoutAttempt::STATUS_REVIEW);
             } else {
                 $submissions->whereHas('invoice', fn (Builder $invoices) => $invoices
-                    ->where('tenant_id', $tenant->getKey())->whereNotNull('issued_at'));
+                    ->where('tenant_id', $tenant->getKey())
+                    ->whereNotNull('issued_at'));
             }
 
-            $manualSubmissions = $submissions->get(['id', 'invoice_id', 'status', 'submitted_reference', 'amount_minor', 'extra_charge_minor', 'currency', 'created_at', 'notes'])
-                ->map(fn ($submission): array => [
-                    'id' => $submission->getKey(),
-                    'invoiceNumber' => $submission->invoice->number,
-                    'invoiceUrl' => Gate::forUser($actor)->allows('view', $submission->invoice)
-                        ? route(($isPlatform ? 'core.invoices' : 'tenantcore.billing').'.show', $submission->invoice_id)
-                        : null,
-                    'reference' => $submission->submitted_reference,
-                    'amount' => Money::decimal($submission->amount_minor),
-                    'extraCharge' => Money::decimal($submission->extra_charge_minor),
-                    'invoiceAmount' => Money::decimal($submission->amount_minor - $submission->extra_charge_minor),
-                    'currency' => $submission->currency,
-                    'status' => ucfirst(str_replace('_', ' ', $submission->status)),
-                    'createdAt' => $submission->created_at->format('d M Y H:i'),
-                    'notes' => $submission->notes,
-                    'canReview' => $canReviewPayments && $submission->status === CheckoutAttempt::STATUS_REVIEW,
-                ])->all();
+            $manualSubmissions = $submissions->get(['id', 'invoice_id', 'status', 'submitted_reference', 'amount_minor', 'extra_charge_minor', 'currency', 'created_at', 'notes']);
         }
 
         return [
@@ -312,14 +293,16 @@ class InvoiceService
         $billing = $this->billing();
         $year = (int) now()->format('Y');
 
-        InvoiceSequence::query()->firstOrCreate(['year' => $year], ['counter' => 0]);
-        $sequence = InvoiceSequence::query()->where('year', $year)->lockForUpdate()->firstOrFail();
+        InvoiceSequence::firstOrCreate(['year' => $year], ['counter' => 0]);
+        $sequence = InvoiceSequence::where('year', $year)
+            ->lockForUpdate()
+            ->firstOrFail();
         $sequence->counter++;
         $sequence->save();
 
         $prefix = $billing['invoice_prefix'] ?? 'INV';
 
-        $tenant = Tenant::query()->findOrFail($invoice->tenant_id);
+        $tenant = Tenant::findOrFail($invoice->tenant_id);
         $invoice->number = $prefix.'-'.$year.'-'.str_pad((string) $sequence->counter, 6, '0', STR_PAD_LEFT);
         $invoice->merchant_snapshot = $this->merchant();
         $invoice->customer_snapshot = ['name' => $tenant->name, 'email' => $tenant->owner_email];

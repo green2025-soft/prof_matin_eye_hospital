@@ -13,7 +13,6 @@ use Modules\Core\Http\Requests\ListRequest;
 use Modules\Core\Http\Requests\TenantRequest;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Tenant;
-use Modules\Core\Services\AccessManager;
 use Modules\Core\Services\TenantProvisioner;
 
 class TenantController extends BaseController
@@ -38,9 +37,9 @@ class TenantController extends BaseController
         return $this->saveData($request);
     }
 
-    public function enter(Request $request, Tenant $tenant, AccessManager $access): RedirectResponse
+    public function enter(Request $request, Tenant $tenant): RedirectResponse
     {
-        return $access->transaction($request->user('web'), function (Account $actor) use ($request, $tenant): RedirectResponse {
+        return $request->user('web')->withAccessLock(function (Account $actor) use ($request, $tenant): RedirectResponse {
             $current = Tenant::whereKey($tenant->getKey())
                 ->lockForUpdate()
                 ->firstOrFail();

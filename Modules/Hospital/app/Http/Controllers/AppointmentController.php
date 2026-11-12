@@ -13,7 +13,7 @@ use Modules\Hospital\Http\Requests\AppointmentRequest;
 use Modules\Hospital\Models\Appointment;
 use Modules\Hospital\Models\Doctor;
 use Modules\Hospital\Models\Patient;
-use Modules\Hospital\Services\ClinicalEntryService;
+use Modules\Hospital\Services\AppointmentService;
 
 class AppointmentController extends BaseController
 {
@@ -47,9 +47,9 @@ class AppointmentController extends BaseController
         return $this->listData($request)->with($data);
     }
 
-    public function store(AppointmentRequest $request, ClinicalEntryService $entries): RedirectResponse
+    public function store(AppointmentRequest $request, AppointmentService $appointments): RedirectResponse
     {
-        $appointment = $entries->saveAppointment(
+        $appointment = $appointments->save(
             $request->user('web'),
             $this->record($request),
             $request->payload(),

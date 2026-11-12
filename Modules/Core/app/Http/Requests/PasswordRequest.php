@@ -24,7 +24,7 @@ class PasswordRequest extends FormRequest
             $rules += [
                 'token' => ['required', 'string', 'max:255'],
                 'password' => ['required', 'string', 'min:'.config('auth.password_min_length'), 'max:4096', 'confirmed'],
-                'password_confirmation' => ['required', 'string', 'max:4096'],
+                'password_confirmation' => ['required', 'string'],
             ];
         }
 

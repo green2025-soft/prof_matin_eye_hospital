@@ -10,7 +10,7 @@ class PaymentRequest extends BaseRequest
     {
         return [
             'invoice_id' => ['required', 'integer', 'min:1', $this->existsIn('invoices')],
-            'amount' => ['required', 'string', 'numeric', 'gt:0', 'regex:/^\d{1,10}(?:\.\d{1,2})?$/D'],
+            'amount' => ['required', 'string', 'decimal:0,2', 'between:0.01,9999999999.99'],
             'idempotency_key' => ['required', 'uuid'],
         ];
     }

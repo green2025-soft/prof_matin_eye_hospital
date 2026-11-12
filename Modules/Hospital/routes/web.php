@@ -21,7 +21,7 @@ use Modules\Hospital\Http\Controllers\RefundCauseController;
 use Modules\Hospital\Http\Controllers\RefundController;
 use Modules\Hospital\Http\Controllers\SettingController;
 
-Route::middleware(['web', 'auth', 'tenant'])->prefix('hospital')->name('hospital.')->group(function (): void {
+Route::middleware(['web', 'auth', 'tenant', 'access'])->prefix('hospital')->name('hospital.')->group(function (): void {
     Route::get('investigation-categories/options', [InvestigationCategoryController::class, 'options'])->name('investigation-categories.options');
     Route::get('investigations/options', [InvestigationController::class, 'options'])->name('investigations.options');
     Route::get('operation-categories/options', [OperationCategoryController::class, 'options'])->name('operation-categories.options');

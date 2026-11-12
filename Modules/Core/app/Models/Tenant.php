@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 use Modules\Core\Models\Concerns\HasCrudContract;
 use Modules\Core\Policies\TenantPolicy;
@@ -60,6 +61,11 @@ class Tenant extends BaseTenant
     public function domains(): HasMany
     {
         return $this->hasMany(Domain::class);
+    }
+
+    public function smsAccount(): HasOne
+    {
+        return $this->hasOne(SmsAccount::class);
     }
 
     protected function casts(): array

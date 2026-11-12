@@ -28,7 +28,14 @@ class Subscription extends CoreModel
 
     public const STATUS_EXPIRED = 'expired';
 
-    public const STATUSES = [self::STATUS_PENDING => 'Pending payment', self::STATUS_TRIALING => 'Trial', self::STATUS_ACTIVE => 'Active', self::STATUS_PAST_DUE => 'Past due', self::STATUS_CANCELLED => 'Cancelled', self::STATUS_EXPIRED => 'Expired'];
+    public const STATUSES = [
+        self::STATUS_PENDING => 'Pending payment',
+        self::STATUS_TRIALING => 'Trial',
+        self::STATUS_ACTIVE => 'Active',
+        self::STATUS_PAST_DUE => 'Past due',
+        self::STATUS_CANCELLED => 'Cancelled',
+        self::STATUS_EXPIRED => 'Expired',
+    ];
 
     protected $attributes = ['status' => self::STATUS_PENDING, 'cancel_at_period_end' => false];
 
@@ -44,7 +51,10 @@ class Subscription extends CoreModel
 
     protected array $listWith = ['tenant:id,name', 'plan:id,name'];
 
-    protected array $exposedRelations = ['tenant' => ['id', 'name'], 'plan' => ['id', 'name']];
+    protected array $exposedRelations = [
+        'tenant' => ['id', 'name'],
+        'plan' => ['id', 'name'],
+    ];
 
     protected static function booted(): void
     {
@@ -56,7 +66,15 @@ class Subscription extends CoreModel
 
     protected function casts(): array
     {
-        return ['price_minor' => 'integer', 'starts_at' => 'immutable_datetime', 'trial_ends_at' => 'immutable_datetime', 'current_period_starts_at' => 'immutable_datetime', 'current_period_ends_at' => 'immutable_datetime', 'ends_at' => 'immutable_datetime', 'cancel_at_period_end' => 'boolean'];
+        return [
+            'price_minor' => 'integer',
+            'starts_at' => 'immutable_datetime',
+            'trial_ends_at' => 'immutable_datetime',
+            'current_period_starts_at' => 'immutable_datetime',
+            'current_period_ends_at' => 'immutable_datetime',
+            'ends_at' => 'immutable_datetime',
+            'cancel_at_period_end' => 'boolean',
+        ];
     }
 
     public function tenant(): BelongsTo
@@ -79,7 +97,9 @@ class Subscription extends CoreModel
         $model = new static;
         $connection = $model->getConnection()->getName();
         $snapshot = app(ContextCache::class)->remember($connection, 'subscriptions', $tenant->getKey(), static function () use ($tenant): ?array {
-            $subscription = static::query()->with('plan')->where('tenant_id', $tenant->getKey())->first();
+            $subscription = static::with('plan')
+                ->where('tenant_id', $tenant->getKey())
+                ->first();
 
             return $subscription === null ? null : [
                 'attributes' => $subscription->getAttributes(),

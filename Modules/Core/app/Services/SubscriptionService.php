@@ -21,21 +21,24 @@ class SubscriptionService
 {
     public function createUser(Tenant $tenant, Account $actor, Closure $operation): mixed
     {
-        app(AccessManager::class)->assertActorContext($actor);
+        $actor->assertApplicationContext();
 
         if (! Tenant::current()?->is($tenant)) {
             throw new AuthorizationException;
         }
 
         return (new Subscription)->getConnection()->transaction(function () use ($tenant, $operation): mixed {
-            $subscription = Subscription::query()->with('plan')->where('tenant_id', $tenant->getKey())->lockForUpdate()->first();
+            $subscription = Subscription::with('plan')
+                ->where('tenant_id', $tenant->getKey())
+                ->lockForUpdate()
+                ->first();
 
             if (! $subscription?->isUsable()) {
                 throw new AuthorizationException('An active subscription is required to add an account.');
             }
 
             $userModel = Account::modelForProvider('users');
-            if (! $subscription->canAddUser($userModel::query()->count())) {
+            if (! $subscription->canAddUser($userModel::count())) {
                 throw ValidationException::withMessages(['account' => 'The plan account limit has been reached. Contact the platform administrator to change your plan.']);
             }
 
@@ -55,11 +58,17 @@ class SubscriptionService
         try {
             return (new Subscription)->getConnection()->transaction(function () use ($actor, $record, $values): Subscription {
                 $tenantId = $record?->exists ? $record->tenant_id : $values['tenant_id'];
-                $tenant = Tenant::query()->whereKey($tenantId)->lockForUpdate()->firstOrFail();
+                $tenant = Tenant::whereKey($tenantId)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
                 if ($tenant->status === Tenant::STATUS_DELETING) {
                     throw new LogicException('A deleting tenant cannot change its subscription.');
                 }
-                $subscription = Subscription::query()->where('tenant_id', $tenant->getKey())->lockForUpdate()->first();
+
+                $subscription = Subscription::where('tenant_id', $tenant->getKey())
+                    ->lockForUpdate()
+                    ->first();
 
                 if (! $record?->exists && $subscription !== null) {
                     throw ValidationException::withMessages(['tenant_id' => 'This tenant already has a subscription. Edit its existing subscription.']);
@@ -72,7 +81,9 @@ class SubscriptionService
                 $subscription ??= new Subscription(['tenant_id' => $tenant->getKey()]);
                 Gate::forUser($actor)->authorize($subscription->exists ? 'update' : 'create', $subscription->exists ? $subscription : Subscription::class);
                 $planId = $values['plan_id'] ?? $subscription->plan_id;
-                $plan = Plan::query()->whereKey($planId)->lockForUpdate()->firstOrFail();
+                $plan = Plan::whereKey($planId)
+                    ->lockForUpdate()
+                    ->firstOrFail();
                 $changedPlan = $subscription->exists && (int) $subscription->plan_id !== (int) $plan->getKey();
                 $renewal = $values['renewal'] ?? null;
                 $restart = $subscription->exists && in_array($subscription->status, [Subscription::STATUS_CANCELLED, Subscription::STATUS_EXPIRED], true) && $renewal === 'renew';
@@ -92,10 +103,6 @@ class SubscriptionService
 
                     if ($subscription->exists && $subscription->invoices()->whereIn('status', [Invoice::STATUS_ISSUED, Invoice::STATUS_PARTIALLY_PAID])->exists()) {
                         throw ValidationException::withMessages(['plan_id' => 'Resolve or void outstanding invoices before restarting or changing the plan.']);
-                    }
-
-                    if (! $subscription->exists && $renewal !== 'renew') {
-                        throw ValidationException::withMessages(['renewal' => 'A new subscription must start with renewal enabled.']);
                     }
 
                     $this->start($subscription, $plan, $subscription->trial_ends_at === null);
@@ -132,21 +139,26 @@ class SubscriptionService
         }
 
         Gate::forUser($actor)->authorize($record->exists ? 'update' : 'create', $record->exists ? $record : Subscription::class);
-        $plans = Plan::query()->where('is_active', true)->orderBy('name')->orderBy('id')->limit(100)->get(['id', 'name']);
+        $plans = Plan::where('is_active', true)
+            ->orderBy('name')
+            ->orderBy('id')
+            ->limit(100)
+            ->get(['id', 'name']);
 
         if ($record->exists && ! $plans->contains('id', $record->plan_id)) {
             $plans->push($record->plan);
         }
 
-        $tenants = $record->exists ? collect() : Tenant::query()
-            ->whereNotIn('id', Subscription::query()->select('tenant_id'))
-            ->orderBy('name')->orderBy('id')->limit(100)->get(['id', 'name']);
+        $tenants = $record->exists ? collect() : Tenant::whereNotIn('id', Subscription::select('tenant_id'))
+            ->orderBy('name')
+            ->orderBy('id')
+            ->limit(100)
+            ->get(['id', 'name']);
         $canViewSubscriptions = Gate::forUser($actor)->allows('viewAny', Subscription::class);
         $existingSubscriptions = collect();
 
         if (! $record->exists && $tenants->isEmpty() && $canViewSubscriptions) {
-            $existingSubscriptions = Subscription::query()
-                ->with(['tenant:id,name', 'plan:id,name'])
+            $existingSubscriptions = Subscription::with(['tenant:id,name', 'plan:id,name'])
                 ->orderByDesc('id')
                 ->limit(5)
                 ->get(['id', 'tenant_id', 'plan_id', 'status']);
@@ -170,14 +182,20 @@ class SubscriptionService
     public function enrollDefault(Tenant $tenant): Subscription
     {
         return $tenant->getConnection()->transaction(function () use ($tenant): Subscription {
-            Tenant::query()->whereKey($tenant->getKey())->lockForUpdate()->firstOrFail();
-            $subscription = Subscription::query()->where('tenant_id', $tenant->getKey())->lockForUpdate()->first();
+            Tenant::whereKey($tenant->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+            $subscription = Subscription::where('tenant_id', $tenant->getKey())
+                ->lockForUpdate()
+                ->first();
 
             if ($subscription !== null) {
                 return $subscription;
             }
 
-            $plan = Plan::query()->where('slug', config('billing.default_plan', 'starter'))->lockForUpdate()->first();
+            $plan = Plan::where('slug', config('billing.default_plan', 'starter'))
+                ->lockForUpdate()
+                ->first();
 
             if ($plan === null || ! $plan->is_active || $plan->price_minor !== 0) {
                 throw ValidationException::withMessages(['subscription' => 'Configure an active free onboarding plan before enrolling tenants.']);
@@ -193,8 +211,12 @@ class SubscriptionService
     public function activateFromInvoice(Subscription $subscription, Invoice $invoice): Subscription
     {
         return $subscription->getConnection()->transaction(function () use ($subscription, $invoice): Subscription {
-            $record = Subscription::query()->whereKey($subscription->getKey())->lockForUpdate()->firstOrFail();
-            $paid = Invoice::query()->whereKey($invoice->getKey())->lockForUpdate()->firstOrFail();
+            $record = Subscription::whereKey($subscription->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+            $paid = Invoice::whereKey($invoice->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
 
             if ((int) $paid->subscription_id !== (int) $record->getKey() || $paid->status !== Invoice::STATUS_PAID
                 || (int) $paid->paid_minor < (int) $paid->total_minor) {
@@ -222,7 +244,7 @@ class SubscriptionService
     public function syncDue(): array
     {
         $result = ['processed' => 0, 'generated' => 0, 'failed' => []];
-        $query = Subscription::query()->whereIn('status', [Subscription::STATUS_TRIALING, Subscription::STATUS_ACTIVE, Subscription::STATUS_PENDING, Subscription::STATUS_PAST_DUE])
+        $query = Subscription::whereIn('status', [Subscription::STATUS_TRIALING, Subscription::STATUS_ACTIVE, Subscription::STATUS_PENDING, Subscription::STATUS_PAST_DUE])
             ->where('current_period_ends_at', '<=', now());
 
         foreach ($query->lazyById(100) as $subscription) {
@@ -272,7 +294,9 @@ class SubscriptionService
     private function sync(Subscription $subscription): int
     {
         return $subscription->getConnection()->transaction(function () use ($subscription): int {
-            $record = Subscription::query()->whereKey($subscription->getKey())->lockForUpdate()->firstOrFail();
+            $record = Subscription::whereKey($subscription->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
 
             if (! in_array($record->status, [Subscription::STATUS_TRIALING, Subscription::STATUS_ACTIVE, Subscription::STATUS_PENDING, Subscription::STATUS_PAST_DUE], true)
                 || $record->current_period_ends_at === null || $record->current_period_ends_at->isFuture()) {

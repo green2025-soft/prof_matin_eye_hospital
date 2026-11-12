@@ -50,16 +50,13 @@ class AuditLogController extends BaseController
             $query->where('created_at', '<=', $filters['date_to'].' 23:59:59');
         }
 
-        $records = $model->paginateRecords($filters, $query)
-            ->appends(Arr::only($filters, ['branch_id', 'date_from', 'date_to']));
+        $records = $model->paginateRecords($filters, $query)->appends(Arr::only($filters, ['branch_id', 'date_from', 'date_to']));
         $branchId = $filters['branch_id'] ?? null;
         $selectedBranch = $this->selectedOption(Branch::where('is_default', false), $branchId);
 
         // Deleted branches retain their names in the audit snapshots.
         if ($selectedBranch === null && filled($branchId)) {
-            $selectedBranch = AuditLog::where('branch_id', $branchId)
-                ->latest('audit_logs.id')
-                ->toBase()
+            $selectedBranch = AuditLog::where('branch_id', $branchId)->latest('audit_logs.id')->toBase()
                 ->first(['branch_id as id', 'branch_name as name']);
         }
 

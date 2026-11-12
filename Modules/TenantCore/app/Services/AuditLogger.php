@@ -12,7 +12,6 @@ use Illuminate\Support\Str;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\BaseModel as CoreBaseModel;
 use Modules\Core\Models\Role;
-use Modules\Core\Services\AccessManager;
 use Modules\TenantCore\Models\AuditLog;
 use Modules\TenantCore\Models\Branch;
 use Spatie\Permission\Events\PermissionAttachedEvent;
@@ -22,7 +21,7 @@ use Spatie\Permission\Events\RoleDetachedEvent;
 
 class AuditLogger
 {
-    public function __construct(private Request $request, private AccessManager $access) {}
+    public function __construct(private Request $request) {}
 
     public function modelChanged(string $event, array $payload): void
     {
@@ -158,7 +157,7 @@ class AuditLogger
 
         $user ??= $this->request->user('web');
 
-        return $user instanceof Account && $this->access->actorMatchesContext($user) ? $user : null;
+        return $user instanceof Account && $user->matchesApplication() ? $user : null;
     }
 
     private function canRecord(Account $actor, Model $model): bool

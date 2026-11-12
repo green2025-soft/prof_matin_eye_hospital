@@ -6,7 +6,7 @@
         @error('data')<div class="invalid-feedback d-block mb-3">{{ $message }}</div>@enderror
 
         <input name="section" type="hidden" value="{{ $activeHospitalSection }}">
-        @if (! in_array($activeHospitalSection, ['patient', 'doctor', 'reference'], true))
+        @if (! in_array($activeHospitalSection, ['patient', 'doctor', 'reference', 'sms'], true))
             <p class="small text-body-secondary mb-2">Numbers are generated automatically. Settings changes apply to future records.</p>
             <details class="mb-3">
                 <summary class="small text-body-secondary">Pattern guide</summary>
@@ -290,6 +290,18 @@
         @elseif ($activeHospitalSection === 'consultation')
             <section aria-labelledby="hospital-consultation-heading">
                 <h3 class="h6 mb-3" id="hospital-consultation-heading">Consultation</h3>
+                <div class="row mb-3">
+                    <div class="col-sm-6 col-lg-4">
+                        <label class="form-label" for="hospital-consultation-payment-default">New entry payment</label>
+                        <select class="{{ inputClass('data.consultation_payment_default', 'form-select') }}"
+                            id="hospital-consultation-payment-default" name="data[consultation_payment_default]" required
+                            {{ inputAttrs('data.consultation_payment_default', 'hospital-consultation-payment-default') }}>
+                            <option value="due" {{ getSelected('due', 'data.consultation_payment_default', null, $values['data']['consultation_payment_default']) }}>Due</option>
+                            <option value="paid" {{ getSelected('paid', 'data.consultation_payment_default', null, $values['data']['consultation_payment_default']) }}>Paid</option>
+                        </select>
+                        @error('data.consultation_payment_default')<div class="invalid-feedback d-block" id="hospital-consultation-payment-default-error">{{ $message }}</div>@enderror
+                    </div>
+                </div>
                 <div class="form-check form-switch mb-3">
                     <input name="data[consultation_reference_enabled]" type="hidden" value="0">
                     <input class="{{ inputClass('data.consultation_reference_enabled', 'form-check-input') }}" id="hospital-consultation-reference-enabled" name="data[consultation_reference_enabled]" type="checkbox" role="switch" value="1" {{ getChecked(1, 'data.consultation_reference_enabled', null, $values['data']['consultation_reference_enabled']) }} {{ inputAttrs('data.consultation_reference_enabled', 'hospital-consultation-reference-enabled') }}>
@@ -364,6 +376,18 @@
         @elseif ($activeHospitalSection === 'investigation')
             <section aria-labelledby="hospital-investigation-heading">
                 <h3 class="h6 mb-3" id="hospital-investigation-heading">Investigation</h3>
+                <div class="row mb-3">
+                    <div class="col-sm-6 col-lg-4">
+                        <label class="form-label" for="hospital-investigation-payment-default">New entry payment</label>
+                        <select class="{{ inputClass('data.investigation_payment_default', 'form-select') }}"
+                            id="hospital-investigation-payment-default" name="data[investigation_payment_default]" required
+                            {{ inputAttrs('data.investigation_payment_default', 'hospital-investigation-payment-default') }}>
+                            <option value="due" {{ getSelected('due', 'data.investigation_payment_default', null, $values['data']['investigation_payment_default']) }}>Due</option>
+                            <option value="paid" {{ getSelected('paid', 'data.investigation_payment_default', null, $values['data']['investigation_payment_default']) }}>Paid</option>
+                        </select>
+                        @error('data.investigation_payment_default')<div class="invalid-feedback d-block" id="hospital-investigation-payment-default-error">{{ $message }}</div>@enderror
+                    </div>
+                </div>
                 <div class="form-check form-switch mb-3">
                     <input name="data[investigation_reference_enabled]" type="hidden" value="0">
                     <input class="{{ inputClass('data.investigation_reference_enabled', 'form-check-input') }}" id="hospital-investigation-reference-enabled" name="data[investigation_reference_enabled]" type="checkbox" role="switch" value="1" {{ getChecked(1, 'data.investigation_reference_enabled', null, $values['data']['investigation_reference_enabled']) }} {{ inputAttrs('data.investigation_reference_enabled', 'hospital-investigation-reference-enabled') }}>
@@ -400,6 +424,18 @@
         @elseif ($activeHospitalSection === 'operation')
             <section aria-labelledby="hospital-operation-heading">
                 <h3 class="h6 mb-3" id="hospital-operation-heading">Operation</h3>
+                <div class="row mb-3">
+                    <div class="col-sm-6 col-lg-4">
+                        <label class="form-label" for="hospital-operation-payment-default">New entry payment</label>
+                        <select class="{{ inputClass('data.operation_payment_default', 'form-select') }}"
+                            id="hospital-operation-payment-default" name="data[operation_payment_default]" required
+                            {{ inputAttrs('data.operation_payment_default', 'hospital-operation-payment-default') }}>
+                            <option value="due" {{ getSelected('due', 'data.operation_payment_default', null, $values['data']['operation_payment_default']) }}>Due</option>
+                            <option value="paid" {{ getSelected('paid', 'data.operation_payment_default', null, $values['data']['operation_payment_default']) }}>Paid</option>
+                        </select>
+                        @error('data.operation_payment_default')<div class="invalid-feedback d-block" id="hospital-operation-payment-default-error">{{ $message }}</div>@enderror
+                    </div>
+                </div>
                 <div class="form-check form-switch mb-3">
                     <input name="data[operation_reference_enabled]" type="hidden" value="0">
                     <input class="{{ inputClass('data.operation_reference_enabled', 'form-check-input') }}" id="hospital-operation-reference-enabled" name="data[operation_reference_enabled]" type="checkbox" role="switch" value="1" {{ getChecked(1, 'data.operation_reference_enabled', null, $values['data']['operation_reference_enabled']) }} {{ inputAttrs('data.operation_reference_enabled', 'hospital-operation-reference-enabled') }}>
@@ -488,6 +524,52 @@
                         <input class="{{ inputClass('data.due_collection_invoice_pattern') }}" id="hospital-due-collection-invoice-pattern" name="data[due_collection_invoice_pattern]" type="text" value="{{ getValue('data.due_collection_invoice_pattern', null, $values['data']['due_collection_invoice_pattern']) }}" maxlength="80" placeholder="DC-{SEQ:6}" required {{ inputAttrs('data.due_collection_invoice_pattern', 'hospital-due-collection-invoice-pattern', 'hospital-number-pattern-help') }}>
                         @error('data.due_collection_invoice_pattern')<div class="invalid-feedback d-block" id="hospital-due-collection-invoice-pattern-error">{{ $message }}</div>@enderror
                     </div>
+                </div>
+            </section>
+        @elseif ($activeHospitalSection === 'sms')
+            <section aria-labelledby="hospital-sms-heading">
+                <h3 class="h6 mb-2" id="hospital-sms-heading">SMS notifications</h3>
+                <p class="small text-body-secondary mb-3">Messages go to the patient's mobile. Editing a saved invoice does not send another message.</p>
+                <p class="small text-body-secondary mb-3">
+                    Organization: <code>{organization}</code>, <code>{organization_phone}</code>, <code>{organization_address}</code>.
+                    Variables: <code>{name}</code>, <code>{invoice}</code>, <code>{date}</code>,
+                    <code>{total}</code>, <code>{paid}</code>, <code>{due}</code>, <code>{amount}</code>.
+                    Delivery also supports <code>{delivery_date}</code>.
+                </p>
+                <p class="small text-body-secondary mb-3">
+                    Optional patient details: <code>{patient_name}</code>, <code>{patient_mobile}</code>,
+                    <code>{patient_address}</code>, <code>{patient_id}</code>, <code>{patient_age}</code>,
+                    <code>{father_husband_name}</code>. Add only the details you want in each message.
+                </p>
+                <p class="small text-body-secondary mb-3">For collections, Amount is the payment received. For refunds, Amount is the cash returned; Total and Due show the remaining invoice balance.</p>
+                <div class="row g-3">
+                    @foreach ($smsNotifications as $notification)
+                        @php
+                            $enabledField = 'data.'.$notification['enabled'];
+                            $templateField = 'data.'.$notification['template'];
+                            $enabledId = 'hospital-'.$notification['enabled'];
+                            $templateId = 'hospital-'.$notification['template'];
+                        @endphp
+                        <div class="col-lg-6">
+                            <section class="border rounded p-3 h-100">
+                                <div class="form-check form-switch mb-1">
+                                    <input name="data[{{ $notification['enabled'] }}]" type="hidden" value="0">
+                                    <input class="{{ inputClass($enabledField, 'form-check-input') }}" id="{{ $enabledId }}"
+                                        name="data[{{ $notification['enabled'] }}]" type="checkbox" role="switch" value="1"
+                                        {{ getChecked(1, $enabledField, null, $values['data'][$notification['enabled']]) }}
+                                        {{ inputAttrs($enabledField, $enabledId) }}>
+                                    <label class="form-check-label fw-semibold" for="{{ $enabledId }}">{{ $notification['label'] }}</label>
+                                    @error($enabledField)<div class="invalid-feedback d-block" id="{{ $enabledId }}-error">{{ $message }}</div>@enderror
+                                </div>
+                                <p class="small text-body-secondary mb-3">{{ $notification['description'] }}</p>
+                                <label class="form-label" for="{{ $templateId }}">Message</label>
+                                <textarea class="{{ inputClass($templateField) }}" id="{{ $templateId }}"
+                                    name="data[{{ $notification['template'] }}]" rows="3" maxlength="1600" required
+                                    {{ inputAttrs($templateField, $templateId) }}>{{ getValue($templateField, null, $values['data'][$notification['template']]) }}</textarea>
+                                @error($templateField)<div class="invalid-feedback d-block" id="{{ $templateId }}-error">{{ $message }}</div>@enderror
+                            </section>
+                        </div>
+                    @endforeach
                 </div>
             </section>
         @endif

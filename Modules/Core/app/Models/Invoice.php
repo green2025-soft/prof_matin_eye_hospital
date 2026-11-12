@@ -24,9 +24,20 @@ class Invoice extends CoreModel
 
     public const MAX_MINOR = 999999999999;
 
-    public const STATUSES = ['draft' => 'Draft', 'issued' => 'Issued', 'partially_paid' => 'Partially paid', 'paid' => 'Paid', 'void' => 'Void'];
+    public const STATUSES = [
+        'draft' => 'Draft',
+        'issued' => 'Issued',
+        'partially_paid' => 'Partially paid',
+        'paid' => 'Paid',
+        'void' => 'Void',
+    ];
 
-    protected $attributes = ['status' => self::STATUS_DRAFT, 'subtotal_minor' => 0, 'total_minor' => 0, 'paid_minor' => 0];
+    protected $attributes = [
+        'status' => self::STATUS_DRAFT,
+        'subtotal_minor' => 0,
+        'total_minor' => 0,
+        'paid_minor' => 0,
+    ];
 
     protected $fillable = ['notes', 'due_at'];
 
@@ -48,7 +59,20 @@ class Invoice extends CoreModel
 
     protected function casts(): array
     {
-        return ['tenant_id' => 'integer', 'subscription_id' => 'integer', 'subtotal_minor' => 'integer', 'total_minor' => 'integer', 'paid_minor' => 'integer', 'merchant_snapshot' => 'array', 'customer_snapshot' => 'array', 'due_at' => 'immutable_date', 'issued_at' => 'immutable_datetime', 'voided_at' => 'immutable_datetime', 'period_start' => 'immutable_datetime', 'period_end' => 'immutable_datetime'];
+        return [
+            'tenant_id' => 'integer',
+            'subscription_id' => 'integer',
+            'subtotal_minor' => 'integer',
+            'total_minor' => 'integer',
+            'paid_minor' => 'integer',
+            'merchant_snapshot' => 'array',
+            'customer_snapshot' => 'array',
+            'due_at' => 'immutable_date',
+            'issued_at' => 'immutable_datetime',
+            'voided_at' => 'immutable_datetime',
+            'period_start' => 'immutable_datetime',
+            'period_end' => 'immutable_datetime',
+        ];
     }
 
     public function resolveRouteBindingQuery($query, $value, $field = null)
@@ -74,12 +98,15 @@ class Invoice extends CoreModel
 
     public function items(): HasMany
     {
-        return $this->hasMany(InvoiceItem::class)->orderBy('position')->orderBy('id');
+        return $this->hasMany(InvoiceItem::class)
+            ->orderBy('position')
+            ->orderBy('id');
     }
 
     public function payments(): HasMany
     {
-        return $this->hasMany(Payment::class)->orderByDesc('id');
+        return $this->hasMany(Payment::class)
+            ->orderByDesc('id');
     }
 
     public function isDraft(): bool
@@ -101,8 +128,13 @@ class Invoice extends CoreModel
     {
         return $this->getConnection()->transaction(function () use ($operation): mixed {
             $subscription = $this->subscription_id === null ? null
-                : Subscription::query()->whereKey($this->subscription_id)->lockForUpdate()->firstOrFail();
-            $current = static::query()->whereKey($this->getKey())->lockForUpdate()->firstOrFail();
+                : Subscription::whereKey($this->subscription_id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+            $current = static::whereKey($this->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
 
             return $operation($current, $subscription);
         }, 3);

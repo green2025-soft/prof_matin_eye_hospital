@@ -6,44 +6,41 @@ use Modules\Core\Enums\PlatformPermission;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Admin;
 use Modules\Core\Models\Tenant;
-use Modules\Core\Services\AccessManager;
 
 class TenantPolicy
 {
-    public function __construct(private AccessManager $access) {}
-
     public function before(Account $account): ?bool
     {
-        return $account instanceof Admin && $this->access->actorMatchesContext($account) ? null : false;
+        return $account instanceof Admin && $account->matchesApplication() ? null : false;
     }
 
     public function viewAny(Account $account): bool
     {
-        return $this->permitted($account, PlatformPermission::ViewTenants);
+        return $this->permitted(PlatformPermission::ViewTenants);
     }
 
     public function create(Account $account): bool
     {
-        return $this->permitted($account, PlatformPermission::CreateTenants);
+        return $this->permitted(PlatformPermission::CreateTenants);
     }
 
     public function update(Account $account, Tenant $tenant): bool
     {
-        return $tenant->status !== Tenant::STATUS_DELETING && $this->permitted($account, PlatformPermission::UpdateTenants);
+        return $tenant->status !== Tenant::STATUS_DELETING && $this->permitted(PlatformPermission::UpdateTenants);
     }
 
     public function enter(Account $account, Tenant $tenant): bool
     {
-        return $tenant->status === Tenant::STATUS_ACTIVE && $this->permitted($account, PlatformPermission::EnterTenants);
+        return $tenant->status === Tenant::STATUS_ACTIVE && $this->permitted(PlatformPermission::EnterTenants);
     }
 
     public function delete(Account $account, Tenant $tenant): bool
     {
-        return $this->permitted($account, PlatformPermission::DeleteTenants);
+        return $this->permitted(PlatformPermission::DeleteTenants);
     }
 
-    private function permitted(Account $account, PlatformPermission $permission): bool
+    private function permitted(PlatformPermission $permission): bool
     {
-        return $account->hasOwnerRole() || $account->can($permission->value);
+        return request()->attributes->get('navigation_permissions', [])[$permission->value] ?? false;
     }
 }

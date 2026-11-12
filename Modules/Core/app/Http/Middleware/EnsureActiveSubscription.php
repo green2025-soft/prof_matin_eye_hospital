@@ -18,7 +18,9 @@ class EnsureActiveSubscription
             return $next($request);
         }
 
-        $subscription = Subscription::forTenant($tenant);
+        $subscription = $request->attributes->has('application_subscription')
+            ? $request->attributes->get('application_subscription')
+            : Subscription::forTenant($tenant);
         $request->attributes->set('application_subscription', $subscription);
 
         if (! $subscription?->isUsable()) {
@@ -28,9 +30,6 @@ class EnsureActiveSubscription
                 ->route('tenantcore.billing.index')
                 ->with('warning', 'Your subscription needs attention. Review Billing to restore workspace access.');
         }
-
-        $permission = config('permissions.tenant_routes')[$request->route()->getName()] ?? '';
-        abort_unless($subscription->plan->allowsRoutePermission($permission), 403, 'Your plan does not include this action.');
 
         return $next($request);
     }

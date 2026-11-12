@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\Core\Models\Concerns\HasCrudContract;
 use Modules\Core\Policies\RolePolicy;
-use Modules\Core\Services\AccessManager;
 use Spatie\Permission\Models\Role as BaseRole;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -40,7 +39,33 @@ class Role extends BaseRole
 
     public function writeTransaction(Account $actor, Closure $operation): mixed
     {
-        return app(AccessManager::class)->transaction($actor, $operation);
+        return $actor->withAccessLock($operation);
+    }
+
+    public function scopeAssignableBy(Builder $query, Account $actor): void
+    {
+        $actor->assertApplicationContext();
+        $query->where('guard_name', 'web');
+
+        if (! $actor->isOwner()) {
+            $permissions = $actor->permissionNames()->all();
+            $query->where('name', '!=', self::OWNER_NAME)
+                ->whereDoesntHave('permissions', function (Builder $query) use ($permissions): void {
+                    $query->where(function (Builder $query) use ($permissions): void {
+                        $query->where('guard_name', '!=', 'web')
+                            ->orWhereNotIn('name', $permissions);
+                    });
+                });
+        }
+    }
+
+    public function canBeManagedBy(Account $actor): bool
+    {
+        return $actor->matchesApplication()
+            && $this->guard_name === 'web'
+            && $this->getConnection()->getName() === $actor->getConnection()->getName()
+            && ! $this->isReserved()
+            && ($actor->isOwner() || $actor->canGrantPermissions($this->loadMissing('permissions')->permissions));
     }
 
     public function resolveRouteBindingQuery($query, $value, $field = null)

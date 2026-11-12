@@ -32,11 +32,21 @@ class Payment extends CoreModel
 
     protected array $formWith = [];
 
-    protected array $exposedRelations = ['invoice' => ['id', 'number'], 'tenant' => ['id', 'name']];
+    protected array $exposedRelations = [
+        'invoice' => ['id', 'number'],
+        'tenant' => ['id', 'name'],
+    ];
 
     protected function casts(): array
     {
-        return ['invoice_id' => 'integer', 'tenant_id' => 'integer', 'recorded_by' => 'integer', 'amount_minor' => 'integer', 'extra_charge_minor' => 'integer', 'paid_at' => 'immutable_datetime'];
+        return [
+            'invoice_id' => 'integer',
+            'tenant_id' => 'integer',
+            'recorded_by' => 'integer',
+            'amount_minor' => 'integer',
+            'extra_charge_minor' => 'integer',
+            'paid_at' => 'immutable_datetime',
+        ];
     }
 
     public function invoice(): BelongsTo

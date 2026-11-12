@@ -2,15 +2,20 @@
 
 namespace Modules\Core\Models;
 
+use Closure;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 use LogicException;
 use Modules\Core\Models\Concerns\HasCrudContract;
 use Modules\Core\Policies\AccountPolicy;
 use Modules\Core\Services\ContextCache;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'email', 'password'])]
@@ -25,6 +30,8 @@ abstract class Account extends Authenticatable
     protected $table = 'users';
 
     protected string $guard_name = 'web';
+
+    protected string $profileRoutePrefix = 'tenantcore.accounts';
 
     protected array $exposed = ['id', 'name', 'email', 'created_at'];
 
@@ -44,6 +51,105 @@ abstract class Account extends Authenticatable
     public function authenticationRelations(): array
     {
         return ['roles.permissions', 'permissions'];
+    }
+
+    public function matchesApplication(): bool
+    {
+        $tenant = Tenant::current();
+
+        if ($tenant === null) {
+            return $this instanceof Admin
+                && $this->getConnectionName() === 'central'
+                && config('database.default') === 'central';
+        }
+
+        return ! $this instanceof Admin
+            && $this->getConnectionName() === 'tenant'
+            && config('database.default') === 'tenant'
+            && $this->getConnection()->getDatabaseName() === $tenant->getDatabaseName();
+    }
+
+    public function assertApplicationContext(): void
+    {
+        if (! $this->matchesApplication()) {
+            throw new AuthorizationException('This account does not belong to the current application.');
+        }
+    }
+
+    public function isOwner(): bool
+    {
+        return $this->matchesApplication() && $this->hasOwnerRole();
+    }
+
+    public function permissionNames(): Collection
+    {
+        $this->assertApplicationContext();
+        $connection = $this->getConnection()->getName();
+        $guard = $this->permissionGuardName();
+
+        return $this->getAllPermissions()
+            ->filter(fn (Permission $permission): bool => $permission->guard_name === $guard
+                && $permission->getConnection()->getName() === $connection)
+            ->pluck('name');
+    }
+
+    // Grant boundaries use current database permissions, independently of page navigation.
+    public function canGrantPermissions(Collection $permissions): bool
+    {
+        if (! $this->matchesApplication()) {
+            return false;
+        }
+
+        $connection = $this->getConnection()->getName();
+        $guard = $this->permissionGuardName();
+        $allowed = array_fill_keys($this->permissionNames()->all(), true);
+
+        return $permissions->every(fn (Permission $permission): bool => $permission->guard_name === $guard
+            && $permission->getConnection()->getName() === $connection
+            && isset($allowed[$permission->name]));
+    }
+
+    // Serialize access changes and reload the account before protected aggregate writes.
+    public function withAccessLock(Closure $operation): mixed
+    {
+        $this->assertApplicationContext();
+        $snapshot = request()->attributes->get('account_access_snapshot');
+
+        if (($snapshot['actor'] ?? null)?->is($this) !== true) {
+            $snapshot = [
+                'owner' => $this->isOwner(),
+                'permissions' => $this->permissionNames()->all(),
+            ];
+        }
+
+        return $this->getConnection()->transaction(function () use ($operation, $snapshot): mixed {
+            $ownerRole = Role::on($this->getConnectionName())
+                ->where('guard_name', 'web')
+                ->where('name', Role::OWNER_NAME)
+                ->lockForUpdate()
+                ->first(['id']);
+
+            if ($ownerRole === null) {
+                throw ValidationException::withMessages(['access' => 'Initialize the application owner before managing access.']);
+            }
+
+            $actor = $this->newQuery()
+                ->with($this->authenticationRelations())
+                ->whereKey($this->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+            $actor->assertApplicationContext();
+
+            // A revocation while this write waited for its lock invalidates the request's access snapshot.
+            $lostPermissions = ! $actor->isOwner() && ($snapshot['owner']
+                || array_diff($snapshot['permissions'], $actor->permissionNames()->all()) !== []);
+
+            if ($lostPermissions) {
+                throw new AuthorizationException('Your access changed. Reload the page and try again.');
+            }
+
+            return $operation($actor);
+        }, 3);
     }
 
     public static function modelForProvider(string $provider): string
@@ -68,7 +174,7 @@ abstract class Account extends Authenticatable
     public static function createOwner(string $name, string $email, string $password): static
     {
         return (new static)->getConnection()->transaction(function () use ($name, $email, $password): static {
-            $owner = static::query()->firstOrCreate(
+            $owner = static::firstOrCreate(
                 ['email' => normalizeEmail($email)],
                 ['name' => trim($name), 'password' => $password],
             );
@@ -93,7 +199,7 @@ abstract class Account extends Authenticatable
 
     public function profileRoutePrefix(): string
     {
-        return $this instanceof Admin ? 'core.accounts' : 'tenantcore.accounts';
+        return $this->profileRoutePrefix;
     }
 
     public function loginType(): string

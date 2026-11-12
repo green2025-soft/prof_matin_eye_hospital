@@ -16,7 +16,7 @@ class PaymentService
 {
     public function save(Account $actor, ?Model $record, array $values): Payment
     {
-        return app(AccessManager::class)->transaction($actor, function (Account $actor) use ($values): Payment {
+        return $actor->withAccessLock(function (Account $actor) use ($values): Payment {
             Gate::forUser($actor)->authorize('create', Payment::class);
 
             return $this->record(Invoice::findOrFail($values['invoice_id']), [

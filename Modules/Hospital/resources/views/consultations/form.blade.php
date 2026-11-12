@@ -11,6 +11,7 @@
         action="{{ $formAction }}"
         method="POST"
         data-clinical-entry="consultation"
+        data-default-payment="{{ ! $consultation->exists && ! session()->hasOldInput('paid_amount') ? $paymentDefault : 'manual' }}"
         data-record-exists="{{ $consultation->exists ? '1' : '0' }}"
         data-initial-amount="{{ $consultation->amount ?? '0.00' }}"
         data-original-source-ids="{{ json_encode(($consultation->exists ? [$consultation->doctor_id] : [])) }}"

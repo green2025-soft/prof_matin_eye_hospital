@@ -23,4 +23,11 @@ enum PlatformPermission: string
     case VoidInvoices = 'invoices.void';
     case ViewPayments = 'payments.view';
     case CreatePayments = 'payments.create';
+    case ViewSmsAccounts = 'sms-accounts.view';
+    case CreateSmsAccounts = 'sms-accounts.create';
+    case UpdateSmsAccounts = 'sms-accounts.update';
+    case ViewSmsRecharges = 'sms-recharges.view';
+    case UpdateSmsRecharges = 'sms-recharges.update';
+    case ViewSmsHistory = 'sms-history.view';
+    case UpdateSmsHistory = 'sms-history.update';
 }

@@ -15,9 +15,6 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Setting;
-use Modules\Core\Models\Subscription;
-use Modules\Core\Models\Tenant;
-use Modules\Core\Services\AccessManager;
 use Modules\Core\Services\PermissionCatalog;
 use Modules\Hospital\Models\Doctor;
 use RuntimeException;
@@ -26,15 +23,12 @@ use Spatie\Permission\Models\Permission;
 
 class DoctorService
 {
-    public function __construct(private AccessManager $access, private PermissionCatalog $catalog) {}
+    public function __construct(private PermissionCatalog $catalog) {}
 
     public function permissionPageData(Account $actor): array
     {
-        $this->access->assertActorContext($actor);
-        $gate = Gate::forUser($actor);
-        $gate->authorize('viewPermissions', Doctor::class);
-        $this->authorizePlan($actor, 'doctor-permissions.view');
-        $actorPermissions = $this->access->permissionNames($actor);
+        $this->assertCanManagePermissions($actor);
+        $actorPermissions = $actor->permissionNames();
 
         $permissions = Permission::on($actor->getConnectionName())->where('guard_name', 'web')
             ->whereIn('name', $actorPermissions)->orderBy('name')->limit(501)->get(['id', 'name', 'guard_name']);
@@ -47,24 +41,15 @@ class DoctorService
             'areas' => $this->catalog->areas($permissions->pluck('name', 'id')->all()),
             'selectedPermissions' => (new Doctor)->getAllPermissions()->pluck('id')->all(),
             'permissionCount' => $permissions->count(),
-            'canManagePermissions' => $gate->allows('managePermissions', Doctor::class),
         ];
     }
 
     public function save(Account $actor, ?Model $record, #[SensitiveParameter] array $values, int $branchId): Doctor
     {
-        if (($record !== null && ! $record instanceof Doctor) || $branchId < 1) {
-            throw new AuthorizationException;
-        }
-
         $action = $record === null ? 'create' : 'update';
-        $permission = 'doctors.'.$action;
-        Gate::forUser($actor)->authorize($action, $record ?? Doctor::class);
-        $this->authorizePlan($actor, $permission);
 
         try {
-            return $this->access->transaction($actor, function (Account $freshActor) use ($record, $values, $branchId, $action, $permission): Doctor {
-                $this->authorizePlan($freshActor, $permission);
+            return $actor->withAccessLock(function (Account $freshActor) use ($record, $values, $branchId, $action): Doctor {
                 if ($record === null) {
                     $doctor = new Doctor;
                     $doctor->branch_id = $branchId;
@@ -119,12 +104,8 @@ class DoctorService
 
     public function savePermissions(Account $actor, array $permissionIds): void
     {
-        Gate::forUser($actor)->authorize('managePermissions', Doctor::class);
-        $this->authorizePlan($actor, 'doctor-permissions.manage');
-
-        $this->access->transaction($actor, function (Account $freshActor) use ($permissionIds): void {
-            $this->authorizePlan($freshActor, 'doctor-permissions.manage');
-            Gate::forUser($freshActor)->authorize('managePermissions', Doctor::class);
+        $actor->withAccessLock(function (Account $freshActor) use ($permissionIds): void {
+            $this->assertCanManagePermissions($freshActor);
 
             $permissions = Permission::on($freshActor->getConnectionName())->where('guard_name', 'web')
                 ->whereIn('id', $permissionIds)->get(['id', 'name', 'guard_name']);
@@ -132,7 +113,7 @@ class DoctorService
             if ($permissions->count() !== count($permissionIds)) {
                 throw ValidationException::withMessages(['permissions' => 'Select permissions from the current application.']);
             }
-            if (! $this->access->permissionsWithinActor($freshActor, $permissions)) {
+            if (! $freshActor->canGrantPermissions($permissions)) {
                 throw ValidationException::withMessages(['permissions' => 'You may grant only permissions you hold yourself.']);
             }
 
@@ -153,14 +134,7 @@ class DoctorService
 
     public function delete(Account $actor, Model $record): void
     {
-        if (! $record instanceof Doctor) {
-            throw new AuthorizationException;
-        }
-        Gate::forUser($actor)->authorize('delete', $record);
-        $this->authorizePlan($actor, 'doctors.delete');
-
-        $this->access->transaction($actor, function (Account $freshActor) use ($record): void {
-            $this->authorizePlan($freshActor, 'doctors.delete');
+        $actor->withAccessLock(function (Account $freshActor) use ($record): void {
             $doctor = Doctor::where('branch_id', $record->branch_id)
                 ->whereKey($record->getKey())
                 ->lockForUpdate()
@@ -224,21 +198,12 @@ class DoctorService
         $doctor->picture_path = $picturePath;
     }
 
-    private function authorizePlan(Account $actor, string $permission): void
+    private function assertCanManagePermissions(Account $actor): void
     {
-        $this->access->assertActorContext($actor);
-        $tenant = Tenant::current();
-        $subscription = $tenant === null ? null : Subscription::forTenant($tenant);
-        if (! $subscription?->isUsable()) {
-            throw new AuthorizationException('Your account or plan does not include this action.');
-        }
-
-        $plan = $subscription->plan;
-        if (! $plan->allowsRoutePermission('hospital.view') || ! $plan->allowsRoutePermission($permission)) {
-            throw new AuthorizationException('Your account or plan does not include this action.');
-        }
-        if (! $this->access->isOwner($actor) && ! $actor->can('hospital.view')) {
-            throw new AuthorizationException('Your account or plan does not include this action.');
+        $actor->assertApplicationContext();
+        if (! $actor->isOwner()
+            && ! $actor->canGrantPermissions((new Doctor)->getAllPermissions())) {
+            throw new AuthorizationException('You may manage only Doctor permissions that you already hold.');
         }
     }
 }

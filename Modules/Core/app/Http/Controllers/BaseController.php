@@ -124,7 +124,6 @@ abstract class BaseController extends Controller
             'filterOptions' => (new $model)->queryContract()['filterable'],
         ]) + [
             'filters' => $filters,
-            // 'pageTitle' => Str::plural($this->title),
             'pageTitle' => $this->title,
             'routePrefix' => $this->routePrefix(),
             'routeParameters' => $this->routeParameters(),
@@ -264,11 +263,13 @@ abstract class BaseController extends Controller
 
                     return $target;
                 });
-            } catch (UniqueConstraintViolationException) {
-                throw ValidationException::withMessages([
-                    'record' => 'A record with these details already exists.',
-                ]);
             } catch (QueryException $exception) {
+                if ($exception instanceof UniqueConstraintViolationException) {
+                    throw ValidationException::withMessages([
+                        'record' => 'A record with these details already exists.',
+                    ]);
+                }
+
                 if ((int) ($exception->errorInfo[1] ?? 0) !== 1451) {
                     throw $exception;
                 }

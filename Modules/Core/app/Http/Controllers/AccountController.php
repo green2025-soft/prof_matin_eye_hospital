@@ -8,7 +8,6 @@ use Modules\Core\Http\Requests\AccountRequest;
 use Modules\Core\Http\Requests\ListRequest;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Tenant;
-use Modules\Core\Services\AccessManager;
 use Modules\Core\Services\AccountService;
 
 class AccountController extends BaseController
@@ -26,7 +25,7 @@ class AccountController extends BaseController
         return Account::modelForProvider(request()->attributes->get('application_provider'));
     }
 
-    public function index(ListRequest $request, AccessManager $access): View
+    public function index(ListRequest $request): View
     {
         $isTenantUser = $request->attributes->get('application_provider') === 'users';
         $hasBranches = $isTenantUser && (bool) Tenant::current()?->has_branches;
@@ -38,7 +37,7 @@ class AccountController extends BaseController
             $query->without('branch');
         }
 
-        if ($access->isOwner($request->user('web'))) {
+        if ($request->user('web')->isOwner()) {
             $query->without(['roles.permissions', 'permissions']);
         }
 

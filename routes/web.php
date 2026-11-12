@@ -5,7 +5,7 @@ use Modules\Core\Http\Controllers\DashboardController;
 use Modules\Core\Http\Controllers\PasswordController;
 use Modules\Core\Http\Controllers\SessionController;
 
-Route::get('/', [DashboardController::class, 'index'])->middleware('auth')->name('home');
+Route::get('/', [DashboardController::class, 'index'])->middleware(['auth', 'access'])->name('home');
 
 Route::controller(SessionController::class)->prefix('auth')->name('auth.')->group(function (): void {
     Route::get('tenant-entry/{token}', 'enterTenant')->middleware(['tenant', 'signed:relative', 'throttle:30,1'])->name('tenant-entry');

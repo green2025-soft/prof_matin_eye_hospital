@@ -6,7 +6,9 @@
     @include('core::partials.heading', [
         'title' => $pageTitle,
         'description' => 'Manage doctors, departments, and consultation fees at the selected branch.',
-        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New doctor'],
+        'create' => isset($permissions['doctors.create'])
+            ? ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New doctor']
+            : null,
     ])
 
     <section class="app-card overflow-hidden">
@@ -82,7 +84,16 @@
                                 <td class="small text-break">{{ $doctor->department?->name }}</td>
                                 <td class="text-end text-nowrap">{{ $doctor->consultation_fee }}</td>
                                 <td class="text-end text-nowrap">{{ $doctor->follow_up_fee }}</td>
-                                <td>@include('core::partials.row-actions', ['model' => $doctor, 'routePrefix' => $routePrefix])</td>
+                                <td>
+                                    @include('core::partials.row-actions', [
+                                        'model' => $doctor,
+                                        'routePrefix' => $routePrefix,
+                                        'rowPermissions' => [
+                                            'update' => isset($permissions['doctors.update']),
+                                            'delete' => isset($permissions['doctors.delete']),
+                                        ],
+                                    ])
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

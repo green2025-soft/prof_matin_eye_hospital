@@ -7,14 +7,12 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Modules\Core\Contracts\TenantAccounts;
 use Modules\Core\Http\Requests\LoginRequest;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Admin;
 use Modules\Core\Models\Tenant;
-use Modules\Core\Services\AccessManager;
 
 class SessionController extends Controller
 {
@@ -59,7 +57,7 @@ class SessionController extends Controller
             ->intended(route('home'));
     }
 
-    public function enterTenant(Request $request, #[\SensitiveParameter] string $token, TenantAccounts $accounts, AccessManager $access): RedirectResponse
+    public function enterTenant(Request $request, #[\SensitiveParameter] string $token, TenantAccounts $accounts): RedirectResponse
     {
         $tenant = Tenant::current();
         abort_unless($tenant !== null && preg_match('/\A[A-Za-z0-9]{64}\z/', $token), 403);
@@ -67,7 +65,7 @@ class SessionController extends Controller
         $cache = Cache::store('tenant-handoff');
 
         $cache->lock($key.':lock', 10)
-            ->block(3, function () use ($request, $tenant, $key, $cache, $access): void {
+            ->block(3, function () use ($request, $tenant, $key, $cache): void {
                 $handoff = $cache->pull($key);
                 abort_unless(
                     is_array($handoff)
@@ -81,12 +79,16 @@ class SessionController extends Controller
                 try {
                     Tenant::forgetCurrent();
                     $admin = Admin::findOrFail($handoff['admin_id']);
-                    $access->transaction($admin, function (Account $actor) use ($handoff, $request): void {
+                    $admin->withAccessLock(function (Account $actor) use ($handoff, $request): void {
                         $current = Tenant::whereKey($handoff['tenant_id'])
                             ->lockForUpdate()
                             ->firstOrFail();
-                        Gate::forUser($actor)
-                            ->authorize('enter', $current);
+                        // Signed handoff restores a central actor independently of this tenant request.
+                        abort_unless(
+                            $current->status === Tenant::STATUS_ACTIVE
+                                && ($actor->isOwner() || $actor->can('tenants.enter')),
+                            403,
+                        );
                         abort_unless(
                             $current->domains()
                                 ->where('domain', $request->getHost())

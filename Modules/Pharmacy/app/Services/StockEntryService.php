@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Setting;
-use Modules\Core\Services\AccessManager;
 use Modules\Hospital\Contracts\PharmacyCustomers;
 use Modules\Pharmacy\Models\PharmacySequence;
 use Modules\Pharmacy\Models\StockEntry;
@@ -20,7 +19,6 @@ abstract class StockEntryService
     protected string $model;
 
     public function __construct(
-        protected AccessManager $access,
         protected PharmacyAccess $pharmacy,
         protected PharmacyCustomers $customers,
         protected StockService $stock,
@@ -30,16 +28,17 @@ abstract class StockEntryService
     public function save(Account $actor, ?StockEntry $record, array $values): StockEntry
     {
         try {
-            return $this->access->transaction($actor, function (Account $freshActor) use ($record, $values): StockEntry {
+            return $actor->withAccessLock(function (Account $freshActor) use ($record, $values): StockEntry {
                 $entry = $this->lockedEntry($record);
-                $action = $entry->exists ? 'update' : 'create';
+                $created = ! $entry->exists;
+                $action = $created ? 'create' : 'update';
                 $this->pharmacy->authorize($freshActor, $entry->crudPermission().'.'.$action);
                 $previousLines = $this->prepareForWrite($freshActor, $entry, $values);
                 $settings = Setting::values('pharmacy', $entry->getConnectionName());
 
                 $this->fillHeader($entry, $values);
                 $lines = $this->prepareEntry($freshActor, $entry, $values, $settings, $previousLines);
-                if (! $entry->exists) {
+                if ($created) {
                     $entry->number = $this->nextNumber($entry, $settings);
                 }
 
@@ -48,6 +47,11 @@ abstract class StockEntryService
                 $entry->cost = $this->postStock($entry);
                 $entry->posted_at = now(config('app.timezone'));
                 $entry->save();
+
+                // Resource creation hooks share this transaction after stock and totals are final.
+                if ($created) {
+                    $this->afterCreated($freshActor, $entry, $settings);
+                }
 
                 return $entry;
             });
@@ -63,7 +67,7 @@ abstract class StockEntryService
 
     public function reverse(Account $actor, StockEntry $record): void
     {
-        $this->access->transaction($actor, function (Account $freshActor) use ($record): void {
+        $actor->withAccessLock(function (Account $freshActor) use ($record): void {
             $entry = $this->lockedEntry($record);
             $this->pharmacy->authorize($freshActor, $entry->crudPermission().'.void');
             if ($entry->branch_id !== (int) request()->attributes->get('branch_id') || $entry->voided_at !== null) {
@@ -78,7 +82,7 @@ abstract class StockEntryService
 
     public function delete(Account $actor, StockEntry $record): void
     {
-        $this->access->transaction($actor, function (Account $freshActor) use ($record): void {
+        $actor->withAccessLock(function (Account $freshActor) use ($record): void {
             $entry = $this->lockedEntry($record);
             $this->pharmacy->authorize($freshActor, $entry->crudPermission().'.delete');
             Gate::forUser($freshActor)->authorize('delete', $entry);
@@ -151,6 +155,8 @@ abstract class StockEntryService
     abstract protected function prepareEntry(Account $actor, StockEntry $entry, array $values, array $settings, Collection $previousLines): array;
 
     abstract protected function postStock(StockEntry $entry): int;
+
+    protected function afterCreated(Account $actor, StockEntry $entry, array $settings): void {}
 
     protected function reverseStock(StockEntry $entry): void
     {

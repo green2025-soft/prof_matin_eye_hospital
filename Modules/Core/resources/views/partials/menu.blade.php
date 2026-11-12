@@ -74,3 +74,16 @@
         'active' => request()->routeIs('core.settings.*'),
     ])
 @endif
+
+@if (($layout['permissions']['sms-accounts.view'] ?? false) || ($layout['permissions']['sms-recharges.view'] ?? false) || ($layout['permissions']['sms-history.view'] ?? false))
+    <p class="app-nav-label">SMS</p>
+@endif
+@if ($layout['permissions']['sms-accounts.view'] ?? false)
+    @include('core::partials.navigation-link', ['label' => 'SMS accounts', 'icon' => 'wallet', 'url' => route('core.sms-accounts.index'), 'active' => request()->routeIs('core.sms-accounts.*')])
+@endif
+@if ($layout['permissions']['sms-recharges.view'] ?? false)
+    @include('core::partials.navigation-link', ['label' => 'SMS recharges', 'icon' => 'money-bill-transfer', 'url' => route('core.sms-recharges.index'), 'active' => request()->routeIs('core.sms-recharges.*')])
+@endif
+@if ($layout['permissions']['sms-history.view'] ?? false)
+    @include('core::partials.navigation-link', ['label' => 'SMS history', 'icon' => 'comment-sms', 'url' => route('core.sms-history.index'), 'active' => request()->routeIs('core.sms-history.*')])
+@endif

@@ -14,10 +14,10 @@ class PatientOperationRequest extends BaseRequest
     {
         $branchId = max(0, (int) $this->attributes->get('branch_id', 0));
         $referenceEnabled = (bool) Setting::values('hospital')['operation_reference_enabled'];
-        $moneyRules = ['required', 'string', 'regex:/\A\d{1,10}(?:\.\d{1,2})?\z/'];
+        $moneyRules = ['required', 'string', 'decimal:0,2', 'between:0,9999999999.99'];
 
         return [
-            'reference_id' => $referenceEnabled ? ['bail', 'nullable', 'integer', 'min:1', $this->existsIn('references')->where('branch_id', $branchId)]: ['prohibited'],
+            'reference_id' => $referenceEnabled ? ['bail', 'nullable', 'integer', 'min:1', $this->existsIn('references')->where('branch_id', $branchId)] : ['prohibited'],
             'patient_id' => ['bail', 'required', 'integer', 'min:1', $this->existsIn('patients')->where('branch_id', $branchId)],
             'doctor_id' => ['bail', 'required', 'integer', 'min:1', $this->existsIn('doctors')->where('branch_id', $branchId)],
             'entry_date' => ['required', 'date_format:Y-m-d'],

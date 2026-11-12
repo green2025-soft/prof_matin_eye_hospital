@@ -3,7 +3,8 @@
 @section('title', $pageTitle)
 
 @section('content')
-    @php($formItems = array_slice(getValue('items', null, $items), 0, 100, true) ?: [['description' => '', 'quantity' => 1, 'unit_amount' => '0.00']])
+    @php($postedItems = getValue('items', null, $items))
+    @php($formItems = collect(is_iterable($postedItems) ? $postedItems : [])->take(100))
 
     @include('core::partials.heading', [
         'title' => $pageTitle,
@@ -90,9 +91,11 @@
                         </tr>
                     </thead>
                     <tbody data-invoice-items>
-                        @foreach ($formItems as $index => $item)
-                            @include('core::invoices.item-row', ['index' => $index, 'item' => is_array($item) ? $item : []])
-                        @endforeach
+                        @forelse ($formItems as $index => $item)
+                            @include('core::invoices.item-row', ['index' => $index, 'item' => $item])
+                        @empty
+                            @include('core::invoices.item-row', ['index' => 0, 'item' => []])
+                        @endforelse
                     </tbody>
                 </table>
             </div>
