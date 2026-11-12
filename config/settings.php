@@ -346,7 +346,7 @@ return [
             'favicon_path' => '',
         ],
         'billing' => ['currency' => 'BDT', 'invoice_prefix' => 'INV', 'payment_instructions' => ''],
-        'general' => ['timezone' => env('APP_TIMEZONE', 'Asia/Dhaka'), 'locale' => env('APP_LOCALE', 'en')],
+        'general' => ['timezone' => env('APP_TIMEZONE', 'Asia/Dhaka'), 'locale' => env('APP_LOCALE', 'en'), 'module_order' => []],
         'email' => ['enabled' => false, 'host' => '', 'port' => '587', 'encryption' => 'tls', 'from_address' => '', 'from_name' => ''],
         'hospital' => [
             'id_scope' => 'tenant',
@@ -530,6 +530,7 @@ return [
         'general' => [
             'timezone' => ['required', 'timezone'],
             'locale' => ['required', 'string', 'max:12', 'regex:/\A[a-z]{2}(?:[_-][A-Z]{2})?\z/'],
+            'module_order' => ['sometimes', 'array'],
         ],
         'hospital' => [
             'id_scope' => ['required', 'string', 'in:tenant,branch'],

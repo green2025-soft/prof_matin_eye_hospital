@@ -139,4 +139,25 @@ class PurchaseReturnService extends ReturnEntryService
     {
         return $this->stock->returnPurchase($entry);
     }
+
+    protected function postJournal(Account $actor, StockEntry $entry, bool $created): void
+    {
+        $this->journals->sync(
+            source: $entry,
+            feature: 'pharmacy.'.$entry->product_type.'.purchase-return',
+            entryDate: $entry->entry_date->toDateString(),
+            branchId: $entry->branch_id,
+            amounts: [
+                'settlement' => $entry->initial_paid,
+                'payable' => $entry->total - $entry->initial_paid,
+                'inventory' => $entry->cost,
+                'variance_loss' => max(0, $entry->cost - $entry->total),
+                'variance_gain' => max(0, $entry->total - $entry->cost),
+            ],
+            created: $created,
+            paymentTypeId: $entry->payment_type_id,
+            actor: $actor,
+            reference: $entry->number,
+        );
+    }
 }

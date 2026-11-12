@@ -1,5 +1,6 @@
 import $ from './jquery';
 
+// Rebuild the year choices only when the picker's allowed range changes.
 function updateYearOptions($select, picker) {
     const firstYear = picker.config.minDate?.getFullYear() ?? picker.currentYear - 100;
     const lastYear = picker.config.maxDate?.getFullYear() ?? picker.currentYear + 100;
@@ -8,15 +9,17 @@ function updateYearOptions($select, picker) {
         && Number($options.last().val()) === lastYear;
 
     if (!rangeMatches) {
-        $select.empty();
+        let options = '';
         for (let year = firstYear; year <= lastYear; year++) {
-            $('<option>').val(year).text(year).appendTo($select);
+            options += `<option value="${year}">${year}</option>`;
         }
+        $select.html(options);
     }
 
     $select.val(String(picker.currentYear)).prop('disabled', firstYear === lastYear);
 }
 
+// Replace Flatpickr's numeric year with the same dropdown behavior as its month.
 export function synchronizeDatepickerYear(_, __, picker) {
     if (!picker.currentYearElement) return;
 
@@ -37,6 +40,7 @@ export function synchronizeDatepickerYear(_, __, picker) {
     updateYearOptions($select, picker);
 }
 
+// jQuery removes the dropdown's event handlers with its element.
 export function destroyDatepickerYear(_, __, picker) {
-    $(picker.calendarContainer).find('.app-datepicker-year').off('.datepickerYear').remove();
+    $(picker.calendarContainer).find('.app-datepicker-year').remove();
 }

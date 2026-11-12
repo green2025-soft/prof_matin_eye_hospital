@@ -4,7 +4,7 @@ import $ from './jquery';
 export function createEmptySearchGuard($select) {
     let term = '';
     let currentQuery = null;
-    let emptyQuery = null;
+    let emptyTerm = '';
 
     // Refresh the caller's Create control when search eligibility changes.
     function notify() {
@@ -18,7 +18,7 @@ export function createEmptySearchGuard($select) {
 
         term = next;
         currentQuery = null;
-        emptyQuery = null;
+        emptyTerm = '';
         notify();
     }
 
@@ -26,7 +26,7 @@ export function createEmptySearchGuard($select) {
     function begin(params) {
         term = String(params.term || '').trim();
         currentQuery = { term, page: Number(params.page || 1) };
-        emptyQuery = null;
+        emptyTerm = '';
         params.creationQuery = currentQuery;
         notify();
     }
@@ -36,14 +36,14 @@ export function createEmptySearchGuard($select) {
         const query = params.creationQuery;
         if (!query || query !== currentQuery || query.term !== term) return false;
 
-        emptyQuery = query.page === 1 && resultCount === 0 && !more ? query : null;
+        emptyTerm = query.page === 1 && resultCount === 0 && !more ? query.term : '';
         notify();
         return true;
     }
 
     // Confirm the requested new name still belongs to the completed empty search.
     function canCreate(value) {
-        return Boolean(term && emptyQuery && term === String(value || '').trim());
+        return Boolean(emptyTerm && emptyTerm === String(value || '').trim());
     }
 
     // Track typing in both Select2 inputs without registering duplicate handlers.

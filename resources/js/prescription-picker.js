@@ -185,6 +185,23 @@ function bindSearchField(state) {
     });
 }
 
+// Deliver only the active search request, including cached selector responses.
+function transportSearch(state, params, success, failure) {
+    const request = fetchOptions(state, params.data.search, params.data.page);
+    state.searchRequest = request;
+    request.done(data => {
+        if (state.searchRequest === request) success(data);
+    }).fail((xhr, status) => {
+        if (status !== 'abort' && state.searchRequest === request) {
+            failure(xhr);
+            window.showToast('Items could not be loaded. Please try again.', 'error');
+        }
+    }).always(() => {
+        if (state.searchRequest === request) state.searchRequest = null;
+    });
+    return request;
+}
+
 // Connect Select2 search, paging and selection to this picker's saved value.
 function initializeSearch(state) {
     state.emptySearch = createEmptySearchGuard(state.$search);
@@ -211,21 +228,8 @@ function initializeSearch(state) {
                 state.emptySearch.begin(params);
                 return { search: state.term.slice(0, 80), page: params.page || 1 };
             },
-            // Deliver only the active request, including cached selector responses.
             transport(params, success, failure) {
-                const request = fetchOptions(state, params.data.search, params.data.page);
-                state.searchRequest = request;
-                request.done(data => {
-                    if (state.searchRequest === request) success(data);
-                }).fail((xhr, status) => {
-                    if (status !== 'abort' && state.searchRequest === request) {
-                        failure(xhr);
-                        window.showToast('Items could not be loaded. Please try again.', 'error');
-                    }
-                }).always(() => {
-                    if (state.searchRequest === request) state.searchRequest = null;
-                });
-                return request;
+                return transportSearch(state, params, success, failure);
             },
             // Normalize catalog names for Select2 and reject stale search results.
             processResults(data, params) {
@@ -256,7 +260,32 @@ function initializeSearch(state) {
     state.emptySearch.bindSearch();
 }
 
-// Save a new preset once, then select it and refresh the local suggestions.
+// Select a newly saved preset and refresh this picker's cached choices.
+function presetSaved(state, option) {
+    state.cache.clear();
+    state.knownNames.add(itemKey(option.name));
+    state.options.set(itemKey(option.name), option.name);
+    selectName(state, option.name);
+    renderGrid(state);
+    state.$search.select2('close');
+    state.$search.data('select2').$container.find('.select2-search__field').val('');
+    setSearchTerm(state, '');
+    window.showToast('Item saved to list.', 'success');
+}
+
+// Keep validation beside this picker and use Toastr for a request failure.
+function presetFailed(state, xhr, status) {
+    if (status === 'abort') return;
+
+    if (xhr.status === 422) {
+        const messages = Object.values(xhr.responseJSON?.errors || {}).flat().join(' ');
+        showError(state, messages || 'Check the item name and try again.');
+        return;
+    }
+    window.showToast('The item could not be saved. Please try again.', 'error');
+}
+
+// Save once; success, field errors and button cleanup each have one clear owner.
 function savePreset($button) {
     const state = $($button.attr('data-picker')).data('prescriptionPicker');
     const name = state.term;
@@ -283,29 +312,12 @@ function savePreset($button) {
         timeout: 30000,
     });
     $button.data('prescriptionPresetRequest', request);
-    request.done(option => {
-        state.cache.clear();
-        state.knownNames.add(itemKey(option.name));
-        state.options.set(itemKey(option.name), option.name);
-        selectName(state, option.name);
-        renderGrid(state);
-        state.$search.select2('close');
-        state.$search.data('select2').$container.find('.select2-search__field').val('');
-        setSearchTerm(state, '');
-        window.showToast('Item saved to list.', 'success');
-    }).fail((xhr, status) => {
-        if (status === 'abort') return;
-
-        if (xhr.status === 422) {
-            const messages = Object.values(xhr.responseJSON?.errors || {}).flat().join(' ');
-            showError(state, messages || 'Check the item name and try again.');
-        } else {
-            window.showToast('The item could not be saved. Please try again.', 'error');
-        }
-    }).always(() => {
-        $button.removeData('prescriptionPresetRequest').prop('disabled', false).removeAttr('aria-busy');
-        $spinner.remove();
-    });
+    request.done(option => presetSaved(state, option))
+        .fail((xhr, status) => presetFailed(state, xhr, status))
+        .always(() => {
+            $button.removeData('prescriptionPresetRequest').prop('disabled', false).removeAttr('aria-busy');
+            $spinner.remove();
+        });
 }
 
 // Initialize one picker and attach its chip and incremental-loading events.
@@ -317,9 +329,7 @@ function initializePicker($picker) {
         $picker,
         $value: $picker.find('.prescription-picker-value'),
         $search: $($picker.attr('data-search')),
-        $create: $('.prescription-preset-save').filter(function () {
-            return $(this).attr('data-picker') === target;
-        }),
+        $create: $('.prescription-preset-save[data-picker="' + target + '"]'),
         $options: $picker.find('.app-prescription-picker-options'),
         $error: $picker.find('.prescription-picker-error'),
         options: new Map(),

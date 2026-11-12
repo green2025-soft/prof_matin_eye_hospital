@@ -15,8 +15,10 @@ use Illuminate\Support\ServiceProvider;
 use Modules\Core\Contracts\TenantAccounts as TenantAccountsContract;
 use Modules\TenantCore\Http\Middleware\ResolveBranch;
 use Modules\TenantCore\Services\AuditLogger;
+use Modules\TenantCore\Services\IncomeExpenseCashReportSource;
 use Modules\TenantCore\Services\TenantAccounts;
 use Modules\TenantCore\View\Composers\MenuComposer;
+use Modules\TenantCore\View\Composers\ReportComposer;
 use Spatie\Permission\Events\PermissionAttachedEvent;
 use Spatie\Permission\Events\PermissionDetachedEvent;
 use Spatie\Permission\Events\RoleAttachedEvent;
@@ -26,12 +28,17 @@ class TenantCoreServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->mergeConfigFrom(module_path('TenantCore', 'config/accounting.php'), 'accounting.integrations');
+
+        $this->app->tag([IncomeExpenseCashReportSource::class], 'tenantcore.cash-report-sources');
+
         $this->app->bind(TenantAccountsContract::class, TenantAccounts::class);
     }
 
     public function boot(): void
     {
         View::composer('core::layouts.app', MenuComposer::class);
+        View::composer('tenantcore::reports.layout', ReportComposer::class);
 
         Event::listen(['eloquent.created: *', 'eloquent.updated: *', 'eloquent.deleted: *'], [AuditLogger::class, 'modelChanged']);
         Event::listen(Login::class, [AuditLogger::class, 'login']);

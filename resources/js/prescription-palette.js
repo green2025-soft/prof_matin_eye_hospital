@@ -35,11 +35,51 @@ export function createPrescriptionPalette($modal, $menu, placement = 'bottom-sta
         });
     }
 
-    $(document).on('mousedown.prescriptionPalette focusin.prescriptionPalette', event => {
+    // Dose and Unit use the same click, arrow and Escape behavior.
+    function bindToggle($scope, selector, openPalette) {
+        $scope.on('click.prescriptionPalette', selector, function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            openPalette($(this));
+        });
+        $scope.on('keydown.prescriptionPalette', selector, function (event) {
+            if (!['ArrowDown', 'ArrowUp', 'Enter', ' ', 'Escape'].includes(event.key)) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+            if (event.key === 'Escape') {
+                if ($menu.hasClass('show')) close();
+                else $modal.modal('hide');
+                return;
+            }
+
+            const $button = $(this);
+            if (!$trigger.is($button) || !$menu.hasClass('show')) openPalette($button);
+            const $selected = $menu.find('.dropdown-item.active');
+            ($selected.length ? $selected : $menu.find('.dropdown-item').first()).trigger('focus');
+        });
+    }
+
+    // Return focus to the opener when Escape closes its choice list.
+    function closeOnEscape(event) {
+        if (event.key !== 'Escape') return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        const $focus = $trigger;
+        close();
+        $focus.trigger('focus');
+    }
+
+    // Dismiss the palette when focus or a click moves outside it and its trigger.
+    function closeOutside(event) {
         if (!position) return;
         if ($(event.target).closest($menu.add($trigger)).length) return;
         close();
-    });
+    }
 
-    return { open, close, update: () => position?.update() };
+    $menu.on('keydown.prescriptionPalette', closeOnEscape);
+    $(document).on('mousedown.prescriptionPalette focusin.prescriptionPalette', closeOutside);
+
+    return { open, close, bindToggle, update: () => position?.update() };
 }

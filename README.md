@@ -4,6 +4,14 @@ Reusable Laravel 13 foundation with three approved modules: **Core** for platfor
 
 ## Requirements
 
+Database schema পরিবর্তনের ধাপ: [নতুন column যোগ ও tenant migration](DATABASE-CHANGES.md)।
+
+JavaScript পরিবর্তনের ধাপ ও সব file-এর map: [jQuery + ESM developer guide](JAVASCRIPT.md)।
+
+Upload-এর পরে Super Admin-এর browser update URL: `/core/deploy` — [Server Update নির্দেশনা](DEPLOYMENT.md#browser-থেকে-server-update)।
+
+TenantCore-এর [Income ও Expense](Modules/TenantCore/INCOME-EXPENSE.md) Accounting ছাড়াও ব্যবহার করা যায়।
+
 - PHP 8.4.1 or later within PHP 8, with the extensions required by Composer.
 - Composer 2 and Node.js compatible with Vite 8: Node 20.19.x or Node 22.12 and later.
 - MySQL when application database connections and module migrations are configured.
@@ -138,6 +146,10 @@ Charges follow encoded SMS parts, not one charge per form: GSM-7 normally uses 1
 
 Patient-backed messages can optionally include `{patient_name}`, `{patient_mobile}`, `{patient_address}`, `{patient_id}`, `{patient_age}` and `{father_husband_name}`. Place only the wanted tokens in each template; existing text stays unchanged and missing optional details render empty. See the [patient template example](DEPLOYMENT.md#optional-patient-details-in-templates).
 
+## Accounting
+
+Tenant Accounting provides a five-level Chart of Accounts, manual Receipt/Payment/Journal/Contra vouchers, same-page voucher printing, and automatic Hospital/Pharmacy postings. Medicine and Optic have independent mappings. Payment Types map to Cash/Bank asset ledgers; Refund and Commission use separate defaults. Existing invoices are not backfilled, and automatic vouchers are managed by their owning source action. See the [Accounting workflow and production update guide](Modules/Accounting/README.md).
+
 ## Billing and deployment
 
 Platform screens live under `/core/plans`, `/core/plan-permissions`, `/core/subscriptions`, `/core/invoices`, `/core/payments`, and `/core/settings`. Plan Permissions selects a plan and manages its tenant route access separately from plan details. Invoices includes pending manual payment review; there is no separate platform Billing page. Tenant `/billing` shows its subscription/invoices and starts checkout; `/settings` manages its allowed groups. A submitted reference alone never marks an invoice paid. Checkout snapshots the fixed charge, verifies the total received, and credits only the invoice principal; receipts show principal, charge, and total separately.
@@ -270,7 +282,7 @@ For simple inline CRUD in an existing module, the usual change is **9 files**, p
 - **6 new:** Controller, Model, Request, a new schema migration, and `index.blade.php`/`form.blade.php`.
 - **3 existing:** the module's `routes/web.php`, `config/permissions.php`, and its fixed menu partial.
 
-Declare an explicit `$crudPermission` prefix on the model, as OperationCategory does for `operation-categories`. Shared Core gates use `AccessManager::allowsCrud()` for role/context/connection and model branch-context checks plus existing update/delete targets; deletion also checks intrinsic `hasReferences()`, defaulting to false. Empty metadata denies generic access. Business-specific policies retain precedence through native model attributes. Simple CRUD needs no separate Policy file. Shared `BaseController::record()` resolves the declared URL parameter through native `resolveRouteBinding()`/`bindingFieldFor()` and caches it with `setParameter()`; already-bound models and target class/connection/404 checks remain supported. Reuse the existing module migration path and apply new schema through deployment commands. No per-resource Policy, ServiceProvider, or MenuComposer edits are needed for simple CRUD. Core and Hospital composers reuse `AccessManager::navigationPermissions()` for context-checked role/plan permission maps, retaining Billing recovery access; fixed menus use these scalar flags and native route helpers without models, gates, queries, or menu loops in Blade.
+Declare an explicit `$crudPermission` prefix on the model, as OperationCategory does for `operation-categories`. Shared Core gates use `BaseModel::allowsCrud()` with middleware-prepared permission facts for role/context/connection and model branch-context checks plus existing update/delete targets; deletion also checks intrinsic `hasReferences()`, defaulting to false. Empty metadata denies generic access. Business-specific policies retain precedence through native model attributes. Simple CRUD needs no separate Policy file. Shared `BaseController::record()` resolves the declared URL parameter through native `resolveRouteBinding()`/`bindingFieldFor()` and caches it with `setParameter()`; already-bound models and target class/connection/404 checks remain supported. Reuse the existing module migration path and apply new schema through deployment commands. No per-resource Policy, ServiceProvider, or MenuComposer edits are needed for simple CRUD. Core and module composers read the middleware-prepared `navigation_permissions` request map, retaining Billing recovery access; fixed menus use these scalar flags and native route helpers without models, gates, queries, or menu loops in Blade.
 
 `nwidart/laravel-modules`, its Composer merge integration, `spatie/laravel-permission`, and `spatie/laravel-multitenancy` are installed. Module providers register their own routes with native `loadRoutesFrom(module_path(...))`; each module groups `web`/`auth`, its name prefix, and central/tenant restrictions. Core declares the `core` URL prefix once; tenant account URLs remain `/users`. Root routes own home and shared login/logout/password recovery under `auth`. Tenant-aware jobs enforce lifecycle eligibility; central jobs implement Spatie `NotTenantAware`. Authorize actions before temporarily switching tenant context.
 

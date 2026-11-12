@@ -267,6 +267,7 @@ class TenantProvisioner
             DB::connection('tenant')->transaction(function () use ($tenant, $ownerName, $password, $adopt): void {
                 if ($adopt) {
                     $this->accounts->adoptOwner($tenant->owner_email);
+                    $this->databases->seedTenantDefaults();
                 } else {
                     $this->accounts->createOwner($ownerName, $tenant->owner_email, $password);
 

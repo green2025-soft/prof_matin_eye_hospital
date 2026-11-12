@@ -54,6 +54,11 @@ class LayoutComposer
                     'url' => route('tenantcore.module-dashboard.index'),
                     'active' => $this->request->routeIs('tenantcore.module-dashboard.*'),
                 ],
+                'deployment' => [
+                    'allowed' => $central && $actor->isOwner(),
+                    'url' => route('core.deploy.index'),
+                    'active' => $this->request->routeIs('core.deploy.*'),
+                ],
             ];
         }
 

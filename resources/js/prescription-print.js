@@ -45,7 +45,7 @@ function applyPrintRules(rules, settings) {
 }
 
 // Configure barcode and paper geometry on the prescription's existing print page.
-$(function () {
+$(function initializePrescriptionPrint() {
     renderPatientBarcodes();
 
     const $printButton = $('[data-print-config]').first();

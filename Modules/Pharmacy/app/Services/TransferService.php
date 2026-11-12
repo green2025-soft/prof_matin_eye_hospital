@@ -45,4 +45,35 @@ class TransferService extends StockEntryService
     {
         return $this->stock->transfer($entry);
     }
+
+    protected function postJournal(Account $actor, StockEntry $entry, bool $created): void
+    {
+        $this->journals->sync(
+            source: $entry,
+            feature: 'pharmacy.'.$entry->product_type.'.transfer-out',
+            entryDate: $entry->entry_date->toDateString(),
+            branchId: $entry->branch_id,
+            amounts: [
+                'clearing' => $entry->cost,
+                'inventory' => $entry->cost,
+            ],
+            created: $created,
+            actor: $actor,
+            reference: $entry->number,
+        );
+
+        $this->journals->sync(
+            source: $entry,
+            feature: 'pharmacy.'.$entry->product_type.'.transfer-in',
+            entryDate: $entry->entry_date->toDateString(),
+            branchId: $entry->destination_branch_id,
+            amounts: [
+                'inventory' => $entry->cost,
+                'clearing' => $entry->cost,
+            ],
+            created: $created,
+            actor: $actor,
+            reference: $entry->number,
+        );
+    }
 }

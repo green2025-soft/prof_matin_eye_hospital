@@ -2,6 +2,7 @@
     "name": "Pharmacy",
     "alias": "pharmacy",
     "description": "Medicine and optic pharmacy, purchasing, sales and stock movements.",
+    "requires": ["TenantCore", "Accounting"],
     "tenant_dashboard": {
         "label": "Pharmacy",
         "icon": "boxes-stacked",

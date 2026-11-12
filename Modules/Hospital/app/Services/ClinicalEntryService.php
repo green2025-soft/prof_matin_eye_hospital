@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Modules\Accounting\Contracts\JournalPosting;
 use Modules\Core\Helpers\Money;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Setting;
@@ -26,6 +27,7 @@ abstract class ClinicalEntryService
     public function __construct(
         protected SmsService $sms,
         protected ClinicalInvoiceService $invoices,
+        protected JournalPosting $journals,
     ) {}
 
     protected function write(Account $actor, BaseModel $record, int $branchId, Closure $save): BaseModel
@@ -42,7 +44,7 @@ abstract class ClinicalEntryService
                 }
                 $this->authorize($freshActor, $entry, $action);
 
-                return $save($entry);
+                return $save($entry, $freshActor);
             });
         } catch (QueryException $exception) {
             $code = (int) ($exception->errorInfo[1] ?? 0);
@@ -66,6 +68,7 @@ abstract class ClinicalEntryService
             $entry = $record->newQuery()->whereKey($record->getKey())
                 ->lockForUpdate()->firstOrFail();
             $this->authorize($freshActor, $entry, 'delete');
+            $this->journals->reverse(source: $entry);
             $entry->delete();
         });
     }

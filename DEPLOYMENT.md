@@ -1,5 +1,30 @@
 # Production migration
 
+নতুন column-এর migration তৈরি ও সব tenant-এ প্রয়োগের নিয়ম: [DATABASE-CHANGES.md](DATABASE-CHANGES.md)।
+
+## Browser থেকে Server Update
+
+Terminal বা cron ছাড়াই update করতে পারবেন:
+
+1. Local-এ `npm run build` করুন। Updated application/Modules files এবং নতুন `public/build` upload করুন। Composer dependency/autoload বদলালে updated `vendor`-ও upload করুন। Shared hosting-এর public files আলাদা web root-এ থাকলে `build` সেখানেই যাবে। Server-এর `.env`, application key, uploaded images এবং custom `public/index.php` / public path ঠিক রাখুন। Local `.env`, `storage/framework` runtime files, `bootstrap/cache/*.php` ও `public/hot` upload করবেন না।
+2. Central ও tenant database backup রাখুন। Update button **pending migration-এর code** চালায়; migration নিজে data পরিবর্তন করলে সেই পরিবর্তনও প্রযোজ্য হবে।
+3. Central **Super Admin** দিয়ে login করুন। `https://eyecloudportal.com/core/deploy` খুলুন, অথবা menu থেকে **Server Update** নির্বাচন করুন। অন্য installation-এ নিজের central domain-এর `/core/deploy` ব্যবহার করুন। Tenant-এর Super Admin এই page ব্যবহার করতে পারবেন না।
+4. নতুন file upload-এর পরে **Run Update** চাপুন এবং শেষ হওয়া পর্যন্ত page খোলা রাখুন। এটি preparation থেকে নতুন run শুরু করে। একই uploaded version-এর মাঝপথে থেমে যাওয়া কাজের জন্য **Continue Update** ব্যবহার করুন। Browser একটির পরে আরেকটি request পাঠাবে; queue worker বা cron লাগবে না।
+
+প্রথমে generated config/route/event/view caches পরিষ্কার হবে। পরের নতুন request-এ নতুন configuration নিয়ে `platform:migrate --force` চলবে। তারপর প্রতিটি registered tenant-এর জন্য আলাদা request-এ `tenants:migrate --tenant=ID --force` চলবে; `deleting` tenant বাদ যাবে। এই existing commands-ই ownership/lock, pending schema, permissions, settings এবং configured idempotent defaults পরিচালনা করে। শেষে generated caches আবার পরিষ্কার হবে। Sessions, application cache ও images মুছবে না।
+
+একটি tenant ব্যর্থ হলে অন্য tenant-এর কাজ চলবে। Page-এ failed tenant ID দেখা যাবে; কারণ `storage/logs/laravel.log`-এ থাকবে। Central/cache step ব্যর্থ হলে পরের কাজ থামবে। কারণ ঠিক করে **Continue Update / Run Update** দিন। Page বন্ধ হয়ে গেলে বা hosting timeout হলে একই URL থেকে continue করুন। Hosting একটি migration-ই শেষ করার আগেই বারবার connection বন্ধ করলে provider-কে request limit বাড়াতে হবে; browser flow সেই limit অতিক্রম করতে পারে না।
+
+একসঙ্গে দুটি request migration চালাবে না। Retry-তে আগের সফল migration আবার চলে না; আলাদা database-এর কাজ একসঙ্গে rollback হয় না। Updater কোনো `migrate:fresh`, `reset`, database reinstall বা medicine catalog replacement চালায় না। Composer/npm command server-এর web request থেকে চলে না।
+
+### এই feature প্রথমবার upload করলে
+
+Server-এ আগে config বা route cache করা থাকলে পুরোনো cache নতুন URL চিনবে না। **একবার** File Manager থেকে Laravel project folder-এর `bootstrap/cache/config.php` ও `bootstrap/cache/routes-v7.php` মুছুন, যদি থাকে। `.env` বা অন্য project file মুছবেন না। এরপর login করে `/core/deploy` খুলুন। এই updater দিয়ে পরবর্তী update শেষ করলে config/route cache পরিষ্কার থাকবে।
+
+Shared hosting-এর actual public root `index.php` থেকে নির্ধারিত হতে পারে। তাই web updater `config:cache` বা `route:cache` চালিয়ে নতুন application bootstrap করে না; তাতে ভুল public path cache হওয়ার ঝুঁকি এড়ানো হয়।
+
+## Terminal থেকে migration
+
 Laravel project-এর folder থেকে command দুটি এই ক্রমে চালান:
 
 ```bash

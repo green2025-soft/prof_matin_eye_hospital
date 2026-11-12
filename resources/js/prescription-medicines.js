@@ -511,6 +511,113 @@ export function initializePrescriptionMedicines() {
         return $result;
     }
 
+    // Resume an explicit edit, then prefer server errors before the medicine search.
+    function focusOpenedModal() {
+        if ($focusAfterOpen.length) {
+            $focusAfterOpen.trigger('focus');
+            $focusAfterOpen = $();
+            return;
+        }
+
+        const $invalidRow = $rows.children('.prescription-medicine-row').has('.is-invalid, .invalid-feedback').first();
+        const $invalidSelect = $invalidRow.find('select.is-invalid').first();
+        if ($invalidSelect.length) {
+            $invalidSelect.select2('open');
+            return;
+        }
+        const $invalidInput = $invalidRow.find('.is-invalid:visible').first();
+        if ($invalidInput.length) {
+            $invalidInput.trigger('focus');
+            return;
+        }
+        const $error = $modal.find('.invalid-feedback').first();
+        if ($error.length) {
+            $error.attr('tabindex', '-1').trigger('focus');
+            return;
+        }
+        $search.select2('open');
+    }
+
+    // Close floating controls together before search opens or the editor closes.
+    function closeMedicineControls($selects) {
+        $selects.select2('close');
+        closeDosePalette();
+        closeUnitPalette();
+    }
+
+    // Keep the editor open until an inline instruction save finishes.
+    function closeEditor(event) {
+        instructions.preventWhileSaving(event);
+        if (!event.isDefaultPrevented()) closeMedicineControls($modal.find('select.select2-hidden-accessible'));
+    }
+
+    // Preserve entered slots when changing the number of daily doses.
+    function changeScheduleMode(event) {
+        const $button = $(event.currentTarget);
+        const $row = $button.closest('.prescription-medicine-row');
+        const mode = $button.val();
+        const values = readSchedule($row.find('.prescription-frequency-value').val());
+        values?.forEach((value, index) => { $row.data('scheduleValues')[index] = value; });
+        setFrequencyMode($row, mode);
+        if (mode !== 'custom') updateFrequency($row);
+    }
+
+    // Number keys fill one dose and advance; other keys belong to the palette.
+    function enterScheduleDose(event) {
+        if (!/^[0-6]$/.test(event.key) || event.altKey || event.ctrlKey || event.metaKey || event.originalEvent?.isComposing) return;
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        const $button = $(event.currentTarget);
+        const $row = $button.closest('.prescription-medicine-row');
+        const position = $row.find('.prescription-schedule-dose').index($button);
+        $row.data('scheduleValues')[position] = event.key;
+        $button.text(event.key);
+        updateFrequency($row);
+        nextDoseControl($row, position).trigger('focus');
+    }
+
+    // A palette choice updates its own slot before moving to food or Unit.
+    function selectDose(event) {
+        const $row = $activeDose.closest('.prescription-medicine-row');
+        const position = $row.find('.prescription-schedule-dose').index($activeDose);
+        const value = $(event.currentTarget).val();
+        $row.data('scheduleValues')[position] = value;
+        $activeDose.text(value);
+        updateFrequency($row);
+        const $focus = nextDoseControl($row, position);
+        closeDosePalette();
+        $focus.trigger('focus');
+    }
+
+    // Unit selection leaves other directions unchanged and moves to Duration.
+    function selectUnit(event) {
+        const $row = $activeUnit.closest('.prescription-medicine-row');
+        const $duration = $row.find('.prescription-duration-count:visible, .prescription-duration-value:visible').first();
+        const $focus = $duration.length ? $duration : $row.find('.prescription-duration-unit');
+        $row.find('[name$="[dose]"]').val($(event.currentTarget).val()).trigger('input');
+        closeUnitPalette();
+        $focus.trigger('focus');
+    }
+
+    // A manually edited name no longer represents the selected catalog product.
+    function detachRenamedMedicine(event) {
+        const $row = $(event.currentTarget).closest('.prescription-medicine-row');
+        detachChoice($row);
+        $row.find('[name$="[product_id]"]').val('');
+        $row.find('.prescription-medicine-generic').empty().prop('hidden', true);
+    }
+
+    // Restore this row's schedule before applying its selected dosage controls.
+    function changeDosageType(event) {
+        const $row = $(event.currentTarget).closest('.prescription-medicine-row');
+        closeDosePalette();
+        closeUnitPalette();
+        initializeFrequency($row);
+        refreshUnitToggle($row);
+        updatePrescriptionDoseType($row);
+    }
+
     // Restore saved rows before connecting the shared medicine search.
     $rows.children('.prescription-medicine-row').each(function () {
         const $row = $(this);
@@ -577,166 +684,33 @@ export function initializePrescriptionMedicines() {
         focusMedicineInput(firstPrescriptionDoseControl($row));
     });
     $search.on('select2:unselect.prescription', event => removeChoice(String(event.params.data.id)));
-    $search.on('select2:opening.prescription', () => {
-        $rows.find('select.select2-hidden-accessible').select2('close');
-        closeDosePalette();
-        closeUnitPalette();
-    });
-    // Resume the requested field or open the search at the first server validation error.
-    $modal.on('shown.bs.modal.prescription', () => {
-        if ($focusAfterOpen.length) {
-            $focusAfterOpen.trigger('focus');
-            $focusAfterOpen = $();
-            return;
-        }
-        const $invalidRow = $rows.children('.prescription-medicine-row').has('.is-invalid, .invalid-feedback').first();
-        const $invalidSelect = $invalidRow.find('select.is-invalid').first();
-        if ($invalidSelect.length) {
-            $invalidSelect.select2('open');
-            return;
-        }
-        const $invalidInput = $invalidRow.find('.is-invalid:visible').first();
-        if ($invalidInput.length) {
-            $invalidInput.trigger('focus');
-            return;
-        }
-        const $error = $modal.find('.invalid-feedback').first();
-        if ($error.length) {
-            $error.attr('tabindex', '-1').trigger('focus');
-            return;
-        }
-        $search.select2('open');
-    });
-    $modal.on('hide.bs.modal.prescription', event => {
-        instructions.preventWhileSaving(event);
-        if (event.isDefaultPrevented()) return;
-        $modal.find('select.select2-hidden-accessible').select2('close');
-        closeDosePalette();
-        closeUnitPalette();
-    });
+    $search.on('select2:opening.prescription', () => closeMedicineControls($rows.find('select.select2-hidden-accessible')));
+    $modal.on('shown.bs.modal.prescription', focusOpenedModal);
+    $modal.on('hide.bs.modal.prescription', closeEditor);
     $('#prescription-form').on('submit.prescriptionInstruction', instructions.preventWhileSaving);
 
     // Keep schedule buttons, typed frequency and palette selection synchronized.
-    $rows.on('click.prescription', '.prescription-schedule-count', function () {
-        const $row = $(this).closest('.prescription-medicine-row');
-        const mode = $(this).val();
-        const values = readSchedule($row.find('.prescription-frequency-value').val());
-        values?.forEach((value, index) => { $row.data('scheduleValues')[index] = value; });
-        setFrequencyMode($row, mode);
-        if (mode !== 'custom') updateFrequency($row);
-    });
-    $rows.on('click.prescription', '.prescription-schedule-dose', function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        openDosePalette($(this));
-    });
-    $rows.on('keydown.prescription', '.prescription-schedule-dose', function (event) {
-        if (/^[0-6]$/.test(event.key) && !event.altKey && !event.ctrlKey && !event.metaKey && !event.originalEvent?.isComposing) {
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            const $row = $(this).closest('.prescription-medicine-row');
-            const position = $row.find('.prescription-schedule-dose').index(this);
-            $row.data('scheduleValues')[position] = event.key;
-            $(this).text(event.key);
-            updateFrequency($row);
-            nextDoseControl($row, position).trigger('focus');
-            return;
-        }
-        if (!['ArrowDown', 'ArrowUp', 'Enter', ' ', 'Escape'].includes(event.key)) return;
-        event.preventDefault();
-        event.stopPropagation();
-        if (event.key === 'Escape') {
-            if ($palette.hasClass('show')) closeDosePalette();
-            else $modal.modal('hide');
-            return;
-        }
-        const $button = $(this);
-        if (!$activeDose.is($button) || !$palette.hasClass('show')) openDosePalette($button);
-        const $selected = $palette.find('.prescription-dose-choice.active');
-        const $choice = $selected.length ? $selected : $palette.find('.prescription-dose-choice').first();
-        $choice.trigger('focus');
-    });
-    $palette.on('click.prescription', '.prescription-dose-choice', function () {
-        const $row = $activeDose.closest('.prescription-medicine-row');
-        const position = $row.find('.prescription-schedule-dose').index($activeDose);
-        const value = $(this).val();
-        $row.data('scheduleValues')[position] = value;
-        $activeDose.text(value);
-        updateFrequency($row);
-        const $focus = nextDoseControl($row, position);
-        closeDosePalette();
-        $focus.trigger('focus');
-    });
-    $palette.on('keydown.prescription', function (event) {
-        if (event.key !== 'Escape') return;
-        event.preventDefault();
-        event.stopPropagation();
-        const $focus = $activeDose;
-        closeDosePalette();
-        $focus.trigger('focus');
-    });
+    $rows.on('click.prescription', '.prescription-schedule-count', changeScheduleMode);
+    $rows.on('keydown.prescription', '.prescription-schedule-dose', enterScheduleDose);
+    $palette.on('click.prescription', '.prescription-dose-choice', selectDose);
+    dosePalette.bindToggle($rows, '.prescription-schedule-dose', openDosePalette);
+    unitPalette.bindToggle($rows, '.prescription-unit-toggle', openUnitPalette);
+
     // Select a unit without disturbing the row's dose, duration or instruction values.
-    $rows.on('click.prescriptionUnit', '.prescription-unit-toggle', function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        openUnitPalette($(this));
-    });
-    $rows.on('keydown.prescriptionUnit', '.prescription-unit-toggle', function (event) {
-        if (!['ArrowDown', 'ArrowUp', 'Enter', ' ', 'Escape'].includes(event.key)) return;
-        event.preventDefault();
-        event.stopPropagation();
-        if (event.key === 'Escape') {
-            if ($unitPalette.hasClass('show')) closeUnitPalette();
-            else $modal.modal('hide');
-            return;
-        }
-        const $button = $(this);
-        if (!$activeUnit.is($button) || !$unitPalette.hasClass('show')) openUnitPalette($button);
-        const $selected = $unitPalette.find('.prescription-unit-choice.active');
-        const $choice = $selected.length ? $selected : $unitPalette.find('.prescription-unit-choice').first();
-        $choice.trigger('focus');
-    });
-    $unitPalette.on('click.prescriptionUnit', '.prescription-unit-choice', function () {
-        const $row = $activeUnit.closest('.prescription-medicine-row');
-        const $duration = $row.find('.prescription-duration-count:visible, .prescription-duration-value:visible').first();
-        const $focus = $duration.length ? $duration : $row.find('.prescription-duration-unit');
-        $row.find('[name$="[dose]"]').val($(this).val()).trigger('input');
-        closeUnitPalette();
-        $focus.trigger('focus');
-    });
-    $unitPalette.on('keydown.prescriptionUnit', function (event) {
-        if (event.key !== 'Escape') return;
-        event.preventDefault();
-        event.stopPropagation();
-        const $focus = $activeUnit;
-        closeUnitPalette();
-        $focus.trigger('focus');
-    });
+    $unitPalette.on('click.prescriptionUnit', '.prescription-unit-choice', selectUnit);
     $rows.on('input.prescription change.prescription',
         '.prescription-duration-count, .prescription-duration-unit', function () {
             updateDuration($(this).closest('.prescription-medicine-row'));
         });
     // Update only the editor affected by a field; refresh its pad preview afterward.
-    $rows.on('input.prescription change.prescription', '[name$="[medicine_name]"]', function () {
-        const $row = $(this).closest('.prescription-medicine-row');
-        detachChoice($row);
-        $row.find('[name$="[product_id]"]').val('');
-        $row.find('.prescription-medicine-generic').empty().prop('hidden', true);
-    });
+    $rows.on('input.prescription change.prescription', '[name$="[medicine_name]"]', detachRenamedMedicine);
     $rows.on('input.prescription change.prescription', '[name$="[dose]"]', function () {
         refreshUnitToggle($(this).closest('.prescription-medicine-row'));
     });
     $rows.on('input.prescription change.prescription', '[name$="[frequency]"]', function () {
         syncFrequencyPicker($(this).closest('.prescription-medicine-row'));
     });
-    $rows.on('input.prescription change.prescription', '.prescription-dosage-type', function () {
-        const $row = $(this).closest('.prescription-medicine-row');
-        closeDosePalette();
-        closeUnitPalette();
-        initializeFrequency($row);
-        refreshUnitToggle($row);
-        updatePrescriptionDoseType($row);
-    });
+    $rows.on('input.prescription change.prescription', '.prescription-dosage-type', changeDosageType);
     $rows.on('input.prescription change.prescription', '[name]', function () {
         updatePreview($(this).closest('.prescription-medicine-row'));
     });

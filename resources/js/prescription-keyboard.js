@@ -9,6 +9,15 @@ function moveOnEnter(event, $next) {
     $next.trigger('focus');
 }
 
+// Both food and palette choices use the same wrapped arrow/Home/End movement.
+function moveChoiceFocus(event, $choices) {
+    const current = $choices.index(event.currentTarget);
+    let next = current + (['ArrowLeft', 'ArrowUp'].includes(event.key) ? -1 : 1);
+    if (event.key === 'Home') next = 0;
+    if (event.key === 'End') next = $choices.length - 1;
+    $choices.eq((next + $choices.length) % $choices.length).trigger('focus');
+}
+
 // Navigate visible dose/unit choices with arrows, Home and End.
 function bindPaletteNavigation($menu) {
     $menu.on('keydown.prescriptionKeyboard', '.dropdown-item', function (event) {
@@ -16,12 +25,7 @@ function bindPaletteNavigation($menu) {
 
         event.preventDefault();
         event.stopImmediatePropagation();
-        const $choices = $menu.find('.dropdown-item:visible:not(:disabled)');
-        const current = $choices.index(this);
-        let next = current + (['ArrowLeft', 'ArrowUp'].includes(event.key) ? -1 : 1);
-        if (event.key === 'Home') next = 0;
-        if (event.key === 'End') next = $choices.length - 1;
-        $choices.eq((next + $choices.length) % $choices.length).trigger('focus');
+        moveChoiceFocus(event, $menu.find('.dropdown-item:visible:not(:disabled)'));
     });
 }
 
@@ -95,23 +99,11 @@ export function initializePrescriptionKeyboard($modal, $search, $rows) {
             });
     }
 
-    $(document).on('keydown.prescriptionKeyboard', handleShortcut);
-    $modal.on('select2:open.prescriptionKeyboard', bindSearchShortcuts);
-    bindSearchShortcuts();
-    bindPaletteNavigation($('#prescription-dose-palette'));
-    bindPaletteNavigation($('#prescription-unit-palette'));
-
-    $rows.on('focusin.prescriptionKeyboard', '.prescription-medicine-row', function () {
-        $activeRow = $(this);
-    });
-    $rows.on('keydown.prescriptionKeyboard', '[name$="[medicine_name]"], .prescription-dosage-type', function (event) {
-        const $row = $(this).closest('.prescription-medicine-row');
-        moveOnEnter(event, firstPrescriptionDoseControl($row));
-    });
-    $rows.on('keydown.prescriptionKeyboard', '.prescription-frequency-value', function (event) {
+    // Typed dose advances to food before Unit; ArrowDown opens the visible schedule.
+    function moveFromFrequency(event) {
         if (event.altKey || event.ctrlKey || event.metaKey || event.originalEvent?.isComposing) return;
 
-        const $row = $(this).closest('.prescription-medicine-row');
+        const $row = $(event.currentTarget).closest('.prescription-medicine-row');
         if (event.key === 'ArrowDown' && !event.shiftKey) {
             const $picker = $row.find('.prescription-schedule-dose:visible').first();
             if ($picker.length) {
@@ -129,15 +121,13 @@ export function initializePrescriptionKeyboard($modal, $search, $rows) {
             return;
         }
         moveOnEnter(event, $next);
-    });
-    $rows.on('focusin.prescriptionKeyboard', '.prescription-food-instruction', function () {
-        $(this).siblings('.prescription-food-instruction').attr('tabindex', '-1');
-        $(this).attr('tabindex', '0');
-    });
-    $rows.on('keydown.prescriptionKeyboard', '.prescription-food-instruction', function (event) {
+    }
+
+    // Keep food choices in one tab stop and move forward to Unit.
+    function moveFromFood(event) {
         if (event.altKey || event.ctrlKey || event.metaKey) return;
 
-        const $row = $(this).closest('.prescription-medicine-row');
+        const $row = $(event.currentTarget).closest('.prescription-medicine-row');
         if (event.key === 'Tab' && !event.shiftKey) {
             event.preventDefault();
             $row.find('.prescription-unit-toggle').trigger('focus');
@@ -146,12 +136,27 @@ export function initializePrescriptionKeyboard($modal, $search, $rows) {
         if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
 
         event.preventDefault();
-        const $choices = $row.find('.prescription-food-instruction:enabled');
-        const current = $choices.index(this);
-        let next = current + (event.key === 'ArrowLeft' ? -1 : 1);
-        if (event.key === 'Home') next = 0;
-        if (event.key === 'End') next = $choices.length - 1;
-        $choices.eq((next + $choices.length) % $choices.length).trigger('focus');
+        moveChoiceFocus(event, $row.find('.prescription-food-instruction:enabled'));
+    }
+
+    $(document).on('keydown.prescriptionKeyboard', handleShortcut);
+    $modal.on('select2:open.prescriptionKeyboard', bindSearchShortcuts);
+    bindSearchShortcuts();
+    bindPaletteNavigation($('#prescription-dose-palette'));
+    bindPaletteNavigation($('#prescription-unit-palette'));
+
+    $rows.on('focusin.prescriptionKeyboard', '.prescription-medicine-row', function () {
+        $activeRow = $(this);
+    });
+    $rows.on('keydown.prescriptionKeyboard', '[name$="[medicine_name]"], .prescription-dosage-type', function (event) {
+        const $row = $(this).closest('.prescription-medicine-row');
+        moveOnEnter(event, firstPrescriptionDoseControl($row));
+    });
+    $rows.on('keydown.prescriptionKeyboard', '.prescription-frequency-value', moveFromFrequency);
+    $rows.on('keydown.prescriptionKeyboard', '.prescription-food-instruction', moveFromFood);
+    $rows.on('focusin.prescriptionKeyboard', '.prescription-food-instruction', function () {
+        $(this).siblings('.prescription-food-instruction').attr('tabindex', '-1');
+        $(this).attr('tabindex', '0');
     });
     $rows.on('keydown.prescriptionKeyboard', '.prescription-duration-count', function (event) {
         moveOnEnter(event, $(this).siblings('.prescription-duration-unit'));

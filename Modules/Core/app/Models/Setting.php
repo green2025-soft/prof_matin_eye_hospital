@@ -112,7 +112,8 @@ class Setting extends BaseModel
         foreach ($values as $field => $default) {
             $stored = $storedValues[$field] ?? null;
 
-            if ((is_bool($default) && is_bool($stored)) || (is_string($default) && is_string($stored))) {
+            if ((is_bool($default) && is_bool($stored)) || (is_string($default) && is_string($stored))
+                || (is_array($default) && is_array($stored))) {
                 $values[$field] = $stored;
             }
         }

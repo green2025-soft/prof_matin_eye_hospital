@@ -165,6 +165,42 @@
                     <div class="form-text" id="locale-help">Language code, such as en or bn.</div>
                 </div>
             </div>
+            @if ($orderableModules !== [])
+                <section class="border-top mt-4 pt-3" aria-labelledby="module-order-heading">
+                    <h3 class="h6 mb-1" id="module-order-heading">Module order</h3>
+                    <p class="small text-body-secondary mb-3">Smaller numbers appear first for everyone in this workspace. Leave blank to keep the default order.</p>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead><tr><th scope="col">Module</th><th scope="col">Ordering</th></tr></thead>
+                            <tbody>
+                                @foreach ($orderableModules as $module)
+                                    @php
+                                        $dashboard = $module->get('tenant_dashboard');
+                                        $moduleKey = $module->getLowerName();
+                                        $orderField = 'data.module_order.'.$moduleKey;
+                                        $orderId = 'module-order-'.$moduleKey;
+                                    @endphp
+                                    @continue($dashboard === null)
+                                    <tr>
+                                        <th scope="row"><i class="fa-solid fa-{{ $dashboard['icon'] }} text-primary me-2" aria-hidden="true"></i>{{ $dashboard['label'] }}</th>
+                                        <td>
+                                            <label class="visually-hidden" for="{{ $orderId }}">Ordering for {{ $dashboard['label'] }}</label>
+                                            <div class="col-12 col-sm-6 col-lg-3">
+                                                <input class="{{ inputClass($orderField, 'form-control form-control-sm') }}"
+                                                    id="{{ $orderId }}" name="data[module_order][{{ $moduleKey }}]" type="number" min="0" max="65535" step="1"
+                                                    value="{{ getValue($orderField, null, $values['data']['module_order'][$moduleKey] ?? null) }}"
+                                                    placeholder="Default" {{ inputAttrs($orderField, $orderId) }}>
+                                            </div>
+                                            @error($orderField)<div class="invalid-feedback d-block" id="{{ $orderId }}-error">{{ $message }}</div>@enderror
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    @error('data.module_order')<div class="invalid-feedback d-block mt-2">{{ $message }}</div>@enderror
+                </section>
+            @endif
         @elseif ($setting->group === 'email')
             <div class="form-check mb-3">
                 <input name="data[enabled]" type="hidden" value="0">

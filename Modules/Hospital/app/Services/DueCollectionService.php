@@ -14,7 +14,7 @@ class DueCollectionService extends ClinicalEntryService
 {
     public function save(Account $actor, ?DueCollection $record, array $values, int $branchId): DueCollection
     {
-        return $this->write($actor, $record ?? new DueCollection, $branchId, function (DueCollection $collection) use ($values, $branchId): DueCollection {
+        return $this->write($actor, $record ?? new DueCollection, $branchId, function (DueCollection $collection, Account $freshActor) use ($values, $branchId): DueCollection {
             $source = $collection->exists
                 ? $this->invoices->source($collection, lock: true)
                 : $this->invoices->find($collection, $values['invoice'], $branchId, lock: true);
@@ -36,6 +36,21 @@ class DueCollectionService extends ClinicalEntryService
             $collection->fill($values);
             $collection->amount = Money::decimal($amount);
             $collection->save();
+
+            $this->journals->sync(
+                source: $collection,
+                feature: 'hospital.due-collection',
+                entryDate: $collection->collection_date->toDateString(),
+                branchId: $collection->branch_id,
+                amounts: [
+                    'settlement' => $amount,
+                    'receivable' => $amount,
+                ],
+                created: $collection->wasRecentlyCreated,
+                paymentTypeId: $collection->payment_type_id,
+                actor: $freshActor,
+                reference: $collection->invoice_no,
+            );
 
             if (! $collection->wasRecentlyCreated || ! $settings['sms_due_collection_enabled']) {
                 return $collection;
@@ -137,6 +152,7 @@ class DueCollectionService extends ClinicalEntryService
             if ($this->invoices->balance($source)['remaining_paid'] < Money::minor($collection->amount)) {
                 throw ValidationException::withMessages(['record' => 'This collection has funded a refund and cannot be deleted.']);
             }
+            $this->journals->reverse(source: $collection);
             $collection->delete();
         });
     }

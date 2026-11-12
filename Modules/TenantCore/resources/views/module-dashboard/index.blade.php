@@ -8,6 +8,12 @@
             <h1>{{ $pageTitle }}</h1>
             <p class="mb-0">Choose a module to continue working.</p>
         </div>
+        @if ($canArrangeModules)
+            <a class="btn btn-outline-primary btn-sm flex-shrink-0"
+                href="{{ route('tenantcore.settings.index', ['group' => 'general']).'#module-order-heading' }}">
+                <i class="fa-solid fa-arrow-down-wide-short me-2" aria-hidden="true"></i>Arrange modules
+            </a>
+        @endif
     </header>
 
     @if ($modules === [])

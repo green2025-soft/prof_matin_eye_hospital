@@ -5,6 +5,7 @@ namespace Modules\Pharmacy\Services;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
+use Modules\Accounting\Contracts\JournalPosting;
 use Modules\Core\Helpers\Money;
 use Modules\Core\Models\Account;
 use Modules\Hospital\Contracts\PharmacyCustomers;
@@ -36,9 +37,10 @@ class PurchaseService extends TradeEntryService
         PharmacyCustomers $customers,
         StockService $stock,
         ItemService $items,
+        JournalPosting $journals,
         private PurchaseItemService $purchaseItems,
     ) {
-        parent::__construct($pharmacy, $customers, $stock, $items);
+        parent::__construct($pharmacy, $customers, $stock, $items, $journals);
     }
 
     public function save(Account $actor, ?StockEntry $record, array $values): StockEntry
@@ -88,5 +90,25 @@ class PurchaseService extends TradeEntryService
     protected function postStock(StockEntry $entry): int
     {
         return $this->stock->receive($entry);
+    }
+
+    protected function postJournal(Account $actor, StockEntry $entry, bool $created): void
+    {
+        // Purchase VAT remains part of the existing stock valuation.
+        $this->journals->sync(
+            source: $entry,
+            feature: 'pharmacy.'.$entry->product_type.'.purchase',
+            entryDate: $entry->entry_date->toDateString(),
+            branchId: $entry->branch_id,
+            amounts: [
+                'inventory' => $entry->cost,
+                'settlement' => $entry->initial_paid,
+                'payable' => $entry->total - $entry->initial_paid,
+            ],
+            created: $created,
+            paymentTypeId: $entry->payment_type_id,
+            actor: $actor,
+            reference: $entry->number,
+        );
     }
 }

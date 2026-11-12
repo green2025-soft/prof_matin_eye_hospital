@@ -16,6 +16,7 @@ use Modules\Core\Http\Requests\ListRequest;
 use Modules\Core\Http\Requests\SettingRequest;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Setting;
+use Nwidart\Modules\Facades\Module;
 
 class SettingController extends BaseController
 {
@@ -149,6 +150,8 @@ class SettingController extends BaseController
             'credentialFields' => config('settings.credentials.'.$setting->group, []),
             'configuredCredentials' => $configured,
             'timezones' => $setting->group === 'general' ? DateTimeZone::listIdentifiers() : [],
+            'orderableModules' => $setting->group === 'general' && $setting->getConnection()->getName() === 'tenant'
+                ? Module::getOrdered('desc') : [],
             'logoUrl' => ! empty($values['logo_path'])
                 ? Storage::disk('public')
                     ->url($values['logo_path'])

@@ -16,7 +16,7 @@ class ConsultationService extends ClinicalEntryService
     public function save(Account $actor, ?Consultation $record, array $values, int $branchId): Consultation
     {
         try {
-            return $this->write($actor, $record ?? new Consultation, $branchId, function (Consultation $entry) use ($values, $branchId): Consultation {
+            return $this->write($actor, $record ?? new Consultation, $branchId, function (Consultation $entry, Account $freshActor) use ($values, $branchId): Consultation {
                 $this->assertInvoiceEditable($entry);
                 $doctor = Doctor::where('branch_id', $branchId)
                     ->whereKey($values['doctor_id'])
@@ -52,6 +52,23 @@ class ConsultationService extends ClinicalEntryService
                     $this->assignInvoiceNumber($entry, 'consultation_invoice', $values['entry_date'], $settings);
                 }
                 $entry->save();
+
+                $this->journals->sync(
+                    source: $entry,
+                    feature: 'hospital.consultation',
+                    entryDate: $entry->entry_date->toDateString(),
+                    branchId: $entry->branch_id,
+                    amounts: [
+                        'settlement' => Money::minor($entry->paid_amount),
+                        'receivable' => Money::minor($entry->due_amount),
+                        'discount' => Money::minor($entry->discount_amount),
+                        'revenue' => $amount,
+                    ],
+                    created: $entry->wasRecentlyCreated,
+                    paymentTypeId: $entry->payment_type_id,
+                    actor: $freshActor,
+                    reference: $entry->invoice_no ?: $entry->serial_no,
+                );
 
                 $this->queueInvoiceSms(
                     $entry,

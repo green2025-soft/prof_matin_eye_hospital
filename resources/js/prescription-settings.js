@@ -1,7 +1,7 @@
 import $ from './jquery';
 
 // Keep each General/Glass paper-size group independent.
-$(function () {
+$(function initializePrescriptionPaperSettings() {
     $('#prescription-settings-form .prescription-paper-settings').each(function () {
         const $group = $(this);
         const $paper = $group.find('.prescription-paper-size');

@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Modules\Accounting\Database\Seeders\AccountingDatabaseSeeder;
 use Modules\Core\Models\Tenant;
 use Modules\Pharmacy\Database\Seeders\PharmacyDatabaseSeeder;
 use Nwidart\Modules\Facades\Module;
@@ -14,6 +15,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        if (Tenant::checkCurrent() && Module::isEnabled('Accounting')) {
+            $this->call(AccountingDatabaseSeeder::class);
+        }
+
         if (Tenant::checkCurrent() && Module::isEnabled('Pharmacy')) {
             $this->call(PharmacyDatabaseSeeder::class);
         }

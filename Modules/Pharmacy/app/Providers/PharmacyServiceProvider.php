@@ -23,11 +23,18 @@ use Modules\Pharmacy\Models\Transfer;
 use Modules\Pharmacy\Models\TransferItem;
 use Modules\Pharmacy\Models\Wastage;
 use Modules\Pharmacy\Models\WastageItem;
+use Modules\Pharmacy\Services\PharmacyCashReportSource;
 use Modules\Pharmacy\View\Composers\MenuComposer;
-use Modules\Pharmacy\View\Composers\ReportComposer;
+use Modules\TenantCore\View\Composers\ReportComposer;
 
 class PharmacyServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        $this->mergeConfigFrom(module_path('Pharmacy', 'config/accounting.php'), 'accounting.integrations');
+        $this->app->tag([PharmacyCashReportSource::class], 'tenantcore.cash-report-sources');
+    }
+
     public function boot(Router $router): void
     {
         $router->aliasMiddleware('pharmacy.permission', EnsureModulePermission::class.':pharmacy.view');

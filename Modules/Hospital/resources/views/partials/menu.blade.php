@@ -187,3 +187,7 @@
         'active' => request()->routeIs('hospital.settings.*'),
     ])
 @endif
+
+@if ($permissions['hospital-cash-report.view'] ?? false)
+    @include('core::partials.navigation-link', ['label' => 'Cash & Due Balance', 'icon' => 'money-bill-wave', 'url' => route('hospital.reports.cash-balance'), 'active' => request()->routeIs('hospital.reports.cash-balance')])
+@endif

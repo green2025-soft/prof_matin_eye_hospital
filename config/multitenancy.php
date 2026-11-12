@@ -1,5 +1,6 @@
 <?php
 
+use Modules\Accounting\Database\Seeders\AccountingDatabaseSeeder;
 use Modules\Core\Models\Tenant;
 use Modules\Core\Tasks\SwitchTenantDatabase;
 use Modules\Core\Tasks\SwitchTenantSettings;
@@ -39,9 +40,13 @@ return [
             base_path('Modules/Core/database/migrations/shared'),
             base_path('Modules/Core/database/migrations/tenant'),
             base_path('Modules/TenantCore/database/migrations'),
+            base_path('Modules/Accounting/database/migrations'),
             base_path('Modules/Hospital/database/migrations'),
             base_path('Modules/Pharmacy/database/migrations'),
             base_path('Modules/Prescription/database/migrations'),
         ], 'is_dir')),
+    ],
+    'tenant_seeders' => [
+        'Accounting' => AccountingDatabaseSeeder::class,
     ],
 ];

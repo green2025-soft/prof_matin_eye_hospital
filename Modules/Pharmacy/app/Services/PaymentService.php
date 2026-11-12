@@ -5,6 +5,7 @@ namespace Modules\Pharmacy\Services;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
+use Modules\Accounting\Contracts\JournalPosting;
 use Modules\Core\Helpers\Money;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Setting;
@@ -20,7 +21,11 @@ use Modules\TenantCore\Models\PaymentType;
 
 class PaymentService
 {
-    public function __construct(private PharmacyAccess $pharmacy, private PharmacyCustomers $customers) {}
+    public function __construct(
+        private PharmacyAccess $pharmacy,
+        private PharmacyCustomers $customers,
+        private JournalPosting $journals,
+    ) {}
 
     public function save(Account $actor, ?Payment $record, array $values): Payment
     {
@@ -33,6 +38,7 @@ class PaymentService
                     throw ValidationException::withMessages(['payment_date' => 'The payment date cannot be in the future.']);
                 }
                 $payment = new Payment;
+                $created = ! $payment->exists;
                 $direction = $values['direction'];
                 $customerId = $direction === 'customer' ? (int) $values['customer_id'] : null;
                 $supplierId = $direction === 'supplier' ? (int) $values['supplier_id'] : null;
@@ -70,9 +76,9 @@ class PaymentService
                     'notes' => $values['notes'] ?? null,
                 ]);
                 if ($direction === 'customer') {
-                    $this->collectCustomerPayment($freshActor, $payment, $values, $customer, $settings);
+                    $this->collectCustomerPayment($freshActor, $payment, $values, $customer, $settings, $created);
                 } else {
-                    $this->paySupplier($freshActor, $payment, $values, $supplier, $settings);
+                    $this->paySupplier($freshActor, $payment, $values, $supplier, $settings, $created);
                 }
 
                 return $payment;
@@ -86,7 +92,7 @@ class PaymentService
         }
     }
 
-    private function collectCustomerPayment(Account $actor, Payment $payment, array $values, array $customer, array $settings): void
+    private function collectCustomerPayment(Account $actor, Payment $payment, array $values, array $customer, array $settings, bool $created): void
     {
         $ids = array_column($values['allocations'], 'sale_id');
         $sales = Sale::where('customer_id', $payment->customer_id)
@@ -109,6 +115,22 @@ class PaymentService
         }
         $this->saveTotals($payment, $allocations);
         $payment->saleAllocations()->forceCreateMany($allocations);
+
+        $this->journals->sync(
+            source: $payment,
+            feature: 'pharmacy.'.$payment->product_type.'.customer-payment',
+            entryDate: $payment->payment_date->toDateString(),
+            branchId: $payment->branch_id,
+            amounts: [
+                'settlement' => $payment->amount,
+                'discount' => $payment->discount,
+                'receivable' => $payment->amount + $payment->discount,
+            ],
+            created: $created,
+            paymentTypeId: $payment->payment_type_id,
+            actor: $actor,
+            reference: $payment->number,
+        );
 
         $prefix = 'sms_'.$payment->product_type.'_customer_payment';
         $enabled = (bool) ($settings[$prefix.'_enabled'] ?? false);
@@ -142,7 +164,7 @@ class PaymentService
         );
     }
 
-    private function paySupplier(Account $actor, Payment $payment, array $values, Supplier $supplier, array $settings): void
+    private function paySupplier(Account $actor, Payment $payment, array $values, Supplier $supplier, array $settings, bool $created): void
     {
         $ids = array_column($values['allocations'], 'purchase_id');
         $purchases = Purchase::where('supplier_id', $payment->supplier_id)
@@ -165,6 +187,22 @@ class PaymentService
         }
         $this->saveTotals($payment, $allocations);
         $payment->purchaseAllocations()->forceCreateMany($allocations);
+
+        $this->journals->sync(
+            source: $payment,
+            feature: 'pharmacy.'.$payment->product_type.'.supplier-payment',
+            entryDate: $payment->payment_date->toDateString(),
+            branchId: $payment->branch_id,
+            amounts: [
+                'payable' => $payment->amount + $payment->discount,
+                'settlement' => $payment->amount,
+                'discount' => $payment->discount,
+            ],
+            created: $created,
+            paymentTypeId: $payment->payment_type_id,
+            actor: $actor,
+            reference: $payment->number,
+        );
 
         $prefix = 'sms_'.$payment->product_type.'_supplier_payment';
         $enabled = (bool) ($settings[$prefix.'_enabled'] ?? false);
@@ -281,6 +319,7 @@ class PaymentService
             } else {
                 $this->reverseSupplierPayment($payment);
             }
+            $this->journals->reverse($payment);
             $payment->voided_at = now();
             $payment->save();
         });

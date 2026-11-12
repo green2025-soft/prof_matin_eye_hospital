@@ -33,4 +33,21 @@ class WastageService extends StockEntryService
     {
         return $this->stock->issueWastage($entry);
     }
+
+    protected function postJournal(Account $actor, StockEntry $entry, bool $created): void
+    {
+        $this->journals->sync(
+            source: $entry,
+            feature: 'pharmacy.'.$entry->product_type.'.wastage',
+            entryDate: $entry->entry_date->toDateString(),
+            branchId: $entry->branch_id,
+            amounts: [
+                'expense' => $entry->cost,
+                'inventory' => $entry->cost,
+            ],
+            created: $created,
+            actor: $actor,
+            reference: $entry->number,
+        );
+    }
 }

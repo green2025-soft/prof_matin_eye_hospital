@@ -3,6 +3,7 @@ import { createEmptySearchGuard } from './select2-empty-search';
 
 // Connect each medicine's instruction search, food buttons and inline option creation.
 export function initializePrescriptionInstructions($modal, $rows) {
+    const pendingMessage = 'Please wait for the instruction to finish saving.';
     let pendingInstructionWrites = 0;
 
     // Mark the selected food instruction, or show the custom instruction as a removable badge.
@@ -139,6 +140,19 @@ export function initializePrescriptionInstructions($modal, $rows) {
         window.showToast(recordMessage || 'The instruction could not be saved. Please try again.', 'error');
     }
 
+    // Release this row's save lock, then focus its error or instruction selector.
+    function finishInstructionSave($row) {
+        pendingInstructionWrites--;
+        const $select = $row.find('.prescription-instruction-search');
+        $select.removeData('instructionCreateRequest').prop('disabled', false).removeAttr('aria-busy');
+        $row.find('.prescription-food-instruction, .prescription-instruction-badge button').prop('disabled', false);
+        const $error = $row.find('.prescription-instruction-error');
+        const $focus = $error.text().trim()
+            ? $error.attr('tabindex', '-1')
+            : $select.next('.select2-container').find('.select2-selection');
+        $focus.trigger('focus');
+    }
+
     // Save one new instruction while locking this row against duplicate writes or deletion.
     function createInstruction($row, name, url) {
         const $select = $row.find('.prescription-instruction-search');
@@ -168,16 +182,7 @@ export function initializePrescriptionInstructions($modal, $rows) {
             window.showToast('Instruction saved to list.', 'success');
         }).fail((xhr, status) => {
             if (status !== 'abort') showInstructionFailure($row, xhr);
-        }).always(() => {
-            pendingInstructionWrites--;
-            $select.removeData('instructionCreateRequest').prop('disabled', false).removeAttr('aria-busy');
-            $row.find('.prescription-food-instruction, .prescription-instruction-badge button').prop('disabled', false);
-            const $error = $row.find('.prescription-instruction-error');
-            const $focus = $error.text().trim()
-                ? $error.attr('tabindex', '-1')
-                : $select.next('.select2-container').find('.select2-selection');
-            $focus.trigger('focus');
-        });
+        }).always(() => finishInstructionSave($row));
     }
 
     // Prepare a medicine row's selector and intercept only the explicit Create choice.
@@ -203,14 +208,14 @@ export function initializePrescriptionInstructions($modal, $rows) {
         if (pendingInstructionWrites === 0) return;
 
         event.preventDefault();
-        window.showToast('Please wait for the instruction to finish saving.', 'info');
+        window.showToast(pendingMessage, 'info');
     }
 
     // Keep the target row present until its in-flight instruction save finishes.
     function canRemoveRow($row) {
         if (!$row.find('.prescription-instruction-search').data('instructionCreateRequest')) return true;
 
-        window.showToast('Please wait for the instruction to finish saving.', 'info');
+        window.showToast(pendingMessage, 'info');
         return false;
     }
 

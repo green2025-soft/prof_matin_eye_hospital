@@ -3,11 +3,12 @@ import 'bootstrap';
 import 'flatpickr';
 import attachSelect2 from 'select2';
 import toastr from 'toastr';
-import { formatAmount, roundRatio } from './money';
+import { formatAmount, parseAmount as parseClinicalDecimal, roundRatio } from './money';
 import { initializePatientAgeFields } from './patient-age';
 import { synchronizeDatepickerYear, destroyDatepickerYear } from './datepicker-year';
 import './pharmacy';
 import './prescription';
+import './accounting';
 
 attachSelect2(window, $);
 
@@ -33,6 +34,14 @@ window.showToast = function (message, type = 'info') {
 
     return toastr[toastType](text);
 };
+
+// Plugin replacement inputs retain the original field's validation description.
+function copyInputAccessibility($input, $target) {
+    for (const attribute of ['aria-invalid', 'aria-describedby']) {
+        const value = $input.attr(attribute);
+        if (value !== undefined) $target.attr(attribute, value);
+    }
+}
 
 window.initAjaxSelects = function (root = document) {
     $(root).find('select[data-ajax-select]').addBack('select[data-ajax-select]').each(function () {
@@ -106,12 +115,7 @@ window.initAjaxSelects = function (root = document) {
         }
 
         const $selection = $select.next('.select2-container').find('.select2-selection');
-        for (const attribute of ['aria-invalid', 'aria-describedby']) {
-            const value = $select.attr(attribute);
-            if (value !== undefined) {
-                $selection.attr(attribute, value);
-            }
-        }
+        copyInputAccessibility($select, $selection);
 
         $select.on('invalid.ajaxSelect', event => {
             const firstInvalid = $select.closest('form').find(':invalid').first().get(0);
@@ -156,7 +160,8 @@ function initializeNavigation() {
     }
 }
 
-$(document).on('click.navigation', '[data-sidebar-toggle]', function () {
+// Desktop navigation remembers its collapsed state; mobile uses Bootstrap Offcanvas.
+function toggleNavigation() {
     const $sidebar = $('#appSidebar');
     const $body = $('body');
 
@@ -177,7 +182,9 @@ $(document).on('click.navigation', '[data-sidebar-toggle]', function () {
     } else {
         $sidebar.offcanvas('toggle');
     }
-});
+}
+
+$(document).on('click.navigation', '[data-sidebar-toggle]', toggleNavigation);
 
 $(document).on('click.navigation', '#appSidebar a', function () {
     if (!desktopNavigation.matches) {
@@ -185,7 +192,8 @@ $(document).on('click.navigation', '#appSidebar a', function () {
     }
 });
 
-$(document).on('click.navigation', '[data-fullscreen-toggle]', async function () {
+// Fullscreen is a native browser capability, with jQuery updating the control.
+async function toggleFullscreen() {
     try {
         if (document.fullscreenElement) {
             await document.exitFullscreen();
@@ -195,7 +203,9 @@ $(document).on('click.navigation', '[data-fullscreen-toggle]', async function ()
     } catch {
         $(this).prop('disabled', true).attr('title', 'Fullscreen is unavailable');
     }
-});
+}
+
+$(document).on('click.navigation', '[data-fullscreen-toggle]', toggleFullscreen);
 
 $(document).on('fullscreenchange.navigation', () => {
     const active = Boolean(document.fullscreenElement);
@@ -205,7 +215,7 @@ $(document).on('fullscreenchange.navigation', () => {
         .find('i').toggleClass('fa-expand', !active).toggleClass('fa-compress', active);
 });
 
-$(document).on('click.password', '[data-password-toggle]', function () {
+function togglePassword() {
     const $button = $(this);
     const inputId = $button.attr('aria-controls');
     const $input = inputId ? $('#' + $.escapeSelector(inputId)) : $();
@@ -220,7 +230,9 @@ $(document).on('click.password', '[data-password-toggle]', function () {
         .attr('aria-label', visible ? 'Hide password' : 'Show password')
         .attr('title', visible ? 'Hide password' : 'Show password')
         .find('i').toggleClass('fa-eye', !visible).toggleClass('fa-eye-slash', visible);
-});
+}
+
+$(document).on('click.password', '[data-password-toggle]', togglePassword);
 
 const submittingForms = new Map();
 
@@ -293,7 +305,8 @@ function startFormSubmission(form, submitter, event = null) {
     return true;
 }
 
-$(document).on('submit.submission', 'form', function (event) {
+// Start loading only after native validation and confirmation have allowed submission.
+function handleFormSubmission(event) {
     if (event.isDefaultPrevented() || $(this).is('[data-patient-create-form]')) {
         return;
     }
@@ -301,7 +314,9 @@ $(document).on('submit.submission', 'form', function (event) {
     if (!startFormSubmission(this, event.originalEvent?.submitter, event)) {
         event.preventDefault();
     }
-});
+}
+
+$(document).on('submit.submission', 'form', handleFormSubmission);
 
 $(window).on('pageshow.submission', () => {
     submittingForms.forEach((_, form) => resetFormSubmission(form));
@@ -315,8 +330,8 @@ function clearPatientModalErrors(form) {
         const attributes = $field.data('patientErrorAttributes');
         $field.removeClass('is-invalid').removeAttr('data-patient-invalid');
         for (const attribute of ['aria-invalid', 'aria-describedby']) {
-            $field.attr(attribute, attributes?.[attribute] ?? null);
-            $field.next('.select2-container').find('.select2-selection').attr(attribute, attributes?.[attribute] ?? null);
+            $field.add($field.next('.select2-container').find('.select2-selection'))
+                .attr(attribute, attributes?.[attribute] ?? null);
         }
         $field.removeData('patientErrorAttributes');
     });
@@ -426,7 +441,8 @@ $(document).on('click.patientModal', '[data-patient-target]', function (event) {
     }
 });
 
-$(document).on('show.bs.modal.patientModal', '#patient-create-modal', function (event) {
+// Fetch fresh patient fields for the select that opened the modal.
+function loadPatientModal(event) {
     const modal = this;
     const $modal = $(modal);
     const selectId = $(event.relatedTarget).attr('data-patient-target');
@@ -467,7 +483,9 @@ $(document).on('show.bs.modal.patientModal', '#patient-create-modal', function (
             patientFieldsRequest = null;
         }
     });
-});
+}
+
+$(document).on('show.bs.modal.patientModal', '#patient-create-modal', loadPatientModal);
 
 $(document).on('shown.bs.modal.patientModal', '#patient-create-modal', function () {
     $(this).find('[data-patient-modal-content] :input:visible').first().trigger('focus');
@@ -485,7 +503,8 @@ $(document).on('hidden.bs.modal.patientModal', '#patient-create-modal', function
     patientTargetSelect = null;
 });
 
-$(document).on('submit.patientModal', '[data-patient-create-form]', function (event) {
+// Create the patient through the existing form, then select the returned patient.
+function submitPatientModal(event) {
     event.preventDefault();
     const form = this;
     const $form = $(form);
@@ -522,9 +541,9 @@ $(document).on('submit.patientModal', '[data-patient-create-form]', function (ev
         }
 
         const data = { ...patient, id: String(patient.id) };
-        const option = new Option(data.text, data.id, true, true);
-        $(option).data('data', data);
-        const $select = $(select).append(option).trigger('change');
+        const $option = $('<option>', { value: data.id }).text(data.text)
+            .prop({ defaultSelected: true, selected: true }).data('data', data);
+        const $select = $(select).append($option).trigger('change');
         if ($select.hasClass('select2-hidden-accessible')) {
             Object.assign($select.select2('data')[0], data);
         }
@@ -540,7 +559,9 @@ $(document).on('submit.patientModal', '[data-patient-create-form]', function (ev
             window.showToast(patientRequestError(xhr.status), 'error');
         }
     }).always(() => resetFormSubmission(form));
-});
+}
+
+$(document).on('submit.patientModal', '[data-patient-create-form]', submitPatientModal);
 
 $(document).on('change.pagination', '[data-page-size]', function () {
     this.form?.requestSubmit();
@@ -609,7 +630,7 @@ function initializeTenantForm(form) {
     updatePreview();
 }
 
-$(document).on('click.tenantDomains', '[data-domain-add]', function () {
+function addTenantDomain() {
     const $editor = $(this).closest('[data-domain-editor]');
 
     if ($editor.find('[data-domain-row]').length >= 20) {
@@ -619,9 +640,11 @@ $(document).on('click.tenantDomains', '[data-domain-add]', function () {
     $editor.find('[data-domain-list]').append($editor.find('[data-domain-template]').html());
     updateDomainRows($editor);
     $editor.find('[data-domain-row]').last().find('input').trigger('focus');
-});
+}
 
-$(document).on('click.tenantDomains', '[data-domain-remove]', function () {
+$(document).on('click.tenantDomains', '[data-domain-add]', addTenantDomain);
+
+function removeTenantDomain() {
     const $editor = $(this).closest('[data-domain-editor]');
 
     if ($editor.find('[data-domain-row]').length <= 1) {
@@ -633,8 +656,11 @@ $(document).on('click.tenantDomains', '[data-domain-remove]', function () {
     updateDomainRows($editor);
     const $rows = $editor.find('[data-domain-row]');
     $rows.eq(Math.min(index, $rows.length - 1)).find('input').trigger('focus');
-});
+}
 
+$(document).on('click.tenantDomains', '[data-domain-remove]', removeTenantDomain);
+
+// The permission editor owns group selection, filtering and unsaved-change feedback.
 function initializePermissionEditor(editor) {
     const $editor = $(editor);
     const $rows = $editor.find('[data-permission-row]');
@@ -649,6 +675,10 @@ function initializePermissionEditor(editor) {
     const $recordSelect = $editor.find('[data-permission-record-select]');
     const originalRecord = $recordSelect.val();
     const $unrestricted = $editor.find('[data-permission-unrestricted]');
+    const $visibleToggles = $editor.find('[data-permission-visible-toggle]');
+    const $groupToggles = $editor.find('[data-permission-group-toggle]');
+    const $areaToggles = $editor.find('[data-permission-area-toggle]');
+    const $empty = $editor.find('[data-permission-empty]');
     const initialUnrestricted = $editor.attr('data-permission-unrestricted-initial') === '1';
     const readOnly = $editor.attr('data-permission-readonly') === '1' || !$items.is(':enabled');
     const total = Number($editor.attr('data-permission-total') ?? $items.length);
@@ -688,6 +718,19 @@ function initializePermissionEditor(editor) {
         return $visible.filter((_, item) => $(item).closest('[data-permission-row]').attr(attribute) === key);
     }
 
+    // Group once per refresh instead of searching every permission again for each toggle.
+    function groupVisibleItems($visible, attribute) {
+        const groups = new Map();
+        $visible.each(function () {
+            const key = $(this).closest('[data-permission-row]').attr(attribute);
+            const items = groups.get(key) ?? [];
+            items.push(this);
+            groups.set(key, items);
+        });
+
+        return groups;
+    }
+
     function updateToggle(toggle, $matching) {
         const selected = $matching.filter(':checked').length;
         const checked = $matching.length > 0 && selected === $matching.length;
@@ -700,6 +743,8 @@ function initializePermissionEditor(editor) {
     function updateState(selectionChanged = false) {
         const $visible = visibleItems();
         const selected = selectedIds();
+        const groups = groupVisibleItems($visible, 'data-permission-group-key');
+        const areas = groupVisibleItems($visible, 'data-permission-area-key');
 
         if (selectionChanged && selected.size !== $items.length) {
             $unrestricted.prop('checked', false);
@@ -709,12 +754,12 @@ function initializePermissionEditor(editor) {
             || [...selected].some(id => !initialSelected.has(id))
             || $unrestricted.is(':checked') !== initialUnrestricted);
 
-        $editor.find('[data-permission-visible-toggle]').each((_, toggle) => updateToggle(toggle, $visible));
-        $editor.find('[data-permission-group-toggle]').each((_, toggle) => {
-            updateToggle(toggle, matchingItems($visible, 'data-permission-group-key', $(toggle).attr('data-group-key')));
+        $visibleToggles.each((_, toggle) => updateToggle(toggle, $visible));
+        $groupToggles.each((_, toggle) => {
+            updateToggle(toggle, $(groups.get($(toggle).attr('data-group-key')) ?? []));
         });
-        $editor.find('[data-permission-area-toggle]').each((_, toggle) => {
-            updateToggle(toggle, matchingItems($visible, 'data-permission-area-key', $(toggle).attr('data-area-key')));
+        $areaToggles.each((_, toggle) => {
+            updateToggle(toggle, $(areas.get($(toggle).attr('data-area-key')) ?? []));
         });
 
         $count.text(`${selected.size} of ${total} selected`);
@@ -751,7 +796,7 @@ function initializePermissionEditor(editor) {
         });
 
         // Filtering keeps every permission input enabled and available for submission.
-        $editor.find('[data-permission-empty]').prop('hidden', visibleRows !== 0);
+        $empty.prop('hidden', visibleRows !== 0);
         updateState();
     }
 
@@ -841,21 +886,13 @@ function initializePermissionEditor(editor) {
     filterRows();
 }
 
-function parseClinicalDecimal(value, maxWholeDigits = 10) {
-    const match = String(value ?? '').trim().match(/^([0-9]+)(?:\.([0-9]{1,2}))?$/);
-    if (!match || match[1].length > maxWholeDigits) {
-        return null;
-    }
-
-    return BigInt(match[1]) * 100n + BigInt((match[2] ?? '').padEnd(2, '0'));
-}
-
 function parseClinicalPercent(value) {
     const percent = parseClinicalDecimal(value, 3);
 
     return percent !== null && percent <= 10000n ? percent : null;
 }
 
+// Refund previews cancel remaining due before calculating cash to return.
 function initializeRefundForm(form) {
     const $form = $(form);
     const $invoice = $form.find('[data-refund-invoice]');
@@ -1025,6 +1062,7 @@ function initializeRefundForm(form) {
     loadPreview();
 }
 
+// Due collections load the outstanding balance and keep entered payment within that amount.
 function initializeDueCollectionForm(form) {
     const $form = $(form);
     const $invoice = $form.find('[data-due-collection-invoice]');
@@ -1182,19 +1220,19 @@ $(document).on('select2:selecting.clinicalInvoice', '[data-refund-invoice], [dat
 });
 
 function selectedClinicalItems($select) {
-    if (!$select.length) {
-        return [];
-    }
     const selectedData = $select.hasClass('select2-hidden-accessible') ? $select.select2('data') : [];
     const dataById = new Map(selectedData.map(item => [String(item.id), item]));
 
-    return $select.find('option:selected').get().filter(option => $(option).val()).map(option => {
+    return $select.find('option:selected').map((_, option) => {
         const $option = $(option);
         const id = $option.val();
+        if (!id) return null;
+
         const item = dataById.get(id) ?? {};
 
         return {
             id,
+            option,
             name: item.name ?? $option.text(),
             categoryName: item.category?.name ?? $option.attr('data-category-name') ?? '-',
             consultationFee: item.consultation_fee ?? $option.attr('data-consultation-fee'),
@@ -1204,152 +1242,229 @@ function selectedClinicalItems($select) {
             entryRate: $option.attr('data-entry-rate'),
             entryEye: $option.attr('data-entry-eye'),
         };
-    });
+    }).get();
 }
 
-function clinicalSourceState($form, kind, $select) {
-    return {
-        ids: $select.find('option:selected').map((_, option) => $(option).val()).get().filter(Boolean).sort(),
-        patientType: kind === 'consultation' ? ($form.find('[name="patient_type"]').val() ?? '') : '',
-        eyeType: kind === 'consultation' ? '' : ($form.find('[name="eye_type"]').val() ?? ''),
-    };
+// Source identity is independent of Select2's displayed label and current AJAX page.
+function clinicalSourceIds($source) {
+    return $source.find('option:selected').map((_, option) => $(option).val() || null).get().sort();
 }
 
-function originalClinicalSourceState($form, current) {
-    let ids = current.ids;
+function originalClinicalIds($form, $source) {
     try {
-        const originalIds = JSON.parse($form.attr('data-original-source-ids') ?? 'null');
-        if (Array.isArray(originalIds)) {
-            ids = originalIds.filter(id => id !== null && id !== '').map(String).sort();
+        const ids = JSON.parse($form.attr('data-original-source-ids') ?? 'null');
+        if (Array.isArray(ids)) {
+            return ids.filter(id => id !== null && id !== '').map(String).sort();
         }
     } catch {
-        // Missing snapshot metadata keeps the current selection as the edit baseline.
+        // Older forms keep the current selection as their edit baseline.
     }
 
-    return {
-        ids,
-        patientType: $form.attr('data-clinical-entry') === 'consultation' ? ($form.attr('data-original-patient-type') ?? current.patientType) : '',
-        eyeType: $form.attr('data-original-eye-type') ?? current.eyeType,
-    };
+    return clinicalSourceIds($source);
 }
 
-function initializeClinicalEntry(form) {
-    const $form = $(form);
-    const kind = $form.attr('data-clinical-entry');
-    if (!['consultation', 'investigation', 'operation'].includes(kind)) {
-        return;
+// Unrelated edits preserve the saved price; changing its source uses the current catalog rate.
+function clinicalEntryAmount($form, current, original, calculated) {
+    const unchanged = JSON.stringify(current) === JSON.stringify(original);
+    if ($form.attr('data-record-exists') === '1' && unchanged) {
+        return parseClinicalDecimal($form.attr('data-initial-amount'), 18) ?? 0n;
     }
 
-    const sourceSelectors = {
-        consultation: 'select[name="doctor_id"]',
-        investigation: '[data-investigation-items]',
-        operation: 'select[name="operation_id"]',
-    };
-    const $source = $form.find(sourceSelectors[kind]);
-    const $doctorSelect = $form.find('select[name="doctor_id"]');
-    const $investigationPicker = $form.find('[data-investigation-picker]');
+    return calculated;
+}
+
+function clinicalEyeRate(item, eye) {
+    if (!item || !['left', 'right', 'both'].includes(eye)) return null;
+
+    return parseClinicalDecimal(eye === 'both' ? item.bothRate : item.singleRate);
+}
+
+// Discount conversion, paid-default tracking and due display are identical for all clinical forms.
+function initializeClinicalPayment($form, renderPayment) {
+    const $amount = $form.find('[data-clinical-amount]');
+    const $payable = $form.find('[data-clinical-payable]');
+    const $due = $form.find('[data-clinical-due]');
     const $discountPercent = $form.find('[name="discount_percent"]');
     const $discountAmount = $form.find('[name="discount_amount"]');
-    const $discountModeField = $form.find('[name="discount_mode"]');
-    const $extraDiscountPercent = $form.find('[name="extra_discount_percent"]');
+    const $discountMode = $form.find('[name="discount_mode"]');
     const $paidAmount = $form.find('[name="paid_amount"]');
-    const recordExists = $form.attr('data-record-exists') === '1';
-    let followPayable = !recordExists && $form.attr('data-default-payment') === 'paid';
-    const initialAmount = $form.attr('data-initial-amount');
+    let mode = $discountMode.val() ?? 'amount';
+    let followPayable = $form.attr('data-record-exists') !== '1' && $form.attr('data-default-payment') === 'paid';
+
+    function discountedAmount(amount) {
+        $amount.val(formatAmount(amount));
+        $payable.add($due).val('0.00');
+        let discount;
+
+        if (mode === 'percent') {
+            const percent = parseClinicalPercent($discountPercent.val());
+            if (percent === null) return null;
+
+            discount = roundRatio(amount * percent, 10000n);
+            $discountAmount.val(formatAmount(discount));
+        } else {
+            discount = parseClinicalDecimal($discountAmount.val());
+            if (discount === null) return null;
+
+            $discountPercent.val(formatAmount(roundRatio(discount * 10000n, amount)));
+        }
+
+        return discount <= amount ? amount - discount : null;
+    }
+
+    function showPayable(payable) {
+        if (payable === null) return;
+
+        $payable.val(formatAmount(payable));
+        if (followPayable) $paidAmount.val(formatAmount(payable));
+
+        const paid = parseClinicalDecimal($paidAmount.val());
+        if (paid !== null && paid <= payable) $due.val(formatAmount(payable - paid));
+    }
+
+    function render(amount) {
+        showPayable(discountedAmount(amount));
+    }
+
+    function changePayment() {
+        if (this.name === 'paid_amount') followPayable = false;
+        if (this.name === 'discount_percent' || this.name === 'discount_amount') {
+            mode = this.name === 'discount_percent' ? 'percent' : 'amount';
+            $discountMode.val(mode);
+        }
+
+        renderPayment();
+    }
+
+    $form.on('input.clinicalEntry change.clinicalEntry',
+        '[name="discount_percent"], [name="discount_amount"], [name="extra_discount_percent"], [name="paid_amount"]', changePayment);
+
+    return { discountedAmount, showPayable, render };
+}
+
+// Consultation fees depend on the chosen doctor and whether this is a new or follow-up visit.
+function initializeConsultationForm(form) {
+    const $form = $(form);
+    const $doctor = $form.find('select[name="doctor_id"]');
+    const $patientType = $form.find('[name="patient_type"]');
+    const original = {
+        ids: originalClinicalIds($form, $doctor),
+        patientType: $form.attr('data-original-patient-type') ?? $patientType.filter(':checked').val() ?? '',
+    };
+    const payment = initializeClinicalPayment($form, renderPayment);
+
+    function renderPayment() {
+        const patientType = $patientType.filter(':checked').val() ?? '';
+        const doctor = selectedClinicalItems($doctor)[0];
+        const fee = patientType === 'follow_up' ? doctor?.followUpFee : doctor?.consultationFee;
+        const calculated = ['new', 'follow_up'].includes(patientType) ? (parseClinicalDecimal(fee) ?? 0n) : 0n;
+        const current = { ids: clinicalSourceIds($doctor), patientType };
+
+        payment.render(clinicalEntryAmount($form, current, original, calculated));
+    }
+
+    $form.on('change.clinicalEntry', '[name="doctor_id"], [name="patient_type"]', renderPayment);
+    renderPayment();
+}
+
+// Operations use one selected operation and its single-eye or both-eye rate.
+function initializePatientOperationForm(form) {
+    const $form = $(form);
+    const $operation = $form.find('select[name="operation_id"]');
+    const $eye = $form.find('[name="eye_type"]');
+    const original = {
+        ids: originalClinicalIds($form, $operation),
+        eye: $form.attr('data-original-eye-type') ?? $eye.filter(':checked').val() ?? '',
+    };
+    const payment = initializeClinicalPayment($form, renderPayment);
+
+    function renderPayment() {
+        const eye = $eye.filter(':checked').val() ?? '';
+        const operation = selectedClinicalItems($operation)[0];
+        const current = { ids: clinicalSourceIds($operation), eye };
+        const calculated = clinicalEyeRate(operation, eye) ?? 0n;
+
+        payment.render(clinicalEntryAmount($form, current, original, calculated));
+    }
+
+    $form.on('change.clinicalEntry', '[name="operation_id"], [name="eye_type"]', renderPayment);
+    renderPayment();
+}
+
+// Investigations own their selected tests, eye choices and saved rate snapshots.
+function initializePatientInvestigationForm(form) {
+    const $form = $(form);
+    const $source = $form.find('[data-investigation-items]');
+    const $doctorSelect = $form.find('select[name="doctor_id"]');
+    const $investigationPicker = $form.find('[data-investigation-picker]');
+    const $extraDiscountPercent = $form.find('[name="extra_discount_percent"]');
     const originalEyeType = $form.attr('data-original-eye-type') || 'left';
-    let discountMode = kind === 'operation' || $discountModeField.val() === 'amount' ? 'amount' : 'percent';
-    let items = selectedClinicalItems($source);
+    const originalIds = originalClinicalIds($form, $source);
+    const originalIdSet = new Set(originalIds);
     const investigationRows = new Map();
-    const original = originalClinicalSourceState($form, clinicalSourceState($form, kind, $source));
-    const originalIds = new Set(original.ids);
+    let itemsById = new Map();
+    let items = [];
     let presetEyes = {};
     let originalInvestigationEyes = {};
     let originalInvestigationRates = {};
-    if (kind === 'investigation') {
-        try {
-            presetEyes = JSON.parse($form.attr('data-investigation-eyes') ?? '{}') ?? {};
-            originalInvestigationEyes = JSON.parse($form.attr('data-original-investigation-eyes') ?? '{}') ?? {};
-            originalInvestigationRates = JSON.parse($form.attr('data-original-investigation-rates') ?? '{}') ?? {};
-        } catch {
-            presetEyes = {};
-            originalInvestigationEyes = {};
-            originalInvestigationRates = {};
-        }
+
+    try {
+        presetEyes = JSON.parse($form.attr('data-investigation-eyes') ?? '{}') ?? {};
+        originalInvestigationEyes = JSON.parse($form.attr('data-original-investigation-eyes') ?? '{}') ?? {};
+        originalInvestigationRates = JSON.parse($form.attr('data-original-investigation-rates') ?? '{}') ?? {};
+    } catch {
+        // An older form without snapshot metadata falls back to its selected option values.
+        presetEyes = {};
+        originalInvestigationEyes = {};
+        originalInvestigationRates = {};
     }
 
     function syncInvestigationRows(initial = false) {
         const selected = selectedClinicalItems($source);
-        const selectedById = new Map(selected.map(item => [item.id, item]));
+        itemsById = new Map(selected.map(item => [item.id, item]));
         for (const id of investigationRows.keys()) {
-            if (!selectedById.has(id)) {
+            if (!itemsById.has(id)) {
                 investigationRows.delete(id);
             }
         }
         for (const item of selected) {
             if (!investigationRows.has(item.id)) {
-                const defaultEye = $form.find('[name="eye_type"]').val() || 'left';
+                const defaultEye = $form.find('[name="eye_type"]:checked').val() || 'left';
                 const eye = initial ? (presetEyes[item.id] ?? item.entryEye ?? originalInvestigationEyes[item.id] ?? defaultEye) : defaultEye;
                 investigationRows.set(item.id, { eye, editing: false });
             }
         }
-        items = Array.from(investigationRows.keys()).map(id => selectedById.get(id));
-        for (const item of items) {
-            const $option = $source.find('option').filter((_, option) => $(option).val() === item.id);
-            if ($option.length) {
-                $source.append($option);
-            }
-        }
+        items = Array.from(investigationRows.keys(), id => itemsById.get(id));
+        $source.append(items.map(item => item.option));
     }
 
     function sourceState() {
-        const current = clinicalSourceState($form, kind, $source);
-        if (kind === 'investigation') {
-            current.eyeType = '';
-            current.investigationEyes = current.ids.map(id => [id, investigationRows.get(id)?.eye]);
-        }
-
-        return current;
+        return Array.from(investigationRows.keys()).sort().map(id => [id, investigationRows.get(id).eye]);
     }
 
-    if (kind === 'investigation') {
-        syncInvestigationRows(true);
-        original.eyeType = '';
-        original.investigationEyes = original.ids.map(id => {
-            const item = items.find(item => item.id === id);
+    syncInvestigationRows(true);
+    const original = originalIds.map(id => {
+        const item = itemsById.get(id);
 
-            return [id, originalInvestigationEyes[id] || item?.entryEye || originalEyeType];
-        });
-    }
-    let state = sourceState();
-    let stateKey = JSON.stringify(state);
-    let preserveSnapshot = recordExists && stateKey === JSON.stringify(original);
+        return [id, originalInvestigationEyes[id] || item?.entryEye || originalEyeType];
+    });
+    let amount = 0n;
+    const payment = initializeClinicalPayment($form, renderPayment);
 
     function itemRate(item) {
-        const eye = kind === 'investigation' ? investigationRows.get(item.id)?.eye : state.eyeType;
+        const eye = investigationRows.get(item.id)?.eye;
         const savedEye = originalInvestigationEyes[item.id] || item.entryEye || originalEyeType;
-        if (kind === 'investigation' && originalIds.has(item.id) && eye === savedEye) {
+        if (originalIdSet.has(item.id) && eye === savedEye) {
             const savedRate = parseClinicalDecimal(originalInvestigationRates[item.id] ?? item.entryRate, 18);
             if (savedRate !== null) {
                 return savedRate;
             }
         }
 
-        if (!['left', 'right', 'both'].includes(eye)) {
-            return null;
-        }
-
-        return parseClinicalDecimal(eye === 'both' ? item.bothRate : item.singleRate);
+        return clinicalEyeRate(item, eye);
     }
 
     function currentAmount() {
-        if (kind === 'consultation') {
-            const doctor = items[0];
-            if (!doctor || !['new', 'follow_up'].includes(state.patientType)) {
-                return 0n;
-            }
-
-            return parseClinicalDecimal(state.patientType === 'follow_up' ? doctor.followUpFee : doctor.consultationFee) ?? 0n;
-        }
         let total = 0n;
         for (const item of items) {
             const rate = itemRate(item);
@@ -1362,8 +1477,11 @@ function initializeClinicalEntry(form) {
         return total;
     }
 
-    // Editing unrelated fields keeps the saved price until its source actually changes.
-    let amount = preserveSnapshot ? (parseClinicalDecimal(initialAmount, 18) ?? 0n) : currentAmount();
+    // Returning to the original tests and eyes restores their saved invoice amount.
+    function updateAmount() {
+        amount = clinicalEntryAmount($form, sourceState(), original, currentAmount());
+        renderPayment();
+    }
 
     function updateInvestigationPicker() {
         const hasDoctor = Boolean($doctorSelect.val());
@@ -1397,7 +1515,7 @@ function initializeClinicalEntry(form) {
                 'aria-label': 'Eye for ' + item.name,
             }).prop('hidden', !row.editing);
             for (const [value, label] of Object.entries(eyeLabels)) {
-                $eye.append(new Option(label, value, false, value === row.eye));
+                $eye.append($('<option>', { value }).text(label).prop('selected', value === row.eye));
             }
             const $eyeCell = $('<td>', { class: 'small' })
                 .append($('<span>', { 'data-investigation-eye-label': '' }).text(eyeLabels[row.eye] ?? '-').prop('hidden', row.editing))
@@ -1428,90 +1546,26 @@ function initializeClinicalEntry(form) {
     }
 
     function renderPayment() {
-        $form.find('[data-clinical-amount]').val(formatAmount(amount));
-        $form.find('[data-clinical-payable], [data-clinical-due]').val('0.00');
-        let discount;
+        const discounted = payment.discountedAmount(amount);
+        const extraPercent = parseClinicalPercent($extraDiscountPercent.val());
+        if (discounted === null || extraPercent === null) return;
 
-        if (discountMode === 'percent') {
-            const percent = parseClinicalPercent($discountPercent.val());
-            if (percent === null) {
-                return;
-            }
-            discount = roundRatio(amount * percent, 10000n);
-            $discountAmount.val(formatAmount(discount));
-        } else {
-            discount = parseClinicalDecimal($discountAmount.val());
-            if (discount === null) {
-                return;
-            }
-            $discountPercent.val(formatAmount(roundRatio(discount * 10000n, amount)));
-        }
-        if (discount > amount) {
-            return;
-        }
-
-        let payable = amount - discount;
-        if (kind === 'investigation') {
-            const extraPercent = parseClinicalPercent($extraDiscountPercent.val());
-            if (extraPercent === null) {
-                return;
-            }
-            payable -= roundRatio(payable * extraPercent, 10000n);
-        }
-        $form.find('[data-clinical-payable]').val(formatAmount(payable));
-        if (followPayable) {
-            $paidAmount.val(formatAmount(payable));
-        }
-        const paid = parseClinicalDecimal($paidAmount.val());
-        if (paid !== null && paid <= payable) {
-            $form.find('[data-clinical-due]').val(formatAmount(payable - paid));
-        }
+        payment.showPayable(discounted - roundRatio(discounted * extraPercent, 10000n));
     }
 
-    $form.on('change.clinicalEntry', '[name="doctor_id"], [name="patient_type"], [name="eye_type"], [name="investigation_ids[]"], [name="operation_id"]', function () {
-        if (kind === 'investigation') {
-            if (this.name === 'doctor_id') {
-                updateInvestigationPicker();
-                return;
-            }
-            if (this.name === 'eye_type') {
-                return;
-            }
-            const currentIds = new Set(items.map(item => item.id));
-            if (!$doctorSelect.val() && $source.find('option:selected').get().some(option => !currentIds.has($(option).val()))) {
-                $source.val(items.map(item => item.id)).trigger('change.select2');
-                return;
-            }
-            syncInvestigationRows();
-        }
-        const nextState = sourceState();
-        const nextKey = JSON.stringify(nextState);
-        if (nextKey === stateKey) {
+    function changeSelectedTests() {
+        const addingTest = $source.find('option:selected').get().some(option => !itemsById.has($(option).val()));
+        if (!$doctorSelect.val() && addingTest) {
+            $source.val(items.map(item => item.id)).trigger('change.select2');
             return;
         }
-        state = nextState;
-        stateKey = nextKey;
-        preserveSnapshot = recordExists && stateKey === JSON.stringify(original);
-        if (kind !== 'investigation') {
-            items = selectedClinicalItems($source);
-        }
-        amount = preserveSnapshot ? (parseClinicalDecimal(initialAmount, 18) ?? 0n) : currentAmount();
-        if (kind === 'investigation') {
-            updateInvestigationPicker();
-        }
-        renderPayment();
-    });
-    $form.on('input.clinicalEntry change.clinicalEntry', '[name="discount_percent"], [name="discount_amount"], [name="extra_discount_percent"], [name="paid_amount"]', function () {
-        if (this.name === 'paid_amount') {
-            followPayable = false;
-        }
-        if (this.name === 'discount_percent' || this.name === 'discount_amount') {
-            discountMode = this.name === 'discount_percent' ? 'percent' : 'amount';
-            $discountModeField.val(discountMode);
-        }
-        renderPayment();
-    });
-    $form.on('click.clinicalEntry', '[data-remove-investigation]', function () {
+
+        syncInvestigationRows();
+        updateInvestigationPicker();
+        updateAmount();
+    }
+
+    function removeInvestigation() {
         const removedId = $(this).attr('data-remove-investigation');
         const remaining = $source.find('option:selected').map((_, option) => $(option).val()).get()
             .filter(id => id !== removedId);
@@ -1523,80 +1577,85 @@ function initializeClinicalEntry(form) {
             const $nextSelect = $doctorSelect.val() ? $investigationPicker : $doctorSelect;
             $nextSelect.next('.select2-container').find('.select2-selection').trigger('focus');
         }
-    });
-    $form.on('click.clinicalEntry', '[data-edit-investigation]', function () {
+    }
+
+    function toggleInvestigationEye() {
         const id = $(this).attr('data-edit-investigation');
         const row = investigationRows.get(id);
-        if (row) {
-            row.editing = !row.editing;
-            renderInvestigationItems();
-            if (row.editing) {
-                $form.find('[data-investigation-eye]').filter((_, select) => $(select).attr('data-investigation-eye') === id).trigger('focus');
-            } else {
-                $form.find('[data-edit-investigation]').filter((_, button) => $(button).attr('data-edit-investigation') === id).trigger('focus');
-            }
-        }
-    });
-    $form.on('change.clinicalEntry', '[data-investigation-eye]', function () {
+        if (!row) return;
+
+        row.editing = !row.editing;
+        renderInvestigationItems();
+        const focusAttribute = row.editing ? 'data-investigation-eye' : 'data-edit-investigation';
+        $form.find('[' + focusAttribute + ']').filter((_, element) => $(element).attr(focusAttribute) === id).trigger('focus');
+    }
+
+    function changeInvestigationEye() {
         const id = $(this).attr('data-investigation-eye');
         const row = investigationRows.get(id);
         if (!row) {
             return;
         }
         row.eye = $(this).val();
-        state = sourceState();
-        stateKey = JSON.stringify(state);
-        preserveSnapshot = recordExists && stateKey === JSON.stringify(original);
-        amount = preserveSnapshot ? (parseClinicalDecimal(initialAmount, 18) ?? 0n) : currentAmount();
+        amount = clinicalEntryAmount($form, sourceState(), original, currentAmount());
         const $row = $(this).closest('tr');
         $row.find('[data-investigation-eye-value]').val(row.eye);
-        $row.find('[data-investigation-row-rate]').text(formatAmount(itemRate(items.find(item => item.id === id)) ?? 0n));
+        $row.find('[data-investigation-row-rate]').text(formatAmount(itemRate(itemsById.get(id)) ?? 0n));
         renderPayment();
-    });
-
-    if (kind === 'investigation') {
-        $investigationPicker.on('select2:opening.clinicalEntry select2:selecting.clinicalEntry', event => {
-            if (!$doctorSelect.val() || items.length >= 100) {
-                event.preventDefault();
-                return;
-            }
-            const id = event.params?.args?.data?.id;
-            if (event.type === 'select2:selecting' && items.some(item => item.id === String(id))) {
-                event.preventDefault();
-                $form.find('[data-investigation-picker-help]').text('This test is already in the list. Select another test.');
-            }
-        });
-        $investigationPicker.on('select2:select.clinicalEntry', event => {
-            const test = event.params?.data;
-            const id = String(test?.id ?? '');
-            if (!$doctorSelect.val() || items.length >= 100 || !/^[1-9][0-9]*$/.test(id)
-                || items.some(item => item.id === id)) {
-                return;
-            }
-
-            let $option = $source.find('option').filter((_, option) => $(option).val() === id);
-            if (!$option.length) {
-                $option = $('<option>', { value: id }).text(test.name ?? test.text).appendTo($source);
-            }
-            $option.attr({
-                'data-single-rate': test.single_rate ?? '',
-                'data-both-rate': test.both_rate ?? '',
-                'data-category-name': test.category?.name ?? '-',
-            }).prop('selected', true);
-            $source.trigger('change');
-            $investigationPicker.val(null).trigger('change.select2');
-
-            window.setTimeout(() => {
-                if ($investigationPicker.prop('isConnected') && !$investigationPicker.prop('disabled') && $doctorSelect.val()) {
-                    $investigationPicker.select2('open');
-                }
-            }, 0);
-        });
-        updateInvestigationPicker();
     }
-    renderPayment();
+
+    function guardInvestigationSelection(event) {
+        if (!$doctorSelect.val() || items.length >= 100) {
+            event.preventDefault();
+            return;
+        }
+        const id = event.params?.args?.data?.id;
+        if (event.type === 'select2:selecting' && itemsById.has(String(id))) {
+            event.preventDefault();
+            $form.find('[data-investigation-picker-help]').text('This test is already in the list. Select another test.');
+        }
+    }
+
+    function addInvestigation(event) {
+        const test = event.params?.data;
+        const id = String(test?.id ?? '');
+        if (!$doctorSelect.val() || items.length >= 100 || !/^[1-9][0-9]*$/.test(id)
+            || itemsById.has(id)) {
+            return;
+        }
+
+        let $option = $source.find('option').filter((_, option) => $(option).val() === id);
+        if (!$option.length) {
+            $option = $('<option>', { value: id }).text(test.name ?? test.text).appendTo($source);
+        }
+        $option.attr({
+            'data-single-rate': test.single_rate ?? '',
+            'data-both-rate': test.both_rate ?? '',
+            'data-category-name': test.category?.name ?? '-',
+        }).prop('selected', true);
+        $source.trigger('change');
+        $investigationPicker.val(null).trigger('change.select2');
+
+        window.setTimeout(() => {
+            if ($investigationPicker.prop('isConnected') && !$investigationPicker.prop('disabled') && $doctorSelect.val()) {
+                $investigationPicker.select2('open');
+            }
+        }, 0);
+    }
+
+    $doctorSelect.on('change.clinicalEntry', updateInvestigationPicker);
+    $source.on('change.clinicalEntry', changeSelectedTests);
+    $form.on('click.clinicalEntry', '[data-remove-investigation]', removeInvestigation);
+    $form.on('click.clinicalEntry', '[data-edit-investigation]', toggleInvestigationEye);
+    $form.on('change.clinicalEntry', '[data-investigation-eye]', changeInvestigationEye);
+    $investigationPicker.on('select2:opening.clinicalEntry select2:selecting.clinicalEntry', guardInvestigationSelection);
+    $investigationPicker.on('select2:select.clinicalEntry', addInvestigation);
+
+    updateInvestigationPicker();
+    updateAmount();
 }
 
+// Invoice rows keep stable input indexes while items are added or removed.
 function initializeInvoiceEditor(editor) {
     const $editor = $(editor);
     const $items = $editor.find('[data-invoice-items]');
@@ -1622,29 +1681,33 @@ function initializeInvoiceEditor(editor) {
         $items.find('[data-invoice-remove]').prop('disabled', count <= 1);
     }
 
-    $editor.on('click.invoiceEditor', '[data-invoice-add]', () => {
+    function addItem() {
         if ($items.children('[data-invoice-item]').length >= 100) {
             return;
         }
 
-        const row = template.innerHTML.replaceAll('__INDEX__', String(nextIndex++));
+        const row = $(template).html().replaceAll('__INDEX__', String(nextIndex++));
         $items.append(row);
         updateControls();
         $items.children('[data-invoice-item]').last().find('input').first().trigger('focus');
-    });
+    }
 
-    $editor.on('click.invoiceEditor', '[data-invoice-remove]', function () {
+    function removeItem() {
         if ($items.children('[data-invoice-item]').length <= 1) {
             return;
         }
 
         $(this).closest('[data-invoice-item]').remove();
         updateControls();
-    });
+    }
+
+    $editor.on('click.invoiceEditor', '[data-invoice-add]', addItem);
+    $editor.on('click.invoiceEditor', '[data-invoice-remove]', removeItem);
 
     updateControls();
 }
 
+// Only a manual payment exposes its original required payment fields.
 function initializePaymentProvider(select) {
     const $select = $(select);
     const $form = $(select.form);
@@ -1666,6 +1729,129 @@ function initializePaymentProvider(select) {
     updateFields();
 }
 
+// The server owns the update sequence; each request completes before the next starts.
+function initializeDeploymentForm(form) {
+    const $form = $(form);
+    const $button = $('#deployment-submit');
+    const $continueButton = $('#deployment-continue');
+    const $buttons = $button.add($continueButton);
+    const $buttonLabel = $('#deployment-submit-label');
+    const $spinner = $('#deployment-spinner');
+    const $message = $('#deployment-message');
+    const $results = $('#deployment-results');
+    const statusLabels = {
+        idle: 'Ready',
+        running: 'In progress',
+        failed: 'Stopped',
+        completed: 'Completed',
+        completed_with_errors: 'Completed with errors',
+    };
+    let updating = false;
+    let renderedResults = $results.children('tr').has('th').length;
+
+    function restoreUpdateButtons(continueUpdate) {
+        updating = false;
+        $form.removeAttr('aria-busy');
+        $buttons.prop('disabled', false);
+        $continueButton.prop('hidden', !continueUpdate);
+        $spinner.prop('hidden', true);
+        $buttonLabel.text('Run Update');
+    }
+
+    // Build result cells as text so labels and messages cannot insert HTML.
+    function renderResults(results) {
+        if (results.length < renderedResults) renderedResults = 0;
+        if (renderedResults === 0) $results.empty();
+
+        for (const result of results.slice(renderedResults)) {
+            const $row = $('<tr>');
+            $('<th>', { scope: 'row', class: 'ps-3 fw-normal' }).text(result.label).appendTo($row);
+            const $outcome = $('<span>', { class: 'badge' })
+                .addClass(result.success ? 'text-bg-success' : 'text-bg-danger')
+                .text(result.success ? 'Success' : 'Failed');
+            $('<td>').append($outcome).appendTo($row);
+            $('<td>', { class: 'pe-3 text-break' }).text(result.message).appendTo($row);
+            $results.append($row);
+        }
+        renderedResults = results.length;
+    }
+
+    function renderDeployment(deployment) {
+        const progress = Math.min(100, Math.max(0, Number(deployment.progress) || 0));
+        $('#deployment-status').text(statusLabels[deployment.status]);
+        $continueButton.prop('hidden', !['running', 'failed'].includes(deployment.status));
+        $('#deployment-progress').attr('aria-valuenow', progress);
+        $('#deployment-progress-bar').css('width', progress + '%');
+        $('#deployment-progress-value').text(progress + '%');
+        $('#deployment-tenants').text(deployment.tenant_processed + ' of ' + deployment.tenant_total);
+        $('#deployment-started').text(deployment.started_at || 'Not started');
+        $('#deployment-finished').text(deployment.finished_at || 'Not finished');
+        $message.text(deployment.message);
+        renderResults(Array.isArray(deployment.results) ? deployment.results : []);
+    }
+
+    function handleRequestFailure(xhr) {
+        const messages = {
+            401: 'Sign in again as the platform Super Admin, then continue the update.',
+            403: 'Only the platform Super Admin can run this update.',
+            419: 'Refresh this page to renew your session, then continue the update.',
+            422: 'An update step is already running. Wait a moment, then continue the update.',
+            429: 'Wait one minute, then continue the update.',
+        };
+        const message = messages[xhr?.status]
+            ?? 'The update request could not be completed. Check your connection, then continue the update.';
+        $message.text(message);
+        restoreUpdateButtons(true);
+        window.showToast(message, 'error');
+    }
+
+    function receiveUpdate(deployment) {
+        if (!deployment || !Object.hasOwn(statusLabels, deployment.status)) {
+            handleRequestFailure();
+            return;
+        }
+
+        renderDeployment(deployment);
+        if (deployment.status === 'running') {
+            requestUpdate($form.attr('data-run-url'));
+            return;
+        }
+
+        restoreUpdateButtons(deployment.status === 'failed');
+    }
+
+    function requestUpdate(url, data = { _token: $form.find('[name="_token"]').val() }) {
+        $.ajax({
+            url,
+            method: 'POST',
+            dataType: 'json',
+            headers: { Accept: 'application/json' },
+            data,
+        }).done(receiveUpdate).fail(handleRequestFailure);
+    }
+
+    function submitUpdate(event) {
+        event.preventDefault();
+        if (updating) {
+            return;
+        }
+
+        // Capture the clicked action before disabling either submit button.
+        const $submitter = $(event.originalEvent?.submitter ?? $button.get(0));
+        const data = $form.serializeArray();
+        data.push({ name: $submitter.attr('name'), value: $submitter.val() });
+
+        updating = true;
+        $form.attr('aria-busy', 'true');
+        $buttons.prop('disabled', true);
+        $spinner.prop('hidden', false);
+        $buttonLabel.text('Updating...');
+        requestUpdate($form.attr('action'), data);
+    }
+
+    $form.on('submit.deployment', submitUpdate);
+}
+
 $(document).on('click.print', '[data-print]', () => window.print());
 
 function prepareTimeInput(_, __, picker) {
@@ -1674,10 +1860,7 @@ function prepareTimeInput(_, __, picker) {
     $input.before($altInput);
     $altInput.attr({ id: $input.attr('id'), autocomplete: 'off' });
     $input.attr('id', $input.attr('id') + '_value');
-    for (const attribute of ['aria-invalid', 'aria-describedby']) {
-        const value = $input.attr(attribute);
-        if (value !== undefined) $altInput.attr(attribute, value);
-    }
+    copyInputAccessibility($input, $altInput);
 }
 
 window.initDateTimePickers = function (root = document) {
@@ -1736,9 +1919,12 @@ $(() => {
     }
     window.initDateTimePickers();
     initializePatientAgeFields();
-    $('[data-clinical-entry]').each((_, form) => initializeClinicalEntry(form));
+    $('[data-clinical-entry="consultation"]').each((_, form) => initializeConsultationForm(form));
+    $('[data-clinical-entry="investigation"]').each((_, form) => initializePatientInvestigationForm(form));
+    $('[data-clinical-entry="operation"]').each((_, form) => initializePatientOperationForm(form));
     $('[data-refund-form]').each((_, form) => initializeRefundForm(form));
     $('[data-due-collection-form]').each((_, form) => initializeDueCollectionForm(form));
     $('[data-invoice-editor]').each((_, editor) => initializeInvoiceEditor(editor));
     $('[data-payment-provider]').each((_, select) => initializePaymentProvider(select));
+    $('#deployment-form').each((_, form) => initializeDeploymentForm(form));
 });

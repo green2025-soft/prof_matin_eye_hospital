@@ -126,7 +126,7 @@ Root [app.js](../../resources/js/app.js) থেকে [prescription.js](../../re
 | [prescription-preview.js](../../resources/js/prescription-preview.js) | Clinical/history/examination/follow-up pad preview ও linked removal |
 | [prescription-examination.js](../../resources/js/prescription-examination.js) | Optional examination measurement row expand/collapse |
 | [prescription-header-dropdown.js](../../resources/js/prescription-header-dropdown.js) | Modal header-এর Select2 results search-এর নিচে স্থির রাখা |
-| [prescription-palette.js](../../resources/js/prescription-palette.js) | Popper দিয়ে dose/unit palette-এর অবস্থান এবং open/close lifecycle |
+| [prescription-palette.js](../../resources/js/prescription-palette.js) | Dose/Unit-এর একই positioning, trigger keyboard, Escape ও open/close operation |
 | [prescription-print.js](../../resources/js/prescription-print.js) | Patient ID barcode এবং print paper/margin CSS rules প্রয়োগ |
 | [prescription-settings.js](../../resources/js/prescription-settings.js) | General/Glass Custom paper dimensions দেখানো এবং input enable/disable |
 
@@ -146,6 +146,29 @@ Root [app.js](../../resources/js/app.js) থেকে [prescription.js](../../re
 
 Print ও Settings scripts নিজের document-ready handler-এ তাদের page-এর controls খুঁজে কাজ করে।
 Medicine-এর search result থেকে row এবং submitted fields তৈরির বিস্তারিত [Medicine JS Lifecycle](MEDICINE-JS-LIFECYCLE.md)-এ আছে।
+
+### Event code পড়ার নিয়ম
+
+প্রতিটি editor-এ imports ও প্রয়োজনীয় state আগে, কাজের named functions পরে, এবং ছোট jQuery event bindings শেষে রাখা হয়।
+একই আচরণ একবার লেখা হয়; Dose ও Unit-এর আলাদা value/focus rule থাকে medicine editor-এ।
+`createPrescriptionPalette().bindToggle()` দুটির অপরিবর্তিত click/arrow/Escape operation চালায়।
+এখানে কোনো medicine/resource type দেখে shared behavior বদলানো হয় না।
+
+| কাজ | Function |
+| --- | --- |
+| Rx modal-এ আগের edit বা validation error focus | `focusOpenedModal`, `closeEditor` |
+| Schedule mode, number-key dose ও palette dose | `changeScheduleMode`, `enterScheduleDose`, `selectDose` |
+| Unit, manual medicine name ও dosage group বদলানো | `selectUnit`, `detachRenamedMedicine`, `changeDosageType` |
+| Food/palette choices-এর একই arrow/Home/End movement | `moveChoiceFocus` |
+| Dose থেকে food/Unit focus | `moveFromFrequency`, `moveFromFood` |
+| Preset search request ও save result | `transportSearch`, `presetSaved`, `presetFailed` |
+| Instruction save শেষে controls ও focus ফেরানো | `finishInstructionSave` |
+| Optional examination row | `toggleMeasurement` |
+| Print ও custom paper initialization | `initializePrescriptionPrint`, `initializePrescriptionPaperSettings` |
+
+Search-এর latest-response guard, inline save চলাকালীন lock এবং native plugin state প্রয়োজনীয় workflow guard।
+এগুলো server validation-এর অনুলিপি নয়। বারকোড, Select2, Flatpickr, Popper ও CSSOM-এর নিজস্ব API প্রয়োজন অনুযায়ী ব্যবহার হয়;
+DOM নির্বাচন, পরিবর্তন ও events jQuery-তেই থাকে।
 
 ### JS পরিবর্তনের নিয়ম
 

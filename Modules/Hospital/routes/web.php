@@ -19,6 +19,7 @@ use Modules\Hospital\Http\Controllers\PatientOperationController;
 use Modules\Hospital\Http\Controllers\ReferenceController;
 use Modules\Hospital\Http\Controllers\RefundCauseController;
 use Modules\Hospital\Http\Controllers\RefundController;
+use Modules\Hospital\Http\Controllers\Reports\CashBalanceReportController;
 use Modules\Hospital\Http\Controllers\SettingController;
 
 Route::middleware(['web', 'auth', 'tenant', 'access'])->prefix('hospital')->name('hospital.')->group(function (): void {
@@ -36,6 +37,7 @@ Route::middleware(['web', 'auth', 'tenant', 'access'])->prefix('hospital')->name
     });
 
     Route::middleware(['subscribed', 'branch:required', 'hospital.permission'])->group(function (): void {
+        Route::get('reports/cash-balance', [CashBalanceReportController::class, 'index'])->name('reports.cash-balance');
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::resource('investigation-categories', InvestigationCategoryController::class)->parameters(['investigation-categories' => 'investigation_category'])->except('show');
         Route::resource('investigations', InvestigationController::class)->except('show');

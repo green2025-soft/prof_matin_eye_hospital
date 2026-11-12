@@ -75,6 +75,14 @@
     ])
 @endif
 
+@if ($layout['navigation']['deployment']['allowed'])
+    @include('core::partials.navigation-link', [
+        'label' => 'Server Update', 'icon' => 'arrows-rotate',
+        'url' => $layout['navigation']['deployment']['url'],
+        'active' => $layout['navigation']['deployment']['active'],
+    ])
+@endif
+
 @if (($layout['permissions']['sms-accounts.view'] ?? false) || ($layout['permissions']['sms-recharges.view'] ?? false) || ($layout['permissions']['sms-history.view'] ?? false))
     <p class="app-nav-label">SMS</p>
 @endif

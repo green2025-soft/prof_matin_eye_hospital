@@ -428,3 +428,7 @@
         'active' => request()->routeIs('pharmacy.settings.*'),
     ])
 @endif
+
+@if ($permissions['pharmacy-cash-report.view'] ?? false)
+    @include('core::partials.navigation-link', ['label' => 'Cash & Due Balance', 'icon' => 'money-bill-wave', 'url' => route('pharmacy.reports.cash-balance'), 'active' => request()->routeIs('pharmacy.reports.cash-balance')])
+@endif

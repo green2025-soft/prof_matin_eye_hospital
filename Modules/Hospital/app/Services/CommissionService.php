@@ -9,6 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Arr;
 use Illuminate\Support\LazyCollection;
 use Illuminate\Validation\ValidationException;
+use Modules\Accounting\Contracts\JournalPosting;
 use Modules\Core\Helpers\Money;
 use Modules\Core\Models\Account;
 use Modules\Hospital\Models\BaseModel;
@@ -18,7 +19,10 @@ use Modules\Hospital\Models\PatientOperation;
 
 class CommissionService
 {
-    public function __construct(private ClinicalInvoiceService $invoices) {}
+    public function __construct(
+        private ClinicalInvoiceService $invoices,
+        private JournalPosting $journals,
+    ) {}
 
     private function allowsCommissions(Account $actor, string $action): bool
     {
@@ -116,9 +120,31 @@ class CommissionService
                 $entry->reference_commission_paid_amount = $amounts['commission'];
                 $entry->reference_commission_paid_at = now(config('app.timezone'));
             }
-            if ($entry->isDirty(['reference_commission_paid_amount', 'reference_commission_paid_at'])) {
-                $entry->save();
+            if (! $entry->isDirty(['reference_commission_paid_amount', 'reference_commission_paid_at'])) {
+                return $entry;
             }
+            $entry->save();
+
+            if ($status === 'unpaid') {
+                $this->journals->reverse(source: $entry, feature: 'hospital.commission');
+
+                return $entry;
+            }
+
+            $commission = Money::minor($entry->reference_commission_paid_amount);
+            $this->journals->sync(
+                source: $entry,
+                feature: 'hospital.commission',
+                entryDate: $entry->reference_commission_paid_at->toDateString(),
+                branchId: $entry->branch_id,
+                amounts: [
+                    'expense' => $commission,
+                    'settlement' => $commission,
+                ],
+                created: true,
+                actor: $freshActor,
+                reference: $entry->invoice_no,
+            );
 
             return $entry;
         });

@@ -14,7 +14,7 @@ class PatientInvestigationService extends ClinicalEntryService
 {
     public function save(Account $actor, ?PatientInvestigation $record, array $values, int $branchId): PatientInvestigation
     {
-        return $this->write($actor, $record ?? new PatientInvestigation, $branchId, function (PatientInvestigation $entry) use ($values, $branchId): PatientInvestigation {
+        return $this->write($actor, $record ?? new PatientInvestigation, $branchId, function (PatientInvestigation $entry, Account $freshActor) use ($values, $branchId): PatientInvestigation {
             $this->assertInvoiceEditable($entry);
             $settings = Setting::values('hospital', $entry->getConnectionName());
             $ids = $values['investigation_ids'];
@@ -76,6 +76,23 @@ class PatientInvestigationService extends ClinicalEntryService
             $this->assignInvoiceNumber($entry, 'investigation_invoice', $values['entry_date'], $settings);
             $entry->save();
             $entry->investigations()->sync($items);
+
+            $this->journals->sync(
+                source: $entry,
+                feature: 'hospital.investigation',
+                entryDate: $entry->entry_date->toDateString(),
+                branchId: $entry->branch_id,
+                amounts: [
+                    'settlement' => Money::minor($entry->paid_amount),
+                    'receivable' => Money::minor($entry->due_amount),
+                    'discount' => $discountAmount + $extraDiscount,
+                    'revenue' => $amount,
+                ],
+                created: $entry->wasRecentlyCreated,
+                paymentTypeId: $entry->payment_type_id,
+                actor: $freshActor,
+                reference: $entry->invoice_no,
+            );
 
             $this->queueInvoiceSms(
                 $entry,

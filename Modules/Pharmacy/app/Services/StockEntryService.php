@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Modules\Accounting\Contracts\JournalPosting;
 use Modules\Core\Models\Account;
 use Modules\Core\Models\Setting;
 use Modules\Hospital\Contracts\PharmacyCustomers;
@@ -23,6 +24,7 @@ abstract class StockEntryService
         protected PharmacyCustomers $customers,
         protected StockService $stock,
         protected ItemService $items,
+        protected JournalPosting $journals,
     ) {}
 
     public function save(Account $actor, ?StockEntry $record, array $values): StockEntry
@@ -47,6 +49,8 @@ abstract class StockEntryService
                 $entry->cost = $this->postStock($entry);
                 $entry->posted_at = now(config('app.timezone'));
                 $entry->save();
+
+                $this->postJournal($freshActor, $entry, $created);
 
                 // Resource creation hooks share this transaction after stock and totals are final.
                 if ($created) {
@@ -75,6 +79,7 @@ abstract class StockEntryService
             }
 
             $this->reverseStock($entry);
+            $this->journals->reverse($entry);
             $this->voidHeader($entry);
             $entry->save();
         });
@@ -90,6 +95,7 @@ abstract class StockEntryService
                 $this->reverseStock($entry);
                 $this->voidHeader($entry);
             }
+            $this->journals->reverse($entry);
             $entry->save();
             $entry->delete();
         });
@@ -155,6 +161,8 @@ abstract class StockEntryService
     abstract protected function prepareEntry(Account $actor, StockEntry $entry, array $values, array $settings, Collection $previousLines): array;
 
     abstract protected function postStock(StockEntry $entry): int;
+
+    abstract protected function postJournal(Account $actor, StockEntry $entry, bool $created): void;
 
     protected function afterCreated(Account $actor, StockEntry $entry, array $settings): void {}
 

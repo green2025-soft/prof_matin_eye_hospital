@@ -2,6 +2,7 @@
     "name": "Hospital",
     "alias": "hospital",
     "description": "Hospital workspace.",
+    "requires": ["TenantCore", "Accounting"],
     "tenant_dashboard": {
         "label": "Hospital",
         "icon": "hospital",

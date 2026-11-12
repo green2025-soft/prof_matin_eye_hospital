@@ -81,6 +81,7 @@ function restoreRow($row, snapshot) {
         $input.val(value);
         if (picker?.altInput && altValue !== null) $(picker.altInput).val(altValue);
     }
+    $row.trigger('pharmacy:itemRestored');
 }
 
 function closeDatePickers($root, destroy = false) {
@@ -113,11 +114,9 @@ function writePayload($row, $payload) {
 
 export function initializeTradeEditor(form, {
     selectVariant,
-    applyPurchaseUnit,
-    populatePurchaseUnits,
     refreshEntryTotal,
-    parseInteger,
     setDefaultPrice,
+    onProductSelected,
 }) {
     const $form = $(form);
     const $editor = $form.find('[data-pharmacy-item-editor]');
@@ -137,27 +136,11 @@ export function initializeTradeEditor(form, {
     const $commitButton = $form.find('[data-pharmacy-commit-item]');
     const $cancelButton = $form.find('[data-pharmacy-cancel-item]');
     const $feedback = $form.find('#pharmacy-product-feedback');
-    const $packModal = $('[data-pharmacy-pack-modal]');
-    const $packSize = $packModal.find('[data-pharmacy-pack-size]');
-    const options = $form.data('pharmacyOptions');
-    const revisionStock = options.revisionStock;
     const entries = new Map();
     const $originalRows = $storage.find(rowSelector);
-    const indexes = $originalRows.map(function () {
-        const $row = $(this);
-        const index = $row.find('input[name$="[variant_id]"]').attr('name')?.match(/^lines\[([^\]]+)\]/)?.[1];
-        $row.data('pharmacyLineIndex', index);
-        return Number(index);
-    }).get();
-    let nextIndex = Math.max(-1, ...indexes.filter(index => Number.isSafeInteger(index) && index >= 0)) + 1;
+    let nextIndex = 0;
     let active = null;
-    let pendingPack = null;
-    let packFocusTarget = null;
-    let lastVatInput = null;
-    let lastVatMode = null;
     let lastDiscountInput = null;
-    const purchasePacks = new Map();
-    $form.data('purchasePacks', purchasePacks);
 
     function announce(message, error = false) {
         if (error) window.showToast?.(message, 'error');
@@ -211,10 +194,7 @@ export function initializeTradeEditor(form, {
         const name = $row.find('.app-pharmacy-entry-name').text().trim();
         $summary.find('.app-pharmacy-entry-name').text(name);
         $summary.find('.app-pharmacy-entry-code').text($row.find('.app-pharmacy-entry-code').text().trim());
-        const values = {
-            expiry: $row.find('[name$="[expiry_date]"]').val() || '—',
-            ...$row.data('pharmacySummary'),
-        };
+        const values = $row.data('pharmacySummary');
         for (const [key, value] of Object.entries(values)) $summary.find(`[data-pharmacy-summary-${key}]`).text(value);
         $summary.find('[data-pharmacy-edit-line]').attr('aria-label', `Edit ${name}`);
         $summary.find('[data-pharmacy-remove-line]').attr('aria-label', `Remove ${name}`);
@@ -272,8 +252,8 @@ export function initializeTradeEditor(form, {
         return true;
     }
 
-    function openEntry(entry, preferredInput = null) {
-        const { $row } = entry;
+    function openEntry($row, preferredInput = null) {
+        const entry = entries.get($row.data('pharmacyLineIndex'));
         if (active?.$row.is($row)) {
             focusControl(preferredInput || $row.find('[name$="[quantity]"]').get(0));
             return true;
@@ -299,8 +279,6 @@ export function initializeTradeEditor(form, {
         if ($picker.hasClass('select2-hidden-accessible')) $picker.select2('close');
         if (entry) {
             restoreRow($row, snapshot);
-            const $unit = $row.find('[data-pharmacy-purchase-unit]');
-            if ($unit.length) applyPurchaseUnit($row.get(0), $unit.find('option:selected').get(0));
             storeRow($row, $placeholder);
             setPayloadDisabled(entry, false);
         } else {
@@ -332,42 +310,21 @@ export function initializeTradeEditor(form, {
         focusPicker();
     }
 
-    function findVariant(id) {
-        return $form.find(rowSelector).filter(function () {
-            return $(this).find('[name$="[variant_id]"]').val() === String(id);
-        }).first();
+    // Choosing a new product must first finish the current item.
+    function finishCurrentItem() {
+        if (commitActive()) return true;
+        announce('Finish the current item before choosing another product.', true);
+        return false;
     }
 
-    function startProduct(product) {
-        const $existing = options.type === 'sale' ? findVariant(product.id) : $();
-        const availableQuantity = parseInteger(product.available_quantity) + parseInteger(revisionStock[product.id]);
-        if ($existing.length && active?.$row.is($existing)) {
-            focusControl($existing.find('[name$="[quantity]"]').get(0));
-            return;
-        }
-        if (!commitActive()) {
-            announce('Finish the current item before choosing another product.', true);
-            return;
-        }
-        if ($existing.length) {
-            openEntry(entries.get($existing.data('pharmacyLineIndex')));
-            announce('This product is already added. Update its quantity.');
-            return;
-        }
-        if (options.type === 'sale' && !options.allowWithoutStock && availableQuantity < 1n) {
-            announce('This product has no available stock.', true);
-            focusPicker();
-            return;
-        }
-        if (entries.size >= 100) {
-            announce('An invoice can contain up to 100 items.', true);
-            return;
-        }
-        if (options.type !== 'purchase' && (!Array.isArray(product.units) || product.units.length === 0)) {
-            announce('Set up a base unit for this product before adding it.', true);
-            return;
-        }
+    function canAddItem() {
+        if (entries.size < 100) return true;
+        announce('An invoice can contain up to 100 items.', true);
+        return false;
+    }
 
+    // Both invoice owners use the same row creation, remembered modes and editor focus.
+    function addProductRow(product) {
         const index = String(nextIndex++);
         const $row = $($template.html().replaceAll('__INDEX__', index).trim()).filter(rowSelector).first();
         if (!$row.length) return;
@@ -377,17 +334,13 @@ export function initializeTradeEditor(form, {
         const name = product.product_name || product.name;
         $row.find('.app-pharmacy-entry-name').text(name);
         $row.find('.app-pharmacy-entry-code').text(product.description);
-        if (options.type === 'sale') $row.find('[data-pharmacy-product-stock]').val(String(availableQuantity));
-        for (const [selector, value] of [
-            ['select[name$="[vat_input]"]', lastVatInput],
-            ['select[name$="[vat_mode]"]', lastVatMode],
-            ['select[name$="[discount_input]"]', lastDiscountInput],
-        ]) {
-            const $input = $row.find(selector);
-            if (value !== null && !$input.closest('[data-pharmacy-hidden-item-field]').length) $input.val(value);
+        const $discountInput = $row.find('select[name$="[discount_input]"]');
+        if (lastDiscountInput !== null && !$discountInput.closest('[data-pharmacy-hidden-item-field]').length) {
+            $discountInput.val(lastDiscountInput);
         }
         active = { $row, entry: null, snapshot: null, $placeholder: null };
         $editor.empty().append($row);
+        $row.trigger('pharmacy:itemCreated');
         selectVariant($row.get(0), product);
         window.initDateTimePickers?.($row.get(0));
         updateEditor();
@@ -396,20 +349,7 @@ export function initializeTradeEditor(form, {
         focusControl($row.find('[name$="[quantity]"]').get(0));
     }
 
-    function openPackEditor($row, option, trigger) {
-        const $option = $(option);
-        if (!$packModal.length || !$option.attr('data-unit-id') || $option.attr('data-fixed') === '1') return;
-        if ($picker.hasClass('select2-hidden-accessible')) $picker.select2('close');
-        closeDatePickers($row);
-        pendingPack = { $row, $option };
-        packFocusTarget = trigger;
-        $packModal.find('[data-pharmacy-pack-label]').text(`Pieces per ${$option.attr('data-unit-name')}`);
-        $packSize.val($option.attr('data-factor') || '').get(0).setCustomValidity('');
-        $packModal.modal('show');
-    }
-
-    function openUnitChooser() {
-        const $unit = active?.$row.find('[data-pharmacy-purchase-unit], select[name$="[product_unit_id]"]');
+    function openUnitChooser($unit) {
         if (!$unit?.length || $unit.prop('disabled')) return;
         closeDatePickers(active.$row);
         if ($picker.hasClass('select2-hidden-accessible')) $picker.select2('close');
@@ -425,83 +365,43 @@ export function initializeTradeEditor(form, {
         }
     }
 
-    function selectUnitShortcut(symbol) {
+    function selectUnitShortcut($unit, $options) {
         const { $row } = active;
-        const $unit = $row.find('[data-pharmacy-purchase-unit], select[name$="[product_unit_id]"]');
         if (!$unit.length || $unit.prop('disabled')) return;
-        const purchase = $unit.is('[data-pharmacy-purchase-unit]');
-        const choice = purchase ? $row.data('purchaseUnits')?.find(item => item.symbol === symbol) : null;
-        const $options = $unit.find('option').filter(function () {
-            const $option = $(this);
-            return purchase ? choice && $option.attr('data-unit-id') === choice.id
-                : $option.attr('data-symbol')?.toLowerCase() === symbol && (symbol !== 'pcs' || $option.attr('data-factor') === '1');
-        });
         const $saved = $options.filter('[data-factor]');
         const $selected = $saved.filter(':selected');
         const $option = $selected.length ? $selected.first()
             : ($saved.length === 1 ? $saved : $options.not('[data-factor]').first());
         if (!$option.length) {
             announce($saved.length > 1 ? 'Choose the Box pack size.' : 'This unit is not set up for this product.', true);
-            openUnitChooser();
+            openUnitChooser($unit);
             return;
         }
         closeDatePickers($row);
         if ($picker.hasClass('select2-hidden-accessible')) $picker.select2('close');
         if ($unit.val() !== $option.val()) $unit.val($option.val()).trigger('change');
-        if (!pendingPack) focusControl($row.find('[name$="[quantity]"]').get(0));
+        $form.trigger('pharmacy:unitSelected', [$row]);
     }
 
-    function confirmPack() {
-        if (!pendingPack || !active || !pendingPack.$row.is(active.$row)) return;
-        const factor = parseInteger($packSize.val());
-        const packSize = $packSize.get(0);
-        packSize.setCustomValidity(factor > 0n && factor <= 1000000n ? '' : 'Enter the pieces per pack.');
-        if (!packSize.reportValidity()) return;
-        const { $row, $option } = pendingPack;
-        const productId = $row.data('pharmacyProduct').id;
-        const profile = { unit_id: $option.attr('data-unit-id'), factor: String(factor) };
-        const profiles = purchasePacks.get(productId) || [];
-        if (!profiles.some(item => String(item.unit_id) === profile.unit_id && String(item.factor) === profile.factor)) profiles.push(profile);
-        purchasePacks.set(productId, profiles);
-        $form.find(rowSelector).each(function () {
-            const $item = $(this);
-            if ($item.data('pharmacyProduct').id === productId) {
-                populatePurchaseUnits(this, $item.data('unitProfiles') || []);
-            }
-        });
-        const $unit = $row.find('[data-pharmacy-purchase-unit]');
-        $unit.val(`pack:${profile.unit_id}:${profile.factor}`);
-        applyPurchaseUnit($row.get(0), $unit.find('option:selected').get(0), true);
-        pendingPack = null;
-        packFocusTarget = $row.find('[name$="[quantity]"]').get(0);
-        $packModal.modal('hide');
-        refreshRows();
-    }
-
-    $packModal.on('shown.bs.modal.pharmacyTrade', () => focusControl($packSize.get(0)));
-    $packModal.on('hidden.bs.modal.pharmacyTrade', () => {
-        if (pendingPack?.$row.prop('isConnected')) {
-            const { $row } = pendingPack;
-            const $unit = $row.find('[data-pharmacy-purchase-unit]');
-            $unit.val($row.attr('data-selected-purchase-unit') || '');
-            applyPurchaseUnit($row.get(0), $unit.find('option:selected').get(0));
-        }
-        pendingPack = null;
-        focusControl($(packFocusTarget).prop('isConnected') ? packFocusTarget : null);
-        packFocusTarget = null;
-    });
-    $packModal.on('click.pharmacyTrade', '[data-pharmacy-pack-confirm]', confirmPack);
-    $packSize.on('input.pharmacyTrade', function () { this.setCustomValidity(''); });
-    $packSize.on('keydown.pharmacyTrade', event => {
-        if (event.key !== 'Enter') return;
-        event.preventDefault();
-        confirmPack();
-    });
+    const editor = {
+        get activeRow() { return active?.$row; },
+        finishCurrentItem,
+        canAddItem,
+        addProductRow,
+        openEntry,
+        focusControl,
+        focusPicker,
+        announce,
+        refreshRows,
+        closeDatePickers,
+        openUnitChooser,
+        selectUnitShortcut,
+    };
 
     $picker.on('select2:select.pharmacyTrade', event => {
         const product = event.params.data;
         $picker.val(null).trigger('change.select2');
-        startProduct(product);
+        onProductSelected(product, editor);
     });
     $form.on('click.pharmacyTrade', '[data-pharmacy-commit-item]', () => {
         if (commitActive()) {
@@ -513,21 +413,6 @@ export function initializeTradeEditor(form, {
     $form.on('change.pharmacyTrade', 'select[name$="[product_unit_id]"]', function () {
         setDefaultPrice($(this).closest(rowSelector).get(0));
     });
-    $form.on('change.pharmacyTrade', '[data-pharmacy-purchase-unit]', function () {
-        const $unit = $(this);
-        const $row = $unit.closest(rowSelector);
-        const $option = $unit.find('option:selected');
-        const factor = $option.attr('data-factor');
-        $row.find('[data-pharmacy-edit-unit]').prop('disabled', !factor || $option.attr('data-fixed') === '1');
-        if (factor) applyPurchaseUnit($row.get(0), $option.get(0), true);
-        else openPackEditor($row, $option.get(0), this);
-    });
-    $form.on('change.pharmacyTrade', 'select[name$="[vat_input]"]', function () {
-        const $input = $(this);
-        lastVatInput = $input.val();
-        if (lastVatInput !== 'percent') $input.closest(rowSelector).find('input[name$="[vat_amount]"]').val('');
-    });
-    $form.on('change.pharmacyTrade', 'select[name$="[vat_mode]"]', function () { lastVatMode = $(this).val(); });
     $form.on('change.pharmacyTrade', 'select[name$="[discount_input]"]', function () {
         const $input = $(this);
         lastDiscountInput = $input.val();
@@ -535,20 +420,16 @@ export function initializeTradeEditor(form, {
     });
     $form.on('change.pharmacyTrade input.pharmacyTrade',
         `${rowSelector} input, ${rowSelector} select, ${rowSelector} textarea,
-        [name="discount"], [name="paid_amount"], [name="vat_mode"], [name="vat_percent"]`, refreshRows);
+        [name="discount"], [name="paid_amount"]`, refreshRows);
     $form.on('focusin.pharmacyTrade', 'input[type="number"]', function () { $(this).trigger('select'); });
-    $form.on('focusout.pharmacyTrade', 'input[type="number"], [data-pharmacy-purchase-unit]', function () {
+    $form.on('focusout.pharmacyTrade', 'input[type="number"]', function () {
         $(this).data('touched', true);
         refreshRows();
-    });
-    $form.on('click.pharmacyTrade', '[data-pharmacy-edit-unit]', function () {
-        const $row = $(this).closest(rowSelector);
-        openPackEditor($row, $row.find('[data-pharmacy-purchase-unit] option:selected').get(0), this);
     });
     $form.on('click.pharmacyTrade', '[data-pharmacy-edit-line]', function () {
         const index = $(this).closest('tr').data('pharmacyLineIndex');
         const entry = entries.get(index);
-        if (entry) openEntry(entry);
+        if (entry) openEntry(entry.$row);
     });
     $form.on('click.pharmacyTrade', '[data-pharmacy-remove-line]', function () {
         const $button = $(this);
@@ -584,14 +465,14 @@ export function initializeTradeEditor(form, {
                 event.preventDefault();
                 event.stopImmediatePropagation();
                 if (key === 'a') $commitButton.trigger('click');
-                else selectUnitShortcut(key === 'b' ? 'box' : 'pcs');
+                else $form.trigger('pharmacy:unitShortcutRequested', [key === 'b' ? 'box' : 'pcs']);
                 return;
             }
         }
         if (event.key === 'F4' && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey && active) {
             event.preventDefault();
             event.stopImmediatePropagation();
-            openUnitChooser();
+            $form.trigger('pharmacy:unitChooserRequested');
             return;
         }
         if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
@@ -600,16 +481,6 @@ export function initializeTradeEditor(form, {
             if ($picker.hasClass('select2-hidden-accessible')) $picker.select2('close');
             refreshRows();
             form.requestSubmit();
-            return;
-        }
-        if (event.altKey && event.key.toLowerCase() === 'u' && active) {
-            const $unit = active.$row.find('[data-pharmacy-purchase-unit]');
-            const $edit = active.$row.find('[data-pharmacy-edit-unit]');
-            if ($unit.length && $edit.length && !$edit.prop('disabled')) {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-                openPackEditor(active.$row, $unit.find('option:selected').get(0), event.target);
-            }
             return;
         }
         if (event.altKey && event.key === 'Delete') {
@@ -664,7 +535,7 @@ export function initializeTradeEditor(form, {
             }).get(0);
             if (!invalid) continue;
             event.preventDefault();
-            openEntry(entry, invalid);
+            openEntry(entry.$row, invalid);
             invalid.reportValidity();
             return;
         }
@@ -677,10 +548,11 @@ export function initializeTradeEditor(form, {
 
     $originalRows.each(function () {
         const $row = $(this).prop('disabled', true);
+        const index = $row.find('input[name$="[variant_id]"]').attr('name').match(/^lines\[([^\]]+)\]/)[1];
+        const numericIndex = Number(index);
+        $row.data('pharmacyLineIndex', index);
+        if (Number.isSafeInteger(numericIndex) && numericIndex >= nextIndex) nextIndex = numericIndex + 1;
         bindItemControls($row);
-        if ($row.find('[data-pharmacy-purchase-unit]').length) {
-            populatePurchaseUnits(this, $row.data('unitProfiles') || []);
-        }
         createEntry($row);
     });
     updateEditor();
@@ -692,7 +564,8 @@ export function initializeTradeEditor(form, {
             return !$input.prop('disabled') && !$input.closest('[data-pharmacy-hidden-item-field]').length;
         }).get(0);
         if (!invalid && !entry.$row.find('.invalid-feedback').length) continue;
-        openEntry(entry, invalid);
+        openEntry(entry.$row, invalid);
         break;
     }
+    return editor;
 }

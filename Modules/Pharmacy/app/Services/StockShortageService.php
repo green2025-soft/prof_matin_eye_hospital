@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use LogicException;
+use Modules\Accounting\Contracts\JournalPosting;
 use Modules\Pharmacy\Models\SaleItem;
 use Modules\Pharmacy\Models\SaleReturnItem;
 use Modules\Pharmacy\Models\StockAllocation;
@@ -21,6 +22,8 @@ use Modules\Pharmacy\Models\StockShortageSettlement;
 
 class StockShortageService
 {
+    public function __construct(private JournalPosting $journals) {}
+
     public function remaining(Connection $connection, StockAllocation $allocation): array
     {
         $this->requireTransaction($connection);
@@ -249,8 +252,8 @@ class StockShortageService
                 'cost' => $value->toInt(),
                 'updated_at' => now(),
             ]);
-        StockMovement::on($connection->getName())
-            ->insert([
+        $movementId = StockMovement::on($connection->getName())
+            ->insertGetId([
                 'branch_id' => $branchId,
                 'variant_id' => $line->variant_id,
                 'stock_entry_type' => $entry->getMorphClass(),
@@ -266,6 +269,28 @@ class StockShortageService
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
+        // Transfers can settle stock in either participating branch.
+        $movement = StockMovement::on($connection->getName())
+            ->withoutGlobalScope('branch')
+            ->findOrFail($movementId);
+        $increase = max(0, $cost);
+        $decrease = max(0, -$cost);
+
+        $this->journals->sync(
+            source: $movement,
+            feature: 'pharmacy.'.$entry->product_type.'.stock-variance',
+            entryDate: $date,
+            branchId: $branchId,
+            amounts: [
+                'inventory_in' => $increase,
+                'gain' => $increase,
+                'loss' => $decrease,
+                'inventory_out' => $decrease,
+            ],
+            created: true,
+            reference: $entry->number,
+        );
     }
 
     private function requireTransaction(Connection $connection): void

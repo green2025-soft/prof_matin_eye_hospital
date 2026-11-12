@@ -48,4 +48,26 @@ class AdjustmentService extends StockEntryService
     {
         return $this->stock->adjust($entry);
     }
+
+    protected function postJournal(Account $actor, StockEntry $entry, bool $created): void
+    {
+        $increase = (int) $entry->lines()->where('direction', 'increase')->sum('cost');
+        $decrease = (int) $entry->lines()->where('direction', 'decrease')->sum('cost');
+
+        $this->journals->sync(
+            source: $entry,
+            feature: 'pharmacy.'.$entry->product_type.'.adjustment',
+            entryDate: $entry->entry_date->toDateString(),
+            branchId: $entry->branch_id,
+            amounts: [
+                'inventory_in' => $increase,
+                'gain' => $increase,
+                'loss' => $decrease,
+                'inventory_out' => $decrease,
+            ],
+            created: $created,
+            actor: $actor,
+            reference: $entry->number,
+        );
+    }
 }

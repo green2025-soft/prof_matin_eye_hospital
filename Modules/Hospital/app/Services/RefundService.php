@@ -23,7 +23,7 @@ class RefundService extends ClinicalEntryService
     public function save(Account $actor, ?Refund $record, array $values, int $branchId): Refund
     {
         try {
-            return $this->write($actor, $record ?? new Refund, $branchId, function (Refund $refund) use ($values, $branchId): Refund {
+            return $this->write($actor, $record ?? new Refund, $branchId, function (Refund $refund, Account $freshActor) use ($values, $branchId): Refund {
                 $items = [];
                 $source = $refund->exists
                     ? $this->invoices->source($refund, lock: true)
@@ -74,6 +74,23 @@ class RefundService extends ClinicalEntryService
                 if ($items !== []) {
                     $refund->items()->attach($items);
                 }
+
+                $cashRefunded = Money::minor($refund->amount);
+                $dueAdjustment = Money::minor($refund->due_adjustment);
+                $this->journals->sync(
+                    source: $refund,
+                    feature: 'hospital.refund',
+                    entryDate: $refund->created_at->toDateString(),
+                    branchId: $refund->branch_id,
+                    amounts: [
+                        'refund' => $cashRefunded + $dueAdjustment,
+                        'settlement' => $cashRefunded,
+                        'receivable' => $dueAdjustment,
+                    ],
+                    created: $refund->wasRecentlyCreated,
+                    actor: $freshActor,
+                    reference: $refund->invoice_no,
+                );
 
                 if (! $refund->wasRecentlyCreated || ! $settings['sms_refund_enabled']) {
                     return $refund;
@@ -221,6 +238,7 @@ class RefundService extends ClinicalEntryService
                 ->firstOrFail();
             $this->authorize($freshActor, $refund, 'delete');
             $this->invoices->source($refund, lock: true);
+            $this->journals->reverse(source: $refund);
             $refund->delete();
         });
     }

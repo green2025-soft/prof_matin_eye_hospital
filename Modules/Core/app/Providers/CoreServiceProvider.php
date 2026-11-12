@@ -29,6 +29,7 @@ use Modules\Core\Console\Commands\RetryTenantCommand;
 use Modules\Core\Console\Commands\SyncSubscriptionsCommand;
 use Modules\Core\Helpers\WorkspaceMail;
 use Modules\Core\Models\Account;
+use Modules\Core\Models\Admin;
 use Modules\Core\Models\BaseModel;
 use Modules\Core\Routing\ResourceRegistrar;
 use Modules\Core\Services\CachedUserProvider;
@@ -84,6 +85,8 @@ class CoreServiceProvider extends ServiceProvider
         }
 
         View::composer('core::layouts.app', LayoutComposer::class);
+
+        Gate::define('deploy-server', static fn (Account $actor): bool => $actor instanceof Admin && $actor->isOwner());
 
         Mail::extend('workspace', fn (array $configuration) => $this->app->make(WorkspaceMail::class)->transport($configuration));
         Queue::before(fn () => $this->app->make(WorkspaceMail::class)->reset());

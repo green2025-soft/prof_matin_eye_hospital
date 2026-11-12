@@ -1,7 +1,14 @@
 {
     "name": "Accounting",
     "alias": "accounting",
-    "description": "",
+    "description": "Chart of accounts, vouchers and automatic Hospital/Pharmacy postings.",
+    "requires": ["TenantCore"],
+    "tenant_dashboard": {
+        "label": "Accounting",
+        "icon": "calculator",
+        "route": "accounting.dashboard",
+        "permission": "accounting.view"
+    },
     "keywords": [],
     "priority": 0,
     "providers": [

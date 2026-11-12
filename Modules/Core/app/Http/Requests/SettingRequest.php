@@ -5,6 +5,7 @@ namespace Modules\Core\Http\Requests;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 use Modules\Core\Helpers\Money;
+use Nwidart\Modules\Facades\Module;
 
 class SettingRequest extends BaseRequest
 {
@@ -86,6 +87,13 @@ class SettingRequest extends BaseRequest
             'data' => ['required', 'array:'.implode(',', array_keys($fields))],
             'credentials' => $credentials === [] ? ['missing'] : ['sometimes', 'array:'.implode(',', array_keys($credentials))],
         ] + Arr::prependKeysWith($fields, 'data.');
+
+        if ($setting->group === 'general') {
+            $rules['data.module_order'] = $setting->getConnection()->getName() === 'central'
+                ? ['missing']
+                : ['sometimes', 'array:'.implode(',', array_keys(Module::getOrdered('desc')))];
+            $rules['data.module_order.*'] = ['nullable', 'integer', 'between:0,65535'];
+        }
 
         foreach ($credentials as $field => $definition) {
             $rules['credentials.'.$field] = ['bail', Rule::requiredIf($enabled && ! ($definition['optional'] ?? false) && ! ($configured[$field] ?? false)), 'nullable', 'string', 'max:'.$definition['max']];

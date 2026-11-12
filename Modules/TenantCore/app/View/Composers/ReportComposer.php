@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Pharmacy\View\Composers;
+namespace Modules\TenantCore\View\Composers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -14,7 +14,7 @@ class ReportComposer
 
     public function compose(View $view): void
     {
-        $branch = Branch::query()->findOrFail($this->request->attributes->get('branch_id'));
+        $branch = Branch::findOrFail($this->request->attributes->get('branch_id'));
         $company = Setting::values('company', $branch->getConnectionName());
         $branding = Setting::values('branding', $branch->getConnectionName());
         $name = $company['name'] ?: $branding['app_name'];

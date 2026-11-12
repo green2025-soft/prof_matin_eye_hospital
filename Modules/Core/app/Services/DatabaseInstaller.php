@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use LogicException;
+use Nwidart\Modules\Facades\Module;
 use PDOException;
 use RuntimeException;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -270,6 +271,21 @@ class DatabaseInstaller
         }
 
         $this->runMigrations($connection, $paths, $pretend, $output);
+    }
+
+    public function seedTenantDefaults(?OutputInterface $output = null): void
+    {
+        foreach ($this->config->get('multitenancy.tenant_seeders', []) as $module => $seeder) {
+            if (! Module::isEnabled($module)) {
+                continue;
+            }
+
+            $status = $this->console->call('db:seed', ['--database' => 'tenant', '--class' => $seeder, '--force' => true], $output);
+
+            if ($status !== 0) {
+                throw new RuntimeException('Tenant default data initialization failed.');
+            }
+        }
     }
 
     private function runMigrations(string $connection, array $paths, bool $pretend = false, ?OutputInterface $output = null): void

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Core\Http\Controllers\AccountController;
 use Modules\Core\Http\Controllers\CheckoutController;
+use Modules\Core\Http\Controllers\DeploymentController;
 use Modules\Core\Http\Controllers\GatewayController;
 use Modules\Core\Http\Controllers\InvoiceController;
 use Modules\Core\Http\Controllers\PaymentController;
@@ -19,6 +20,13 @@ use Modules\Core\Http\Controllers\TenantController;
 
 Route::middleware(['web', 'auth', 'core.permission'])->prefix('core')->name('core.')->group(function (): void {
     Route::middleware('central')->group(function (): void {
+        Route::middleware(['can:deploy-server', 'throttle:600,1'])
+            ->controller(DeploymentController::class)->prefix('deploy')->name('deploy.')->group(function (): void {
+                Route::get('/', 'index')->name('index');
+                Route::post('/', 'store')->name('store');
+                Route::post('run', 'run')->name('run');
+            });
+
         Route::post('tenants/{tenant}/enter', [TenantController::class, 'enter'])->middleware('throttle:10,1')->name('tenants.enter');
         Route::resource('tenants', TenantController::class)->except('show');
         Route::resource('admins', AccountController::class)->parameters(['admins' => 'account'])->names('accounts')->except('show');

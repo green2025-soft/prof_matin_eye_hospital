@@ -182,4 +182,28 @@ class SaleReturnService extends ReturnEntryService
             ],
         );
     }
+
+    protected function postJournal(Account $actor, StockEntry $entry, bool $created): void
+    {
+        $vat = (int) $entry->lines()->sum('vat');
+
+        $this->journals->sync(
+            source: $entry,
+            feature: 'pharmacy.'.$entry->product_type.'.sale-return',
+            entryDate: $entry->entry_date->toDateString(),
+            branchId: $entry->branch_id,
+            amounts: [
+                'returns' => $entry->total - $vat,
+                'vat' => $vat,
+                'settlement' => $entry->initial_paid,
+                'receivable' => $entry->total - $entry->initial_paid,
+                'inventory' => $entry->cost,
+                'cogs' => $entry->cost,
+            ],
+            created: $created,
+            paymentTypeId: $entry->payment_type_id,
+            actor: $actor,
+            reference: $entry->number,
+        );
+    }
 }

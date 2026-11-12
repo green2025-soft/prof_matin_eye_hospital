@@ -11,6 +11,7 @@ use Illuminate\Support\ServiceProvider;
 use Modules\Core\Http\Middleware\EnsureModulePermission;
 use Modules\Hospital\Contracts\PharmacyCustomers;
 use Modules\Hospital\Models\Doctor;
+use Modules\Hospital\Services\HospitalCashReportSource;
 use Modules\Hospital\Services\HospitalUserProvider;
 use Modules\Hospital\Services\PatientService;
 use Modules\Hospital\View\Composers\MenuComposer;
@@ -20,7 +21,10 @@ class HospitalServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->mergeConfigFrom(module_path('Hospital', 'config/accounting.php'), 'accounting.integrations');
+
         $this->app->bind(PharmacyCustomers::class, PatientService::class);
+        $this->app->tag([HospitalCashReportSource::class], 'tenantcore.cash-report-sources');
     }
 
     public function boot(Router $router): void

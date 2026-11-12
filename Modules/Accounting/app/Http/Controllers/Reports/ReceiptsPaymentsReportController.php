@@ -1,0 +1,26 @@
+<?php
+
+namespace Modules\Accounting\Http\Controllers\Reports;
+
+use Illuminate\View\View;
+use Modules\Accounting\Http\Requests\MonthReportRequest;
+use Modules\Accounting\Services\ReceiptsPaymentsReportService;
+use Modules\Core\Http\Controllers\BaseController;
+
+class ReceiptsPaymentsReportController extends BaseController
+{
+    public function index(MonthReportRequest $request, ReceiptsPaymentsReportService $reports): View
+    {
+        $filters = $request->filters();
+        $periods = array_intersect_key($request->periods(), array_flip(['current', 'fiscal']));
+        $statement = $reports->statement((int) $request->attributes->get('branch_id'), $periods, (int) $filters['depth']);
+
+        $data = [
+            'pageTitle' => 'Receipts & Payments',
+            'filters' => $filters,
+            'periods' => $periods,
+        ] + $statement;
+
+        return view('accounting::reports.receipts-payments', $data);
+    }
+}

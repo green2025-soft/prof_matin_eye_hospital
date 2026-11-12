@@ -14,6 +14,7 @@ use Modules\Pharmacy\Http\Controllers\ProductUnitController;
 use Modules\Pharmacy\Http\Controllers\ProductVariantController;
 use Modules\Pharmacy\Http\Controllers\PurchaseController;
 use Modules\Pharmacy\Http\Controllers\PurchaseReturnController;
+use Modules\Pharmacy\Http\Controllers\Reports\CashBalanceReportController;
 use Modules\Pharmacy\Http\Controllers\Reports\CustomerDueReportController;
 use Modules\Pharmacy\Http\Controllers\Reports\DailyReportController;
 use Modules\Pharmacy\Http\Controllers\Reports\ExpiryReportController;
@@ -105,6 +106,7 @@ Route::middleware(['web', 'auth', 'tenant', 'access'])->prefix('pharmacy')->name
         Route::resource('payments', PaymentController::class)->only(['index', 'create', 'store', 'show']);
 
         Route::prefix('reports')->name('reports.')->group(function (): void {
+            Route::get('cash-balance', [CashBalanceReportController::class, 'index'])->name('cash-balance');
             Route::get('/', [StockReportController::class, 'index'])->name('index');
             Route::get('stock', [StockReportController::class, 'index'])->name('stock');
             Route::get('movements', [StockMovementReportController::class, 'index'])->name('movements');

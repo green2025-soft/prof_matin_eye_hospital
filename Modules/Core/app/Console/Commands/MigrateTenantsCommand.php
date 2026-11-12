@@ -80,6 +80,8 @@ class MigrateTenantsCommand extends Command
                         if (! $pretend) {
                             $permissions->sync();
                             Setting::initialize('tenant');
+
+                            $installer->seedTenantDefaults($this->output);
                         }
                     });
                 });

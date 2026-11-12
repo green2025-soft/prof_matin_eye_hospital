@@ -136,4 +136,27 @@ class SaleService extends TradeEntryService
             ],
         );
     }
+
+    protected function postJournal(Account $actor, StockEntry $entry, bool $created): void
+    {
+        $this->journals->sync(
+            source: $entry,
+            feature: 'pharmacy.'.$entry->product_type.'.sale',
+            entryDate: $entry->entry_date->toDateString(),
+            branchId: $entry->branch_id,
+            amounts: [
+                'settlement' => $entry->initial_paid,
+                'receivable' => $entry->total - $entry->initial_paid,
+                'discount' => $entry->discount,
+                'revenue' => $entry->total - $entry->vat + $entry->discount,
+                'vat' => $entry->vat,
+                'cogs' => $entry->cost,
+                'inventory' => $entry->cost,
+            ],
+            created: $created,
+            paymentTypeId: $entry->payment_type_id,
+            actor: $actor,
+            reference: $entry->number,
+        );
+    }
 }
