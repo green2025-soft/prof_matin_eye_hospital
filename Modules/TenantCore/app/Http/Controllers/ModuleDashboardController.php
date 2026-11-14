@@ -14,11 +14,13 @@ class ModuleDashboardController extends Controller
 {
     public function index(Request $request): View
     {
-        $permissions = $request->attributes->get('navigation_permissions', []);
+        $permissions    = $request->attributes->get('navigation_permissions', []);
+        $settings       = Setting::values('general');
 
         $data = [
-            'pageTitle' => 'Modules',
-            'modules' => $this->availableModules($request),
+            'pageTitle'     => 'Modules',
+            'modules'       => $this->availableModules($request, $settings['module_order']),
+            'moduleNames'   => $settings['module_names'],
             'canArrangeModules' => ($permissions['settings.view'] ?? false) && ($permissions['settings.update'] ?? false),
         ];
 
@@ -27,23 +29,24 @@ class ModuleDashboardController extends Controller
 
     public function show(Request $request): View
     {
-        $module = $this->availableModules($request)[strtolower((string) $request->route('module'))] ?? abort(404);
-        $dashboard = $module->get('tenant_dashboard');
+        $settings   = Setting::values('general');
+        $module     = $this->availableModules($request, $settings['module_order'])[strtolower((string) $request->route('module'))] ?? abort(404);
+        $dashboard  = $module->get('tenant_dashboard');
         abort_unless($dashboard['route'] === $request->route()->getName(), 404);
 
         $data = [
-            'pageTitle' => $dashboard['label'],
-            'module' => $module,
-            'canSelectBranch' => (bool) $request->attributes->get('branch_can_switch'),
-            'branchDashboardUrl' => route('tenantcore.branch-dashboard.index'),
-            'moduleDashboardUrl' => route('tenantcore.module-dashboard.index'),
+            'pageTitle'             => $settings['module_names'][$module->getLowerName()] ?? $dashboard['label'],
+            'module'                => $module,
+            'canSelectBranch'       => (bool) $request->attributes->get('branch_can_switch'),
+            'branchDashboardUrl'    => route('tenantcore.branch-dashboard.index'),
+            'moduleDashboardUrl'    => route('tenantcore.module-dashboard.index'),
             'workspaceDashboardUrl' => route('tenantcore.dashboard'),
         ];
 
         return view('tenantcore::module-dashboard.show', $data);
     }
 
-    private function availableModules(Request $request): array
+    private function availableModules(Request $request, array $order): array
     {
         $permissions = $request->attributes->get('navigation_permissions', []);
 
@@ -57,11 +60,8 @@ class ModuleDashboardController extends Controller
 
             return $permission === null || ($permissions[$permission] ?? false);
         });
-        $order = Setting::values('general')['module_order'];
 
         // Stable sorting keeps native module order for blank or equal ranks.
-        return collect($modules)
-            ->sortBy(fn (ModuleInstance $module): int => (int) ($order[$module->getLowerName()] ?? PHP_INT_MAX))
-            ->all();
+        return collect($modules)->sortBy(fn (ModuleInstance $module): int => (int) ($order[$module->getLowerName()] ?? PHP_INT_MAX))->all();
     }
 }

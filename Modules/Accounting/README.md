@@ -60,7 +60,7 @@ The updated `world_vision_enterprice` Accounting reference contains eight report
 
 ## Module dashboard ordering
 
-Tenant administrators with Settings view/update permission can use **Arrange modules** on `/module-dashboard`, or open `/settings?group=general#module-order-heading`. Smaller Ordering values appear first for everyone in that tenant. Blank or equal values retain native module ordering. Saved order changes neither module/provider priorities nor account/plan permissions. The existing General setting stores the ranks; no ordering table or migration is required.
+Tenant administrators with Settings view/update permission can use **Arrange modules** on `/module-dashboard`, or open `/settings?group=general#module-order-heading`. Each module keeps its default name; an optional Display name changes its dashboard label for everyone in that tenant, and clearing it restores the default. Smaller Ordering values appear first. Blank or equal ranks retain native module ordering. Saved names and order change neither module/provider identities nor account/plan permissions. The existing General setting stores both maps; no new table or migration is required.
 
 ## Financial links
 

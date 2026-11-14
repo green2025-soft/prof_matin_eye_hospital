@@ -3,7 +3,6 @@
 namespace Modules\TenantCore\Services;
 
 use Brick\Math\BigInteger;
-use Carbon\CarbonImmutable;
 use Modules\Core\Helpers\Money;
 
 class CashReportService
@@ -11,12 +10,14 @@ class CashReportService
     private const AMOUNTS = ['received', 'paid', 'receivable', 'payable'];
 
     // Owners emit dated financial facts; aggregation is identical for every source.
-    public function report(string $from, string $to, array $modules = []): array
+    public function report(string $from, string $to, array $modules = [], bool $includeEntries = false, bool $includeOpening = true): array
     {
         $opening = $this->emptyAmounts();
         $dates = [];
-        $categories = [];
-        $record = function (array $event) use ($from, $modules, &$opening, &$dates, &$categories): void {
+        $headTotals = [];
+        $headCatalog = [];
+        $entries = [];
+        $record = function (array $event) use ($from, $modules, $includeEntries, &$opening, &$dates, &$headTotals, &$entries): void {
             if ($modules !== [] && ! in_array($event['module'], $modules, true)) {
                 return;
             }
@@ -29,49 +30,55 @@ class CashReportService
             $date = $event['date'];
             $dates[$date] = $this->add($dates[$date] ?? $this->emptyAmounts(), $event);
             $key = $event['module'].'|'.$event['label'];
-            $categories[$key] = $this->add($categories[$key] ?? $this->emptyAmounts(), $event) + [
-                'module' => $event['module'],
-                'label' => $event['label'],
-            ];
+            $headTotals[$key] = $this->add($headTotals[$key] ?? $this->emptyAmounts(), $event);
+
+            if ($includeEntries) {
+                $entries[] = $event;
+            }
         };
 
         foreach (app()->tagged('tenantcore.cash-report-sources') as $source) {
-            if ($modules !== [] && array_intersect($modules, $source->modules()) === []) {
+            $sourceModules = $source->modules();
+            $selectedModules = $modules === [] ? $sourceModules : array_intersect($sourceModules, $modules);
+
+            if ($selectedModules === []) {
                 continue;
             }
-            $source->collect($to, $record);
+
+            $headCatalog += array_fill_keys($selectedModules, $source->heads());
+            $source->collect($to, $record, $includeOpening ? null : $from);
         }
 
-        $cash = $opening['received']->minus($opening['paid']);
-        $openingCash = $cash;
+        $openingCash = $opening['received']->minus($opening['paid']);
+        $cash = $openingCash;
         $receivable = $opening['receivable'];
         $payable = $opening['payable'];
+        $openingSnapshot = [
+            'closing' => $cash,
+            'receivable' => $receivable,
+            'payable' => $payable,
+            'balance' => $cash->plus($receivable)->minus($payable),
+        ];
         $period = $this->emptyAmounts();
         $days = [];
-        for ($date = CarbonImmutable::parse($from); $date->toDateString() <= $to; $date = $date->addDay()) {
-            $amounts = $dates[$date->toDateString()] ?? $this->emptyAmounts();
+
+        // Calculate financial snapshots only for recorded dates; Blade fills calendar gaps.
+        ksort($dates);
+        foreach ($dates as $date => $amounts) {
             $before = $cash;
             $cash = $cash->plus($amounts['received'])->minus($amounts['paid']);
             $receivable = $receivable->plus($amounts['receivable']);
             $payable = $payable->plus($amounts['payable']);
             $period = $this->add($period, $amounts);
-            $days[] = [
-                'date' => $date->toDateString(),
-                'opening' => Money::decimal((string) $before),
-                'received' => Money::decimal((string) $amounts['received']),
-                'paid' => Money::decimal((string) $amounts['paid']),
-                'closing' => Money::decimal((string) $cash),
-                'receivable' => Money::decimal((string) $receivable),
-                'payable' => Money::decimal((string) $payable),
-                'balance' => Money::decimal((string) $cash->plus($receivable)->minus($payable)),
-            ];
-        }
-
-        $rows = [];
-        foreach ($categories as $category) {
-            $rows[] = $this->display($category) + [
-                'module' => $category['module'],
-                'label' => $category['label'],
+            $days[$date] = [
+                'opening' => $before,
+                'received' => $amounts['received'],
+                'paid' => $amounts['paid'],
+                'net' => $amounts['received']->minus($amounts['paid']),
+                'closing' => $cash,
+                'receivable' => $receivable,
+                'payable' => $payable,
+                'balance' => $cash->plus($receivable)->minus($payable),
             ];
         }
 
@@ -81,12 +88,16 @@ class CashReportService
             'opening' => Money::decimal((string) $openingCash),
             'received' => Money::decimal((string) $period['received']),
             'paid' => Money::decimal((string) $period['paid']),
+            'net' => Money::decimal((string) $period['received']->minus($period['paid'])),
             'closing' => Money::decimal((string) $cash),
             'receivable' => Money::decimal((string) $receivable),
             'payable' => Money::decimal((string) $payable),
             'balance' => Money::decimal((string) $cash->plus($receivable)->minus($payable)),
-            'rows' => $rows,
+            'headCatalog' => $headCatalog,
+            'headTotals' => $headTotals,
+            'openingSnapshot' => $openingSnapshot,
             'days' => $days,
+            'entries' => $entries,
         ];
     }
 
@@ -97,20 +108,11 @@ class CashReportService
 
     private function add(array $totals, array $amounts): array
     {
-        foreach (self::AMOUNTS as $key) {
-            $totals[$key] = $totals[$key]->plus($amounts[$key]);
-        }
-
-        return $totals;
-    }
-
-    private function display(array $amounts): array
-    {
-        $result = [];
-        foreach (self::AMOUNTS as $key) {
-            $result[$key] = Money::decimal((string) $amounts[$key]);
-        }
-
-        return $result;
+        return [
+            'received' => $totals['received']->plus($amounts['received']),
+            'paid' => $totals['paid']->plus($amounts['paid']),
+            'receivable' => $totals['receivable']->plus($amounts['receivable']),
+            'payable' => $totals['payable']->plus($amounts['payable']),
+        ];
     }
 }

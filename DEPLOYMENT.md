@@ -9,9 +9,17 @@ Terminal বা cron ছাড়াই update করতে পারবেন:
 1. Local-এ `npm run build` করুন। Updated application/Modules files এবং নতুন `public/build` upload করুন। Composer dependency/autoload বদলালে updated `vendor`-ও upload করুন। Shared hosting-এর public files আলাদা web root-এ থাকলে `build` সেখানেই যাবে। Server-এর `.env`, application key, uploaded images এবং custom `public/index.php` / public path ঠিক রাখুন। Local `.env`, `storage/framework` runtime files, `bootstrap/cache/*.php` ও `public/hot` upload করবেন না।
 2. Central ও tenant database backup রাখুন। Update button **pending migration-এর code** চালায়; migration নিজে data পরিবর্তন করলে সেই পরিবর্তনও প্রযোজ্য হবে।
 3. Central **Super Admin** দিয়ে login করুন। `https://eyecloudportal.com/core/deploy` খুলুন, অথবা menu থেকে **Server Update** নির্বাচন করুন। অন্য installation-এ নিজের central domain-এর `/core/deploy` ব্যবহার করুন। Tenant-এর Super Admin এই page ব্যবহার করতে পারবেন না।
-4. নতুন file upload-এর পরে **Run Update** চাপুন এবং শেষ হওয়া পর্যন্ত page খোলা রাখুন। এটি preparation থেকে নতুন run শুরু করে। একই uploaded version-এর মাঝপথে থেমে যাওয়া কাজের জন্য **Continue Update** ব্যবহার করুন। Browser একটির পরে আরেকটি request পাঠাবে; queue worker বা cron লাগবে না।
+4. নতুন file upload-এর পরে **Run Update** চাপুন এবং শেষ হওয়া পর্যন্ত page খোলা রাখুন। এটি preparation থেকে নতুন run শুরু করে। একই uploaded version-এর মাঝপথে থেমে যাওয়া কাজের জন্য **Continue Update** ব্যবহার করুন। Browser একটির পরে আরেকটি request পাঠাবে; migration বা cache-এর কোনো command নিজে চালাতে হবে না। Queue worker বা cron লাগবে না।
 
-প্রথমে generated config/route/event/view caches পরিষ্কার হবে। পরের নতুন request-এ নতুন configuration নিয়ে `platform:migrate --force` চলবে। তারপর প্রতিটি registered tenant-এর জন্য আলাদা request-এ `tenants:migrate --tenant=ID --force` চলবে; `deleting` tenant বাদ যাবে। এই existing commands-ই ownership/lock, pending schema, permissions, settings এবং configured idempotent defaults পরিচালনা করে। শেষে generated caches আবার পরিষ্কার হবে। Sessions, application cache ও images মুছবে না।
+প্রথমে generated config/route/event/view caches পরিষ্কার হবে। পরের নতুন request-এ নতুন configuration নিয়ে `platform:migrate --force` চলবে। তারপর প্রতিটি registered tenant-এর জন্য আলাদা request-এ `tenants:migrate --tenant=ID --force` চলবে; `deleting` tenant বাদ যাবে। এই existing commands-ই ownership/lock, pending schema, permissions, settings এবং configured idempotent defaults পরিচালনা করে। Migration ধাপগুলোর পরে updater নিজেই নতুন config, event, route ও view cache তৈরি করবে। Sessions, application cache ও images মুছবে না।
+
+Cache-এর অবস্থান এক নয়:
+
+| Cache | Location |
+| --- | --- |
+| Config, routes, events এবং package/service manifests | `bootstrap/cache/` |
+| Compiled Blade views | `storage/framework/views/` |
+| Application file cache | `storage/framework/cache/data/` |
 
 একটি tenant ব্যর্থ হলে অন্য tenant-এর কাজ চলবে। Page-এ failed tenant ID দেখা যাবে; কারণ `storage/logs/laravel.log`-এ থাকবে। Central/cache step ব্যর্থ হলে পরের কাজ থামবে। কারণ ঠিক করে **Continue Update / Run Update** দিন। Page বন্ধ হয়ে গেলে বা hosting timeout হলে একই URL থেকে continue করুন। Hosting একটি migration-ই শেষ করার আগেই বারবার connection বন্ধ করলে provider-কে request limit বাড়াতে হবে; browser flow সেই limit অতিক্রম করতে পারে না।
 
@@ -19,9 +27,11 @@ Terminal বা cron ছাড়াই update করতে পারবেন:
 
 ### এই feature প্রথমবার upload করলে
 
-Server-এ আগে config বা route cache করা থাকলে পুরোনো cache নতুন URL চিনবে না। **একবার** File Manager থেকে Laravel project folder-এর `bootstrap/cache/config.php` ও `bootstrap/cache/routes-v7.php` মুছুন, যদি থাকে। `.env` বা অন্য project file মুছবেন না। এরপর login করে `/core/deploy` খুলুন। এই updater দিয়ে পরবর্তী update শেষ করলে config/route cache পরিষ্কার থাকবে।
+Server-এ আগে config বা route cache করা থাকলে পুরোনো cache নতুন URL চিনবে না। **একবার** File Manager থেকে Laravel project folder-এর `bootstrap/cache/config.php` ও `bootstrap/cache/routes-v7.php` মুছুন, যদি থাকে। `.env` বা অন্য project file মুছবেন না। এরপর login করে `/core/deploy` খুলুন। পরবর্তী update-এ পুরোনো cache পরিষ্কার ও নতুন cache তৈরি—দুটিই updater করবে।
 
-Shared hosting-এর actual public root `index.php` থেকে নির্ধারিত হতে পারে। তাই web updater `config:cache` বা `route:cache` চালিয়ে নতুন application bootstrap করে না; তাতে ভুল public path cache হওয়ার ঝুঁকি এড়ানো হয়।
+Shared hosting-এর actual public root `index.php` থেকে নির্ধারিত হতে পারে। Updater cache তৈরির সময় ওই deployed public path রাখে, যাতে application আলাদা `eye_app` folder-এ থাকলেও upload ও asset-এর সঠিক path cache হয়। Server-এর public `index.php` ও `bootstrap/app.php`-এর public-path customization রেখে file upload করুন। Cache তৈরি ব্যর্থ হলে update সম্পন্ন দেখাবে না; কারণ ঠিক করে page থেকে আবার চালাতে পারবেন।
+
+`bootstrap/app.php`-এর `usePublicPath()` বদলানোর সময় `$_SERVER['APP_DEPLOY_PUBLIC_PATH'] ??` অংশ রাখুন; শুধু তার ডান পাশের fallback-এ server-এর নিজের public path দিন। Cache তৈরির সময় updater নিজেই বর্তমান web public path সাময়িকভাবে পাঠায় এবং শেষে আগের অবস্থা ফিরিয়ে দেয়। এর জন্য `.env`-এ কোনো নতুন value বসাতে হবে না।
 
 ## Terminal থেকে migration
 
@@ -67,7 +77,7 @@ php artisan up
 
 `migrate:fresh`, reset বা `db:seed` চালাবেন না। এই update-এ business data বা catalog reset প্রয়োজন নেই। এই SMS flow-এর জন্য আলাদা scheduler/cron/worker চালু করবেন না; বিদ্যমান subscription/payment scheduler-এর দায়িত্ব আলাদা এবং অপরিবর্তিত।
 
-Shared hosting-এ নিজের terminal না থাকলে cPanel Terminal ব্যবহার করুন অথবা hosting provider-কে application folder থেকে ওপরের commands চালাতে বলুন। Commands চালানোর জন্য public migration URL/route বানাবেন না।
+ওপরের terminal commands বিকল্প manual workflow। Terminal ছাড়া একই pending migration ও production cache update করতে central Super Admin দিয়ে `/core/deploy`-এ **Run Update** দিন। আলাদা public migration URL/route প্রয়োজন নেই।
 
 ### Migration-এর পরে SMS চালু করা
 

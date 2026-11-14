@@ -4,8 +4,10 @@ namespace Modules\Core\Services;
 
 use Closure;
 use Illuminate\Cache\CacheManager;
+use Illuminate\Container\Container;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Modules\Core\Models\Tenant;
@@ -131,8 +133,8 @@ class DeploymentService
 
     private function finish(array $state): array
     {
-        $success = $this->clearCaches();
-        $state = $this->record($state, 'Finish update', $success);
+        $success = $this->clearCaches() && $this->buildCaches();
+        $state = $this->record($state, 'Build production caches', $success);
         if ($success) {
             $state['status'] = $state['failed_tenants'] === [] ? 'completed' : 'completed_with_errors';
             $state['message'] = $state['failed_tenants'] === []
@@ -170,9 +172,9 @@ class DeploymentService
             }
         }
 
-        $cleared = ! app()->configurationIsCached()
-            && ! app()->routesAreCached()
-            && ! app()->eventsAreCached()
+        $cleared = ! is_file(app()->getCachedConfigPath())
+            && ! is_file(app()->getCachedRoutesPath())
+            && ! is_file(app()->getCachedEventsPath())
             && ! is_file(app()->getCachedServicesPath())
             && ! is_file(app()->getCachedPackagesPath())
             && glob(config('view.compiled').'/*') === [];
@@ -183,8 +185,35 @@ class DeploymentService
         return $cleared;
     }
 
+    // Native config/route commands bootstrap again; keep the web root from this request.
+    private function buildCaches(): bool
+    {
+        $previousPublicPath = $_SERVER['APP_DEPLOY_PUBLIC_PATH'] ?? null;
+        $_SERVER['APP_DEPLOY_PUBLIC_PATH'] = app()->publicPath();
+
+        try {
+            foreach (['config:cache', 'event:cache', 'route:cache', 'view:cache'] as $command) {
+                if (! $this->command($command)) {
+                    $this->clearCaches();
+
+                    return false;
+                }
+            }
+
+            return true;
+        } finally {
+            if ($previousPublicPath === null) {
+                unset($_SERVER['APP_DEPLOY_PUBLIC_PATH']);
+            } else {
+                $_SERVER['APP_DEPLOY_PUBLIC_PATH'] = $previousPublicPath;
+            }
+        }
+    }
+
     private function command(string $command, array $arguments = []): bool
     {
+        $application = app();
+
         try {
             $status = $this->console->call($command, $arguments, new NullOutput);
             if ($status !== 0) {
@@ -196,6 +225,11 @@ class DeploymentService
             report($exception);
 
             return false;
+        } finally {
+            // Config caching leaves a fresh global application; return to the HTTP request.
+            Container::setInstance($application);
+            Facade::clearResolvedInstances();
+            Facade::setFacadeApplication($application);
         }
     }
 

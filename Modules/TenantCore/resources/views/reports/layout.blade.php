@@ -14,11 +14,12 @@
         @include('tenantcore::partials.report-letterhead')
         <div class="app-report-title d-flex flex-wrap align-items-center justify-content-between gap-2">
             <h3>{{ $pageTitle }}</h3>
-            <span>Amounts in BDT</span>
         </div>
         <div class="app-report-context">Period: {{ $fromDate }} to {{ $toDate }}</div>
 
-        @include('tenantcore::reports.partials.balances')
+        @section('report-summary')
+            @include('tenantcore::reports.partials.balances')
+        @show
         @yield('report-table')
 
         <footer class="app-report-footer d-flex flex-wrap justify-content-between gap-2">

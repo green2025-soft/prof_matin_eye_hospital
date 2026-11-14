@@ -30,6 +30,7 @@ class SettingController extends BaseController
 
     public function index(ListRequest $request): View|RedirectResponse
     {
+
         $group = $request->query('group', 'company');
         $group = is_string($group) ? $group : 'company';
         $group = config('settings.group_aliases', [])[$group] ?? $group;

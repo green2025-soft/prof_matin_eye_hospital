@@ -487,7 +487,7 @@ return [
         'tenantcore.settings.update' => AccessPermission::UpdateSettings->value,
     ],
     'groups' => [
-        'reports-daily' => ['label' => 'Daily Report', 'area' => 'Administration'],
+        'reports-daily' => ['label' => 'Income / Expense Report', 'area' => 'Administration'],
         'reports-cash' => ['label' => 'Cash Report', 'area' => 'Administration'],
         'reports-monthly-cash' => ['label' => 'Monthly Cash Report', 'area' => 'Administration'],
         'hospital-cash-report' => ['label' => 'Cash and Due Balance', 'area' => 'Hospital'],

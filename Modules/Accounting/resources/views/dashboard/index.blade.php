@@ -16,7 +16,7 @@
             <div class="col">
                 <a class="btn btn-success bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
                     href="{{ route('accounting.journal-entries.create') }}">
-                    <i class="fa-solid fa-file-circle-plus fs-3" aria-hidden="true"></i><span class="small fw-semibold">New voucher</span>
+                    <i class="fa-solid fa-file-circle-plus fs-3" aria-hidden="true"></i><span class="small fw-semibold">Voucher Posting</span>
                 </a>
             </div>
         @endif
@@ -24,7 +24,7 @@
             <div class="col">
                 <a class="btn btn-primary bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
                     href="{{ route('accounting.journal-entries.index') }}">
-                    <i class="fa-solid fa-receipt fs-3" aria-hidden="true"></i><span class="small fw-semibold">Vouchers</span>
+                    <i class="fa-solid fa-receipt fs-3" aria-hidden="true"></i><span class="small fw-semibold">Voucher List</span>
                 </a>
             </div>
         @endif
@@ -32,7 +32,7 @@
             <div class="col">
                 <a class="btn btn-warning bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
                     href="{{ route('accounting.chart-of-accounts.index') }}">
-                    <i class="fa-solid fa-sitemap fs-3" aria-hidden="true"></i><span class="small fw-semibold">Chart of Accounts</span>
+                    <i class="fa-solid fa-sitemap fs-3" aria-hidden="true"></i><span class="small fw-semibold">Chart of Account</span>
                 </a>
             </div>
         @endif
@@ -40,7 +40,7 @@
             <div class="col">
                 <a class="btn btn-danger bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
                     href="{{ route('accounting.reports.trial-balance') }}">
-                    <i class="fa-solid fa-chart-column fs-3" aria-hidden="true"></i><span class="small fw-semibold">Reports</span>
+                    <i class="fa-solid fa-chart-column fs-3" aria-hidden="true"></i><span class="small fw-semibold">Report</span>
                 </a>
             </div>
         @endif
@@ -48,7 +48,7 @@
             <div class="col">
                 <a class="btn btn-info bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
                     href="{{ route('accounting.account-modules.index') }}">
-                    <i class="fa-solid fa-sliders fs-3" aria-hidden="true"></i><span class="small fw-semibold">Account mappings</span>
+                    <i class="fa-solid fa-sliders fs-3" aria-hidden="true"></i><span class="small fw-semibold">Account Mapping</span>
                 </a>
             </div>
         @endif
@@ -59,13 +59,13 @@
             <div class="col-md-6 col-xl-4">
                 <article class="bg-primary-subtle border border-primary-subtle rounded-3 d-flex align-items-center gap-3 p-3 h-100">
                     <span class="bg-white text-primary rounded-circle p-3"><i class="fa-solid fa-file-invoice fs-4" aria-hidden="true"></i></span>
-                    <div><h2 class="small fw-medium mb-1">Today's vouchers</h2><p class="h3 fw-bold mb-0">{{ number_format($todayCount) }}</p></div>
+                    <div><h2 class="small fw-medium mb-1">Today's Voucher</h2><p class="h3 fw-bold mb-0">{{ number_format($todayCount) }}</p></div>
                 </article>
             </div>
             <div class="col-md-6 col-xl-4">
                 <article class="bg-success-subtle border border-success-subtle rounded-3 d-flex align-items-center gap-3 p-3 h-100">
                     <span class="bg-white text-success rounded-circle p-3"><i class="fa-solid fa-bangladeshi-taka-sign fs-4" aria-hidden="true"></i></span>
-                    <div><h2 class="small fw-medium mb-1">Today's voucher value</h2><p class="h4 fw-bold mb-0">৳ {{ moneyDecimal($todayTotal) }}</p></div>
+                    <div><h2 class="small fw-medium mb-1">Today's Voucher Amount</h2><p class="h4 fw-bold mb-0">৳ {{ moneyDecimal($todayTotal) }}</p></div>
                 </article>
             </div>
         @endif
@@ -73,7 +73,7 @@
             <div class="col-md-6 col-xl-4">
                 <article class="bg-warning-subtle border border-warning-subtle rounded-3 d-flex align-items-center gap-3 p-3 h-100">
                     <span class="bg-white text-warning-emphasis rounded-circle p-3"><i class="fa-solid fa-book fs-4" aria-hidden="true"></i></span>
-                    <div><h2 class="small fw-medium mb-1">Active ledger accounts</h2><p class="h3 fw-bold mb-0">{{ number_format($ledgerCount) }}</p></div>
+                    <div><h2 class="small fw-medium mb-1">Active Ledger Head</h2><p class="h3 fw-bold mb-0">{{ number_format($ledgerCount) }}</p></div>
                 </article>
             </div>
         @endif

@@ -54,7 +54,7 @@
                     <thead>
                         <tr>
                             <th scope="col">Date</th>
-                            <th scope="col">Income head</th>
+                            <th scope="col">Income heads</th>
                             <th class="text-end" scope="col">Amount</th>
                             <th scope="col">Payment type</th>
                             <th scope="col">Note</th>
@@ -65,7 +65,7 @@
                         @foreach ($records as $income)
                             <tr>
                                 <th class="fw-semibold text-nowrap" scope="row">{{ $income->entry_date->toDateString() }}</th>
-                                <td class="text-break">{{ $income->head?->name }}</td>
+                                <td class="text-break">{{ $income->items->pluck('head.name')->implode(', ') }}</td>
                                 <td class="text-end text-nowrap">{{ $income->amount }}</td>
                                 <td class="small text-break">{{ $income->paymentType?->name }}</td>
                                 <td class="small text-break">{{ $income->note ?? '-' }}</td>

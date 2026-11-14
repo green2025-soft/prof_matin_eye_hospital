@@ -5,5 +5,5 @@
 @endif
 <span class="app-brand-copy">
     <strong>{{ $layout['appName'] }}</strong>
-    <small>{{ $layout['tagline'] ?: 'Admin panel' }}</small>
+    {{-- <small>{{ $layout['tagline'] ?: 'Admin panel' }}</small> --}}
 </span>

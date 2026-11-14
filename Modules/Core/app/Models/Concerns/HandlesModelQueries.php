@@ -43,6 +43,10 @@ trait HandlesModelQueries
             $rules[$field] = ['nullable', 'integer', 'min:1'];
         }
 
+        foreach ($contract['filterableRelations'] as $field => $relation) {
+            $rules[$field] = ['nullable', 'integer', 'min:1'];
+        }
+
         return $rules;
     }
 
@@ -71,6 +75,13 @@ trait HandlesModelQueries
         foreach ($contract['filterableIds'] as $field => $column) {
             if (isset($filters[$field])) {
                 $query->where($model->qualifyColumn($column), $filters[$field]);
+                $applied[$field] = $filters[$field];
+            }
+        }
+
+        foreach ($contract['filterableRelations'] as $field => [$relation, $column]) {
+            if (isset($filters[$field])) {
+                $query->whereRelation($relation, $column, $filters[$field]);
                 $applied[$field] = $filters[$field];
             }
         }

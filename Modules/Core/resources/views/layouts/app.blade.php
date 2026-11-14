@@ -102,19 +102,28 @@
                     @include('core::partials.feedback')
                     @yield('content')
                 </main>
-                <footer class="app-page-footer"><span>&copy; {{ $layout['year'] }} {{ $layout['appName'] }}</span></footer>
+                <footer class="app-page-footer"><span>&copy; {{ $layout['year'] }} <a href="https://greensoftwarebd.com" target="_blank">Green Software & Technology. All Rights Reserved</a></span></footer>
             </div>
         @else
             <main class="app-auth-layout d-grid w-100" id="main-content">
                 <header class="app-auth-branding">
-                    <a class="app-auth-brand d-flex flex-column align-items-center text-center text-decoration-none" href="{{ $layout['loginUrl'] }}">
+                    <a  class="d-flex justify-content-center align-items-center gap-2 text-decoration-none" href="{{ $layout['loginUrl'] }}">
+                         @if ($layout['logoUrl'])
+                            <img class="app-auth-logo flex-shrink-0 object-fit-contain" src="{{ $layout['logoUrl'] }}" width="50" height="50" alt="">
+                        @else
+                            <span class="app-auth-monogram d-inline-flex flex-shrink-0 align-items-center justify-content-center" aria-hidden="true">{{ $layout['appInitial'] }}</span>
+                        @endif
+                       <span class="app-auth-name">{{ $layout['appName'] }}</span>
+                    </a>
+
+                    {{-- <a class="app-auth-brand d-flex flex-column align-items-center text-center text-decoration-none" href="{{ $layout['loginUrl'] }}">
                         @if ($layout['logoUrl'])
                             <img class="app-auth-logo flex-shrink-0 object-fit-contain" src="{{ $layout['logoUrl'] }}" width="56" height="56" alt="">
                         @else
                             <span class="app-auth-monogram d-inline-flex flex-shrink-0 align-items-center justify-content-center" aria-hidden="true">{{ $layout['appInitial'] }}</span>
                         @endif
                         <span class="app-auth-name">{{ $layout['appName'] }}</span>
-                    </a>
+                    </a> --}}
                 </header>
                 <section class="app-auth-form" aria-label="Sign in">
                     <div class="w-100">
@@ -122,7 +131,9 @@
                         @yield('content')
                     </div>
                 </section>
-                <footer class="app-auth-copyright text-center m-0">&copy; {{ $layout['year'] }} {{ $layout['appName'] }}</footer>
+                <footer class="app-auth-copyright text-center m-0">
+                    &copy; {{ $layout['year'] }} <a href="https://greensoftwarebd.com" target="_blank">Green Software & Technology. All Rights Reserved</a>
+                </footer>
             </main>
         @endif
     </body>

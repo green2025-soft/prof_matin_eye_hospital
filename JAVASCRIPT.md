@@ -86,6 +86,7 @@ Field change হলে প্রথমে unit/price/value পরিবর্ত
 | [pharmacy.js](resources/js/pharmacy.js) | Purchase-এর pack/unit/VAT, Sale-এর price/stock flow, returns, stock rows, product/customer/payment form |
 | [pharmacy-trade-editor.js](resources/js/pharmacy-trade-editor.js) | Common item editor, row snapshot/restore, compact list, Add/Update/Cancel ও keyboard/focus operations |
 | [accounting.js](resources/js/accounting.js) | Journal line editor, debit/credit preview; account tree search/expand এবং session state |
+| [income-expense.js](resources/js/income-expense.js) | Income/Expense voucher-এ Head/Amount row যোগ-সরানো, stable input index এবং exact BigInt total preview |
 | [prescription.js](resources/js/prescription.js) | Prescription page startup, History/Follow-up coordination, modal header search ও validation focus |
 | [prescription-picker.js](resources/js/prescription-picker.js) | একই ধরনের clinical preset search, selection, grid, inline Create |
 | [prescription-clinical-items.js](resources/js/prescription-clinical-items.js) | নির্বাচিত clinical নামের duration/unit/note row ও `section_details` synchronization |

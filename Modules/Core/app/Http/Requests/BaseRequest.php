@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Exists;
 use Illuminate\Validation\Rules\Unique;
+use Illuminate\Validation\Validator;
 use Modules\Core\Http\Controllers\BaseController;
 
 class BaseRequest extends FormRequest
@@ -98,6 +99,19 @@ class BaseRequest extends FormRequest
         $model = new $modelClass;
 
         return Rule::exists($model->getConnection()->getName().'.'.$table, $field);
+    }
+
+    // Validate all related row IDs in one query after their scalar rules pass.
+    protected function validateRelatedRows(Validator $validator, string $rowsField, string $idField, string $model): void
+    {
+        if ($validator->errors()->isNotEmpty()) {
+            return;
+        }
+
+        $ids = array_unique(array_column($this->input($rowsField), $idField));
+        if ($model::whereKey($ids)->count() !== count($ids)) {
+            $validator->errors()->add($rowsField, 'One or more selected records are unavailable. Select them again.');
+        }
     }
 
     protected function prepareForValidation(): void

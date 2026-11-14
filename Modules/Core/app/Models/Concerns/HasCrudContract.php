@@ -14,6 +14,8 @@ trait HasCrudContract
 
     protected array $filterableIds = [];
 
+    protected array $filterableRelations = [];
+
     protected array $containsSearch = [];
 
     protected string $defaultDirection = 'asc';
@@ -46,6 +48,7 @@ trait HasCrudContract
             'containsSearch' => $this->containsSearch,
             'filterable' => $this->filterable ?? [],
             'filterableIds' => $this->filterableIds,
+            'filterableRelations' => $this->filterableRelations,
             'sortable' => $this->sortable ?? ['name', 'id'],
             'defaultSort' => $this->defaultSort ?? 'name',
             'defaultDirection' => $this->defaultDirection,

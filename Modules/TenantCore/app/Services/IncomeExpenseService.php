@@ -13,9 +13,11 @@ abstract class IncomeExpenseService
 {
     protected string $model;
 
+    protected string $headModel;
+
     protected string $feature;
 
-    // Both resources save one head/amount and post the same explicit settlement/value facts.
+    // Save the voucher, its head rows and optional journal in the same tenant transaction.
     public function save(Account $actor, ?Model $record, array $values): Model
     {
         return $actor->withAccessLock(function (Account $freshActor) use ($record, $values): Model {
@@ -27,11 +29,22 @@ abstract class IncomeExpenseService
                 : new $this->model;
             Gate::forUser($freshActor)->authorize($entry->exists ? 'update' : 'create', $entry);
 
+            $items = $values['items'];
+            unset($values['items']);
+
+            $amount = 0;
+            foreach ($items as $item) {
+                $amount += Money::minor($item['amount']);
+            }
+
             $entry->fill($values);
-            $head = $entry->head()
-                ->sharedLock()
-                ->firstOrFail();
+            $entry->amount = Money::decimal($amount);
             $entry->save();
+
+            if (! $entry->wasRecentlyCreated) {
+                $entry->items()->delete();
+            }
+            $entry->items()->createMany($items);
 
             $journals = $this->journals();
             $subscription = request()->attributes->get('application_subscription');
@@ -40,7 +53,12 @@ abstract class IncomeExpenseService
 
             // Existing links stay current after plan changes; older unlinked entries never backfill.
             if ($journals !== null && (! $entry->wasRecentlyCreated || $accountingAvailable)) {
-                $amount = Money::minor($entry->amount);
+                $headModel = $this->headModel;
+                $headNames = $headModel::whereKey(array_column($items, 'head_id'))
+                    ->sharedLock()
+                    ->pluck('name')
+                    ->implode(', ');
+
                 $journals->sync(
                     source: $entry,
                     feature: $this->feature,
@@ -53,7 +71,7 @@ abstract class IncomeExpenseService
                     created: $entry->wasRecentlyCreated,
                     paymentTypeId: $entry->payment_type_id,
                     actor: $freshActor,
-                    reference: Str::substr($head->name, 0, 100),
+                    reference: Str::substr($headNames, 0, 100),
                 );
             }
 

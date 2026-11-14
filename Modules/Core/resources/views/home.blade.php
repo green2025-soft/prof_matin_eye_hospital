@@ -10,9 +10,9 @@
     @endphp
     <header class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
         <div>
-            <p class="small fw-semibold text-primary mb-1">{{ $contextName }}</p>
+            {{-- <p class="small fw-semibold text-primary mb-1">{{ $contextName }}</p> --}}
             <h1 class="h4 fw-bold mb-1">Dashboard</h1>
-            <p class="small text-body-secondary mb-0">Welcome back, {{ $actor->name }}. Your workspace at a glance.</p>
+            {{-- <p class="small text-body-secondary mb-0">Welcome back, {{ $actor->name }}. Your workspace at a glance.</p> --}}
         </div>
         <div class="d-flex flex-wrap align-items-center gap-3">
             <time class="small text-body-secondary" datetime="{{ $today->toDateString() }}">

@@ -18,7 +18,7 @@
 
     <section class="card">
         <div class="card-body">
-            <p>Run pending central and tenant migrations, sync permissions and defaults, and clear framework caches.</p>
+            <p>Clear old framework caches, run pending central and tenant migrations, sync permissions and defaults, then rebuild production caches.</p>
             <p class="text-body-secondary" id="deployment-instructions">
                 Upload the application code, built assets, and vendor files first. Back up the central and tenant databases before running.
                 After a new upload, use Run Update. Use Continue Update only to resume the same uploaded version.

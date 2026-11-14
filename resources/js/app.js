@@ -9,6 +9,7 @@ import { synchronizeDatepickerYear, destroyDatepickerYear } from './datepicker-y
 import './pharmacy';
 import './prescription';
 import './accounting';
+import './income-expense';
 
 attachSelect2(window, $);
 

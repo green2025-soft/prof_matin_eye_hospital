@@ -18,8 +18,9 @@ class MonthlyCashReportController extends BaseController
         $start = CarbonImmutable::create($year, $month, 1, 0, 0, 0, config('app.timezone'));
         $module = $request->validated('module') ?? 'all';
 
-        $data = $reports->report($start->toDateString(), $start->endOfMonth()->toDateString(), $module === 'all' ? [] : [$module]) + [
-            'pageTitle' => 'Monthly cash report',
+        $data = $reports->report($start->toDateString(), $start->endOfMonth()->toDateString(), $module === 'all' ? [] : [$module], includeOpening: false);
+        $data += [
+            'pageTitle' => 'Monthly Cash Report',
             'filters' => [
                 'year' => $year,
                 'month' => $month,

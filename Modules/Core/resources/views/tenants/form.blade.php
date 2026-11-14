@@ -1,15 +1,13 @@
 @extends('core::layouts.app')
 
-@php($formTitle = ucwords($pageTitle))
-
-@section('title', $formTitle)
+@section('title', $pageTitle)
 
 @section('content')
     @php
         $domainValues = array_slice(array_values(getValue('domains', null, $domains)), 0, 20) ?: [''];
         $domainCount = count($domainValues);
     @endphp
-    @include('core::partials.heading', ['title' => $formTitle, 'description' => $tenant->exists ? 'Update workspace details and domain access.' : 'Set up a workspace and its administrator.'])
+    @include('core::partials.heading', ['title' => $pageTitle, 'description' => $tenant->exists ? 'Update workspace details and domain access.' : 'Set up a workspace and its administrator.'])
     <form class="app-card p-3 p-md-4" action="{{ $formAction }}" method="POST" enctype="multipart/form-data" data-tenant-form
         data-tenant-create="{{ $tenant->exists ? '0' : '1' }}" data-tenant-base-domain="{{ $tenantBaseDomain }}">
         @csrf

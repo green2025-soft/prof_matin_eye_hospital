@@ -400,35 +400,40 @@
 @if ($hasSharedSetup)
     <p class="app-nav-label">Shared setup</p>
 @endif
+@if ($permissions['pharmacy-cash-report.view'] ?? false)
+    @include('core::partials.navigation-link', ['label' => 'Cash & Due Balance', 'icon' => 'money-bill-wave', 'url' => route('pharmacy.reports.cash-balance'), 'active' => request()->routeIs('pharmacy.reports.cash-balance')])
+@endif
 @if ($permissions['pharmacy-customers.view'] ?? false)
     @include('core::partials.navigation-link', [
-        'label' => 'Customers / patients', 'icon' => 'users',
+        'label' => 'Customers / patients',
+        'icon' => 'users',
         'url' => route('pharmacy.customers.index'),
         'active' => request()->routeIs('pharmacy.customers.*'),
     ])
 @endif
 @if ($permissions['pharmacy-dosages.view'] ?? false)
     @include('core::partials.navigation-link', [
-        'label' => 'Dosages', 'icon' => 'capsules',
+        'label' => 'Dosages',
+        'icon' => 'capsules',
         'url' => route('pharmacy.dosages.index'),
         'active' => request()->routeIs('pharmacy.dosages.*'),
     ])
 @endif
 @if ($permissions['pharmacy-units.view'] ?? false)
     @include('core::partials.navigation-link', [
-        'label' => 'Units', 'icon' => 'ruler',
+        'label' => 'Units',
+        'icon' => 'ruler',
         'url' => route('pharmacy.units.index'),
         'active' => request()->routeIs('pharmacy.units.*'),
     ])
 @endif
 @if ($permissions['settings.view'] ?? false)
     @include('core::partials.navigation-link', [
-        'label' => 'Pharmacy settings', 'icon' => 'gear',
+        'label' => 'Pharmacy settings',
+        'icon' => 'gear',
         'url' => route('pharmacy.settings.index'),
         'active' => request()->routeIs('pharmacy.settings.*'),
     ])
 @endif
 
-@if ($permissions['pharmacy-cash-report.view'] ?? false)
-    @include('core::partials.navigation-link', ['label' => 'Cash & Due Balance', 'icon' => 'money-bill-wave', 'url' => route('pharmacy.reports.cash-balance'), 'active' => request()->routeIs('pharmacy.reports.cash-balance')])
-@endif
+

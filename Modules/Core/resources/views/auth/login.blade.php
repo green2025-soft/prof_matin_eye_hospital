@@ -3,9 +3,9 @@
 @section('title', 'Sign in')
 
 @section('content')
-    <div class="app-auth-heading mb-4">
-        <h2>Welcome back</h2>
-        <p class="text-body-secondary mb-0">Sign in to continue.</p>
+    <div class="app-auth-heading mb-4 text-center">
+        <h2>Welcome</h2>
+        {{-- <p class="text-body-secondary mb-0">Sign in to continue.</p> --}}
     </div>
     <form action="{{ route('auth.store') }}" method="POST">
         @csrf

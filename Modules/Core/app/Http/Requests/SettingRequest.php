@@ -89,10 +89,14 @@ class SettingRequest extends BaseRequest
         ] + Arr::prependKeysWith($fields, 'data.');
 
         if ($setting->group === 'general') {
-            $rules['data.module_order'] = $setting->getConnection()->getName() === 'central'
+            $moduleRules = $setting->getConnection()->getName() === 'central'
                 ? ['missing']
                 : ['sometimes', 'array:'.implode(',', array_keys(Module::getOrdered('desc')))];
+
+            $rules['data.module_order'] = $moduleRules;
             $rules['data.module_order.*'] = ['nullable', 'integer', 'between:0,65535'];
+            $rules['data.module_names'] = $moduleRules;
+            $rules['data.module_names.*'] = ['nullable', 'string', 'max:100'];
         }
 
         foreach ($credentials as $field => $definition) {

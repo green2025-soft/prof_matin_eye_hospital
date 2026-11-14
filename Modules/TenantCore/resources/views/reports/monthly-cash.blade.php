@@ -28,10 +28,50 @@
                 @endforeach
             </select>
         </div>
-        <div class="col-12 col-md-6 col-xl-3"><button class="btn btn-primary" type="submit">Show report</button></div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <button class="btn btn-primary" type="submit">Show report</button>
+        </div>
     </form>
 @endsection
 
+@section('report-summary')
+    @include('tenantcore::reports.partials.period-totals')
+@endsection
+
 @section('report-table')
-    @include('tenantcore::reports.partials.day-table')
+    <div class="table-responsive">
+        <table class="app-report-table table table-sm align-middle mb-0">
+            <caption class="visually-hidden">Daily income, expense and net balance for the selected month</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col" class="text-end">Income</th>
+                    <th scope="col" class="text-end">Expense</th>
+                    <th scope="col" class="text-end">Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (\Carbon\CarbonPeriodImmutable::create($fromDate, $toDate) as $date)
+                    @php
+                        $day = $days[$date->toDateString()] ?? [];
+                    @endphp
+                    <tr>
+                        <th scope="row" class="text-nowrap">{{ $date->toDateString() }}</th>
+                        <td class="text-end text-nowrap">{{ moneyDecimal((string) ($day['received'] ?? 0)) }}</td>
+                        <td class="text-end text-nowrap">{{ moneyDecimal((string) ($day['paid'] ?? 0)) }}</td>
+                        <td class="text-end text-nowrap">{{ moneyDecimal((string) ($day['net'] ?? 0)) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr class="fw-semibold">
+                    <th scope="row">Total</th>
+                    <td class="text-end text-nowrap">{{ $received }}</td>
+                    <td class="text-end text-nowrap">{{ $paid }}</td>
+                    <td class="text-end text-nowrap">{{ $net }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <p class="small text-body-secondary mt-2">Each date's Balance = that day's Income − Expense.</p>
 @endsection

@@ -24,21 +24,19 @@ class IncomeHead extends BaseModel
         return ['ordering' => 'integer'];
     }
 
-    public function incomes(): HasMany
+    public function items(): HasMany
     {
-        return $this->hasMany(Income::class, 'head_id');
+        return $this->hasMany(IncomeItem::class, 'head_id');
     }
 
     public function hasReferences(): bool
     {
-        return $this->incomes_exists ?? $this->incomes()->withoutGlobalScope('branch')->exists();
+        return $this->items_exists ?? $this->items()->exists();
     }
 
     public function listQuery(): Builder
     {
         return parent::listQuery()
-            ->withExists([
-                'incomes' => fn (Builder $incomes) => $incomes->withoutGlobalScope('branch'),
-            ]);
+            ->withExists('items');
     }
 }

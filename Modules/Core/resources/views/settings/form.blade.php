@@ -75,12 +75,12 @@
                     <input class="{{ inputClass('data.phone') }}" id="company-phone" name="data[phone]" type="tel" inputmode="numeric" pattern="[0-9]{1,30}" value="{{ getValue('data.phone', null, $values['data']['phone']) }}" maxlength="30" autocomplete="tel" {{ inputAttrs('data.phone', 'company-phone') }}>
                     @error('data.phone')<div class="invalid-feedback d-block" id="company-phone-error">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6">
+                {{-- <div class="col-md-6 d-none">
                     <label class="form-label" for="company-tax-id">Tax identification</label>
                     <input class="{{ inputClass('data.tax_id') }}" id="company-tax-id" name="data[tax_id]" type="text" value="{{ getValue('data.tax_id', null, $values['data']['tax_id']) }}" maxlength="100" autocomplete="off" {{ inputAttrs('data.tax_id', 'company-tax-id') }}>
                     @error('data.tax_id')<div class="invalid-feedback d-block" id="company-tax-id-error">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-12">
+                </div> --}}
+                <div class="col-md-6">
                     <label class="form-label" for="company-address">Address</label>
                     <textarea class="{{ inputClass('data.address') }}" id="company-address" name="data[address]" rows="3" maxlength="2000" autocomplete="street-address" {{ inputAttrs('data.address', 'company-address') }}>{{ getValue('data.address', null, $values['data']['address']) }}</textarea>
                     @error('data.address')<div class="invalid-feedback d-block" id="company-address-error">{{ $message }}</div>@enderror
@@ -167,11 +167,11 @@
             </div>
             @if ($orderableModules !== [])
                 <section class="border-top mt-4 pt-3" aria-labelledby="module-order-heading">
-                    <h3 class="h6 mb-1" id="module-order-heading">Module order</h3>
-                    <p class="small text-body-secondary mb-3">Smaller numbers appear first for everyone in this workspace. Leave blank to keep the default order.</p>
+                    <h3 class="h6 mb-1" id="module-order-heading">Module names &amp; order</h3>
+                    <p class="small text-body-secondary mb-3">Leave the name blank to use its default. Smaller ordering numbers appear first for everyone in this workspace.</p>
                     <div class="table-responsive">
                         <table class="table align-middle mb-0">
-                            <thead><tr><th scope="col">Module</th><th scope="col">Ordering</th></tr></thead>
+                            <thead><tr><th scope="col">Default name</th><th scope="col">Display name</th><th scope="col">Ordering</th></tr></thead>
                             <tbody>
                                 @foreach ($orderableModules as $module)
                                     @php
@@ -179,10 +179,20 @@
                                         $moduleKey = $module->getLowerName();
                                         $orderField = 'data.module_order.'.$moduleKey;
                                         $orderId = 'module-order-'.$moduleKey;
+                                        $nameField = 'data.module_names.'.$moduleKey;
+                                        $nameId = 'module-name-'.$moduleKey;
                                     @endphp
                                     @continue($dashboard === null)
                                     <tr>
                                         <th scope="row"><i class="fa-solid fa-{{ $dashboard['icon'] }} text-primary me-2" aria-hidden="true"></i>{{ $dashboard['label'] }}</th>
+                                        <td>
+                                            <label class="visually-hidden" for="{{ $nameId }}">Display name for {{ $dashboard['label'] }}</label>
+                                            <input class="{{ inputClass($nameField, 'form-control form-control-sm') }}"
+                                                id="{{ $nameId }}" name="data[module_names][{{ $moduleKey }}]" type="text" maxlength="100"
+                                                value="{{ getValue($nameField, null, $values['data']['module_names'][$moduleKey] ?? '') }}"
+                                                placeholder="{{ $dashboard['label'] }}" {{ inputAttrs($nameField, $nameId) }}>
+                                            @error($nameField)<div class="invalid-feedback d-block" id="{{ $nameId }}-error">{{ $message }}</div>@enderror
+                                        </td>
                                         <td>
                                             <label class="visually-hidden" for="{{ $orderId }}">Ordering for {{ $dashboard['label'] }}</label>
                                             <div class="col-12 col-sm-6 col-lg-3">
@@ -199,6 +209,7 @@
                         </table>
                     </div>
                     @error('data.module_order')<div class="invalid-feedback d-block mt-2">{{ $message }}</div>@enderror
+                    @error('data.module_names')<div class="invalid-feedback d-block mt-2">{{ $message }}</div>@enderror
                 </section>
             @endif
         @elseif ($setting->group === 'email')

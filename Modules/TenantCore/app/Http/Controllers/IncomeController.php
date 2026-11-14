@@ -46,15 +46,16 @@ class IncomeController extends BaseController
 
     protected function formData(Account $actor, Model $record): array
     {
+        $oldItems = $this->oldRows('items');
+        $selectedHeads = $oldItems === [] ? collect() : IncomeHead::whereKey(array_column($oldItems, 'head_id'))
+            ->get(['id', 'name'])
+            ->keyBy('id');
         $paymentTypes = PaymentType::orderBy('ordering')
             ->orderBy('id')
             ->get(['id', 'name']);
 
         return [
-            'selectedHead' => $this->selectedOption(
-                IncomeHead::query(),
-                getValue('head_id', $record),
-            ),
+            'selectedHeads' => $selectedHeads,
             'paymentTypes' => $paymentTypes,
             'paymentTypeId' => getValue('payment_type_id', $record, $paymentTypes->firstWhere('name', 'Cash')?->id),
             'entryDate' => $record->entry_date?->toDateString() ?? now(config('app.timezone'))

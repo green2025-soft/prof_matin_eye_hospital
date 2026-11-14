@@ -24,21 +24,19 @@ class ExpenseHead extends BaseModel
         return ['ordering' => 'integer'];
     }
 
-    public function expenses(): HasMany
+    public function items(): HasMany
     {
-        return $this->hasMany(Expense::class, 'head_id');
+        return $this->hasMany(ExpenseItem::class, 'head_id');
     }
 
     public function hasReferences(): bool
     {
-        return $this->expenses_exists ?? $this->expenses()->withoutGlobalScope('branch')->exists();
+        return $this->items_exists ?? $this->items()->exists();
     }
 
     public function listQuery(): Builder
     {
         return parent::listQuery()
-            ->withExists([
-                'expenses' => fn (Builder $expenses) => $expenses->withoutGlobalScope('branch'),
-            ]);
+            ->withExists('items');
     }
 }

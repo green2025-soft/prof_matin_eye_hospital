@@ -23,7 +23,7 @@
         <summary class="app-nav-link app-nav-group-toggle"><span class="app-nav-icon"><i class="fa-solid fa-chart-column" aria-hidden="true"></i></span><span class="app-nav-copy">Reports</span><i class="fa-solid fa-chevron-down app-nav-group-caret ms-auto" aria-hidden="true"></i></summary>
         <div class="app-nav-submenu ps-3">
             @if ($permissions['reports-daily.view'] ?? false)
-                @include('core::partials.navigation-link', ['label' => 'Daily Report', 'icon' => 'calendar-day', 'url' => route('tenantcore.reports.daily'), 'active' => request()->routeIs('tenantcore.reports.daily')])
+                @include('core::partials.navigation-link', ['label' => 'Income / Expense Report', 'icon' => 'calendar-day', 'url' => route('tenantcore.reports.daily'), 'active' => request()->routeIs('tenantcore.reports.daily')])
             @endif
             @if ($permissions['reports-cash.view'] ?? false)
                 @include('core::partials.navigation-link', ['label' => 'Cash Report', 'icon' => 'money-bill-wave', 'url' => route('tenantcore.reports.cash'), 'active' => request()->routeIs('tenantcore.reports.cash')])

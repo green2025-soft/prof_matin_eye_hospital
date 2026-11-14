@@ -80,6 +80,10 @@
         </div>
     </details>
 @endif
+@if ($permissions['hospital-cash-report.view'] ?? false)
+    @include('core::partials.navigation-link', ['label' => 'Cash & Due Balance', 'icon' => 'money-bill-wave', 'url' => route('hospital.reports.cash-balance'), 'active' => request()->routeIs('hospital.reports.cash-balance')])
+@endif
+
 @if (($permissions['patients.view'] ?? false)
     || ($permissions['references.view'] ?? false)
     || ($permissions['doctors.view'] ?? false)
@@ -188,6 +192,3 @@
     ])
 @endif
 
-@if ($permissions['hospital-cash-report.view'] ?? false)
-    @include('core::partials.navigation-link', ['label' => 'Cash & Due Balance', 'icon' => 'money-bill-wave', 'url' => route('hospital.reports.cash-balance'), 'active' => request()->routeIs('hospital.reports.cash-balance')])
-@endif

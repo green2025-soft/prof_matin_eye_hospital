@@ -57,6 +57,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })->create();
 
 // Set the deployed web root here when public files live outside the project.
-$app->usePublicPath(dirname(__DIR__).'/public');
+// Browser deployment passes this path to Laravel's fresh cache-building applications.
+$app->usePublicPath($_SERVER['APP_DEPLOY_PUBLIC_PATH'] ?? dirname(__DIR__).'/public');
 
 return $app;

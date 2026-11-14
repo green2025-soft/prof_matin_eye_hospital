@@ -5,7 +5,7 @@
     "requires": ["TenantCore", "Accounting"],
     "tenant_dashboard": {
         "label": "Pharmacy",
-        "icon": "boxes-stacked",
+        "icon": "pills",
         "route": "pharmacy.dashboard",
         "permission": "pharmacy.view"
     },
