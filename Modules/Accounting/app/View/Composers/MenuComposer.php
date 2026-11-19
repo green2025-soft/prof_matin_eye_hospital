@@ -15,12 +15,15 @@ class MenuComposer
             return;
         }
 
+        $permissions = $this->request->attributes->get('navigation_permissions', []);
+
         $view->with('moduleMenu', [
             'view' => 'accounting::partials.menu',
             'homeLabel' => 'Accounting',
             'homeUrl' => route('accounting.dashboard'),
             'homeActive' => $this->request->routeIs('accounting.dashboard'),
-            'permissions' => $this->request->attributes->get('navigation_permissions', []),
+            'homeAllowed' => isset($permissions['accounting-dashboard.view']),
+            'permissions' => $permissions,
         ]);
     }
 }

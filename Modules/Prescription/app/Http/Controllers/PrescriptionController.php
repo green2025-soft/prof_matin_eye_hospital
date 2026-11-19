@@ -34,9 +34,18 @@ class PrescriptionController extends BaseController
 
     public function index(ListRequest $request): View
     {
+        $actor = $request->user('web');
         $branchId = (int) $request->attributes->get('branch_id', 0);
+        $prescriptions = new Prescription;
+        $records = $prescriptions->listQuery();
+
+        if ($actor instanceof Doctor) {
+            $records->where('doctor_id', $actor->getKey());
+        }
 
         $data = [
+            'records' => $prescriptions->paginateRecords($request->validated(), $records),
+            'filterOptions' => $prescriptions->queryContract()['filterable'],
             'selectedPatient' => $this->selectedOption(
                 Patient::where('branch_id', $branchId),
                 $request->validated('filter_patient_id'),
@@ -44,8 +53,7 @@ class PrescriptionController extends BaseController
             ),
         ];
 
-        return $this->listData($request)
-            ->with($data);
+        return $this->listData($request, $data);
     }
 
     public function store(PrescriptionRequest $request): RedirectResponse
@@ -68,8 +76,7 @@ class PrescriptionController extends BaseController
     public function show(Request $request, Prescription $prescription): View
     {
         $actor = $request->user('web');
-        Gate::forUser($actor)
-            ->authorize('view', $prescription);
+        Gate::forUser($actor)->authorize('view', $prescription);
 
         // Read stored clinical JSON through object properties in the print templates.
         $prescription->mergeCasts([
@@ -183,7 +190,7 @@ class PrescriptionController extends BaseController
             ->findMany($medicineIds, ['id', 'name', 'category_id', 'dosage_id'])
             ->keyBy('id');
 
-        $canCreatePatient = isset($permissions['hospital.view'], $permissions['patients.create']) && Gate::forUser($actor)->allows('create', Patient::class);
+        $canCreatePatient = isset($permissions['prescriptions.create']);
         $canCreateOptions = isset($permissions['prescription-options.create']) && Gate::forUser($actor)->allows('create', PrescriptionOption::class);
         $entryDate = $record->prescription_date?->toDateString() ?? now()->toDateString();
 
@@ -193,6 +200,8 @@ class PrescriptionController extends BaseController
             'selectedDoctor' => $selectedDoctor,
             'doctorLocked' => $doctorLocked,
             'canCreatePatient' => $canCreatePatient,
+            'patientModalUrl' => route('prescription.patients.modal'),
+            'patientStoreUrl' => route('prescription.patients.store'),
             'canCreateOptions' => $canCreateOptions,
             'entryDate' => $entryDate,
             'settings' => Setting::values('prescription'),

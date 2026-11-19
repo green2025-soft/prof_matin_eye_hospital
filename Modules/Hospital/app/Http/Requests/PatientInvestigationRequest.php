@@ -35,6 +35,7 @@ class PatientInvestigationRequest extends BaseRequest
             'paid_amount' => $moneyRules,
             'due_date' => ['required', 'date_format:Y-m-d'],
             'delivery_date' => ['required', 'date_format:Y-m-d'],
+            'remarks'=> ['nullable']
         ];
     }
 }

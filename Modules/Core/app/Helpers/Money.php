@@ -38,16 +38,19 @@ final class Money
         return $sign.substr($digits, 0, -2).'.'.substr($digits, -2);
     }
 
-    public static function words(int $minor): string
+    public static function words(int|float  $amount ): string
     {
-        if ($minor < 0) {
+        if ($amount  < 0) {
             throw new InvalidArgumentException('Use a nonnegative amount in minor currency units.');
         }
 
-        $words = ucfirst(Number::spell(intdiv($minor, 100), locale: 'en')).' taka';
-        if ($minor % 100 > 0) {
-            $words .= ' and '.Number::spell($minor % 100, locale: 'en').' paisa';
-        }
+        $taka = (int) floor($amount);
+        $paisa = (int) round(($amount - $taka) * 100);
+        $words = ucfirst(Number::spell($taka, locale: 'en')) . ' taka';
+
+        if ($paisa > 0) {
+            $words .= ' and ' . Number::spell($paisa, locale: 'en') . ' paisa';
+    }
 
         return $words.' only.';
     }

@@ -7,7 +7,7 @@
         "label": "Accounting",
         "icon": "calculator",
         "route": "accounting.dashboard",
-        "permission": "accounting.view"
+        "permission": "accounting-dashboard.view"
     },
     "keywords": [],
     "priority": 0,

@@ -196,6 +196,10 @@
                     </div>
                     @error('due_date')<div class="invalid-feedback d-block" id="investigation_due_date-error">{{ $message }}</div>@enderror
                 </div>
+                <div class="col-sm-6 col-xl-3">
+                    <label class="form-label" >Remarks</label>
+                    <input class="form-control" type="text" value="{{ $patient_investigation->remarks ?? '' }}"name="remarks" >
+                </div>
             </div>
         </section>
 

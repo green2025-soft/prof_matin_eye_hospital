@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Hospital\Http\Controllers\PatientController;
 use Modules\Prescription\Http\Controllers\DashboardController;
 use Modules\Prescription\Http\Controllers\GlassPrescriptionController;
 use Modules\Prescription\Http\Controllers\PrescriptionController;
@@ -20,6 +21,10 @@ Route::middleware(['web', 'auth', 'tenant', 'subscribed', 'prescription.permissi
         Route::put('settings/{setting}', [SettingController::class, 'store'])->name('settings.update');
 
         Route::middleware('branch:required')->group(function (): void {
+            Route::get('patients/modal', [PatientController::class, 'modal'])->name('patients.modal');
+            Route::post('patients', [PatientController::class, 'store'])->name('patients.store');
+            Route::get('glass-patients/modal', [PatientController::class, 'modal'])->name('glass-patients.modal');
+            Route::post('glass-patients', [PatientController::class, 'store'])->name('glass-patients.store');
             Route::get('/', [DashboardController::class, 'index'])
                 ->name('dashboard');
 

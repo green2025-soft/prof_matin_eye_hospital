@@ -119,6 +119,7 @@ class PatientInvestigationService extends ClinicalEntryService
                 'amount' => $investigation->pivot->rate,
             ])
             ->all();
+            
 
         return $data + [
             'pageTitle' => 'Investigation invoice',

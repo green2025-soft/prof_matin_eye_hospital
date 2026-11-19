@@ -8,6 +8,23 @@ use Modules\Core\Http\Requests\BaseRequest;
 
 class PatientRequest extends BaseRequest
 {
+    public function authorize(): bool
+    {
+        if ($this->routeIs('prescription.patients.store')) {
+            $permissions = $this->attributes->get('navigation_permissions', []);
+
+            return isset($permissions['prescriptions.create']);
+        }
+
+        if ($this->routeIs('prescription.glass-patients.store')) {
+            $permissions = $this->attributes->get('navigation_permissions', []);
+
+            return isset($permissions['glass-prescriptions.create']);
+        }
+
+        return parent::authorize();
+    }
+
     protected function prepareForValidation(): void
     {
         parent::prepareForValidation();

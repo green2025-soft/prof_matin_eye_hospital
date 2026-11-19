@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Modules\Core\Http\Controllers\BaseController;
 use Modules\Core\Http\Requests\ListRequest;
@@ -72,11 +71,10 @@ class PatientController extends BaseController
             ->with('status', 'Patient'.($this->isUpdate($request) ? ' updated.' : ' created.'));
     }
 
-    public function modal(Request $request): View
+    public function modal(Request $request, PatientService $patients): View
     {
         $actor = $request->user('web');
-        Gate::forUser($actor)
-            ->authorize('create', Patient::class);
+        abort_unless($patients->canCreate($actor), 403);
         $patient = new Patient;
 
         $data = [

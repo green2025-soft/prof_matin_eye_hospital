@@ -15,12 +15,15 @@ class MenuComposer
             return;
         }
 
+        $permissions = $this->request->attributes->get('navigation_permissions', []);
+
         $view->with('moduleMenu', [
             'view' => 'pharmacy::partials.menu',
             'homeLabel' => 'Pharmacy',
             'homeUrl' => route('pharmacy.dashboard'),
             'homeActive' => $this->request->routeIs('pharmacy.dashboard'),
-            'permissions' => $this->request->attributes->get('navigation_permissions', []),
+            'homeAllowed' => isset($permissions['pharmacy-dashboard.view']),
+            'permissions' => $permissions,
             'productType' => $this->productType(),
         ]);
     }

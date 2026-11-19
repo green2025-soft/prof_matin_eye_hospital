@@ -46,11 +46,12 @@ class LayoutComposer
 
             $navigation = [
                 'dashboard' => [
+                    'allowed' => $central || isset($permissions['tenant-dashboard.view']),
                     'active' => $this->request->routeIs($central ? 'home' : 'tenantcore.dashboard'),
                     'url' => route($central ? 'home' : 'tenantcore.dashboard'),
                 ],
                 'modules' => [
-                    'allowed' => ! $central,
+                    'allowed' => ! $central && isset($permissions['module-dashboard.view']),
                     'url' => route('tenantcore.module-dashboard.index'),
                     'active' => $this->request->routeIs('tenantcore.module-dashboard.*'),
                 ],

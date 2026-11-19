@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 use Modules\Core\Contracts\TenantAccounts;
 use Modules\Core\Http\Requests\LoginRequest;
@@ -21,15 +22,14 @@ class SessionController extends Controller
         $central = $request->attributes->get('application_scope') === 'central';
         $accountTypes = config('auth.login_types');
         $accountType = $request->query('account_type', 'user');
+
         if ($central || ! is_string($accountType) || ! array_key_exists($accountType, $accountTypes)) {
             $accountType = 'user';
         }
 
         $data = [
             'loginTitle' => $central ? 'Sign in to Core administration' : 'Sign in to your workspace',
-            'loginDescription' => $central
-                ? 'Manage tenants, plans, subscriptions, invoices and payments.'
-                : 'Manage your team, permissions, billing and workspace settings.',
+            'loginDescription' => $central ? 'Manage tenants, plans, subscriptions, invoices and payments.' : 'Manage your team, permissions, billing and workspace settings.',
             'tenantLogin' => ! $central,
             'accountType' => $accountType,
             'accountTypes' => $accountTypes,
@@ -46,15 +46,28 @@ class SessionController extends Controller
         $redirectUrl = $user->getAttributes()['redirect_url'] ?? null;
 
         if ($request->attributes->get('application_provider') === 'users' && filled($redirectUrl)) {
-            $request->session()
-                ->forget('url.intended');
+            $request->session()->forget('url.intended');
 
-            return redirect()
-                ->to($redirectUrl);
+            return redirect()->to($redirectUrl);
         }
 
-        return redirect()
-            ->intended(route('home'));
+        if ($user->loginType() === 'doctor'
+            && $user->can('prescription-dashboard.view')
+            && Route::has('prescription.dashboard')) {
+            $request->session()->forget('url.intended');
+
+            return redirect()->route('prescription.dashboard');
+        }
+
+        if ($user->loginType() === 'doctor'
+            && $user->can('prescriptions.view')
+            && Route::has('prescription.prescriptions.index')) {
+            $request->session()->forget('url.intended');
+
+            return redirect()->route('prescription.prescriptions.index');
+        }
+
+        return redirect()->intended(route('home'));
     }
 
     public function enterTenant(Request $request, #[\SensitiveParameter] string $token, TenantAccounts $accounts): RedirectResponse
@@ -71,8 +84,7 @@ class SessionController extends Controller
                     is_array($handoff)
                         && ($handoff['tenant_id'] ?? null) === $tenant->getKey()
                         && ($handoff['domain'] ?? null) === $request->getHost()
-                        && ($handoff['expires_at'] ?? 0) > now()
-                            ->getTimestamp(),
+                        && ($handoff['expires_at'] ?? 0) > now()->getTimestamp(),
                     403,
                 );
 
@@ -80,9 +92,7 @@ class SessionController extends Controller
                     Tenant::forgetCurrent();
                     $admin = Admin::findOrFail($handoff['admin_id']);
                     $admin->withAccessLock(function (Account $actor) use ($handoff, $request): void {
-                        $current = Tenant::whereKey($handoff['tenant_id'])
-                            ->lockForUpdate()
-                            ->firstOrFail();
+                        $current = Tenant::whereKey($handoff['tenant_id'])->lockForUpdate()->firstOrFail();
                         // Signed handoff restores a central actor independently of this tenant request.
                         abort_unless(
                             $current->status === Tenant::STATUS_ACTIVE
@@ -90,9 +100,7 @@ class SessionController extends Controller
                             403,
                         );
                         abort_unless(
-                            $current->domains()
-                                ->where('domain', $request->getHost())
-                                ->exists(),
+                            $current->domains()->where('domain', $request->getHost())->exists(),
                             403,
                         );
                     });
@@ -104,18 +112,13 @@ class SessionController extends Controller
         $owner = $accounts->ownerForLogin();
         $guard = Auth::guard('web');
         $guard->logoutCurrentDevice();
-        $request->session()
-            ->invalidate();
-        $request->session()
-            ->regenerateToken();
-        $request->session()
-            ->put('application_scope', $request->attributes->get('application_scope'));
-        $request->session()
-            ->put('ensure_valid_tenant_session_tenant_id', $tenant->getKey());
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        $request->session()->put('application_scope', $request->attributes->get('application_scope'));
+        $request->session()->put('ensure_valid_tenant_session_tenant_id', $tenant->getKey());
         $guard->login($owner, false);
 
-        return redirect()
-            ->route('home')
+        return redirect()->route('home')
             ->with('status', 'Tenant workspace opened.')
             ->withHeaders([
                 'Cache-Control' => 'no-store',
@@ -125,15 +128,11 @@ class SessionController extends Controller
 
     public function destroy(Request $request): RedirectResponse
     {
-        Auth::guard('web')
-            ->logout();
+        Auth::guard('web')->logout();
 
-        $request->session()
-            ->invalidate();
-        $request->session()
-            ->regenerateToken();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-        return redirect()
-            ->route('auth.login');
+        return redirect()->route('auth.login');
     }
 }

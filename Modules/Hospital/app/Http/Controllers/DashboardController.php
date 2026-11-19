@@ -39,10 +39,8 @@ class DashboardController extends BaseController
 
         if ($canViewPatients) {
             $patientCount = Patient::where('created_at', '>=', $today)
-                ->where('created_at', '<', $today->copy()->addDay())
-                ->count();
-            $recentPatients = Patient::orderByDesc('id')
-                ->limit(5)
+                ->where('created_at', '<', $today->copy()->addDay())->count();
+            $recentPatients = Patient::orderByDesc('id')->limit(5)
                 ->get(['id', 'patient_id', 'name', 'mobile_no', 'created_at']);
         }
 

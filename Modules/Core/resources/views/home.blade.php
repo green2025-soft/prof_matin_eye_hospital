@@ -18,11 +18,11 @@
             <time class="small text-body-secondary" datetime="{{ $today->toDateString() }}">
                 <i class="fa-solid fa-calendar-days me-2" aria-hidden="true"></i>{{ $today->format('l, d F Y') }}
             </time>
-            @unless ($central)
+            @if (! $central && isset($permissions['module-dashboard.view']))
                 <a class="btn btn-primary btn-sm" href="{{ route('tenantcore.module-dashboard.index') }}">
                     <i class="fa-solid fa-layer-group me-2" aria-hidden="true"></i>Modules
                 </a>
-            @endunless
+            @endif
         </div>
     </header>
 

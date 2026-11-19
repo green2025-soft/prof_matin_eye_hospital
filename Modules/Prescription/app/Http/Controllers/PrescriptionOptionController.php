@@ -34,8 +34,7 @@ class PrescriptionOptionController extends BaseController
             'sections' => PrescriptionOption::sections(),
         ];
 
-        return $this->listData($request)
-            ->with($data);
+        return $this->listData($request)->with($data);
     }
 
     public function store(PrescriptionOptionRequest $request): RedirectResponse|JsonResponse

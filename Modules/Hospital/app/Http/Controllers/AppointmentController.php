@@ -30,6 +30,7 @@ class AppointmentController extends BaseController
     public function index(ListRequest $request): View
     {
         $branchId = max(0, (int) $request->attributes->get('branch_id', 0));
+         $actor = $request->user('web');
 
         $data = [
             'filterDoctor' => $this->selectedOption(
@@ -42,6 +43,8 @@ class AppointmentController extends BaseController
                 $request->validated('filter_patient_id'),
                 ['id', 'patient_id', 'name', 'mobile_no']
             ),
+
+            'canCreatePatient' => Gate::forUser($actor)->allows('create', Patient::class),
         ];
 
         return $this->listData($request)->with($data);

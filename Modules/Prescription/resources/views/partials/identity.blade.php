@@ -3,15 +3,26 @@
     <div class="row g-3">
         <div class="col-md-5">
             <label class="form-label" for="prescription_patient_id">Patient Name <span class="text-danger" aria-hidden="true">*</span></label>
-            <select class="{{ inputClass('patient_id', 'form-select') }}" id="prescription_patient_id" name="patient_id"
-                data-patient-select data-ajax-select data-url="{{ route('hospital.patients.options') }}"
-                data-value-field="id" data-label-field="text" data-placeholder="Search patient ID, name or mobile"
-                required {{ inputAttrs('patient_id', 'prescription_patient_id') }}>
-                <option value=""></option>
-                @if ($selectedPatient !== null)
-                    <option value="{{ $selectedPatient->id }}" selected>{{ $selectedPatient->patient_id }} / {{ $selectedPatient->name }} / {{ $selectedPatient->mobile_no }}</option>
+            <div class="d-flex gap-2">
+                <div class="flex-grow-1">
+                    <select class="{{ inputClass('patient_id', 'form-select') }}" id="prescription_patient_id" name="patient_id"
+                        data-patient-select data-ajax-select data-url="{{ route('hospital.patients.options') }}"
+                        data-value-field="id" data-label-field="text" data-placeholder="Search patient ID, name or mobile"
+                        required {{ inputAttrs('patient_id', 'prescription_patient_id') }}>
+                        <option value=""></option>
+                        @if ($selectedPatient !== null)
+                            <option value="{{ $selectedPatient->id }}" selected>{{ $selectedPatient->patient_id }} / {{ $selectedPatient->name }} / {{ $selectedPatient->mobile_no }}</option>
+                        @endif
+                    </select>
+                </div>
+                @if ($canCreatePatient)
+                    <button class="btn btn-outline-primary flex-shrink-0" type="button"
+                        data-bs-toggle="modal" data-bs-target="#patient-create-modal"
+                        data-patient-target="prescription_patient_id" aria-label="New patient" title="New patient">
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                    </button>
                 @endif
-            </select>
+            </div>
             @error('patient_id')<div class="invalid-feedback d-block" id="prescription_patient_id-error">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-4">

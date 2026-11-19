@@ -38,15 +38,6 @@
                             <p>{{ request()->attributes->get('branch_name') }}</p>
                         @endif
                     </div>
-                    <div class="">
-                        @if ($canCreatePatient)
-                        <button class="btn btn-outline-primary " type="button"
-                            data-bs-toggle="modal" data-bs-target="#patient-create-modal"
-                            data-patient-target="prescription_patient_id">
-                            <i class="fa-solid fa-user-plus me-2" aria-hidden="true"></i>New patient
-                        </button>
-                    @endif
-                    </div>
                     <div class="app-prescription-editor-title d-flex flex-shrink-0 align-items-center">
                         <i class="fa-solid fa-prescription d-none d-sm-inline" aria-hidden="true"></i>
                     </div>

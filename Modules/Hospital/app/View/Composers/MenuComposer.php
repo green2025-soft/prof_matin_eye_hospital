@@ -15,12 +15,15 @@ class MenuComposer
             return;
         }
 
+        $permissions = $this->request->attributes->get('navigation_permissions', []);
+
         $view->with('moduleMenu', [
             'view' => 'hospital::partials.menu',
             'homeLabel' => 'Hospital',
             'homeUrl' => route('hospital.dashboard'),
             'homeActive' => $this->request->routeIs('hospital.dashboard'),
-            'permissions' => $this->request->attributes->get('navigation_permissions', []),
+            'homeAllowed' => isset($permissions['hospital-dashboard.view']),
+            'permissions' => $permissions,
         ]);
     }
 }

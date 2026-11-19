@@ -174,4 +174,8 @@
             <a class="btn btn-warning" href="{{ route($routePrefix.'.index') }}">Cancel</a>
         </div>
     </form>
+
+    @if ($canCreatePatient)
+        @include('hospital::patients.modal')
+    @endif
 @endsection

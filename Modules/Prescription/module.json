@@ -7,7 +7,7 @@
         "label": "Prescription",
         "icon": "prescription",
         "route": "prescription.dashboard",
-        "permission": "prescription.view"
+        "permission": "prescription-dashboard.view"
     },
     "keywords": [],
     "priority": 0,

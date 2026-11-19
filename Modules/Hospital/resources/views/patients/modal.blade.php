@@ -1,7 +1,7 @@
-@can('create', resourceModel('hospital.patients.create'))
-    <div class="modal fade" id="patient-create-modal" tabindex="-1" aria-labelledby="patient-create-modal-heading" aria-hidden="true" data-fields-url="{{ route('hospital.patients.modal') }}">
+@if ($canCreatePatient)
+    <div class="modal fade" id="patient-create-modal" tabindex="-1" aria-labelledby="patient-create-modal-heading" aria-hidden="true" data-fields-url="{{ $patientModalUrl ?? route('hospital.patients.modal') }}">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <form class="modal-content" action="{{ route('hospital.patients.store') }}" method="POST" data-patient-create-form>
+            <form class="modal-content" action="{{ $patientStoreUrl ?? route('hospital.patients.store') }}" method="POST" data-patient-create-form>
                 @csrf
                 <div class="modal-header">
                     <h2 class="modal-title h5" id="patient-create-modal-heading">New patient</h2>
@@ -18,4 +18,4 @@
             </form>
         </div>
     </div>
-@endcan
+@endif

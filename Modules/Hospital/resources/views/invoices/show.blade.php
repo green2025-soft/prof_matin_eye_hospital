@@ -13,51 +13,111 @@
 
     <article class="app-card app-invoice-document app-clinical-invoice" aria-labelledby="clinical-invoice-title">
         <header class="app-clinical-invoice-header">
-            <div class="app-clinical-invoice-brand d-flex align-items-center justify-content-center text-center">
+            <div class="app-clinical-invoice-brand">
                 @if ($logoUrl)
-                    <img class="app-clinical-invoice-logo" src="{{ $logoUrl }}" alt="" width="76" height="76">
+                    <img class="app-clinical-invoice-logo" src="{{ $logoUrl }}" alt="" width="110" height="110">
                 @endif
-                <div>
+                <div class="app-clinical-invoice-company-details">
                     <h2 class="app-clinical-invoice-company">{{ $company['name'] }}</h2>
                     @if ($company['address'] ?? '')
                         <p class="app-clinical-invoice-address">{{ $company['address'] }}</p>
                     @endif
-                    <div class="app-clinical-invoice-contact d-flex flex-wrap justify-content-center">
-                        @if ($company['phone'] ?? '')<span>Phone: {{ $company['phone'] }}</span>@endif
-                        @if ($company['email'] ?? '')<span>{{ $company['email'] }}</span>@endif
-                        @if ($company['tax_id'] ?? '')<span>Tax ID: {{ $company['tax_id'] }}</span>@endif
+                    @if ($company['phone'] ?? '')
+                    <div class="app-clinical-invoice-contact-line">
+                        <strong>HOTLINE : </strong>{{ $company['phone'] }}
                     </div>
-                </div>
-            </div>
-            <div class="app-clinical-invoice-title-row d-flex align-items-center justify-content-between">
-                <div>
-                    <h1 id="clinical-invoice-title">{{ $documentTitle }}</h1>
-                    <p class="mb-0 fw-semibold">{{ $invoiceNumber }}</p>
-                    @if ($originalInvoiceNumber !== null)
-                        <p class="small mb-0">Original invoice: {{ $originalInvoiceNumber }}</p>
+                    @endif
+                    @if ($company['email'] ?? '')
+                    <div class="app-clinical-invoice-contact-line">
+                        <strong>E-MAIL : </strong>{{ $company['email'] }}
+                    </div>
+                    @endif
+                    @if ($company['tax_id'] ?? '')
+                    <div class="app-clinical-invoice-contact-line">
+                        <strong>Tax ID : </strong>{{ $company['tax_id'] }}
+                    </div>
                     @endif
                 </div>
-                <span class="app-clinical-invoice-status">{{ $status }}</span>
+                <div class="app-clinical-invoice-document-mark" aria-label="Invoice number {{ $invoiceNumber }}">
+                    <canvas class="app-clinical-invoice-qr"
+                        data-qr-value="{{ $company['name'] }}&#10;{{ $invoiceNumber }}&#10;{{ $patient?->name ?? '' }}&#10;{{ $patient?->patient_id ?? '' }}&#10;{{ $patient?->mobile_no ?? '' }}"
+                        role="img"
+                        aria-label="Invoice QR code for {{ $invoiceNumber }}">
+                    </canvas>
+                </div>
+            </div>
+            <div class="app-clinical-invoice-title-row text-center">
+                <u>{{ $documentTitle }}</u>
             </div>
         </header>
+        <div class="invoice-patient-box">
+            <div class="info-row">
+                <table class="table table-borderless">
+                    <tbody>
+                        <tr>
+                            <td style="width: 105px;">
+                                <div class="info-label">Invoice No.</div>
+                            </td>
+                            <td>
+                                <div class="info-value">:<b> {{ $invoiceNumber }}</b></div>
+                            </td>
+                            <td style="width: 75px;">
+                                <div class="info-label">Date</div>
+                            </td>
+                            <td>
+                                <div class="info-value">: {{ $entryDate }}</div>
+                            </td>
+                            <td style="width: 70px;">
+                                <div class="info-label">Time</div>
+                            </td>
+                            <td>
+                                <div class="info-value">: {{ $entryTime }}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="info-label">P.Name</div>
+                            </td>
+                            <td colspan="3">
+                                <div class="info-value">: <b>{{ $patient?->name ?? '-' }}</b></div>
+                            </td>
 
-        <dl class="row row-cols-2 row-cols-sm-3 g-3 mb-3">
-            <div class="col"><dt class="small text-body-secondary text-uppercase fw-semibold mb-1">Patient ID</dt><dd class="fw-semibold text-break mb-0">{{ $patient?->patient_id ?? '-' }}</dd></div>
-            <div class="col"><dt class="small text-body-secondary text-uppercase fw-semibold mb-1">Patient name</dt><dd class="fw-semibold text-break mb-0">{{ $patient?->name ?? '-' }}</dd></div>
-            <div class="col"><dt class="small text-body-secondary text-uppercase fw-semibold mb-1">Mobile no.</dt><dd class="fw-semibold text-break mb-0">{{ $patient?->mobile_no ?? '-' }}</dd></div>
-            <div class="col"><dt class="small text-body-secondary text-uppercase fw-semibold mb-1">Age / Gender</dt><dd class="fw-semibold text-break mb-0">{{ $patient?->age ?? '-' }} / {{ $patientGenderLabel }}</dd></div>
-            <div class="col"><dt class="small text-body-secondary text-uppercase fw-semibold mb-1">Doctor</dt><dd class="fw-semibold text-break mb-0">{{ $doctor?->name ?? '-' }}</dd></div>
-            <div class="col"><dt class="small text-body-secondary text-uppercase fw-semibold mb-1">{{ $entryDateLabel }}</dt><dd class="fw-semibold text-break mb-0">{{ $entryDate }} @if ($entryTime !== '')<span class="text-nowrap">{{ $entryTime }}</span>@endif</dd></div>
-        </dl>
+                            <td>
+                                <div class="info-label">Age</div>
+                            </td>
+                            <td>
+                                <div class="info-value">: {{ $patient?->age ?? '-' }}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><div class="info-label">Mobile</div></td>
+                            <td><div class="info-value">: {{ $patient?->mobile_no ?? '-' }}</div></td>
+                            <td><div class="info-label">P.ID</div></td>
+                            <td><div class="info-value">: {{ $patient?->patient_id ?? '-' }}</div></td>
+                            <td><div class="info-label">Gender</div></td>
+                            <td><div class="info-value">: {{ $patientGenderLabel }}</div></td>
+                        </tr>
 
-        @yield('invoice-content')
-
-        <footer class="app-clinical-invoice-footer d-flex align-items-end justify-content-between">
-            <div class="small text-body-secondary">
-                <p class="mb-1">Printed by: {{ $printedBy }}</p>
-                <p class="mb-0">Printed at: {{ $printedAt }}</p>
+                        <tr>
+                            <td>
+                                <div class="info-label">Doctor</div>
+                            </td>
+                            <td colspan="5">
+                                <div class="info-value">:  {{ $doctor?->name ?? '-' }}</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="app-clinical-invoice-signature"><span>Signature</span></div>
+        </div>
+
+
+
+@yield('invoice-content')
+        <footer class="app-clinical-invoice-footer">
+            <div class="app-clinical-invoice-signature"><span>Authorized signature</span></div>
+            <div class="app-clinical-invoice-printed">Printed on: {{ $printedAt }}</div>
+            <div class="app-clinical-invoice-signature"><span>Prepared by: {{ $printedBy }}</span></div>
         </footer>
     </article>
 @endsection

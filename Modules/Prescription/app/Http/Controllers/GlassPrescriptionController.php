@@ -28,7 +28,20 @@ class GlassPrescriptionController extends BaseController
 
     public function index(ListRequest $request): View
     {
-        return $this->listData($request);
+        $actor = $request->user('web');
+        $glassPrescriptions = new GlassPrescription;
+        $records = $glassPrescriptions->listQuery();
+
+        if ($actor instanceof Doctor) {
+            $records->where('doctor_id', $actor->getKey());
+        }
+
+        $data = [
+            'records' => $glassPrescriptions->paginateRecords($request->validated(), $records),
+            'filterOptions' => $glassPrescriptions->queryContract()['filterable'],
+        ];
+
+        return $this->listData($request, $data);
     }
 
     public function store(GlassPrescriptionRequest $request): RedirectResponse
@@ -49,37 +62,37 @@ class GlassPrescriptionController extends BaseController
                 .'education_degree,bn_education_degree,current_employment,bn_current_employment,'
                 .'bmdc_reg,bn_bmdc_reg,pad_footer_text',
         ]);
-        $settings    = Setting::values('prescription', $glassPrescription->getConnectionName());
+        $settings = Setting::values('prescription', $glassPrescription->getConnectionName());
         $routePrefix = $this->routePrefix();
 
         $customPaperSize = [
-            'width'  => $settings['glass_custom_width'],
+            'width' => $settings['glass_custom_width'],
             'height' => $settings['glass_custom_height'],
         ];
         $printMargins = [
-            'top'    => $settings['glass_margin_top'],
-            'right'  => $settings['glass_margin_right'],
+            'top' => $settings['glass_margin_top'],
+            'right' => $settings['glass_margin_right'],
             'bottom' => $settings['glass_margin_bottom'],
-            'left'   => $settings['glass_margin_left'],
+            'left' => $settings['glass_margin_left'],
         ];
 
         $data = [
-            'record'          => $glassPrescription,
-            'patient'         => $glassPrescription->patient,
-            'patientAge'      => $glassPrescription->patient?->age ?? '--',
-            'doctor'          => $glassPrescription->doctor,
-            'entryDate'       => $glassPrescription->prescription_date->format('d-m-Y'),
+            'record' => $glassPrescription,
+            'patient' => $glassPrescription->patient,
+            'patientAge' => $glassPrescription->patient?->age ?? '--',
+            'doctor' => $glassPrescription->doctor,
+            'entryDate' => $glassPrescription->prescription_date->format('d-m-Y'),
             'referenceNumber' => $glassPrescription->rx_number ?? '#'.$glassPrescription->id,
-            'documentTitle'   => 'Glass Prescription',
-            'backUrl'         => route($routePrefix.'.index'),
-            'canEdit'         => Gate::forUser($actor)->allows('update', $glassPrescription),
-            'editUrl'         => route($routePrefix.'.edit', $glassPrescription),
-            'paperSize'       => $settings['glass_paper'],
+            'documentTitle' => 'Glass Prescription',
+            'backUrl' => route($routePrefix.'.index'),
+            'canEdit' => Gate::forUser($actor)->allows('update', $glassPrescription),
+            'editUrl' => route($routePrefix.'.edit', $glassPrescription),
+            'paperSize' => $settings['glass_paper'],
             'customPaperSize' => $customPaperSize,
-            'showHeader'      => $settings['glass_header_enabled'],
-            'printMargins'    => $printMargins,
-            'settings'        => $settings,
-            'lensOptions'     => GlassPrescription::lensOptions(),
+            'showHeader' => $settings['glass_header_enabled'],
+            'printMargins' => $printMargins,
+            'settings' => $settings,
+            'lensOptions' => GlassPrescription::lensOptions(),
         ];
 
         return view('prescription::glass-prescriptions.show', $data);
@@ -87,27 +100,31 @@ class GlassPrescriptionController extends BaseController
 
     protected function formData(Account $actor, Model $record): array
     {
-        $branchId           = max(0, (int) request()->attributes->get('branch_id', 0));
-        $patientQuery       = Patient::where('branch_id', $branchId);
-        $doctorQuery        = Doctor::where('branch_id', $branchId);
-        $doctorLocked       = $actor instanceof Doctor;
-        $doctorId           = $doctorLocked ? $actor->getKey() : getValue('doctor_id', $record);
+        $branchId = max(0, (int) request()->attributes->get('branch_id', 0));
+        $patientQuery = Patient::where('branch_id', $branchId);
+        $doctorQuery = Doctor::where('branch_id', $branchId);
+        $doctorLocked = $actor instanceof Doctor;
+        $doctorId = $doctorLocked ? $actor->getKey() : getValue('doctor_id', $record);
 
         $selectedPatient = $this->selectedOption(
             $patientQuery,
             getValue('patient_id', $record),
             ['id', 'patient_id', 'name', 'mobile_no', 'age', 'gender', 'address'],
         );
-        $selectedDoctor = $this->selectedOption($doctorQuery,$doctorId,['id', 'doctor_id', 'name']);
+        $selectedDoctor = $this->selectedOption($doctorQuery, $doctorId, ['id', 'doctor_id', 'name']);
+        $permissions = request()->attributes->get('navigation_permissions', []);
 
         return [
-            'record'            => $record,
-            'selectedPatient'   => $selectedPatient,
-            'selectedDoctor'    => $selectedDoctor,
-            'doctorLocked'      => $doctorLocked,
-            'entryDate'         => getValue('prescription_date', null, $record->prescription_date?->toDateString() ?? now()->toDateString()),
-            'settings'          => Setting::values('prescription', $record->getConnectionName()),
-            'lensOptions'       => GlassPrescription::lensOptions(),
+            'record' => $record,
+            'selectedPatient' => $selectedPatient,
+            'selectedDoctor' => $selectedDoctor,
+            'doctorLocked' => $doctorLocked,
+            'canCreatePatient' => isset($permissions['glass-prescriptions.create']),
+            'patientModalUrl' => route('prescription.glass-patients.modal'),
+            'patientStoreUrl' => route('prescription.glass-patients.store'),
+            'entryDate' => getValue('prescription_date', null, $record->prescription_date?->toDateString() ?? now()->toDateString()),
+            'settings' => Setting::values('prescription', $record->getConnectionName()),
+            'lensOptions' => GlassPrescription::lensOptions(),
         ];
     }
 }

@@ -23,12 +23,14 @@
                 <div class="offcanvas-body">
                     <nav class="app-nav" aria-label="Main navigation">
                         <p class="app-nav-label">Overview</p>
-                        @include('core::partials.navigation-link', [
-                            'label' => $moduleMenu['homeLabel'] ?? 'Dashboard',
-                            'icon' => 'table-cells-large',
-                            'url' => $moduleMenu['homeUrl'] ?? $layout['navigation']['dashboard']['url'],
-                            'active' => $moduleMenu['homeActive'] ?? $layout['navigation']['dashboard']['active'],
-                        ])
+                        @if ($moduleMenu['homeAllowed'] ?? $layout['navigation']['dashboard']['allowed'])
+                            @include('core::partials.navigation-link', [
+                                'label' => $moduleMenu['homeLabel'] ?? 'Dashboard',
+                                'icon' => 'table-cells-large',
+                                'url' => $moduleMenu['homeUrl'] ?? $layout['navigation']['dashboard']['url'],
+                                'active' => $moduleMenu['homeActive'] ?? $layout['navigation']['dashboard']['active'],
+                            ])
+                        @endif
 
                         @if ($layout['navigation']['modules']['allowed'])
                             @include('core::partials.navigation-link', [

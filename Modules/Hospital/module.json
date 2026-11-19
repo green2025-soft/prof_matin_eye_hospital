@@ -7,7 +7,7 @@
         "label": "Hospital",
         "icon": "hospital",
         "route": "hospital.dashboard",
-        "permission": "hospital.view"
+        "permission": "hospital-dashboard.view"
     },
     "keywords": [],
     "priority": 0,

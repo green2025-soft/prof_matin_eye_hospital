@@ -31,6 +31,10 @@ function moneyDecimal(int|string $minor): string
     return Money::decimal($minor);
 }
 
+function amountInWords($amount=0){
+    return  Money::words($amount);
+}
+
 function htmlJson(mixed $value): string
 {
     return Js::encode($value);

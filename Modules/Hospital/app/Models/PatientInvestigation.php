@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\TenantCore\Models\PaymentType;
 
-#[Fillable(['patient_id', 'doctor_id', 'entry_date', 'payment_type_id', 'eye_type', 'amount', 'discount_mode', 'discount_percent', 'discount_amount', 'extra_discount_percent', 'extra_discount_amount', 'paid_amount', 'payable_amount', 'due_amount', 'due_date', 'delivery_date'])]
+#[Fillable(['patient_id', 'doctor_id', 'entry_date', 'payment_type_id', 'eye_type', 'amount', 'discount_mode', 'discount_percent', 'discount_amount', 'extra_discount_percent', 'extra_discount_amount', 'paid_amount', 'payable_amount', 'due_amount', 'due_date', 'delivery_date','remarks'])]
 class PatientInvestigation extends BaseModel
 {
     public const SERVICE = 'investigation';

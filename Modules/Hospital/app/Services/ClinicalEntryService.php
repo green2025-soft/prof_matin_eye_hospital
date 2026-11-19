@@ -89,7 +89,7 @@ abstract class ClinicalEntryService
         $company = Setting::values('company', $source->getConnectionName());
         $branding = Setting::values('branding', $source->getConnectionName());
         $branchPhone = implode(' / ', array_filter([$branch?->mobile_no, $branch?->telephone_no], fn ($value): bool => filled($value)));
-        $logoPath = filled($branch?->logo_path) ? $branch->logo_path : $branding['logo_path'];
+        $logoPath = filled($branding['logo_path']) ? $branding['logo_path'] : $branch?->logo_path;
 
         return [
             'sourceService' => $source::SERVICE,
@@ -97,10 +97,10 @@ abstract class ClinicalEntryService
             'printedAt' => now(config('app.timezone'))->format('d M Y h:i A'),
             'printedBy' => $actor->name,
             'company' => [
-                'name' => filled($branch?->name) ? $branch->name : ($company['name'] ?: $branding['app_name']),
-                'address' => filled($branch?->address) ? $branch->address : $company['address'],
-                'phone' => $branchPhone !== '' ? $branchPhone : $company['phone'],
-                'email' => filled($branch?->email) ? $branch->email : $company['email'],
+                'name' => filled($company['name']) ? $company['name'] : ($branding['app_name'] ?: $branch?->name),
+                'address' => filled($company['address']) ? $company['address'] : $branch?->address,
+                'phone' => filled($company['phone']) ? $company['phone'] : $branchPhone,
+                'email' => filled($company['email']) ? $company['email'] : $branch?->email,
                 'tax_id' => $company['tax_id'],
             ],
             'logoUrl' => filled($logoPath) ? Storage::disk('public')->url($logoPath) : null,

@@ -17,7 +17,13 @@ class DashboardController extends Controller
     public function index(Request $request): View|RedirectResponse
     {
         if ($request->attributes->get('application_provider') === 'users' && $request->routeIs('home')) {
-            return redirect()->route('tenantcore.module-dashboard.index');
+            $permissions = $request->attributes->get('navigation_permissions', []);
+
+            return redirect()->route(
+                isset($permissions['module-dashboard.view'])
+                    ? 'tenantcore.module-dashboard.index'
+                    : 'tenantcore.dashboard',
+            );
         }
 
         $actor = $request->user('web');

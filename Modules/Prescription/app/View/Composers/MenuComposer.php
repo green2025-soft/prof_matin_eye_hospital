@@ -36,6 +36,7 @@ class MenuComposer
             'homeLabel' => 'Prescription',
             'homeUrl' => route('prescription.dashboard'),
             'homeActive' => $this->request->routeIs('prescription.dashboard'),
+            'homeAllowed' => isset($permissions['prescription-dashboard.view']),
             'permissions' => $permissions,
             'settings' => Setting::values('prescription'),
             'productType' => $this->request->attributes->get('pharmacy_product_type')

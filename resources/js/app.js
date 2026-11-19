@@ -6,6 +6,7 @@ import toastr from 'toastr';
 import { formatAmount, parseAmount as parseClinicalDecimal, roundRatio } from './money';
 import { initializePatientAgeFields } from './patient-age';
 import { synchronizeDatepickerYear, destroyDatepickerYear } from './datepicker-year';
+import './clinical-invoice-print';
 import './pharmacy';
 import './prescription';
 import './accounting';

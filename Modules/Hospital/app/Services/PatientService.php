@@ -18,6 +18,17 @@ use Modules\Hospital\Models\Patient;
 
 class PatientService implements PharmacyCustomers
 {
+    public function canCreate(Account $actor): bool
+    {
+        $permissions = request()->attributes->get('navigation_permissions', []);
+
+        return Gate::forUser($actor)->allows('create', Patient::class)
+            || ($actor->matchesApplication() && (
+                isset($permissions['prescriptions.create'])
+                || isset($permissions['glass-prescriptions.create'])
+            ));
+    }
+
     public function paginate(Account $actor, array $filters): LengthAwarePaginator
     {
         $this->authorizePharmacyCustomers($actor);
@@ -151,7 +162,8 @@ class PatientService implements PharmacyCustomers
 
     public function save(Account $actor, ?Patient $record, array $values, int $branchId): Patient
     {
-        Gate::forUser($actor)->authorize($record ? 'update' : 'create', $record ?? Patient::class);
+        $this->authorizeSave($actor, $record);
+
         if ($branchId < 1 || ($record !== null && $record->branch_id !== $branchId)) {
             throw new AuthorizationException('This patient does not belong to the selected branch.');
         }
@@ -164,7 +176,7 @@ class PatientService implements PharmacyCustomers
                     $patient->branch_id = $branchId;
                 }
 
-                Gate::forUser($freshActor)->authorize($patient->exists ? 'update' : 'create', $patient);
+                $this->authorizeSave($freshActor, $patient->exists ? $patient : null);
 
                 if (! $patient->exists) {
                     $patient->patient_id = $this->nextPatientId($patient);
@@ -187,6 +199,15 @@ class PatientService implements PharmacyCustomers
 
             throw $exception;
         }
+    }
+
+    private function authorizeSave(Account $actor, ?Patient $record): void
+    {
+        if ($record === null && $this->canCreate($actor)) {
+            return;
+        }
+
+        Gate::forUser($actor)->authorize($record ? 'update' : 'create', $record ?? Patient::class);
     }
 
     private function nextPatientId(Patient $patient): string

@@ -7,7 +7,7 @@
         "label": "Pharmacy",
         "icon": "pills",
         "route": "pharmacy.dashboard",
-        "permission": "pharmacy.view"
+        "permission": "pharmacy-dashboard.view"
     },
     "keywords": [],
     "priority": 0,
