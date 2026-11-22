@@ -20,7 +20,7 @@ class DueCollectionController extends BaseController
 {
     protected string $model = DueCollection::class;
 
-    protected string $title = 'Due collection';
+    protected string $title = 'Due Collection';
 
     protected string $service = DueCollectionService::class;
 
@@ -49,7 +49,7 @@ class DueCollectionController extends BaseController
     public function show(Request $request, DueCollectionService $entries): View
     {
         $data = $entries->invoiceData($request->user('web'), $this->record($request));
-
+        $data['isDoctor'] = false;
         return view('hospital::due-collections.invoice', $data);
     }
 

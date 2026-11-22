@@ -39,6 +39,7 @@ class DueCollectionRequest extends BaseRequest
             'collection_date' => ['required', 'date_format:Y-m-d'],
             'amount' => ['required', 'string', 'decimal:0,2', 'between:0.01,9999999999.99'],
             'payment_type_id' => ['bail', 'required', 'integer', 'min:1', $this->existsIn('payment_types')],
+            'discount' => ['nullable', 'string', 'decimal:0,2', 'between:0,99999999.99'],
             'remarks' => ['nullable', 'string', 'max:2000'],
         ];
     }

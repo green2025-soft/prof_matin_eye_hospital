@@ -58,10 +58,10 @@
 
         <div class="row g-3 mt-0">
             <div class="col-md-4">
-                <label class="form-label" for="operation_doctor_id">Doctor <span class="text-danger" aria-hidden="true">*</span></label>
+                <label class="form-label" for="operation_doctor_id">Surgeon  Doctor <span class="text-danger" aria-hidden="true">*</span></label>
                 <select class="{{ inputClass('doctor_id', 'form-select') }}" id="operation_doctor_id" name="doctor_id"
                     data-ajax-select data-url="{{ route('hospital.doctors.options') }}"
-                    data-value-field="id" data-label-field="text" data-placeholder="Select a doctor" required
+                    data-value-field="id" data-label-field="text" data-placeholder="Select Surgeon Doctor" required
                     {{ inputAttrs('doctor_id', 'operation_doctor_id') }}>
                     <option value=""></option>
                     @if ($selectedDoctor !== null)
@@ -71,9 +71,9 @@
                 @error('doctor_id')<div class="invalid-feedback d-block" id="operation_doctor_id-error">{{ $message }}</div>@enderror
             </div>
             <div class="col-md-4">
-                <label class="form-label" for="operation_payment_type_id">Payment type <span class="text-danger" aria-hidden="true">*</span></label>
+                <label class="form-label" for="operation_payment_type_id">Payment Type <span class="text-danger" aria-hidden="true">*</span></label>
                 <select class="{{ inputClass('payment_type_id', 'form-select') }}" id="operation_payment_type_id" name="payment_type_id" required {{ inputAttrs('payment_type_id', 'operation_payment_type_id') }}>
-                    <option value="">Select payment type</option>
+
                     @foreach ($paymentTypes as $paymentType)
                         <option value="{{ $paymentType->id }}" {{ getSelected($paymentType->id, 'payment_type_id', $patient_operation) }}>{{ $paymentType->name }}</option>
                     @endforeach
@@ -109,16 +109,7 @@
                 </select>
                 @error('operation_id')<div class="invalid-feedback d-block" id="operation_operation_id-error">{{ $message }}</div>@enderror
             </div>
-            <fieldset class="col-md-4" {{ inputAttrs('patient_type', 'operation_patient_type') }}>
-                <legend class="form-label mb-2">Patient type <span class="text-danger" aria-hidden="true">*</span></legend>
-                @foreach ($patientTypes as $value => $label)
-                    <div class="form-check form-check-inline">
-                        <input class="{{ inputClass('patient_type', 'form-check-input') }}" id="operation_patient_type_{{ $value }}" name="patient_type" type="radio" value="{{ $value }}" {{ getChecked($value, 'patient_type', $patient_operation, 'new') }} required>
-                        <label class="form-check-label small" for="operation_patient_type_{{ $value }}">{{ $label }}</label>
-                    </div>
-                @endforeach
-                @error('patient_type')<div class="invalid-feedback d-block" id="operation_patient_type-error">{{ $message }}</div>@enderror
-            </fieldset>
+
             <div class="col-md-4">
                 <label class="form-label" for="operation_operation_date">Operation date <span class="text-danger" aria-hidden="true">*</span></label>
                 <div class="input-group" data-datepicker>
@@ -157,41 +148,42 @@
                     <input class="form-control" id="operation_amount" type="text" value="{{ $patient_operation->amount ?? '0.00' }}" readonly data-clinical-amount>
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="operation_discount_amount">Discount amount <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="operation_discount_amount">Discount Amount <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="{{ inputClass('discount_amount') }}" id="operation_discount_amount" name="discount_amount" type="text" inputmode="decimal" maxlength="13"
                         value="{{ getValue('discount_amount', $patient_operation, '0.00') }}" required data-clinical-discount-amount
                         {{ inputAttrs('discount_amount', 'operation_discount_amount') }}>
                     @error('discount_amount')<div class="invalid-feedback d-block" id="operation_discount_amount-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="operation_payable_amount">Payable amount</label>
+                    <label class="form-label" for="operation_payable_amount">Payable </label>
                     <input class="form-control" id="operation_payable_amount" type="text" value="{{ $patient_operation->payable_amount ?? '0.00' }}" readonly data-clinical-payable>
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="operation_paid_amount">Paid amount <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="operation_paid_amount">Paid  <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="{{ inputClass('paid_amount') }}" id="operation_paid_amount" name="paid_amount" type="text" inputmode="decimal" maxlength="13" value="{{ getValue('paid_amount', $patient_operation, '0.00') }}" required data-clinical-paid {{ inputAttrs('paid_amount', 'operation_paid_amount') }}>
                     @error('paid_amount')<div class="invalid-feedback d-block" id="operation_paid_amount-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="operation_due_amount">Due amount</label>
+                    <label class="form-label" for="operation_due_amount">Due </label>
                     <input class="form-control" id="operation_due_amount" type="text" value="{{ $patient_operation->due_amount ?? '0.00' }}" readonly data-clinical-due>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label" for="operation_due_date">Due date <span class="text-danger" aria-hidden="true">*</span></label>
+                <div class="col-md-4 d-none">
+                    <label class="form-label" for="operation_due_date">Due Date <span class="text-danger" aria-hidden="true">*</span></label>
                     <div class="input-group" data-datepicker>
                         <input class="{{ inputClass('due_date') }}" id="operation_due_date" name="due_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD" value="{{ getValue('due_date', null, $dueDate) }}" required data-input {{ inputAttrs('due_date', 'operation_due_date') }}>
                         <button class="btn btn-outline-secondary" type="button" data-toggle aria-controls="operation_due_date" aria-label="Choose due date" title="Choose due date"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></button>
                     </div>
                     @error('due_date')<div class="invalid-feedback d-block" id="operation_due_date-error">{{ $message }}</div>@enderror
                 </div>
+                 <div class="col-sm-6 col-xl-6">
+                     <label class="form-label" for="operation_remarks">Remarks</label>
+            <textarea class="{{ inputClass('remarks') }}" id="operation_remarks" name="remarks" rows="1" maxlength="2000" {{ inputAttrs('remarks', 'operation_remarks') }}>{{ getValue('remarks', $patient_operation) }}</textarea>
+            @error('remarks')<div class="invalid-feedback d-block" id="operation_remarks-error">{{ $message }}</div>@enderror
+                 </div>
             </div>
         </section>
 
-        <div class="mt-3">
-            <label class="form-label" for="operation_remarks">Remarks</label>
-            <textarea class="{{ inputClass('remarks') }}" id="operation_remarks" name="remarks" rows="2" maxlength="2000" {{ inputAttrs('remarks', 'operation_remarks') }}>{{ getValue('remarks', $patient_operation) }}</textarea>
-            @error('remarks')<div class="invalid-feedback d-block" id="operation_remarks-error">{{ $message }}</div>@enderror
-        </div>
+
 
         @include('core::partials.form-actions', ['model' => $patient_operation, 'routePrefix' => $routePrefix, 'submitLabel' => $submitLabel])
     </form>

@@ -93,24 +93,19 @@ class ConsultationService extends ClinicalEntryService
         $this->authorize($actor, $entry, 'view');
         $state = $this->invoices->balance($entry);
         $data = $this->invoiceValues($actor, $entry, $state);
+        // dd($entry);
 
         return $data + [
-            'pageTitle' => 'Consultation invoice',
+            'pageTitle'     => 'Consultation Invoice',
             'documentTitle' => 'Consultation invoice',
             'invoiceNumber' => filled($entry->invoice_no) ? $entry->invoice_no : '#'.$entry->getKey(),
             'originalInvoiceNumber' => null,
             'entryDate' => $entry->entry_date?->format('d M Y') ?? '—',
             'entryDateLabel' => 'Date / Time',
             'entryTime' => $entry->created_at?->copy()->timezone(config('app.timezone'))->format('h:i A') ?? '—',
-            'lines' => [[
-                'name' => 'Consultation — '.(patientTypes()[$entry->patient_type] ?? $entry->patient_type),
-                'room' => null,
-                'eye' => null,
-                'amount' => $entry->amount,
-            ]],
+            'objData'   => $entry,
             'remarks' => $entry->getAttribute('remarks'),
             'refundCause' => null,
-            'amountWords' => Money::words($state['remaining_amount']),
             'status' => $this->invoiceStatus($state),
             'backUrl' => route('hospital.consultations.index'),
         ];

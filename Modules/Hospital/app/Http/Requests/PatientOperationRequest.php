@@ -25,7 +25,7 @@ class PatientOperationRequest extends BaseRequest
             'operation_id' => ['bail', 'required', 'integer', 'min:1', $this->existsIn('operations')],
             'consultant_id' => ['bail', 'nullable', 'integer', 'min:1', $this->existsIn('doctors')->where('branch_id', $branchId)],
             'eye_type' => ['required', 'string', Rule::in(array_keys(eyeTypes()))],
-            'patient_type' => ['required', 'string', Rule::in(array_keys(patientTypes()))],
+            // 'patient_type' => ['required', 'string', Rule::in(array_keys(patientTypes()))],
             'remarks' => ['nullable', 'string', 'max:2000'],
             'discount_amount' => $moneyRules,
             'paid_amount' => $moneyRules,

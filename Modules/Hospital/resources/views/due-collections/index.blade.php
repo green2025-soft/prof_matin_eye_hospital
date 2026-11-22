@@ -5,19 +5,16 @@
 @section('content')
     @include('core::partials.heading', [
         'title' => $pageTitle,
-        'description' => 'Review due payments collected at the selected branch.',
-        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New due collection'],
+        'description' => '',
+        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New Due Collection'],
     ])
 
     <section class="app-card overflow-hidden">
-        <div class="app-card-heading d-flex align-items-center gap-2 px-3 px-md-4 py-3 border-bottom">
-            <i class="fa-solid fa-money-bill-wave text-body-secondary" aria-hidden="true"></i>
-            <h2 class="h6 mb-0">Due collections</h2>
-        </div>
+
         <form class="px-3 px-md-4 py-3 border-bottom" action="{{ route($routePrefix.'.index') }}" method="GET" aria-label="Filter due collections">
             <div class="row g-2 align-items-end">
                 <div class="col-md-8">
-                    <label class="form-label small" for="search">Search due collections</label>
+                    <label class="form-label small" for="search">Search Due Collection</label>
                     <div class="app-input-wrap app-search-field">
                         <i class="fa-solid fa-magnifying-glass app-search-icon" aria-hidden="true"></i>
                         <input class="{{ inputClass('search') }}" id="search" name="search" type="search" value="{{ getValue('search', null, $filters['search'] ?? '') }}" maxlength="80" placeholder="Receipt number, date or remarks starts with..." {{ inputAttrs('search') }}>
@@ -38,6 +35,7 @@
                     <caption class="visually-hidden">Due collection receipts with source invoices, patients, and payment types</caption>
                     <thead>
                         <tr>
+                            <th scope="col">Date</th>
                             <th scope="col">Receipt</th>
                             <th scope="col">Collection date</th>
                             <th scope="col">Service / Invoice</th>
@@ -52,18 +50,21 @@
                         @foreach ($records as $collection)
                             @php($source = $collection->consultation ?? $collection->investigation ?? $collection->operation)
                             <tr>
-                                <th class="small fw-normal text-nowrap" scope="row">
-                                    <div class="fw-semibold">{{ $collection->invoice_no ?? '-' }}</div>
-                                    <div class="text-body-secondary">Recorded {{ $collection->created_at?->format('d M Y, h:i A') }}</div>
+                                <td>{{ $collection->created_at?->format('d M Y, h:i A') }}</td>
+                                <th >
+                                    {{ $collection->invoice_no ?? '-' }}
+
                                 </th>
                                 <td class="small text-nowrap">{{ $collection->collection_date?->format('d M Y') }}</td>
                                 <td class="small text-break">
                                     <div class="fw-semibold">{{ filled($source?->invoice_no) ? $source->invoice_no : '—' }}</div>
                                     <div class="text-body-secondary">{{ ucfirst($collection->serviceType()) }}</div>
                                 </td>
-                                <td class="small text-break">
-                                    <div class="fw-semibold">{{ $collection->patient?->name ?? '-' }}</div>
-                                    <div class="text-body-secondary">{{ $collection->patient?->mobile_no }}</div>
+                                <td >
+                                     <div >{{ $collection->patient?->patient_id }}</div>
+                                    <div >{{ $collection->patient?->name }}</div>
+
+
                                 </td>
                                 <td class="text-end text-nowrap">{{ $collection->amount }}</td>
                                 <td class="small text-break">{{ $collection->paymentType?->name ?? '-' }}</td>

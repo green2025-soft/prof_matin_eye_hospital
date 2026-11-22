@@ -42,18 +42,19 @@
                     'active' => request()->routeIs('hospital.patient-investigations.*'),
                 ])
             @endif
-            @if ($permissions['delivery-investigations.view'] ?? false)
-                @include('core::partials.navigation-link', [
-                    'label' => 'Report Delivery', 'icon' => 'file-circle-check',
-                    'url' => route('hospital.delivery-investigations.index'),
-                    'active' => request()->routeIs('hospital.delivery-investigations.*'),
-                ])
-            @endif
+
             @if ($permissions['patient-operations.view'] ?? false)
                 @include('core::partials.navigation-link', [
                     'label' => 'Operation', 'icon' => 'stethoscope',
                     'url' => route('hospital.patient-operations.index'),
                     'active' => request()->routeIs('hospital.patient-operations.*'),
+                ])
+            @endif
+            @if ($permissions['delivery-investigations.view'] ?? false)
+                @include('core::partials.navigation-link', [
+                    'label' => 'Report Delivery', 'icon' => 'file-circle-check',
+                    'url' => route('hospital.delivery-investigations.index'),
+                    'active' => request()->routeIs('hospital.delivery-investigations.*'),
                 ])
             @endif
             @if ($permissions['commissions.view'] ?? false)

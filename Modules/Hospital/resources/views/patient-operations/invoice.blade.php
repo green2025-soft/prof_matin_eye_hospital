@@ -12,9 +12,9 @@
 @endsection
 
 @section('invoice-content')
-    <div class="table-responsive">
-        <table class="table app-clinical-invoice-table">
-            <caption class="visually-hidden">Operation with eye and saved charge</caption>
+    <div class="table-responsive invoice-body-font">
+        <table class="table app-invoice-table">
+
             <thead>
                 <tr>
                     <th class="app-clinical-invoice-number" scope="col">No.</th>
@@ -34,22 +34,52 @@
                 @empty
                     <tr><td class="text-center text-body-secondary" colspan="4">No operation</td></tr>
                 @endforelse
+                <tr>
+                     <td colspan="2">
+                        <div class="app-invoice-note-paid text-start">
+                             <div class="note-title">Remarks : {{ $remarks??'' }}</div>
+                            <div class="app-invoice-paid">{{ $status }}</div>
+                        </div>
+                     </td>
+                     <td colspan="2" class="p-0">
+                        <table class="table m-0 b-0 ">
+                            <tbody>
+                                <tr>
+                                    <th class="text-start">Total Amount</th>
+                                    <th>:</th>
+                                    <th class="text-end">{{ $amount }}</th>
+                                </tr>
+                                 <tr>
+                                    <th class="text-start">Discount</th>
+                                    <th>:</th>
+                                    <th class="text-end">{{ $discount }}</th>
+                                </tr>
+
+                                 <tr>
+                                    <th class="text-start">Sub Total</th>
+                                    <th>:</th>
+                                    <th class="text-end">{{ $payable }}</th>
+                                </tr>
+                                <tr>
+                                    <th class="text-start">Paid Amount</th>
+                                    <th>:</th>
+                                    <th class="text-end">{{ $paid }}</th>
+                                </tr>
+                                <tr>
+                                    <th class="text-start">Due Amount</th>
+                                    <th>:</th>
+                                    <th class="text-end">{{ $due }}</th>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
             </tbody>
         </table>
+        <div class="app-invoice-bottom-info">
+            <p><strong>In Words :</strong> &nbsp; {{amountInWords($paid) }}</p>
+        </div>
     </div>
 
-    <div class="row g-4 app-clinical-invoice-summary">
-        @include('hospital::invoices.notes', ['wordsLabel' => 'Amount in words'])
-        <section class="col-12 col-sm-6 app-clinical-invoice-totals" aria-labelledby="clinical-invoice-totals-title">
-            <h2 class="app-clinical-invoice-section-title" id="clinical-invoice-totals-title">Operation payment summary</h2>
-            <dl class="mb-0">
-                <div><dt>Operation charge</dt><dd>{{ $amount }}</dd></div>
-                <div><dt>Discount</dt><dd>{{ $discount }}</dd></div>
-                <div class="app-clinical-invoice-total"><dt>{{ $hasAdjustments ? 'Original payable' : 'Payable' }}</dt><dd>{{ $payable }}</dd></div>
-                <div><dt>{{ $hasAdjustments ? 'Original paid' : 'Paid' }}</dt><dd>{{ $paid }}</dd></div>
-                <div><dt>{{ $hasAdjustments ? 'Original due' : 'Due' }}</dt><dd>{{ $due }}</dd></div>
-            </dl>
-            @include('hospital::invoices.balance')
-        </section>
-    </div>
 @endsection

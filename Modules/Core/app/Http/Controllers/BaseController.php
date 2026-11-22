@@ -47,6 +47,8 @@ abstract class BaseController extends Controller
 
     protected string $uploadDirectory = '';
 
+    protected string $redirectMode = 'index';
+
     public function modelClass(): string
     {
         return $this->model;
@@ -208,8 +210,7 @@ abstract class BaseController extends Controller
             ]);
         }
 
-        return $this->redirectAfterWrite($record)
-            ->with('status', $this->title.' deleted.');
+        return $this->redirectAfterWrite($record)->with('status', $this->title.' deleted.');
     }
 
     protected function saveData(BaseRequest $request, bool $jsonResponse = false): RedirectResponse|JsonResponse
@@ -376,6 +377,19 @@ abstract class BaseController extends Controller
 
     protected function redirectAfterWrite(?Model $record = null): RedirectResponse
     {
+
+        $mode = $this->redirectMode;
+
+        if ($mode === 'create_show') {
+            $mode = 'show';
+        }
+        if ($mode === 'show' && $record && Gate::allows('view', $record)) {
+            return redirect()->route(
+                $this->routePrefix() . '.show',
+                [$this->parameter => $record] + $this->routeParameters($record)
+            );
+        }
+
         if (Gate::allows('viewAny', $this->modelClass())) {
             return redirect()
                 ->route($this->routePrefix().'.index', $this->routeParameters($record));
@@ -388,8 +402,7 @@ abstract class BaseController extends Controller
                 ] + $this->routeParameters($record));
         }
 
-        return redirect()
-            ->route('home');
+        return redirect()->route('home');
     }
 
     protected function routeParameters(?Model $record = null): array

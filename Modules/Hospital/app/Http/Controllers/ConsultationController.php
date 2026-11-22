@@ -32,6 +32,8 @@ class ConsultationController extends BaseController
 
     protected string $parameter = 'consultation';
 
+
+
     public function index(ListRequest $request, ConsultationService $consultations): View
     {
         $branchId = max(0, (int) $request->attributes->get('branch_id', 0));
@@ -62,7 +64,7 @@ class ConsultationController extends BaseController
     public function show(Request $request, ConsultationService $consultations): View
     {
         $data = $consultations->invoiceData($request->user('web'), $this->record($request));
-
+        $data['isDoctor'] = false;
         return view('hospital::consultations.invoice', $data);
     }
 
@@ -74,6 +76,11 @@ class ConsultationController extends BaseController
             $request->payload(),
             (int) $request->attributes->get('branch_id')
         );
+
+        if(!$this->isUpdate($request)){
+            $this->redirectMode ='create_show';
+        }
+
 
         return $this->redirectAfterWrite($consultation)
             ->with('status', 'Consultation'.($this->isUpdate($request) ? ' updated.' : ' created.'));
@@ -92,6 +99,7 @@ class ConsultationController extends BaseController
         if ($appointment !== null) {
             Gate::forUser($actor)->authorize('viewAny', Appointment::class);
         }
+
 
         return [
             'paymentDefault' => $settings['consultation_payment_default'],
@@ -114,4 +122,5 @@ class ConsultationController extends BaseController
             'appointmentId' => $appointmentId,
         ];
     }
+
 }

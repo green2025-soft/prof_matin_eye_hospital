@@ -10,14 +10,14 @@
     ])
 
     <section class="app-card overflow-hidden">
-        <div class="app-card-heading d-flex align-items-center gap-2 px-3 px-md-4 py-3 border-bottom">
+        <div class="app-card-heading d-flex align-items-center gap-2 px-3 px-md-4 py-3 border-bottom d-none">
             <i class="fa-solid fa-file-invoice text-body-secondary" aria-hidden="true"></i>
             <h2 class="h6 mb-0">Consultations</h2>
         </div>
         <form class="px-3 px-md-4 py-3 border-bottom" action="{{ route($routePrefix.'.index') }}" method="GET" aria-label="Filter consultations">
             <div class="row g-2 align-items-end">
                 <div class="col-md-6 col-xxl-3">
-                    <label class="form-label small" for="search">Search consultations</label>
+                    <label class="form-label small" for="search">Search Consultation</label>
                     <div class="app-input-wrap app-search-field">
                         <i class="fa-solid fa-magnifying-glass app-search-icon" aria-hidden="true"></i>
                         <input class="{{ inputClass('search') }}" id="search" name="search" type="search" value="{{ getValue('search', null, $filters['search'] ?? '') }}" maxlength="80" placeholder="Serial, invoice, ID or date starts with..." {{ inputAttrs('search') }}>
@@ -25,7 +25,7 @@
                     @error('search')<div class="invalid-feedback d-block" id="search-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 col-xxl-3">
-                    <label class="form-label small" for="filter_doctor_id">Doctor</label>
+                    <label class="form-label small" for="filter_doctor_id">Select Doctor</label>
                     <select class="{{ inputClass('filter_doctor_id', 'form-select') }}" id="filter_doctor_id" name="filter_doctor_id" data-ajax-select data-url="{{ route('hospital.doctors.options') }}" data-value-field="id" data-label-field="text" data-placeholder="All doctors" {{ inputAttrs('filter_doctor_id') }}>
                         <option value=""></option>
                         @if (($filterDoctor ?? null) !== null)

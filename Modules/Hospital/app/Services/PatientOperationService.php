@@ -73,8 +73,8 @@ class PatientOperationService extends ClinicalEntryService
         $data = $this->invoiceValues($actor, $entry, $state);
 
         return $data + [
-            'pageTitle' => 'Operation invoice',
-            'documentTitle' => 'Operation invoice',
+            'pageTitle' => 'Operation Invoice',
+            'documentTitle' => 'Operation Invoice',
             'invoiceNumber' => filled($entry->invoice_no) ? $entry->invoice_no : '#'.$entry->getKey(),
             'originalInvoiceNumber' => null,
             'entryDate' => $entry->entry_date?->format('d M Y') ?? '—',
@@ -92,7 +92,6 @@ class PatientOperationService extends ClinicalEntryService
             ]],
             'remarks' => $entry->remarks,
             'refundCause' => null,
-            'amountWords' => Money::words($state['remaining_amount']),
             'status' => $this->invoiceStatus($state),
             'backUrl' => route('hospital.patient-operations.index'),
         ];

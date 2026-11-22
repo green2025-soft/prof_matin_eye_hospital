@@ -1064,19 +1064,23 @@ function initializeRefundForm(form) {
     loadPreview();
 }
 
-// Due collections load the outstanding balance and keep entered payment within that amount.
+// Due collections load the outstanding balance and keep amount plus discount within it.
 function initializeDueCollectionForm(form) {
     const $form = $(form);
     const $invoice = $form.find('[data-due-collection-invoice]');
     const $service = $(form.elements.namedItem('service'));
     const $amount = $form.find('[data-due-collection-amount]');
+    const $discount = $form.find('[data-due-collection-discount]');
     const invoice = $invoice.get(0);
     const amount = $amount.get(0);
+    const discount = $discount.get(0);
     const $currentDue = $form.find('[data-due-collection-current-due]');
     const $error = $form.find('[data-due-collection-error]');
     const $amountError = $form.find('[data-due-collection-amount-error]');
+    const $discountError = $form.find('[data-due-collection-discount-error]');
     const $status = $form.find('[data-due-collection-status]');
     let amountServerInvalid = $amount.attr('aria-invalid') === 'true';
+    let discountServerInvalid = $discount.attr('aria-invalid') === 'true';
     let invoiceServerInvalid = $invoice.attr('aria-invalid') === 'true';
     let availableDue = null;
     let selectedInvoice = '';
@@ -1086,19 +1090,42 @@ function initializeDueCollectionForm(form) {
     function updateAmountValidity() {
         const value = String($amount.val()).trim();
         const received = parseClinicalDecimal(value);
+        const discountValue = String($discount.val()).trim();
+        const discountAmount = discountValue ? parseClinicalDecimal(discountValue, 8) : 0n;
         let message = '';
+        let discountMessage = '';
         if (value && (received === null || received < 1n)) {
             message = 'Enter an amount of at least 0.01 with up to two decimal places.';
         } else if (value && availableDue === null) {
             message = 'Wait until the invoice due is available before saving.';
         } else if (received !== null && availableDue !== null && received > availableDue) {
             message = 'The amount cannot exceed the current due of ' + formatAmount(availableDue) + '.';
+        } else if (discountValue && discountAmount === null) {
+            discountMessage = 'Enter a discount with up to two decimal places.';
+        } else if (discountValue && availableDue !== null && discountAmount >= availableDue) {
+            discountMessage = 'Discount must be less than the current due because Paid Amount must be at least 0.01.';
+        } else if (received !== null && discountAmount !== null && availableDue !== null && received + discountAmount > availableDue) {
+            discountMessage = 'Amount and discount cannot exceed the current due of ' + formatAmount(availableDue) + '.';
         }
 
         amount.setCustomValidity(message);
         $amount.attr('aria-invalid', String(amountServerInvalid || Boolean(message)))
             .toggleClass('is-invalid', amountServerInvalid || Boolean(message));
         $amountError.text(message);
+        discount.setCustomValidity(discountMessage);
+        $discount.attr('aria-invalid', String(discountServerInvalid || Boolean(discountMessage)))
+            .toggleClass('is-invalid', discountServerInvalid || Boolean(discountMessage));
+        $discountError.text(discountMessage);
+    }
+
+    function updatePaidAmountFromDiscount() {
+        const value = String($discount.val()).trim();
+        const discountAmount = value ? parseClinicalDecimal(value, 8) : 0n;
+        if (discountAmount === null || availableDue === null) {
+            return;
+        }
+
+        $amount.val(discountAmount >= availableDue ? '' : formatAmount(availableDue - discountAmount));
     }
 
     function showError(message) {
@@ -1121,6 +1148,13 @@ function initializeDueCollectionForm(form) {
         updateAmountValidity();
     }
 
+    function clearServerErrors() {
+        amountServerInvalid = false;
+        discountServerInvalid = false;
+        $form.find('#' + $.escapeSelector($amount.attr('id') + '-error')).empty();
+        $form.find('#' + $.escapeSelector($discount.attr('id') + '-error')).empty();
+    }
+
     function loadPreview(clearAmount = false) {
         const encodedInvoice = $invoice.val();
         const selectedService = $service.val() ?? '';
@@ -1135,8 +1169,8 @@ function initializeDueCollectionForm(form) {
         $amount.removeAttr('data-max-amount');
         if (clearAmount) {
             $amount.val('');
-            amountServerInvalid = false;
-            $form.find('#' + $.escapeSelector($amount.attr('id') + '-error')).empty();
+            $discount.val('');
+            clearServerErrors();
         }
         $currentDue.val('0.00');
         $status.prop('hidden', true).text('');
@@ -1179,8 +1213,12 @@ function initializeDueCollectionForm(form) {
     }
 
     $amount.on('input.dueCollection change.dueCollection', () => {
-        amountServerInvalid = false;
-        $form.find('#' + $.escapeSelector($amount.attr('id') + '-error')).empty();
+        clearServerErrors();
+        updateAmountValidity();
+    });
+    $discount.on('input.dueCollection change.dueCollection', () => {
+        clearServerErrors();
+        updatePaidAmountFromDiscount();
         updateAmountValidity();
     });
     try {
@@ -1282,6 +1320,7 @@ function clinicalEyeRate(item, eye) {
 }
 
 // Discount conversion, paid-default tracking and due display are identical for all clinical forms.
+// Discount conversion, paid-default tracking and due display are identical for all clinical forms.
 function initializeClinicalPayment($form, renderPayment) {
     const $amount = $form.find('[data-clinical-amount]');
     const $payable = $form.find('[data-clinical-payable]');
@@ -1290,8 +1329,9 @@ function initializeClinicalPayment($form, renderPayment) {
     const $discountAmount = $form.find('[name="discount_amount"]');
     const $discountMode = $form.find('[name="discount_mode"]');
     const $paidAmount = $form.find('[name="paid_amount"]');
+    const defaultPaid = $form.attr('data-record-exists') !== '1' && $form.attr('data-default-payment') === 'paid';
     let mode = $discountMode.val() ?? 'amount';
-    let followPayable = $form.attr('data-record-exists') !== '1' && $form.attr('data-default-payment') === 'paid';
+    let followPayable = defaultPaid;
 
     function discountedAmount(amount) {
         $amount.val(formatAmount(amount));
@@ -1318,10 +1358,18 @@ function initializeClinicalPayment($form, renderPayment) {
         if (payable === null) return;
 
         $payable.val(formatAmount(payable));
-        if (followPayable) $paidAmount.val(formatAmount(payable));
+        if (followPayable) {
+            $paidAmount.val(formatAmount(payable));
+        }
 
         const paid = parseClinicalDecimal($paidAmount.val());
-        if (paid !== null && paid <= payable) $due.val(formatAmount(payable - paid));
+        if (paid !== null && paid <= payable) {
+            $due.val(formatAmount(payable - paid));
+        } else if (paid !== null && paid > payable) {
+            // Payable কমে গেলে Paid যেন Payable-এর চেয়ে বেশি না দেখায়
+            $paidAmount.val(formatAmount(payable));
+            $due.val('0.00');
+        }
     }
 
     function render(amount) {
@@ -1329,7 +1377,12 @@ function initializeClinicalPayment($form, renderPayment) {
     }
 
     function changePayment() {
-        if (this.name === 'paid_amount') followPayable = false;
+        if (this.name === 'paid_amount') {
+            followPayable = false;
+        } else if (defaultPaid && ['discount_percent', 'discount_amount', 'extra_discount_percent'].includes(this.name)) {
+            followPayable = true;
+        }
+
         if (this.name === 'discount_percent' || this.name === 'discount_amount') {
             mode = this.name === 'discount_percent' ? 'percent' : 'amount';
             $discountMode.val(mode);
@@ -1343,6 +1396,7 @@ function initializeClinicalPayment($form, renderPayment) {
 
     return { discountedAmount, showPayable, render };
 }
+
 
 // Consultation fees depend on the chosen doctor and whether this is a new or follow-up visit.
 function initializeConsultationForm(form) {
@@ -1492,7 +1546,7 @@ function initializePatientInvestigationForm(form) {
         $form.find('[data-investigation-doctor-help]').prop('hidden', hasDoctor);
         $form.find('[data-investigation-picker-help]').text(items.length >= 100
             ? 'The maximum is 100 tests. Remove a test to add another.'
-            : 'Select one test at a time. Each selection is added below.');
+            : '');
         renderInvestigationItems();
     }
 
@@ -1548,11 +1602,14 @@ function initializePatientInvestigationForm(form) {
     }
 
     function renderPayment() {
+
         const discounted = payment.discountedAmount(amount);
         const extraPercent = parseClinicalPercent($extraDiscountPercent.val());
         if (discounted === null || extraPercent === null) return;
+        const extraDiscount = roundRatio(amount * extraPercent, 10000n);
+         const netPayable = discounted - extraDiscount;
 
-        payment.showPayable(discounted - roundRatio(discounted * extraPercent, 10000n));
+         payment.showPayable(netPayable >= 0n ? netPayable : 0n);
     }
 
     function changeSelectedTests() {

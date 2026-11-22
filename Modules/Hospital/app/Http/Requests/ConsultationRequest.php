@@ -29,6 +29,7 @@ class ConsultationRequest extends BaseRequest
             'discount_amount' => $moneyRules,
             'paid_amount' => $moneyRules,
             'due_date' => ['required', 'date_format:Y-m-d'],
+            'remarks' => ['nullable'],
         ];
     }
 }

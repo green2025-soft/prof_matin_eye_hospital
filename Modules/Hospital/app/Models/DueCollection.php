@@ -8,14 +8,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use LogicException;
 use Modules\TenantCore\Models\PaymentType;
 
-#[Fillable(['collection_date', 'amount', 'payment_type_id', 'remarks'])]
+#[Fillable(['collection_date', 'amount', 'payment_type_id', 'remarks', 'discount'])]
 class DueCollection extends BaseModel
 {
     protected string $crudPermission = 'due-collections';
 
     protected bool $branchScoped = true;
 
-    protected array $exposed = ['id', 'branch_id', 'consultation_id', 'investigation_id', 'operation_id', 'invoice_no', 'collection_date', 'amount', 'payment_type_id', 'remarks', 'created_at', 'updated_at'];
+    protected array $exposed = ['id', 'branch_id', 'consultation_id', 'investigation_id', 'operation_id', 'invoice_no', 'collection_date', 'amount', 'payment_type_id', 'remarks', 'created_at', 'updated_at', 'discount'];
 
     protected array $searchable = ['id', 'invoice_no', 'collection_date', 'remarks'];
 
@@ -84,5 +84,21 @@ class DueCollection extends BaseModel
     public function paymentType(): BelongsTo
     {
         return $this->belongsTo(PaymentType::class);
+    }
+
+    protected function service(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->consultation ?? $this->investigation ?? $this->operation
+        );
+    }
+
+    public function scopeWithService($query)
+    {
+        return $query->with(['consultation', 'investigation', 'operation']);
+    }
+    public function getServiceAttribute()
+    {
+        return $this->consultation ?? $this->investigation ?? $this->operation;
     }
 }

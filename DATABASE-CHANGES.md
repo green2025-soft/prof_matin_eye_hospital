@@ -181,3 +181,57 @@ php artisan tenants:migrate --tenant=TENANT_ID_OR_SLUG --force
 এক tenant ব্যর্থ হলেও command অন্য tenant-গুলো চালিয়ে শেষে failure status ও failed IDs জানায়। সব database এক transaction-এ rollback হয় না। MySQL/MariaDB schema change-ও সাধারণ data transaction-এর মতো সম্পূর্ণ rollback হওয়ার নিশ্চয়তা নেই; retry করার আগে failed database-এর actual schema দেখুন।
 
 Production-এ correction-এর জন্য নতুন forward migration লিখুন। `down()`-এ column drop করলে সেই column-এর data হারাবে। `migrate:fresh`, `migrate:refresh`, database reset বা full seeding দিয়ে column update করবেন না।
+
+
+# নতুন database column remove করার নিয়ম
+
+
+এই project-এ central database ও প্রতিটি tenant-এর database আলাদা। নতুন column remove করতে একটি **নতুন migration** লিখতে হবে, তারপর সঠিক migration command চালাতে হবে। আগে চালানো create migration বদলালে পুরোনো database update হবে না।
+
+##  নতুন migration তৈরি করুন
+
+সব command Laravel application folder থেকে চালাবেন—যেখানে `artisan` আছে।
+
+উদাহরণ: Accounting-এর `patient_operations` table-এ optional `atient_type` column remove করা।
+
+```bash
+php artisan make:migration drop_patient_type_from_patient_operations --table=patient_operations --path=Modules/Hospital/database/migrations
+```
+
+Artisan timestamp-সহ নতুন file তৈরি করবে। সেই file-এ লিখুন:
+
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::connection('tenant')->table('patient_operations', function (Blueprint $table): void {
+            $table->dropColumn('patient_type');
+        });
+
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::connection('tenant')->table('patient_operations', function (Blueprint $table): void {
+            $table->text('patient_type')->nullable();
+        });
+    }
+};
+```
+##  migration চালান
+```bash
+php artisan tenants:migrate
+```

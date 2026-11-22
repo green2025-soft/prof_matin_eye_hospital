@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Modules\TenantCore\Models\PaymentType;
 
-#[Fillable(['patient_id', 'doctor_id', 'entry_date', 'payment_type_id', 'operation_id', 'consultant_id', 'eye_type', 'patient_type', 'remarks', 'amount', 'discount_amount', 'paid_amount', 'payable_amount', 'due_amount', 'due_date', 'operation_date'])]
+#[Fillable(['patient_id', 'doctor_id', 'entry_date', 'payment_type_id', 'operation_id', 'consultant_id', 'eye_type',  'remarks', 'amount', 'discount_amount', 'paid_amount', 'payable_amount', 'due_amount', 'due_date', 'operation_date'])]
 class PatientOperation extends BaseModel
 {
     public const SERVICE = 'operation';
@@ -21,7 +21,7 @@ class PatientOperation extends BaseModel
 
     protected bool $branchScoped = true;
 
-    protected array $exposed = ['id', 'branch_id', 'reference_id', 'reference_commission_percent', 'reference_discount_mode', 'reference_due_mode', 'reference_commission_paid_amount', 'reference_commission_paid_at', 'patient_id', 'doctor_id', 'entry_date', 'payment_type_id', 'operation_id', 'consultant_id', 'eye_type', 'patient_type', 'remarks', 'amount', 'discount_amount', 'paid_amount', 'payable_amount', 'due_amount', 'due_date', 'operation_date', 'invoice_no', 'created_at'];
+    protected array $exposed = ['id', 'branch_id', 'reference_id', 'reference_commission_percent', 'reference_discount_mode', 'reference_due_mode', 'reference_commission_paid_amount', 'reference_commission_paid_at', 'patient_id', 'doctor_id', 'entry_date', 'payment_type_id', 'operation_id', 'consultant_id', 'eye_type',  'remarks', 'amount', 'discount_amount', 'paid_amount', 'payable_amount', 'due_amount', 'due_date', 'operation_date', 'invoice_no', 'created_at'];
 
     protected array $searchable = ['id', 'entry_date', 'invoice_no'];
 

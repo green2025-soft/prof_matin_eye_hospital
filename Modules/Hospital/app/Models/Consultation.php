@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Modules\TenantCore\Models\PaymentType;
 
-#[Fillable(['appointment_id', 'patient_id', 'doctor_id', 'entry_date', 'payment_type_id', 'patient_type', 'amount', 'discount_mode', 'discount_percent', 'discount_amount', 'paid_amount', 'payable_amount', 'due_amount', 'due_date'])]
+#[Fillable(['appointment_id', 'patient_id', 'doctor_id', 'entry_date', 'payment_type_id', 'patient_type', 'amount', 'discount_mode', 'discount_percent', 'discount_amount', 'paid_amount', 'payable_amount', 'due_amount', 'due_date', 'remarks'])]
 class Consultation extends BaseModel
 {
     public const SERVICE = 'consultation';

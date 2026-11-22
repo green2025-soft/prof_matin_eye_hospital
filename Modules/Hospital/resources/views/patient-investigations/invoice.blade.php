@@ -10,7 +10,7 @@
 @endsection
 
 @section('invoice-content')
-    <div class="table-responsive">
+    <div class="table-responsive invoice-body-font">
         <table class="table app-invoice-table text-center">
             <thead>
                 <tr>

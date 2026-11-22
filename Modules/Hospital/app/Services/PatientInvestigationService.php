@@ -57,7 +57,7 @@ class PatientInvestigationService extends ClinicalEntryService
             $discount = $this->discountAmounts($values, $amount);
             $discountAmount = Money::minor($discount['discount_amount']);
             $extraPercent = Money::minor((string) $values['extra_discount_percent']);
-            $extraDiscount = intdiv(($amount - $discountAmount) * $extraPercent + 5000, 10000);
+            $extraDiscount = intdiv(($amount) * $extraPercent + 5000, 10000);
 
             $entry->fill(Arr::only($values, $entry->getFillable()));
             $entry->fill($discount);
@@ -119,7 +119,7 @@ class PatientInvestigationService extends ClinicalEntryService
                 'amount' => $investigation->pivot->rate,
             ])
             ->all();
-            
+
 
         return $data + [
             'pageTitle' => 'Investigation invoice',

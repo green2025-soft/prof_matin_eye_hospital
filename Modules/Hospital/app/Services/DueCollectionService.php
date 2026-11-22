@@ -21,8 +21,9 @@ class DueCollectionService extends ClinicalEntryService
             $state = $this->invoices->balance($source);
             $previous = $collection->exists ? Money::minor($collection->amount) : 0;
             $amount = Money::minor($values['amount']);
-            if ($amount > $state['remaining_due'] + $previous) {
-                throw ValidationException::withMessages(['amount' => 'The collection cannot exceed the outstanding due.']);
+            $discount = Money::minor($values['discount'] ?? '0');
+            if ($amount + $discount > $state['remaining_due'] + $previous) {
+                throw ValidationException::withMessages(['discount' => 'Amount and discount together cannot exceed the outstanding due.']);
             }
             if ($state['remaining_paid'] + $amount - $previous < 0) {
                 throw ValidationException::withMessages(['amount' => 'This payment has funded a refund. Its amount cannot be reduced this far.']);
@@ -116,25 +117,31 @@ class DueCollectionService extends ClinicalEntryService
     public function invoiceData(Account $actor, DueCollection $collection): array
     {
         $this->authorize($actor, $collection, 'view');
+
         $source = $this->invoices->source($collection);
         $state = $this->invoices->balance($source);
         $data = $this->invoiceValues($actor, $source, $state);
+        $collection->withService();
+        
+        $invoiceData = $collection?->service??'';
 
         return $data + [
-            'pageTitle' => 'Due collection receipt',
-            'documentTitle' => 'Due collection receipt',
-            'invoiceNumber' => $collection->invoice_no ?: '—',
-            'originalInvoiceNumber' => filled($source->invoice_no) ? $source->invoice_no : '#'.$source->getKey(),
-            'entryDate' => $collection->collection_date?->format('d M Y') ?? '—',
-            'entryDateLabel' => 'Collection date',
-            'entryTime' => '',
-            'collectionAmount' => $collection->amount,
+            'pageTitle'         => 'Due Collection',
+            'documentTitle'     => 'Due Collection',
+            'invoiceNumber'     => $collection->invoice_no ?: '—',
+            'originalInvoiceNumber' =>  $invoiceData?->invoice_no??'',
+            'invoiceData'       =>  $invoiceData,
+            'entryDate'         => $collection->collection_date?->format('d M Y') ?? '—',
+            'entryDateLabel'    => 'Collection date',
+            'objData'           => $collection,
+            'entryTime'         => '',
+            'collectionAmount'  => $collection->amount,
             'collectionPaymentType' => $collection->paymentType()->value('name'),
-            'remarks' => $collection->remarks,
-            'refundCause' => null,
-            'amountWords' => Money::words(Money::minor($collection->amount)),
-            'status' => 'RECEIVED',
-            'backUrl' => route('hospital.due-collections.index'),
+            'remarks'           => $collection->remarks,
+            'refundCause'       => null,
+            'amountWords'       => Money::words(Money::minor($collection->amount)),
+            'status'            => 'PAID',
+            'backUrl'           => route('hospital.due-collections.index'),
         ];
     }
 

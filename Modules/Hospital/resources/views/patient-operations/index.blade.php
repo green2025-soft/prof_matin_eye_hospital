@@ -5,19 +5,16 @@
 @section('content')
     @include('core::partials.heading', [
         'title' => $pageTitle,
-        'description' => 'Review patient operations and payments at the selected branch.',
+        'description' => '',
         'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New operation'],
     ])
 
     <section class="app-card overflow-hidden">
-        <div class="app-card-heading d-flex align-items-center gap-2 px-3 px-md-4 py-3 border-bottom">
-            <i class="fa-solid fa-file-invoice text-body-secondary" aria-hidden="true"></i>
-            <h2 class="h6 mb-0">Patient operations</h2>
-        </div>
+
         <form class="px-3 px-md-4 py-3 border-bottom" action="{{ route($routePrefix.'.index') }}" method="GET" aria-label="Filter patient operations">
             <div class="row g-2 align-items-end">
                 <div class="col-md-6 col-xxl-3">
-                    <label class="form-label small" for="search">Search patient operations</label>
+                    <label class="form-label small" for="search">Search Patient Operation</label>
                     <div class="app-input-wrap app-search-field">
                         <i class="fa-solid fa-magnifying-glass app-search-icon" aria-hidden="true"></i>
                         <input class="{{ inputClass('search') }}" id="search" name="search" type="search" value="{{ getValue('search', null, $filters['search'] ?? '') }}" maxlength="80" placeholder="Invoice, ID or entry date starts with..." {{ inputAttrs('search') }}>
@@ -25,7 +22,7 @@
                     @error('search')<div class="invalid-feedback d-block" id="search-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 col-xxl-3">
-                    <label class="form-label small" for="filter_doctor_id">Doctor</label>
+                    <label class="form-label small" for="filter_doctor_id">Select Doctor</label>
                     <select class="{{ inputClass('filter_doctor_id', 'form-select') }}" id="filter_doctor_id" name="filter_doctor_id" data-ajax-select data-url="{{ route('hospital.doctors.options') }}" data-value-field="id" data-label-field="text" data-placeholder="All doctors" {{ inputAttrs('filter_doctor_id') }}>
                         <option value=""></option>
                         @if (($filterDoctor ?? null) !== null)
@@ -62,6 +59,7 @@
                     <thead>
                         <tr>
                             <th scope="col">Date</th>
+                            <th scope="col">Invoice</th>
                             <th scope="col">Patient</th>
                             <th scope="col">Doctor</th>
                             <th class="text-end" scope="col">Amount</th>
@@ -76,16 +74,15 @@
                         @foreach ($records as $patient_operation)
                             <tr>
                                 <td class="small text-nowrap">
-                                    @if ($patient_operation->invoice_no !== null)
-                                        <div class="fw-semibold">Invoice {{ $patient_operation->invoice_no }}</div>
-                                    @endif
+
                                     {{ $patient_operation->entry_date?->format('d M Y') }}
                                     <div class="small text-body-secondary">Operation {{ $patient_operation->operation_date?->format('d M Y') }}</div>
-                                    <div class="small text-body-secondary">#{{ $patient_operation->id }}</div>
+
                                 </td>
-                                <td class="small text-break">
-                                    <div class="fw-semibold">{{ $patient_operation->patient?->patient_id }}</div>
-                                    <div class="text-body-secondary">{{ $patient_operation->patient?->name }}</div>
+                                <td>{{ $patient_operation->invoice_no }}</td>
+                                <td >
+                                    <div>{{ $patient_operation->patient?->patient_id }}</div>
+                                    <div >{{ $patient_operation->patient?->name }}</div>
                                 </td>
                                 <td class="small text-break">{{ $patient_operation->doctor?->name }}</td>
                                 <td class="text-end text-nowrap">{{ $patient_operation->amount }}</td>
@@ -93,13 +90,11 @@
                                 <td class="text-end text-nowrap">{{ $invoiceBalances[$patient_operation->id]['remaining_amount'] }}</td>
                                 <td class="text-end text-nowrap">
                                     {{ $invoiceBalances[$patient_operation->id]['remaining_paid'] }}
-                                    <div class="small text-body-secondary">Initial: {{ $patient_operation->paymentType?->name }}</div>
+                                    <div class="small text-body-secondary">{{ $patient_operation->paymentType?->name }}</div>
                                 </td>
                                 <td class="text-end text-nowrap">
                                     {{ $invoiceBalances[$patient_operation->id]['remaining_due'] }}
-                                    @if ($invoiceBalances[$patient_operation->id]['remaining_due'] !== '0.00')
-                                        <div class="small text-body-secondary">{{ $patient_operation->due_date?->format('d M Y') }}</div>
-                                    @endif
+
                                 </td>
                                 <td>
                                     <div class="d-flex justify-content-end gap-2 text-nowrap">

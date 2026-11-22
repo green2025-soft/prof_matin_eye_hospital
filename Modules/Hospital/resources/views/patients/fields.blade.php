@@ -1,13 +1,13 @@
 @php($usingBirthDate = $ageInput === 'date_of_birth')
 
 <section class="app-form-section" aria-labelledby="{{ $fieldPrefix.'details_heading' }}">
-    <h2 class="app-form-section-title" id="{{ $fieldPrefix.'details_heading' }}">
+    {{-- <h2 class="app-form-section-title" id="{{ $fieldPrefix.'details_heading' }}">
         <span class="app-form-section-icon"><i class="fa-solid fa-hospital-user" aria-hidden="true"></i></span>Patient details
-    </h2>
+    </h2> --}}
 
     <div class="row g-3">
         <div class="col-md-6">
-            <label class="form-label" for="{{ $fieldPrefix.'name' }}">Patient name <span class="text-danger" aria-hidden="true">*</span></label>
+            <label class="form-label" for="{{ $fieldPrefix.'name' }}">Patient Name <span class="text-danger" aria-hidden="true">*</span></label>
             <input class="{{ inputClass('name') }}" id="{{ $fieldPrefix.'name' }}" name="name" type="text" value="{{ getValue('name', $patient) }}" maxlength="255" autocomplete="name" required autofocus {{ inputAttrs('name', $fieldPrefix.'name') }}>
             @error('name')<div class="invalid-feedback d-block" id="{{ $fieldPrefix.'name-error' }}">{{ $message }}</div>@enderror
         </div>

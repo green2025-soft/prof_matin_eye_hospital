@@ -4,7 +4,7 @@
             <form class="modal-content" action="{{ $patientStoreUrl ?? route('hospital.patients.store') }}" method="POST" data-patient-create-form>
                 @csrf
                 <div class="modal-header">
-                    <h2 class="modal-title h5" id="patient-create-modal-heading">New patient</h2>
+                    <h2 class="modal-title h5 text-green" id="patient-create-modal-heading">New Patient</h2>
                     <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -12,7 +12,7 @@
                     <div data-patient-modal-content></div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-warning" type="button" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-danger" type="button" data-bs-dismiss="modal">Cancel</button>
                     <button class="btn btn-primary" type="submit" data-patient-modal-save disabled><i class="fa-solid fa-check me-2" aria-hidden="true"></i>Save</button>
                 </div>
             </form>

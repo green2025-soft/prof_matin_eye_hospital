@@ -24,7 +24,7 @@ class PatientInvestigationController extends BaseController
 {
     protected string $model = PatientInvestigation::class;
 
-    protected string $title = 'Patient investigation';
+    protected string $title = 'Investigation';
 
     protected string $service = PatientInvestigationService::class;
 
@@ -74,6 +74,10 @@ class PatientInvestigationController extends BaseController
             $request->payload(),
             (int) $request->attributes->get('branch_id')
         );
+
+        if(!$this->isUpdate($request)){
+            $this->redirectMode ='create_show';
+        }
 
         return $this->redirectAfterWrite($investigation)
             ->with('status', 'Patient investigation'.($this->isUpdate($request) ? ' updated.' : ' created.'));

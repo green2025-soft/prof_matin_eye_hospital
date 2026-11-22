@@ -3,42 +3,68 @@
 @php($hasAdjustments = $creditAmount !== '0.00' || $collectedAmount !== '0.00')
 
 @section('invoice-content')
-    <div class="table-responsive">
-        <table class="table app-clinical-invoice-table">
-            <caption class="visually-hidden">Consultation and saved consultation fee</caption>
+    <div class="table-responsive invoice-body-font">
+        <table class="table app-invoice-table text-center">
             <thead>
                 <tr>
-                    <th class="app-clinical-invoice-number" scope="col">No.</th>
-                    <th scope="col">Consultation</th>
+                    <th scope="col" class="text-start">Appointment Doctor Name</th>
+                    <th scope="col" class="text-center">Type </th>
                     <th class="app-clinical-invoice-amount text-end" scope="col">Fee (Tk)</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse ($lines as $line)
-                    <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td class="text-break">{{ $line['name'] }}</td>
-                        <td class="text-end text-nowrap">{{ $line['amount'] }}</td>
-                    </tr>
-                @empty
-                    <tr><td class="text-center text-body-secondary" colspan="3">No consultation</td></tr>
-                @endforelse
+                <tr>
+                    <td class="text-start">{{ $doctor?->name ?? '-' }}</td>
+                    <td>{{ (patientTypes()[$objData->patient_type] ?? $objData->patient_type) }}</td>
+                    <td class="text-end text-nowrap">{{ $objData->amount }}</td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <div class="app-invoice-note-paid text-start">
+                            <div class="note-title">Remarks : {{ $remarks??'' }}</div>
+                            <div class="app-invoice-paid">{{ $status }}</div>
+                        </div>
+                    </td>
+                    <td colspan="2" class="p-0">
+                        <table class="table m-0 b-0 ">
+                            <tbody>
+                                <tr>
+                                    <th class="text-start">Total Amount</th>
+                                    <th>:</th>
+                                    <th class="text-end">{{ $amount }}</th>
+                                </tr>
+                                 <tr>
+                                    <th class="text-start">Discount</th>
+                                    <th>:</th>
+                                    <th class="text-end">{{ $discount }}</th>
+                                </tr>
+
+                                 <tr>
+                                    <th class="text-start">Sub Total</th>
+                                    <th>:</th>
+                                    <th class="text-end">{{ $payable }}</th>
+                                </tr>
+                                <tr>
+                                    <th class="text-start">Paid Amount</th>
+                                    <th>:</th>
+                                    <th class="text-end">{{ $paid }}</th>
+                                </tr>
+                                <tr>
+                                    <th class="text-start">Due Amount</th>
+                                    <th>:</th>
+                                    <th class="text-end">{{ $due }}</th>
+                                </tr>
+
+                            </tbody>
+                        </table>
+
+                    </td>
+                </tr>
             </tbody>
         </table>
-    </div>
-
-    <div class="row g-4 app-clinical-invoice-summary">
-        @include('hospital::invoices.notes', ['wordsLabel' => 'Amount in words'])
-        <section class="col-12 col-sm-6 app-clinical-invoice-totals" aria-labelledby="clinical-invoice-totals-title">
-            <h2 class="app-clinical-invoice-section-title" id="clinical-invoice-totals-title">Consultation payment summary</h2>
-            <dl class="mb-0">
-                <div><dt>Consultation fee</dt><dd>{{ $amount }}</dd></div>
-                <div><dt>Discount</dt><dd>{{ $discount }}</dd></div>
-                <div class="app-clinical-invoice-total"><dt>{{ $hasAdjustments ? 'Original payable' : 'Payable' }}</dt><dd>{{ $payable }}</dd></div>
-                <div><dt>{{ $hasAdjustments ? 'Original paid' : 'Paid' }}</dt><dd>{{ $paid }}</dd></div>
-                <div><dt>{{ $hasAdjustments ? 'Original due' : 'Due' }}</dt><dd>{{ $due }}</dd></div>
-            </dl>
-            @include('hospital::invoices.balance')
-        </section>
+         <div class="app-invoice-bottom-info">
+            <p><strong>In Words :</strong> &nbsp; {{amountInWords($paid) }}</p>
+        </div>
     </div>
 @endsection
