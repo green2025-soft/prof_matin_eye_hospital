@@ -42,11 +42,11 @@ class Payment extends BaseModel
 
     public function purchaseAllocations(): HasMany
     {
-        return $this->hasMany(PurchasePaymentAllocation::class, 'payment_id');
+        return $this->hasMany(PurchasePaymentItem::class, 'payment_id');
     }
 
     public function saleAllocations(): HasMany
     {
-        return $this->hasMany(SalePaymentAllocation::class, 'payment_id');
+        return $this->hasMany(SalePaymentItem::class, 'payment_id');
     }
 }

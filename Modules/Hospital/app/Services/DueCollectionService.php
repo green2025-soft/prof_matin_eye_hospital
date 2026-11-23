@@ -19,13 +19,16 @@ class DueCollectionService extends ClinicalEntryService
                 ? $this->invoices->source($collection, lock: true)
                 : $this->invoices->find($collection, $values['invoice'], $branchId, lock: true);
             $state = $this->invoices->balance($source);
-            $previous = $collection->exists ? Money::minor($collection->amount) : 0;
+            $previousAmount = $collection->exists ? Money::minor($collection->amount) : 0;
+            $previousDiscount = $collection->exists
+                ? Money::minor((string) ($collection->discount ?? '0'))
+                : 0;
             $amount = Money::minor($values['amount']);
-            $discount = Money::minor($values['discount'] ?? '0');
-            if ($amount + $discount > $state['remaining_due'] + $previous) {
+            $discount = Money::minor((string) ($values['discount'] ?? '0'));
+            if ($amount + $discount > $state['remaining_due'] + $previousAmount + $previousDiscount) {
                 throw ValidationException::withMessages(['discount' => 'Amount and discount together cannot exceed the outstanding due.']);
             }
-            if ($state['remaining_paid'] + $amount - $previous < 0) {
+            if ($state['remaining_paid'] + $amount - $previousAmount < 0) {
                 throw ValidationException::withMessages(['amount' => 'This payment has funded a refund. Its amount cannot be reduced this far.']);
             }
             if (! $collection->exists) {
@@ -70,9 +73,9 @@ class DueCollectionService extends ClinicalEntryService
                     'name' => $patient->name,
                     'invoice' => $collection->invoice_no,
                     'date' => $collection->collection_date->format('d-m-Y'),
-                    'total' => Money::decimal($state['remaining_amount']),
+                    'total' => Money::decimal($state['remaining_amount'] - $amount - $discount),
                     'paid' => Money::decimal($state['remaining_paid'] + $amount),
-                    'due' => Money::decimal($state['remaining_due'] - $amount),
+                    'due' => Money::decimal($state['remaining_due'] - $amount - $discount),
                     'amount' => $collection->amount,
                 ],
             );
@@ -97,7 +100,11 @@ class DueCollectionService extends ClinicalEntryService
             'remaining_due' => Money::decimal($state['remaining_due']),
             'remaining_paid' => Money::decimal($state['remaining_paid']),
             'remaining_amount' => Money::decimal($state['remaining_amount']),
-            'available_due' => Money::decimal($state['remaining_due'] + ($current?->exists ? Money::minor($current->amount) : 0)),
+            'available_due' => Money::decimal(
+                $state['remaining_due']
+                + ($current?->exists ? Money::minor($current->amount) : 0)
+                + ($current?->exists ? Money::minor((string) ($current->discount ?? '0')) : 0),
+            ),
         ];
     }
 

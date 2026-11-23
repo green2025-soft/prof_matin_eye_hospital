@@ -18,7 +18,9 @@
         <div class="app-report-context">Period: {{ $fromDate }} to {{ $toDate }}</div>
 
         @section('report-summary')
-            @include('tenantcore::reports.partials.balances')
+            @isset($opening, $received, $paid, $closing, $receivable, $payable, $balance)
+                @include('tenantcore::reports.partials.balances')
+            @endisset
         @show
         @yield('report-table')
 

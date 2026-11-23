@@ -65,20 +65,22 @@
     <details class="app-nav-group" @if ($expensesOpen) open @endif>
         <summary class="app-nav-link app-nav-group-toggle{{ $expensesOpen ? ' active' : '' }}" title="Expenses" aria-label="Expenses">
             <span class="app-nav-icon"><i class="fa-solid fa-circle-arrow-up" aria-hidden="true"></i></span>
-            <span class="app-nav-copy">Expenses</span>
+            <span class="app-nav-copy">Expense</span>
             <i class="fa-solid fa-chevron-down app-nav-group-caret ms-auto" aria-hidden="true"></i>
         </summary>
         <div class="app-nav-submenu ps-3">
             @if ($permissions['expenses.view'] ?? false)
                 @include('core::partials.navigation-link', [
-                    'label' => 'Expenses', 'icon' => 'circle-arrow-up',
+                    'label' => 'Expense',
+                    'icon' => 'circle-arrow-up',
                     'url' => route('tenantcore.expenses.index'),
                     'active' => request()->routeIs('tenantcore.expenses.*'),
                 ])
             @endif
             @if ($permissions['expense-heads.view'] ?? false)
                 @include('core::partials.navigation-link', [
-                    'label' => 'Expense Heads', 'icon' => 'list',
+                    'label' => 'Expense Head',
+                    'icon' => 'list',
                     'url' => route('tenantcore.expense-heads.index'),
                     'active' => request()->routeIs('tenantcore.expense-heads.*'),
                 ])
@@ -97,28 +99,32 @@
         <div class="app-nav-submenu ps-3">
             @if ($permissions['accounts.view'] ?? false)
                 @include('core::partials.navigation-link', [
-                    'label' => 'Users', 'icon' => 'users',
+                    'label' => 'User',
+                    'icon' => 'users',
                     'url' => route('tenantcore.accounts.index'),
                     'active' => request()->routeIs('tenantcore.accounts.*'),
                 ])
             @endif
             @if ($canViewBranches)
                 @include('core::partials.navigation-link', [
-                    'label' => 'Branches', 'icon' => 'building',
+                    'label' => 'Branche',
+                    'icon' => 'building',
                     'url' => route('tenantcore.branches.index'),
                     'active' => request()->routeIs('tenantcore.branches.*'),
                 ])
             @endif
             @if ($permissions['roles.view'] ?? false)
                 @include('core::partials.navigation-link', [
-                    'label' => 'Roles', 'icon' => 'shield-halved',
+                    'label' => 'Role',
+                    'icon' => 'shield-halved',
                     'url' => route('core.roles.index'),
                     'active' => request()->routeIs('core.roles.*'),
                 ])
             @endif
             @if ($permissions['permissions.view'] ?? false)
                 @include('core::partials.navigation-link', [
-                    'label' => 'Permissions', 'icon' => 'key',
+                    'label' => 'Permission',
+                    'icon' => 'key',
                     'url' => route('core.permissions.index'),
                     'active' => request()->routeIs('core.permissions.*'),
                 ])
@@ -137,21 +143,24 @@
         <div class="app-nav-submenu ps-3">
             @if ($permissions['divisions.view'] ?? false)
                 @include('core::partials.navigation-link', [
-                    'label' => 'Divisions', 'icon' => 'map-location-dot',
+                    'label' => 'Division',
+                    'icon' => 'map-location-dot',
                     'url' => route('tenantcore.divisions.index'),
                     'active' => request()->routeIs('tenantcore.divisions.*'),
                 ])
             @endif
             @if ($permissions['districts.view'] ?? false)
                 @include('core::partials.navigation-link', [
-                    'label' => 'Districts', 'icon' => 'map',
+                    'label' => 'District',
+                    'icon' => 'map',
                     'url' => route('tenantcore.districts.index'),
                     'active' => request()->routeIs('tenantcore.districts.*'),
                 ])
             @endif
             @if ($permissions['thanas.view'] ?? false)
                 @include('core::partials.navigation-link', [
-                    'label' => 'Thanas', 'icon' => 'location-dot',
+                    'label' => 'Thana',
+                    'icon' => 'location-dot',
                     'url' => route('tenantcore.thanas.index'),
                     'active' => request()->routeIs('tenantcore.thanas.*'),
                 ])
@@ -162,35 +171,40 @@
 
 @if ($permissions['payment-types.view'] ?? false)
     @include('core::partials.navigation-link', [
-        'label' => 'Payment Types', 'icon' => 'money-bill-wave',
+        'label' => 'Payment Type',
+        'icon' => 'money-bill-wave',
         'url' => route('tenantcore.payment-types.index'),
         'active' => request()->routeIs('tenantcore.payment-types.*'),
     ])
 @endif
 @if ($permissions['audit-logs.view'] ?? false)
     @include('core::partials.navigation-link', [
-        'label' => 'Audit Logs', 'icon' => 'clock-rotate-left',
+        'label' => 'Audit Log',
+        'icon' => 'clock-rotate-left',
         'url' => route('tenantcore.audit-logs.index'),
         'active' => request()->routeIs('tenantcore.audit-logs.*'),
     ])
 @endif
 @if ($permissions['billing.view'] ?? false)
     @include('core::partials.navigation-link', [
-        'label' => 'Billing', 'icon' => 'wallet',
+        'label' => 'Billing',
+        'icon' => 'wallet',
         'url' => route('tenantcore.billing.index'),
         'active' => request()->routeIs('tenantcore.billing.*'),
     ])
 @endif
 @if ($permissions['settings.view'] ?? false)
     @include('core::partials.navigation-link', [
-        'label' => 'Settings', 'icon' => 'gear',
+        'label' => 'Settings',
+        'icon' => 'gear',
         'url' => route('tenantcore.settings.index'),
         'active' => request()->routeIs('tenantcore.settings.*'),
     ])
 @endif
 @if ($permissions['sms.view'] ?? false)
     @include('core::partials.navigation-link', [
-        'label' => 'SMS wallet', 'icon' => 'comment-sms',
+        'label' => 'SMS wallet',
+        'icon' => 'comment-sms',
         'url' => route('tenantcore.sms.index'),
         'active' => request()->routeIs('tenantcore.sms.*', 'tenantcore.sms-recharges.*'),
     ])

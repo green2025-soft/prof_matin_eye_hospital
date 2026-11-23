@@ -4,9 +4,9 @@ namespace Modules\Pharmacy\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class PurchasePaymentAllocation extends PaymentAllocation
+class PurchasePaymentItem extends PaymentAllocation
 {
-    protected $table = 'phr_purchase_payment_allocations';
+    protected $table = 'phr_purchase_payment_items';
 
     protected function casts(): array
     {

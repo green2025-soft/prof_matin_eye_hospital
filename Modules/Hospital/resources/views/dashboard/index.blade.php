@@ -23,7 +23,7 @@
                         <a class="btn btn-success bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
                             href="{{ route('hospital.patients.create') }}">
                             <i class="fa-solid fa-user-plus fs-3" aria-hidden="true"></i>
-                            <span class="small fw-semibold">New patient</span>
+                            <span class="small fw-semibold">New Patient</span>
                         </a>
                     </div>
                 @endif
@@ -38,7 +38,7 @@
                 @endif
                 @if ($canCreateConsultation)
                     <div class="col">
-                        <a class="btn btn-info bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
+                        <a class="btn btn-danger bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
                             href="{{ route('hospital.consultations.create') }}">
                             <i class="fa-solid fa-notes-medical fs-3" aria-hidden="true"></i>
                             <span class="small fw-semibold">Consultation</span>
@@ -47,7 +47,7 @@
                 @endif
                 @if ($canCreateInvestigation)
                     <div class="col">
-                        <a class="btn btn-warning bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
+                         <a class="btn btn-primary bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
                             href="{{ route('hospital.patient-investigations.create') }}">
                             <i class="fa-solid fa-flask fs-3" aria-hidden="true"></i>
                             <span class="small fw-semibold">Investigation</span>
@@ -56,7 +56,7 @@
                 @endif
                 @if ($canCreateOperation)
                     <div class="col">
-                        <a class="btn btn-danger bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
+                        <a class="btn btn-success bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
                             href="{{ route('hospital.patient-operations.create') }}">
                             <i class="fa-solid fa-stethoscope fs-3" aria-hidden="true"></i>
                             <span class="small fw-semibold">Operation</span>
@@ -76,7 +76,7 @@
                             <i class="fa-solid fa-hospital-user fs-4" aria-hidden="true"></i>
                         </span>
                         <div>
-                            <h2 class="small fw-medium text-success-emphasis mb-1">Today's patients</h2>
+                            <h2 class="small fw-medium text-success-emphasis mb-1">Today's Patient</h2>
                             <p class="h3 fw-bold text-body-emphasis mb-1">{{ number_format($patientCount) }}</p>
                             <p class="small text-body-secondary mb-0">New Registration</p>
                         </div>
@@ -92,49 +92,49 @@
                         <div>
                             <h2 class="small fw-medium text-primary-emphasis mb-1">Appointment</h2>
                             <p class="h3 fw-bold text-body-emphasis mb-1">{{ number_format($appointmentCount) }}</p>
-                            <p class="small text-body-secondary mb-0">Scheduled for today</p>
+                            <p class="small text-body-secondary mb-0">Schedule for Today</p>
                         </div>
                     </article>
                 </div>
             @endif
             @if ($canViewConsultations)
                 <div class="col flex-grow-1">
-                    <article class="bg-info-subtle border border-info-subtle rounded-3 d-flex align-items-center gap-3 h-100 p-3">
-                        <span class="d-inline-flex align-items-center justify-content-center flex-shrink-0 rounded-circle bg-white text-info-emphasis p-3">
+                    <article class="bg-danger-subtle border border-info-subtle rounded-3 d-flex align-items-center gap-3 h-100 p-3">
+                        <span class="d-inline-flex align-items-center justify-content-center flex-shrink-0 rounded-circle bg-white text-danger p-3">
                             <i class="fa-solid fa-notes-medical fs-4" aria-hidden="true"></i>
                         </span>
                         <div>
                             <h2 class="small fw-medium text-info-emphasis mb-1">Consultation</h2>
                             <p class="h3 fw-bold text-body-emphasis mb-1">{{ number_format($consultationCount) }}</p>
-                            <p class="small text-body-secondary text-break mb-0">&#2547; {{ $consultationPayable }} billed today</p>
+                            <p class="small text-body-secondary text-break mb-0"> {{ $consultationPayable }} Bill Today</p>
                         </div>
                     </article>
                 </div>
             @endif
             @if ($canViewInvestigations)
                 <div class="col flex-grow-1">
-                    <article class="bg-warning-subtle border border-warning-subtle rounded-3 d-flex align-items-center gap-3 h-100 p-3">
-                        <span class="d-inline-flex align-items-center justify-content-center flex-shrink-0 rounded-circle bg-white text-warning-emphasis p-3">
+                     <article class="bg-primary-subtle border border-primary-subtle rounded-3 d-flex align-items-center gap-3 h-100 p-3">
+                        <span class="d-inline-flex align-items-center justify-content-center flex-shrink-0 rounded-circle bg-white text-primary p-3">
                             <i class="fa-solid fa-flask fs-4" aria-hidden="true"></i>
                         </span>
                         <div>
                             <h2 class="small fw-medium text-warning-emphasis mb-1">Investigation</h2>
                             <p class="h3 fw-bold text-body-emphasis mb-1">{{ number_format($investigationCount) }}</p>
-                            <p class="small text-body-secondary text-break mb-0">&#2547; {{ $investigationPayable }} billed today</p>
+                            <p class="small text-body-secondary text-break mb-0">{{ $investigationPayable }} Bill Today</p>
                         </div>
                     </article>
                 </div>
             @endif
             @if ($canViewOperations)
                 <div class="col flex-grow-1">
-                    <article class="bg-danger-subtle border border-danger-subtle rounded-3 d-flex align-items-center gap-3 h-100 p-3">
-                        <span class="d-inline-flex align-items-center justify-content-center flex-shrink-0 rounded-circle bg-white text-danger p-3">
+                    <article class="bg-success-subtle border border-success-subtle rounded-3 d-flex align-items-center gap-3 h-100 p-3">
+                        <span class="d-inline-flex align-items-center justify-content-center flex-shrink-0 rounded-circle bg-white text-success p-3">
                             <i class="fa-solid fa-stethoscope fs-4" aria-hidden="true"></i>
                         </span>
                         <div>
                             <h2 class="small fw-medium text-danger-emphasis mb-1">Operation</h2>
                             <p class="h3 fw-bold text-body-emphasis mb-1">{{ number_format($operationCount) }}</p>
-                            <p class="small text-body-secondary text-break mb-0">&#2547; {{ $operationPayable }} billed today</p>
+                            <p class="small text-body-secondary text-break mb-0"> {{ $operationPayable }} Bill Today</p>
                         </div>
                     </article>
                 </div>
@@ -198,7 +198,11 @@
                         <table class="table table-hover align-middle mb-0">
                             <caption class="visually-hidden">Recently registered patients and contact details</caption>
                             <thead class="table-light">
-                                <tr><th class="px-3 py-2" scope="col">Patient</th><th class="px-3 py-2" scope="col">Mobile</th><th class="text-end px-3 py-2" scope="col">Registered</th></tr>
+                                <tr>
+                                    <th class="px-3 py-2" scope="col">Patient</th>
+                                    <th class="px-3 py-2" scope="col">Mobile</th>
+                                    <th class="text-end px-3 py-2" scope="col">Date</th>
+                                </tr>
                             </thead>
                             <tbody>
                                 @forelse ($recentPatients as $patient)

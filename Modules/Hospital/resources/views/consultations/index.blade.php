@@ -66,9 +66,9 @@
                             <th scope="col">Doctor</th>
                             <th class="text-end" scope="col">Amount</th>
                             <th class="text-end" scope="col">Discount</th>
-                            <th class="text-end" scope="col">Current payable</th>
-                            <th class="text-end" scope="col">Current paid</th>
-                            <th class="text-end" scope="col">Current due</th>
+                            <th class="text-end" scope="col">Payable</th>
+                            <th class="text-end" scope="col">Total paid</th>
+                            <th class="text-end" scope="col">Rest due</th>
                             <th class="text-end" scope="col">Actions</th>
                         </tr>
                     </thead>

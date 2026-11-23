@@ -22,7 +22,15 @@
                         <div class="table-responsive">
                             <table class="table table-sm app-glass-eye-table align-middle mb-0">
                                 <caption class="visually-hidden">Right eye (OD) distance and near vision powers</caption>
-                                <thead><tr><th scope="col">Vision</th><th scope="col">SPH</th><th scope="col">CYL</th><th scope="col">Axis</th><th scope="col">V/A</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Vision</th>
+                                        <th scope="col">SPH</th>
+                                        <th scope="col">CYL</th>
+                                        <th scope="col">Axis</th>
+                                        <th scope="col">V/A</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     <tr>
                                         <th scope="row">DV</th>

@@ -13,10 +13,10 @@
 
         <div class="row g-3 mb-4">
             <div class="col-md-4">
-                <label class="form-label" for="voucher-type">Voucher type <span class="text-danger">*</span></label>
+                <label class="form-label" for="voucher-type">Voucher Type <span class="text-danger">*</span></label>
                 <select class="{{ inputClass('voucher_type_id', 'form-select') }}" id="voucher-type" name="voucher_type_id"
                     required {{ inputAttrs('voucher_type_id', 'voucher-type') }}>
-                    <option value="">Select type</option>
+                    <option value="">Select Type</option>
                     @foreach ($voucherTypes as $type)
                         <option value="{{ $type->id }}" {{ getSelected($type->id, 'voucher_type_id', $journal_entry) }}>{{ $type->name }}</option>
                     @endforeach

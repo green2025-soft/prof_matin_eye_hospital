@@ -59,6 +59,9 @@
                         <th scope="col" class="text-end">Cash</th>
                         <th scope="col" class="text-end">Discount</th>
                         <th scope="col">Status</th>
+                        @if($canDelete)
+                            <th scope="col" class="text-end">Actions</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -84,10 +87,28 @@
                             <td>
                                 {{ $record->voided_at ? 'Voided' : 'Posted' }}
                             </td>
+                            @if($canDelete)
+                                <td class="text-end">
+                                    <form
+                                        action="{{ route('pharmacy.payments.destroy', [
+                                            'payment' => $record,
+                                            'product_type' => $record->product_type,
+                                            'direction' => $record->direction,
+                                        ]) }}"
+                                        method="POST"
+                                        data-confirm="Permanently delete this payment? Active invoice and journal effects will be reversed.">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-outline-danger btn-sm" type="submit">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>
-                            <td class="text-center text-body-secondary py-4" colspan="6">No payments found.</td>
+                            <td class="text-center text-body-secondary py-4" colspan="{{ 6 + (int) $canDelete }}">No payments found.</td>
                         </tr>
                     @endforelse
                 </tbody>

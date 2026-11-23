@@ -103,7 +103,7 @@ Route::middleware(['web', 'auth', 'tenant', 'access'])->prefix('pharmacy')->name
             Route::get('invoices', 'invoices')->name('invoices');
             Route::post('{payment}/void', 'reverse')->name('void');
         });
-        Route::resource('payments', PaymentController::class)->only(['index', 'create', 'store', 'show']);
+        Route::resource('payments', PaymentController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
 
         Route::prefix('reports')->name('reports.')->group(function (): void {
             Route::get('cash-balance', [CashBalanceReportController::class, 'index'])->name('cash-balance');

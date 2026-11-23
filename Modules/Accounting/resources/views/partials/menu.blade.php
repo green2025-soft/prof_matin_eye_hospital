@@ -9,7 +9,7 @@
 @endif
 @if ($moduleMenu['permissions']['accounting-journals.view'] ?? false)
     @include('core::partials.navigation-link', [
-        'label' => 'Vouchers',
+        'label' => 'Voucher',
         'icon' => 'receipt',
         'url' => route('accounting.journal-entries.index'),
         'active' => request()->routeIs('accounting.journal-entries.*'),
@@ -83,13 +83,13 @@
         </summary>
         <div class="app-nav-submenu ps-3">
             @include('core::partials.navigation-link', [
-                'label' => 'Account mappings',
+                'label' => 'Account Mapping',
                 'icon' => 'arrows-to-circle',
                 'url' => route('accounting.account-modules.index'),
                 'active' => request()->routeIs('accounting.account-modules.*'),
             ])
             @include('core::partials.navigation-link', [
-                'label' => 'Payment accounts',
+                'label' => 'Payment Account',
                 'icon' => 'money-bill-transfer',
                 'url' => route('accounting.payment-accounts.index'),
                 'active' => request()->routeIs('accounting.payment-accounts.*'),

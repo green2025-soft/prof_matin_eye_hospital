@@ -314,15 +314,45 @@ class PaymentService
             if ($payment->voided_at !== null) {
                 throw ValidationException::withMessages(['payment' => 'This payment has already been voided.']);
             }
-            if ($payment->direction === 'customer') {
-                $this->reverseCustomerPayment($payment);
-            } else {
-                $this->reverseSupplierPayment($payment);
-            }
-            $this->journals->reverse($payment);
-            $payment->voided_at = now();
-            $payment->save();
+            $this->reversePayment($payment);
         });
+    }
+
+    public function delete(Account $actor, Payment $record): void
+    {
+        $actor->withAccessLock(function (Account $freshActor) use ($record): void {
+            $this->pharmacy->authorize($freshActor, 'pharmacy-payments.delete');
+            $payment = Payment::whereKey($record->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($payment->voided_at === null) {
+                $this->reversePayment($payment);
+            }
+
+            foreach ($payment->purchaseAllocations()->get() as $allocation) {
+                $allocation->delete();
+            }
+
+            foreach ($payment->saleAllocations()->get() as $allocation) {
+                $allocation->delete();
+            }
+
+            $payment->delete();
+        });
+    }
+
+    private function reversePayment(Payment $payment): void
+    {
+        if ($payment->direction === 'customer') {
+            $this->reverseCustomerPayment($payment);
+        } else {
+            $this->reverseSupplierPayment($payment);
+        }
+
+        $this->journals->reverse($payment);
+        $payment->voided_at = now();
+        $payment->save();
     }
 
     private function reverseCustomerPayment(Payment $payment): void
@@ -360,7 +390,7 @@ class PaymentService
         if ($invoice === null || $invoice->voided_at !== null
             || $invoice->paid - $amount < $invoice->refunded
             || $invoice->settlement_discount < $discount) {
-            throw ValidationException::withMessages(['payment' => 'A linked invoice has a refund. Reverse that return before voiding this payment.']);
+            throw ValidationException::withMessages(['payment' => 'A linked invoice has a refund. Reverse that return before deleting or voiding this payment.']);
         }
         $invoice->paid -= $amount;
         $invoice->settlement_discount -= $discount;

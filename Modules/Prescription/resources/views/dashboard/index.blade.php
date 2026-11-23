@@ -23,7 +23,7 @@
                         <a class="btn btn-primary bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
                             href="{{ route('prescription.prescriptions.create') }}">
                             <i class="fa-solid fa-file-circle-plus fs-3" aria-hidden="true"></i>
-                            <span class="small fw-semibold">New prescription</span>
+                            <span class="small fw-semibold">New Prescription</span>
                         </a>
                     </div>
                 @endif
@@ -32,7 +32,7 @@
                         <a class="btn btn-info bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
                             href="{{ route('prescription.glass-prescriptions.create') }}">
                             <i class="fa-solid fa-glasses fs-3" aria-hidden="true"></i>
-                            <span class="small fw-semibold">New glass prescription</span>
+                            <span class="small fw-semibold">New Glass Prescription</span>
                         </a>
                     </div>
                 @endif
@@ -41,7 +41,7 @@
                         <a class="btn btn-success bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
                             href="{{ route('prescription.prescriptions.index') }}">
                             <i class="fa-solid fa-file-prescription fs-3" aria-hidden="true"></i>
-                            <span class="small fw-semibold">General prescriptions</span>
+                            <span class="small fw-semibold">General Prescription</span>
                         </a>
                     </div>
                 @endif
@@ -50,7 +50,7 @@
                         <a class="btn btn-warning bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
                             href="{{ route('prescription.glass-prescriptions.index') }}">
                             <i class="fa-solid fa-list-check fs-3" aria-hidden="true"></i>
-                            <span class="small fw-semibold">Glass prescriptions</span>
+                            <span class="small fw-semibold">Glass Prescription</span>
                         </a>
                     </div>
                 @endif
@@ -66,7 +66,7 @@
                         <i class="fa-solid fa-file-prescription fs-4" aria-hidden="true"></i>
                     </span>
                     <div>
-                        <h2 class="small fw-medium text-primary-emphasis mb-1">Today's total</h2>
+                        <h2 class="small fw-medium text-primary-emphasis mb-1">Today's Total</h2>
                         <p class="h3 fw-bold text-body-emphasis mb-1">{{ number_format($totalToday) }}</p>
                         <p class="small text-body-secondary mb-0">From your available lists</p>
                     </div>
@@ -79,9 +79,9 @@
                             <i class="fa-solid fa-prescription fs-4" aria-hidden="true"></i>
                         </span>
                         <div>
-                            <h2 class="small fw-medium text-success-emphasis mb-1">General prescriptions</h2>
+                            <h2 class="small fw-medium text-success-emphasis mb-1">General Prescription</h2>
                             <p class="h3 fw-bold text-body-emphasis mb-1">{{ number_format($generalToday) }}</p>
-                            <p class="small text-body-secondary mb-0">Prescribed today</p>
+                            <p class="small text-body-secondary mb-0">Prescribed Today</p>
                         </div>
                     </article>
                 </div>
@@ -93,9 +93,9 @@
                             <i class="fa-solid fa-glasses fs-4" aria-hidden="true"></i>
                         </span>
                         <div>
-                            <h2 class="small fw-medium text-info-emphasis mb-1">Glass prescriptions</h2>
+                            <h2 class="small fw-medium text-info-emphasis mb-1">Glass Prescription</h2>
                             <p class="h3 fw-bold text-body-emphasis mb-1">{{ number_format($glassToday) }}</p>
-                            <p class="small text-body-secondary mb-0">Prescribed today</p>
+                            <p class="small text-body-secondary mb-0">Prescribed Today</p>
                         </div>
                     </article>
                 </div>
@@ -108,8 +108,8 @@
                     <section class="app-card overflow-hidden h-100" aria-labelledby="prescription-recent-general-heading">
                         <header class="d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 border-bottom bg-success-subtle">
                             <div>
-                                <h2 class="h6 fw-semibold mb-1" id="prescription-recent-general-heading">Recent general prescriptions</h2>
-                                <p class="small text-body-secondary mb-0">Latest 6 prescriptions</p>
+                                <h2 class="h6 fw-semibold mb-1" id="prescription-recent-general-heading">Recent General Prescription</h2>
+                                <p class="small text-body-secondary mb-0">Latest 6 Prescriptions</p>
                             </div>
                             <a class="btn btn-success btn-sm" href="{{ route('prescription.prescriptions.index') }}">View all</a>
                         </header>
@@ -126,8 +126,8 @@
                     <section class="app-card overflow-hidden h-100" aria-labelledby="prescription-recent-glass-heading">
                         <header class="d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 border-bottom bg-info-subtle">
                             <div>
-                                <h2 class="h6 fw-semibold mb-1" id="prescription-recent-glass-heading">Recent glass prescriptions</h2>
-                                <p class="small text-body-secondary mb-0">Latest 6 prescriptions</p>
+                                <h2 class="h6 fw-semibold mb-1" id="prescription-recent-glass-heading">Recent Glass Prescription</h2>
+                                <p class="small text-body-secondary mb-0">Latest 6 Prescriptions</p>
                             </div>
                             <a class="btn btn-info btn-sm" href="{{ route('prescription.glass-prescriptions.index') }}">View all</a>
                         </header>

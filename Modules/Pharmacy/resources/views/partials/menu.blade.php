@@ -124,27 +124,30 @@
         <details class="app-nav-group" @if (($isMedicine && request()->routeIs('pharmacy.suppliers.*', 'pharmacy.payments.*'))) open @endif>
             <summary class="app-nav-link app-nav-group-toggle{{ ($isMedicine && request()->routeIs('pharmacy.suppliers.*', 'pharmacy.payments.*')) ? ' active' : '' }}" title="Medicine People & payments">
                 <span class="app-nav-icon"><i class="fa-solid fa-users" aria-hidden="true"></i></span>
-                <span class="app-nav-copy">People & payments</span>
+                <span class="app-nav-copy">Payment</span>
                 <i class="fa-solid fa-chevron-down app-nav-group-caret ms-auto" aria-hidden="true"></i>
             </summary>
             <div class="app-nav-submenu ps-3">
-                @if ($permissions['pharmacy-suppliers.view'] ?? false)
-                    @include('core::partials.navigation-link', [
-                        'label' => 'Suppliers', 'icon' => 'truck',
-                        'url' => route('pharmacy.suppliers.index', ['type' => 'medicine']),
-                        'active' => ($isMedicine && request()->routeIs('pharmacy.suppliers.*')),
-                    ])
-                @endif
+
                 @if ($permissions['pharmacy-payments.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Customer payments', 'icon' => 'money-bill-transfer',
+                        'label' => 'Customer Collection',
+                         'icon' => 'money-bill-transfer',
                         'url' => route('pharmacy.payments.index', ['product_type' => 'medicine', 'direction' => 'customer']),
                         'active' => ($isMedicine && request()->routeIs('pharmacy.payments.*') && $paymentDirection === 'customer'),
                     ])
                     @include('core::partials.navigation-link', [
-                        'label' => 'Supplier payments', 'icon' => 'money-bill-transfer',
+                        'label' => 'Supplier Payment', 'icon' => 'money-bill-transfer',
                         'url' => route('pharmacy.payments.index', ['product_type' => 'medicine', 'direction' => 'supplier']),
                         'active' => ($isMedicine && request()->routeIs('pharmacy.payments.*') && $paymentDirection === 'supplier'),
+                    ])
+                @endif
+                 @if ($permissions['pharmacy-suppliers.view'] ?? false)
+                    @include('core::partials.navigation-link', [
+                        'label' => 'Create Supplier',
+                        'icon' => 'truck',
+                        'url' => route('pharmacy.suppliers.index', ['type' => 'medicine']),
+                        'active' => ($isMedicine && request()->routeIs('pharmacy.suppliers.*')),
                     ])
                 @endif
             </div>

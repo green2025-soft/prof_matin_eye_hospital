@@ -95,6 +95,30 @@
                         aria-labelledby="prescription-treatment-tab" tabindex="0">
                         <img class="app-prescription-watermark" src="{{ asset('prescription-bg.png') }}"
                             width="500" height="500" alt="">
+
+
+                        <div class="row g-2 align-items-start mb-3">
+                            <div class="col-4 col-md-4">
+                                <label class="form-label" for="treatment_title"><b>Title</b></label>
+                                <input class="{{ inputClass('treatment_title') }}" id="treatment_title" type="text"
+                                    name="treatment_title" maxlength="255" required
+                                    value="{{ getValue('treatment_title', $record, 'Treatment Plan') }}"
+                                    {{ inputAttrs('treatment_title', 'treatment_title') }}>
+                                @error('treatment_title')
+                                    <div class="invalid-feedback d-block" id="treatment_title-error">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-8 col-md-8">
+                                <label class="form-label" for="treatment_value"><b>Value</b></label>
+                                <textarea class="{{ inputClass('treatment_value') }}" id="treatment_value"
+                                    name="treatment_value" rows="1"
+                                    {{ inputAttrs('treatment_value', 'treatment_value') }}>{{ getValue('treatment_value', $record) }}</textarea>
+                                @error('treatment_value')
+                                    <div class="invalid-feedback d-block" id="treatment_value-error">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
                         <div class="app-prescription-section-heading d-flex align-items-center gap-2">
                             <h2 class="app-prescription-rx mb-0"><i class="fa-solid fa-prescription" aria-hidden="true"></i></h2>
                             <button class="btn btn-outline-primary btn-sm" type="button"
@@ -106,9 +130,12 @@
                             <span class="small text-body-secondary ms-auto" id="prescription-medicine-count"
                                 aria-live="polite" aria-atomic="true"></span>
                         </div>
-
-                        <ol class="app-prescription-rx-preview list-unstyled mb-0" id="prescription-medicine-preview"></ol>
+                         <ol class="app-prescription-rx-preview list-unstyled mb-0" id="prescription-medicine-preview"></ol>
                         <p class="small text-body-secondary" id="prescription-medicine-empty">No medicines added.</p>
+
+
+
+
 
                         <div class="app-prescription-editor-advice">
                             @if ($settings['general_advice_enabled'])

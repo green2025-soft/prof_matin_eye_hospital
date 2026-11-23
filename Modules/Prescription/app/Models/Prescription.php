@@ -13,8 +13,8 @@ use Modules\Prescription\Policies\PrescriptionPolicy;
 #[UsePolicy(PrescriptionPolicy::class)]
 #[Fillable([
     'patient_id', 'doctor_id', 'prescription_date', 'chief_complaints', 'section_details', 'history', 'history_details',
-    'examination', 'examination_details', 'diagnosis', 'investigations', 'advice', 'follow_up_date', 'follow_up_notes',
-    'follow_up_interval', 'follow_up_interval_unit',
+    'examination', 'examination_details', 'diagnosis', 'investigations', 'advice', 'treatment_title', 'treatment_value',
+    'follow_up_date', 'follow_up_notes', 'follow_up_interval', 'follow_up_interval_unit',
 ])]
 class Prescription extends BaseModel
 {
@@ -25,7 +25,8 @@ class Prescription extends BaseModel
     protected array $exposed = [
         'id', 'rx_number', 'branch_id', 'patient_id', 'doctor_id', 'prescription_date', 'chief_complaints', 'section_details',
         'history', 'history_details', 'examination', 'examination_details', 'diagnosis', 'investigations',
-        'advice', 'follow_up_date', 'follow_up_notes', 'follow_up_interval', 'follow_up_interval_unit', 'created_at', 'updated_at',
+        'advice', 'treatment_title', 'treatment_value', 'follow_up_date', 'follow_up_notes', 'follow_up_interval',
+        'follow_up_interval_unit', 'created_at', 'updated_at',
     ];
 
     protected array $listColumns = ['id', 'rx_number', 'branch_id', 'patient_id', 'doctor_id', 'prescription_date', 'follow_up_date', 'created_at'];
@@ -54,14 +55,14 @@ class Prescription extends BaseModel
     protected function casts(): array
     {
         return [
-            'branch_id' => 'integer',
-            'patient_id' => 'integer',
-            'doctor_id' => 'integer',
+            'branch_id'         => 'integer',
+            'patient_id'        => 'integer',
+            'doctor_id'         => 'integer',
             'prescription_date' => 'date',
-            'follow_up_date' => 'date',
+            'follow_up_date'    => 'date',
             'follow_up_interval' => 'integer',
-            'section_details' => 'array',
-            'history_details' => 'array',
+            'section_details'   => 'array',
+            'history_details'   => 'array',
             'examination_details' => 'array',
         ];
     }

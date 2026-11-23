@@ -2,11 +2,16 @@
 
 namespace Modules\Pharmacy\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class SalePaymentAllocation extends PaymentAllocation
+
+#[Fillable(['payment_id', 'sale_id', 'amount', 'discount'])]
+class SalePaymentItem extends PaymentAllocation
 {
-    protected $table = 'phr_sale_payment_allocations';
+    protected $table = 'phr_sale_payment_items';
+
+    protected array $exposed = ['id', 'payment_id', 'sale_id', 'amount', 'discount'];
 
     protected function casts(): array
     {

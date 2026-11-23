@@ -176,31 +176,95 @@ function appendHeight($list) {
     });
 }
 
+// Show all entered visual-acuity readings together.
+function appendVisualAcuity($list) {
+    const $odWithout = $('#exam_va_od_without_glasses');
+    const $odWith = $('#exam_va_od_with_glasses');
+    const $osWithout = $('#exam_va_os_without_glasses');
+    const $osWith = $('#exam_va_os_with_glasses');
+    const odWithout = fieldValue($odWithout);
+    const odWith = fieldValue($odWith);
+    const osWithout = fieldValue($osWithout);
+    const osWith = fieldValue($osWith);
+    const rows = [];
+
+    if (odWithout || odWith) rows.push('OD: ' + (odWithout || '\u2014') + ' / ' + (odWith || '\u2014'));
+    if (osWithout || osWith) rows.push('OS: ' + (osWithout || '\u2014') + ' / ' + (osWith || '\u2014'));
+    if (!rows.length) return;
+
+    const $fields = $odWithout.add($odWith).add($osWithout).add($osWith);
+    appendPreviewItem($list, rows.join('; '), () => {
+        $fields.val('');
+        $fields.first().trigger('change');
+    });
+}
+
+// Show paired right/left findings and clear both values from the pad action.
+function appendPairedEyeFinding($list, odId, osId) {
+    const $od = $('#' + odId);
+    const $os = $('#' + osId);
+    const od = fieldValue($od);
+    const os = fieldValue($os);
+    const values = [
+        od && 'OD: ' + od,
+        os && 'OS: ' + os,
+    ].filter(Boolean);
+
+    if (!values.length) return;
+
+    appendPreviewItem($list, values.join(', '), () => {
+        $od.add($os).val('');
+        $od.trigger('change');
+    });
+}
+
 // Refresh examination observations and measurements when their fields change.
 function initializeExaminationPreviews() {
     const $fields = $('#prescription-examination-modal :input[name^="examination_details["]');
-    const $list = $('#examination-measurements-preview');
+    const $generalList = $('#examination-general-preview');
+    const $visualAcuityList = $('#examination-visual-acuity-preview');
+    const $anteriorSegmentList = $('#examination-anterior-segment-preview');
+    const $iopList = $('#examination-iop-preview');
+    const $fluoresceinList = $('#examination-fluorescein-preview');
+    const $schirmerList = $('#examination-schirmer-preview');
+    const $fundusList = $('#examination-fundus-preview');
+    const previewLists = [
+        $generalList,
+        $visualAcuityList,
+        $anteriorSegmentList,
+        $iopList,
+        $fluoresceinList,
+        $schirmerList,
+        $fundusList,
+    ];
 
     // Render only the measurements the doctor entered or chose to display.
     function refreshMeasurements() {
-        $list.empty();
-        appendBloodPressure($list);
-        appendPulse($list);
-        appendTemperature($list);
+        previewLists.forEach($list => $list.empty());
+        appendBloodPressure($generalList);
+        appendPulse($generalList);
+        appendTemperature($generalList);
         if ($('#exam_weight_visible').is(':checked')) {
-            appendMeasurement($list, $('#exam_weight'), 'Weight', 'kg');
+            appendMeasurement($generalList, $('#exam_weight'), 'Weight', 'kg');
         }
-        appendHeight($list);
-        appendMeasurement($list, $('#exam_spo2'), 'SpO2', '%');
-        appendMeasurement($list, $('#exam_bmi'), 'BMI');
-        appendMeasurement($list, $('#exam_bsa'), 'BSA');
-        appendMeasurement($list, $('#exam_bmr'), 'BMR');
-        appendMeasurement($list, $('#exam_tdee'), 'TDEE');
-        appendMeasurement($list, $('#exam_activity'), 'Activity');
-        appendMeasurement($list, $('#exam_ideal_weight'), 'Ideal weight', 'kg');
-        appendMeasurement($list, $('#exam_ideal_bmi'), 'Ideal BMI');
-        appendMeasurement($list, $('#exam_extra_calories'), 'Extra Cal', 'Cal');
-        appendMeasurement($list, $('#exam_target_calories'), 'Target daily Cal', 'Cal');
+        appendHeight($generalList);
+        appendMeasurement($generalList, $('#exam_spo2'), 'SpO2', '%');
+        appendMeasurement($generalList, $('#exam_bmi'), 'BMI');
+        appendMeasurement($generalList, $('#exam_bsa'), 'BSA');
+        appendMeasurement($generalList, $('#exam_bmr'), 'BMR');
+        appendMeasurement($generalList, $('#exam_tdee'), 'TDEE');
+        appendMeasurement($generalList, $('#exam_activity'), 'Activity');
+        appendMeasurement($generalList, $('#exam_ideal_weight'), 'Ideal weight', 'kg');
+        appendMeasurement($generalList, $('#exam_ideal_bmi'), 'Ideal BMI');
+        appendMeasurement($generalList, $('#exam_extra_calories'), 'Extra Cal', 'Cal');
+        appendMeasurement($generalList, $('#exam_target_calories'), 'Target daily Cal', 'Cal');
+        appendVisualAcuity($visualAcuityList);
+        appendPairedEyeFinding($anteriorSegmentList, 'exam_anterior_segment_od', 'exam_anterior_segment_os');
+        appendPairedEyeFinding($iopList, 'exam_iop_od', 'exam_iop_os');
+        appendPairedEyeFinding($fluoresceinList, 'exam_fluorescein_od', 'exam_fluorescein_os');
+        appendPairedEyeFinding($schirmerList, 'exam_schirmer_od', 'exam_schirmer_os');
+        appendPairedEyeFinding($fundusList, 'exam_fundus_od', 'exam_fundus_os');
+        previewLists.forEach(updatePreviewGroup);
     }
 
     bindNotePreview($('#examination'), $('#examination-observation-preview'));

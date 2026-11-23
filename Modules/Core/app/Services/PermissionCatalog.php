@@ -30,14 +30,15 @@ class PermissionCatalog
             $group = $groups[$resource] ?? [];
             $areaLabel = $group['area'] ?? 'General';
             $areaKey = Str::slug($areaLabel);
+            $groupKey = $group['group_key'] ?? $resource;
             $areas[$areaKey]['key'] = $areaKey;
             $areas[$areaKey]['label'] = $areaLabel;
-            $areas[$areaKey]['groups'][$resource]['key'] = $resource;
-            $areas[$areaKey]['groups'][$resource]['label'] = $group['label'] ?? Str::headline($resource);
-            $areas[$areaKey]['groups'][$resource]['permissions'][] = [
+            $areas[$areaKey]['groups'][$groupKey]['key'] = $groupKey;
+            $areas[$areaKey]['groups'][$groupKey]['label'] = $group['label'] ?? Str::headline($resource);
+            $areas[$areaKey]['groups'][$groupKey]['permissions'][] = [
                 'id' => $id,
                 'name' => $name,
-                'label' => $actions[$action] ?? Str::headline($action),
+                'label' => $group['permission_label'] ?? $actions[$action] ?? Str::headline($action),
             ];
         }
 

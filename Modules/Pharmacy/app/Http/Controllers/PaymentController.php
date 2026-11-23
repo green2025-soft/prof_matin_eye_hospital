@@ -81,6 +81,7 @@ class PaymentController extends BaseController
             'customers' => $customers,
             'suppliers' => $suppliers,
             'canCreate' => isset($permissions['pharmacy-payments.create']),
+            'canDelete' => isset($permissions['pharmacy-payments.delete']),
         ];
 
         return $this->listData($request, $data);
@@ -119,6 +120,7 @@ class PaymentController extends BaseController
             'customer' => $customer,
             'supplier' => $supplier,
             'canVoid' => $payment->voided_at === null && isset($permissions['pharmacy-payments.void']),
+            'canDelete' => isset($permissions['pharmacy-payments.delete']),
         ];
 
         return view('pharmacy::payments.show', $data);

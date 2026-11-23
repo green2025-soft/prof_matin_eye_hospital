@@ -4,11 +4,11 @@
 
 @section('content')
     @include('core::partials.heading', [
-        'title' => 'Vouchers',
+        'title' => 'Voucher',
         'create' => [
             'model' => resourceModel($routePrefix.'.create'),
             'url' => route($routePrefix.'.create'),
-            'label' => 'New voucher',
+            'label' => 'New Voucher',
         ],
     ])
 

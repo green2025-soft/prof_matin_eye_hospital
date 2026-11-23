@@ -18,6 +18,22 @@
                     </button>
                 </form>
             @endif
+            @if($canDelete)
+                <form
+                    action="{{ route('pharmacy.payments.destroy', [
+                        'payment' => $payment,
+                        'product_type' => $payment->product_type,
+                        'direction' => $payment->direction,
+                    ]) }}"
+                    method="POST"
+                    data-confirm="Permanently delete this payment? Active invoice and journal effects will be reversed.">
+                    @csrf
+                    @method('DELETE')
+                    <button class="btn btn-danger" type="submit">
+                        Delete
+                    </button>
+                </form>
+            @endif
         </div>
     </div>
     <section class="app-card p-3 p-md-4">

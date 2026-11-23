@@ -44,7 +44,12 @@
         </aside>
 
         <div class="app-prescription-treatment">
-            <h5><u>Treatment Plan</u></h5>
+            <dl class="row g-1 mb-2">
+                <dt class="col-4 text-break">
+                    {{ filled($prescription->treatment_title) ? $prescription->treatment_title : 'Treatment Plan' }}
+                </dt>
+                <dd class="col-8 app-prescription-text mb-0">{{ $prescription->treatment_value?':':'' }} {{ $prescription->treatment_value }}</dd>
+            </dl>
             {{-- <h3 class="app-prescription-rx">℞</h3> --}}
             <h5><i class="fa-solid fa-prescription" aria-hidden="true"></i></h5>
             <ol class="app-prescription-medicine-list">

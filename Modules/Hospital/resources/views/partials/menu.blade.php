@@ -5,7 +5,7 @@
     $setupOpen = request()->routeIs('hospital.departments.*', 'hospital.investigation-categories.*', 'hospital.investigations.*', 'hospital.operation-categories.*', 'hospital.operations.*', 'hospital.refund-causes.*');
 @endphp
 
-<p class="app-nav-label">Hospital</p>
+{{-- <p class="app-nav-label">Hospital</p> --}}
 @if (($permissions['appointments.view'] ?? false)
     || ($permissions['consultations.view'] ?? false)
     || ($permissions['patient-investigations.view'] ?? false)
@@ -81,8 +81,11 @@
         </div>
     </details>
 @endif
-@if ($permissions['hospital-cash-report.view'] ?? false)
+{{-- @if ($permissions['hospital-cash-report.view'] ?? false)
     @include('core::partials.navigation-link', ['label' => 'Cash & Due Balance', 'icon' => 'money-bill-wave', 'url' => route('hospital.reports.cash-balance'), 'active' => request()->routeIs('hospital.reports.cash-balance')])
+@endif --}}
+@if ($permissions['hospital-patient-due.view'] ?? false)
+    @include('core::partials.navigation-link', ['label' => 'Patient Due List', 'icon' => 'file-invoice-dollar', 'url' => route('hospital.reports.patient-due'), 'active' => request()->routeIs('hospital.reports.patient-due')])
 @endif
 
 @if (($permissions['patients.view'] ?? false)

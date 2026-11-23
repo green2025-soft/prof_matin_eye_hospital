@@ -36,7 +36,7 @@ class DueCollection extends BaseModel
 
     protected function casts(): array
     {
-        return ['branch_id' => 'integer', 'consultation_id' => 'integer', 'investigation_id' => 'integer', 'operation_id' => 'integer', 'payment_type_id' => 'integer', 'collection_date' => 'date', 'amount' => 'decimal:2'];
+        return ['branch_id' => 'integer', 'consultation_id' => 'integer', 'investigation_id' => 'integer', 'operation_id' => 'integer', 'payment_type_id' => 'integer', 'collection_date' => 'date', 'amount' => 'decimal:2', 'discount' => 'decimal:2'];
     }
 
     public function serviceType(): string

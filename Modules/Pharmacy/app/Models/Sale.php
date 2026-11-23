@@ -60,7 +60,7 @@ class Sale extends StockEntry
 
     public function paymentAllocations(): HasMany
     {
-        return $this->hasMany(SalePaymentAllocation::class);
+        return $this->hasMany(SalePaymentItem::class);
     }
 
     public function paymentType(): BelongsTo

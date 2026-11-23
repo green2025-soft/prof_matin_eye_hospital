@@ -70,7 +70,7 @@ class Purchase extends StockEntry
 
     public function paymentAllocations(): HasMany
     {
-        return $this->hasMany(PurchasePaymentAllocation::class);
+        return $this->hasMany(PurchasePaymentItem::class);
     }
 
     public function paymentType(): BelongsTo

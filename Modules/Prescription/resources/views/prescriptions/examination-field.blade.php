@@ -8,7 +8,34 @@
     </div>
     <div class="app-prescription-section-preview" id="examination-preview">
         <ul id="examination-observation-preview"></ul>
-        <ul id="examination-measurements-preview"></ul>
+        <section class="app-prescription-preview-group mt-2" hidden>
+            <h4>General:</h4>
+            <ul id="examination-general-preview"></ul>
+        </section>
+        <section class="app-prescription-preview-group mt-2" hidden>
+            <h4>V/A (Without / With Glasses):</h4>
+            <ul id="examination-visual-acuity-preview"></ul>
+        </section>
+        <section class="app-prescription-preview-group mt-2" hidden>
+            <h4>A/S:</h4>
+            <ul id="examination-anterior-segment-preview"></ul>
+        </section>
+        <section class="app-prescription-preview-group mt-2" hidden>
+            <h4>IOP:</h4>
+            <ul id="examination-iop-preview"></ul>
+        </section>
+        <section class="app-prescription-preview-group mt-2" hidden>
+            <h4>FL Stain:</h4>
+            <ul id="examination-fluorescein-preview"></ul>
+        </section>
+        <section class="app-prescription-preview-group mt-2" hidden>
+            <h4>Schirmer's Test:</h4>
+            <ul id="examination-schirmer-preview"></ul>
+        </section>
+        <section class="app-prescription-preview-group mt-2" hidden>
+            <h4>Fundus Oculi:</h4>
+            <ul id="examination-fundus-preview"></ul>
+        </section>
     </div>
 </section>
 
@@ -30,16 +57,22 @@
                         <div class="invalid-feedback d-block mb-3">{{ $message }}</div>
                     @enderror
                     <div class="nav nav-tabs mb-3" role="tablist" aria-label="Examination sections">
-                        <button class="nav-link active" id="examination-observation-tab" type="button" role="tab"
+                        <button class="nav-link active" id="visual-acuity-tab" type="button" role="tab"
+                            data-bs-toggle="tab" data-bs-target="#visual-acuity-pane"
+                            aria-controls="visual-acuity-pane" aria-selected="true">Visual Acuity (VA)</button>
+                        <button class="nav-link" id="eye-examination-tab" type="button" role="tab"
+                            data-bs-toggle="tab" data-bs-target="#eye-examination-pane"
+                            aria-controls="eye-examination-pane" aria-selected="false">Eye Examination</button>
+                        <button class="nav-link" id="examination-observation-tab" type="button" role="tab"
                             data-bs-toggle="tab" data-bs-target="#examination-observation-pane"
-                            aria-controls="examination-observation-pane" aria-selected="true">Observation</button>
+                            aria-controls="examination-observation-pane" aria-selected="false">Observation</button>
                         <button class="nav-link" id="examination-general-tab" type="button" role="tab"
                             data-bs-toggle="tab" data-bs-target="#examination-general-pane"
                             aria-controls="examination-general-pane" aria-selected="false">General examination</button>
                     </div>
 
                     <div class="tab-content">
-                        <div class="tab-pane fade show active" id="examination-observation-pane" role="tabpanel"
+                        <div class="tab-pane fade " id="examination-observation-pane" role="tabpanel"
                             aria-labelledby="examination-observation-tab" tabindex="0">
                             @include('prescription::prescriptions.preset-picker', [
                                 'pickerField' => 'examination',
@@ -376,6 +409,226 @@
                                         @error('examination_details.spo2')
                                             <div class="invalid-feedback d-block" id="exam_spo2-error">{{ $message }}</div>
                                         @enderror
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade show active" id="visual-acuity-pane" role="tabpanel"
+                            aria-labelledby="visual-acuity-tab" tabindex="0">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered app-glass-eye-table align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-nowrap" scope="col">Eye</th>
+                                            <th class="text-center" scope="col">Without glasses</th>
+                                            <th class="text-center" scope="col">With glasses</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th class="text-nowrap" scope="row">
+                                                OD <span class="small text-body-secondary">(Right)</span>
+                                            </th>
+                                            <td>
+                                                <label class="visually-hidden" for="exam_va_od_without_glasses">
+                                                    OD visual acuity without glasses
+                                                </label>
+                                                <input class="{{ inputClass('examination_details.visual_acuity.od_without_glasses', 'form-control form-control-sm') }}"
+                                                    id="exam_va_od_without_glasses" type="text"
+                                                    name="examination_details[visual_acuity][od_without_glasses]"
+                                                    form="prescription-form" maxlength="50" placeholder="6/6"
+                                                    value="{{ getValue('examination_details.visual_acuity.od_without_glasses', $record) }}"
+                                                    {{ inputAttrs('examination_details.visual_acuity.od_without_glasses', 'exam_va_od_without_glasses') }}>
+                                                @error('examination_details.visual_acuity.od_without_glasses')
+                                                        <div class="invalid-feedback d-block" id="exam_va_od_without_glasses-error">{{ $message }}</div>
+                                                @enderror
+                                            </td>
+                                            <td>
+                                                <label class="visually-hidden" for="exam_va_od_with_glasses">
+                                                    OD visual acuity with glasses
+                                                </label>
+                                                <input class="{{ inputClass('examination_details.visual_acuity.od_with_glasses', 'form-control form-control-sm') }}"
+                                                    id="exam_va_od_with_glasses" type="text"
+                                                    name="examination_details[visual_acuity][od_with_glasses]"
+                                                    form="prescription-form" maxlength="50" placeholder="6/6"
+                                                    value="{{ getValue('examination_details.visual_acuity.od_with_glasses', $record) }}"
+                                                    {{ inputAttrs('examination_details.visual_acuity.od_with_glasses', 'exam_va_od_with_glasses') }}>
+                                                @error('examination_details.visual_acuity.od_with_glasses')
+                                                        <div class="invalid-feedback d-block" id="exam_va_od_with_glasses-error">{{ $message }}</div>
+                                                @enderror
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th class="text-nowrap" scope="row">
+                                                OS <span class="small text-body-secondary">(Left)</span>
+                                            </th>
+                                            <td>
+                                                <label class="visually-hidden" for="exam_va_os_without_glasses">
+                                                    OS visual acuity without glasses
+                                                </label>
+                                                <input class="{{ inputClass('examination_details.visual_acuity.os_without_glasses', 'form-control form-control-sm') }}"
+                                                    id="exam_va_os_without_glasses" type="text"
+                                                    name="examination_details[visual_acuity][os_without_glasses]"
+                                                    form="prescription-form" maxlength="50" placeholder="6/6"
+                                                    value="{{ getValue('examination_details.visual_acuity.os_without_glasses', $record) }}"
+                                                    {{ inputAttrs('examination_details.visual_acuity.os_without_glasses', 'exam_va_os_without_glasses') }}>
+                                                @error('examination_details.visual_acuity.os_without_glasses')
+                                                        <div class="invalid-feedback d-block" id="exam_va_os_without_glasses-error">{{ $message }}</div>
+                                                @enderror
+                                            </td>
+                                            <td>
+                                                <label class="visually-hidden" for="exam_va_os_with_glasses">
+                                                    OS visual acuity with glasses
+                                                </label>
+                                                <input class="{{ inputClass('examination_details.visual_acuity.os_with_glasses', 'form-control form-control-sm') }}"
+                                                    id="exam_va_os_with_glasses" type="text"
+                                                    name="examination_details[visual_acuity][os_with_glasses]"
+                                                    form="prescription-form" maxlength="50" placeholder="6/6"
+                                                    value="{{ getValue('examination_details.visual_acuity.os_with_glasses', $record) }}"
+                                                    {{ inputAttrs('examination_details.visual_acuity.os_with_glasses', 'exam_va_os_with_glasses') }}>
+                                                @error('examination_details.visual_acuity.os_with_glasses')
+                                                        <div class="invalid-feedback d-block" id="exam_va_os_with_glasses-error">{{ $message }}</div>
+                                                @enderror
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="eye-examination-pane" role="tabpanel"
+                            aria-labelledby="eye-examination-tab" tabindex="0">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <h3 class="h6 mb-2">Anterior Segment</h3>
+                                    <div class="row g-2">
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label" for="exam_anterior_segment_od">OD (Right Eye)</label>
+                                            <textarea class="{{ inputClass('examination_details.anterior_segment.od') }}"
+                                                id="exam_anterior_segment_od" name="examination_details[anterior_segment][od]"
+                                                form="prescription-form" rows="2" maxlength="500"
+                                                {{ inputAttrs('examination_details.anterior_segment.od', 'exam_anterior_segment_od') }}>{{ getValue('examination_details.anterior_segment.od', $record) }}</textarea>
+                                            @error('examination_details.anterior_segment.od')
+                                                <div class="invalid-feedback d-block" id="exam_anterior_segment_od-error">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label" for="exam_anterior_segment_os">OS (Left Eye)</label>
+                                            <textarea class="{{ inputClass('examination_details.anterior_segment.os') }}"
+                                                id="exam_anterior_segment_os" name="examination_details[anterior_segment][os]"
+                                                form="prescription-form" rows="2" maxlength="500"
+                                                {{ inputAttrs('examination_details.anterior_segment.os', 'exam_anterior_segment_os') }}>{{ getValue('examination_details.anterior_segment.os', $record) }}</textarea>
+                                            @error('examination_details.anterior_segment.os')
+                                                <div class="invalid-feedback d-block" id="exam_anterior_segment_os-error">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <h3 class="h6 mb-2">IOP (Intraocular Pressure)</h3>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="form-label" for="exam_iop_od">OD (mmHg)</label>
+                                            <input class="{{ inputClass('examination_details.iop.od') }}"
+                                                id="exam_iop_od" name="examination_details[iop][od]" type="text"
+                                                form="prescription-form" maxlength="50" inputmode="decimal"
+                                                value="{{ getValue('examination_details.iop.od', $record) }}"
+                                                {{ inputAttrs('examination_details.iop.od', 'exam_iop_od') }}>
+                                            @error('examination_details.iop.od')
+                                                <div class="invalid-feedback d-block" id="exam_iop_od-error">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label" for="exam_iop_os">OS (mmHg)</label>
+                                            <input class="{{ inputClass('examination_details.iop.os') }}"
+                                                id="exam_iop_os" name="examination_details[iop][os]" type="text"
+                                                form="prescription-form" maxlength="50" inputmode="decimal"
+                                                value="{{ getValue('examination_details.iop.os', $record) }}"
+                                                {{ inputAttrs('examination_details.iop.os', 'exam_iop_os') }}>
+                                            @error('examination_details.iop.os')
+                                                <div class="invalid-feedback d-block" id="exam_iop_os-error">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <h3 class="h6 mb-2">Fluorescein (FL) Stain</h3>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="form-label" for="exam_fluorescein_od">OD</label>
+                                            <input class="{{ inputClass('examination_details.fluorescein_stain.od') }}"
+                                                id="exam_fluorescein_od"
+                                                name="examination_details[fluorescein_stain][od]" type="text"
+                                                form="prescription-form" maxlength="500"
+                                                value="{{ getValue('examination_details.fluorescein_stain.od', $record) }}"
+                                                {{ inputAttrs('examination_details.fluorescein_stain.od', 'exam_fluorescein_od') }}>
+                                            @error('examination_details.fluorescein_stain.od')
+                                                <div class="invalid-feedback d-block" id="exam_fluorescein_od-error">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label" for="exam_fluorescein_os">OS</label>
+                                            <input class="{{ inputClass('examination_details.fluorescein_stain.os') }}"
+                                                id="exam_fluorescein_os"
+                                                name="examination_details[fluorescein_stain][os]" type="text"
+                                                form="prescription-form" maxlength="500"
+                                                value="{{ getValue('examination_details.fluorescein_stain.os', $record) }}"
+                                                {{ inputAttrs('examination_details.fluorescein_stain.os', 'exam_fluorescein_os') }}>
+                                            @error('examination_details.fluorescein_stain.os')
+                                                <div class="invalid-feedback d-block" id="exam_fluorescein_os-error">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <h3 class="h6 mb-2">Schirmer's Test</h3>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="form-label" for="exam_schirmer_od">OD (mm)</label>
+                                            <input class="{{ inputClass('examination_details.schirmer_test.od') }}"
+                                                id="exam_schirmer_od" name="examination_details[schirmer_test][od]"
+                                                type="text" form="prescription-form" maxlength="50" inputmode="decimal"
+                                                value="{{ getValue('examination_details.schirmer_test.od', $record) }}"
+                                                {{ inputAttrs('examination_details.schirmer_test.od', 'exam_schirmer_od') }}>
+                                            @error('examination_details.schirmer_test.od')
+                                                <div class="invalid-feedback d-block" id="exam_schirmer_od-error">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label" for="exam_schirmer_os">OS (mm)</label>
+                                            <input class="{{ inputClass('examination_details.schirmer_test.os') }}"
+                                                id="exam_schirmer_os" name="examination_details[schirmer_test][os]"
+                                                type="text" form="prescription-form" maxlength="50" inputmode="decimal"
+                                                value="{{ getValue('examination_details.schirmer_test.os', $record) }}"
+                                                {{ inputAttrs('examination_details.schirmer_test.os', 'exam_schirmer_os') }}>
+                                            @error('examination_details.schirmer_test.os')
+                                                <div class="invalid-feedback d-block" id="exam_schirmer_os-error">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <h3 class="h6 mb-2">Fundus Oculi</h3>
+                                    <div class="row g-2">
+                                        <div class="col-12">
+                                            <label class="form-label" for="exam_fundus_od">OD</label>
+                                            <textarea class="{{ inputClass('examination_details.fundus_oculi.od') }}"
+                                                id="exam_fundus_od" name="examination_details[fundus_oculi][od]"
+                                                form="prescription-form" rows="2" maxlength="500"
+                                                {{ inputAttrs('examination_details.fundus_oculi.od', 'exam_fundus_od') }}>{{ getValue('examination_details.fundus_oculi.od', $record) }}</textarea>
+                                            @error('examination_details.fundus_oculi.od')
+                                                <div class="invalid-feedback d-block" id="exam_fundus_od-error">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label" for="exam_fundus_os">OS</label>
+                                            <textarea class="{{ inputClass('examination_details.fundus_oculi.os') }}"
+                                                id="exam_fundus_os" name="examination_details[fundus_oculi][os]"
+                                                form="prescription-form" rows="2" maxlength="500"
+                                                {{ inputAttrs('examination_details.fundus_oculi.os', 'exam_fundus_os') }}>{{ getValue('examination_details.fundus_oculi.os', $record) }}</textarea>
+                                            @error('examination_details.fundus_oculi.os')
+                                                <div class="invalid-feedback d-block" id="exam_fundus_os-error">{{ $message }}</div>
+                                            @enderror
+                                        </div>
                                     </div>
                                 </div>
                             </div>

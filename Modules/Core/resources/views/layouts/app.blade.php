@@ -22,7 +22,7 @@
                 </div>
                 <div class="offcanvas-body">
                     <nav class="app-nav" aria-label="Main navigation">
-                        <p class="app-nav-label">Overview</p>
+                        {{-- <p class="app-nav-label">Overview</p> --}}
                         @if ($moduleMenu['homeAllowed'] ?? $layout['navigation']['dashboard']['allowed'])
                             @include('core::partials.navigation-link', [
                                 'label' => $moduleMenu['homeLabel'] ?? 'Dashboard',
