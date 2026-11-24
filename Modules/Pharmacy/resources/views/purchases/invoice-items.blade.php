@@ -84,7 +84,7 @@
                         </td>
                     @endif
                     <td class="text-end fw-semibold">
-                        {{ moneyDecimal($line->total) }}
+                        {{ moneyDecimal($line->total + $line->invoice_discount) }}
                     </td>
                 </tr>
             @endforeach

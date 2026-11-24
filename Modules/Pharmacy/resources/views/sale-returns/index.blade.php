@@ -7,13 +7,13 @@
         @include('core::partials.heading', ['title' => ucfirst($filters['product_type'] ?? 'medicine').' Sales Returns'])
         @if ($canCreate)
             <a class="btn btn-primary text-nowrap" href="{{ route($routePrefix.'.create', ['product_type' => $filters['product_type'] ?? 'medicine']) }}">
-                <i class="fa-solid fa-plus me-2" aria-hidden="true"></i>New sales return
+                <i class="fa-solid fa-plus me-2" aria-hidden="true"></i>Sales Return
             </a>
         @endif
     </div>
 
     <section class="app-card overflow-hidden">
-        @include('pharmacy::entries.partials.filters', ['numberLabel' => 'Entry no.'])
+        @include('pharmacy::entries.partials.filters', ['numberLabel' => 'Entry No.'])
 
         <div class="table-responsive">
             <table class="table app-table align-middle mb-0">

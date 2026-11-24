@@ -13,9 +13,12 @@ Reference: `pirojpur-pharma_optics/application/views/admin/operation_bill/create
 | Hospital Refund / Due Collection preview | `app.js` → `initializeRefundForm`, `initializeDueCollectionForm` |
 | New Patient modal | `app.js` → `loadPatientModal`, `submitPatientModal` |
 | Production web updater | `app.js` → `initializeDeploymentForm` |
-| Pharmacy Purchase / Sale / Return / Stock / Payment | [pharmacy.js](resources/js/pharmacy.js) |
+| Pharmacy Purchase form interaction | [pharmacy-purchases.js](resources/js/pharmacy-purchases.js) |
+| Pharmacy Sale form interaction | [pharmacy-sales.js](resources/js/pharmacy-sales.js) |
+| Pharmacy Return / Stock / catalog forms | [pharmacy.js](resources/js/pharmacy.js) |
+| Pharmacy Sale and Purchase payment forms | [pharmacy-payment.js](resources/js/pharmacy-payment.js) |
 | Pharmacy Add/Edit/Cancel item | [pharmacy-trade-editor.js](resources/js/pharmacy-trade-editor.js) |
-| Purchase pack size / unit / প্রতি-item VAT | `pharmacy.js` → `initializePurchaseEntry` |
+| Purchase pack size / unit / প্রতি-item VAT | [pharmacy-purchases.js](resources/js/pharmacy-purchases.js) |
 | Accounting voucher / Chart of Accounts | [accounting.js](resources/js/accounting.js) |
 | Prescription form coordination | [prescription.js](resources/js/prescription.js) |
 | Prescription medicine / dose / duration | [prescription-medicines.js](resources/js/prescription-medicines.js) |
@@ -83,8 +86,11 @@ Field change হলে প্রথমে unit/price/value পরিবর্ত
 | [datepicker-year.js](resources/js/datepicker-year.js) | Flatpickr year dropdown তৈরি, range বদলানো ও destroy |
 | [patient-age.js](resources/js/patient-age.js) | Age অথবা Date of Birth input mode-এর field state |
 | [select2-empty-search.js](resources/js/select2-empty-search.js) | বর্তমান সফল search-এ কোনো match না থাকলেই Create অনুমতি; stale response প্রত্যাখ্যান |
-| [pharmacy.js](resources/js/pharmacy.js) | Purchase-এর pack/unit/VAT, Sale-এর price/stock flow, returns, stock rows, product/customer/payment form |
-| [pharmacy-trade-editor.js](resources/js/pharmacy-trade-editor.js) | Common item editor, row snapshot/restore, compact list, Add/Update/Cancel ও keyboard/focus operations |
+| [pharmacy.js](resources/js/pharmacy.js) | Shared exact trade calculations, committed-row Paid autofill, returns, stock rows, product/customer form |
+| [pharmacy-purchases.js](resources/js/pharmacy-purchases.js) | Purchase form events, pack/unit selection and purchase-specific item behavior |
+| [pharmacy-sales.js](resources/js/pharmacy-sales.js) | Sale form events, stock checks and catalog unit selection |
+| [pharmacy-payment.js](resources/js/pharmacy-payment.js) | Sale/Purchase payment-এর invoice AJAX, discount অনুযায়ী Collection recalculation, live Due cap ও cash total |
+| [pharmacy-trade-editor.js](resources/js/pharmacy-trade-editor.js) | Common item editor, row snapshot/restore, compact list, Add/Update/Cancel, committed-total callbacks ও keyboard/focus operations |
 | [accounting.js](resources/js/accounting.js) | Journal line editor, debit/credit preview; account tree search/expand এবং session state |
 | [income-expense.js](resources/js/income-expense.js) | Income/Expense voucher-এ Head/Amount row যোগ-সরানো, stable input index এবং exact BigInt total preview |
 | [prescription.js](resources/js/prescription.js) | Prescription page startup, History/Follow-up coordination, modal header search ও validation focus |

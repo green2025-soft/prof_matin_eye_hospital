@@ -4,7 +4,7 @@
             <form action="{{ route('pharmacy.customers.store') }}" method="POST" data-pharmacy-customer-create>
                 @csrf
                 <div class="modal-header">
-                    <h2 class="modal-title fs-5" id="pharmacy-customer-title">New customer</h2>
+                    <h2 class="modal-title fs-5" id="pharmacy-customer-title">New Customer</h2>
                     <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close">
                     </button>
                 </div>
@@ -18,7 +18,7 @@
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label" for="customer_mobile">Mobile</label>
-                            <input class="form-control" id="customer_mobile" name="mobile_no" maxlength="30" type="tel" required>
+                            <input class="form-control" id="customer_mobile" name="mobile_no" maxlength="30" type="tel" >
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label" for="customer_age">Age</label>
@@ -44,7 +44,7 @@
                         Cancel
                     </button>
                     <button class="btn btn-primary" type="submit">
-                        Save customer
+                        Save Customer
                     </button>
                 </div>
             </form>

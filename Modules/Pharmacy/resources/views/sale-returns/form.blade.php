@@ -36,7 +36,7 @@
         <section class="app-form-section mb-3" aria-labelledby="return-invoice-heading">
             <h2 class="app-form-section-title" id="return-invoice-heading">
                 <span class="app-form-section-icon"><i class="fa-solid fa-arrow-rotate-left" aria-hidden="true"></i></span>
-                Return details
+                Return Details
             </h2>
             <div class="row g-3 align-items-end">
                 <div class="col-md-6 col-xl-4">

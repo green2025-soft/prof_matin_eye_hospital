@@ -2048,6 +2048,26 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
+      '/pharmacy/selectors/purchase-items' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'pharmacy.purchase-items.options',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
       '/pharmacy/selectors/customers' => 
       array (
         0 => 
@@ -2055,46 +2075,6 @@ app('router')->setCompiledRoutes(
           0 => 
           array (
             '_route' => 'pharmacy.customers.options',
-          ),
-          1 => NULL,
-          2 => 
-          array (
-            'GET' => 0,
-            'HEAD' => 1,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      '/pharmacy/selectors/payment-customers' => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'pharmacy.payments.customers',
-          ),
-          1 => NULL,
-          2 => 
-          array (
-            'GET' => 0,
-            'HEAD' => 1,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      '/pharmacy/selectors/payment-suppliers' => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'pharmacy.payments.suppliers',
           ),
           1 => NULL,
           2 => 
@@ -3040,13 +3020,13 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      '/pharmacy/payments/invoices' => 
+      '/pharmacy/sale-payments/invoices' => 
       array (
         0 => 
         array (
           0 => 
           array (
-            '_route' => 'pharmacy.payments.invoices',
+            '_route' => 'pharmacy.sale-payments.invoices',
           ),
           1 => NULL,
           2 => 
@@ -3060,13 +3040,33 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      '/pharmacy/payments' => 
+      '/pharmacy/sale-payments/customers' => 
       array (
         0 => 
         array (
           0 => 
           array (
-            '_route' => 'pharmacy.payments.index',
+            '_route' => 'pharmacy.sale-payments.customers',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/pharmacy/sale-payments' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'pharmacy.sale-payments.index',
           ),
           1 => NULL,
           2 => 
@@ -3083,7 +3083,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'pharmacy.payments.store',
+            '_route' => 'pharmacy.sale-payments.store',
           ),
           1 => NULL,
           2 => 
@@ -3096,13 +3096,109 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      '/pharmacy/payments/create' => 
+      '/pharmacy/sale-payments/create' => 
       array (
         0 => 
         array (
           0 => 
           array (
-            '_route' => 'pharmacy.payments.create',
+            '_route' => 'pharmacy.sale-payments.create',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/pharmacy/purchase-payments/invoices' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'pharmacy.purchase-payments.invoices',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/pharmacy/purchase-payments/suppliers' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'pharmacy.purchase-payments.suppliers',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/pharmacy/purchase-payments' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'pharmacy.purchase-payments.index',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+        1 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'pharmacy.purchase-payments.store',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/pharmacy/purchase-payments/create' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'pharmacy.purchase-payments.create',
           ),
           1 => NULL,
           2 => 
@@ -5202,7 +5298,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::fIbZUuvykDNNLTiC',
+            '_route' => 'generated::IeVNAKEpurx9ORyz',
           ),
           1 => NULL,
           2 => 
@@ -5349,7 +5445,7 @@ app('router')->setCompiledRoutes(
     ),
     2 => 
     array (
-      0 => '{^(?|/_debugbar/clockwork/([^/]++)(*:36)|/a(?|ccounting/(?|chart\\-of\\-accounts/([^/]++)(?|/edit(*:97)|(*:104))|account\\-modules/([^/]++)(?|/edit(*:146)|(*:154))|payment\\-accounts/([^/]++)(?|/edit(*:197)|(*:205))|journal\\-entries/([^/]++)(?|(*:242)|/edit(*:255)|(*:263)))|u(?|dit\\-logs/([^/]++)(*:295)|th/(?|tenant\\-entry/([^/]++)(*:331)|reset\\-password/([^/]++)(*:363))))|/hospital/(?|settings/([^/]++)(*:404)|investigation(?|\\-categories/([^/]++)(?|/edit(*:457)|(*:465))|s/([^/]++)(?|/edit(*:492)|(*:500)))|operation(?|\\-categories/([^/]++)(?|/edit(*:551)|(*:559))|s/([^/]++)(?|/edit(*:586)|(*:594)))|appointments/([^/]++)(?|/edit(*:633)|(*:641))|co(?|nsultations/([^/]++)(?|(*:678)|/edit(*:691)|(*:699))|mmissions/(consultation|investigation|operation)/([0-9]+)(*:765))|patient(?|\\-(?|investigations/([^/]++)(?|(*:815)|/edit(*:828)|(*:836))|operations/([^/]++)(?|(*:867)|/edit(*:880)|(*:888)))|s/([^/]++)(?|/edit(*:916)|(*:924)))|d(?|e(?|livery\\-investigations/([^/]++)(*:973)|partments/([^/]++)(?|/edit(*:1007)|(*:1016)))|ue\\-collections/([^/]++)(?|(*:1054)|/edit(*:1068)|(*:1077))|octors/([^/]++)(?|(*:1105)|/edit(*:1119)|(*:1128)))|ref(?|und(?|s/([^/]++)(?|(*:1164)|/edit(*:1178)|(*:1187))|\\-causes/([^/]++)(?|/edit(*:1222)|(*:1231)))|erences/([^/]++)(?|/edit(*:1266)|(*:1275))))|/p(?|harmacy/(?|s(?|ettings/([^/]++)(*:1323)|helf/([^/]++)(?|/edit(*:1353)|(*:1362))|uppliers/([^/]++)(?|/edit(*:1397)|(*:1406))|ale(?|s/([^/]++)(?|/(?|void(*:1443)|edit(*:1456))|(*:1466))|\\-returns/([^/]++)(?|/(?|void(*:1505)|edit(*:1518))|(*:1528))))|categories/([^/]++)(?|/edit(*:1567)|(*:1576))|d(?|osages/([^/]++)(?|/edit(*:1613)|(*:1622))|amage/([^/]++)(?|/void(*:1654)|(*:1663)))|units/([^/]++)(?|/edit(*:1696)|(*:1705))|p(?|roduct(?|s/([^/]++)(?|/edit(*:1746)|(*:1755))|\\-units/([^/]++)(?|/edit(*:1789)|(*:1798)))|urchase(?|s/([^/]++)(?|/(?|void(*:1840)|edit(*:1853))|(*:1863))|\\-returns/([^/]++)(?|/(?|void(*:1902)|edit(*:1915))|(*:1925)))|ayments/([^/]++)(?|/void(*:1960)|(*:1969)))|variants/([^/]++)(?|/edit(*:2005)|(*:2014))|opening\\-stock/([^/]++)(?|/void(*:2055)|(*:2064))|adjustments/([^/]++)(?|/void(*:2102)|(*:2111))|transfers/([^/]++)(?|/void(*:2147)|(*:2156)))|rescription/(?|options/([^/]++)(?|/edit(*:2206)|(*:2215))|settings/([^/]++)(*:2242)|prescriptions/([^/]++)(?|(*:2276)|/edit(*:2290)|(*:2299))|glass\\-prescriptions/([^/]++)(?|(*:2341)|/edit(*:2355)|(*:2364)))|ayment\\-types/([^/]++)(?|/edit(*:2405)|(*:2414)))|/s(?|ms/recharges/([^/]++)/proof(*:2457)|ettings/([^/]++)(?|/edit(*:2490)|(*:2499)))|/b(?|ranch(?|\\-dashboard/([^/]++)(*:2543)|es/([^/]++)(?|/edit(*:2571)|(*:2580)))|illing/invoices/([^/]++)(?|(*:2618)|/checkouts(*:2637)))|/income(?|\\-heads/([^/]++)(?|/edit(*:2682)|(*:2691))|s/([^/]++)(?|/edit(*:2719)|(*:2728)))|/expense(?|\\-heads/([^/]++)(?|/edit(*:2774)|(*:2783))|s/([^/]++)(?|/edit(*:2811)|(*:2820)))|/di(?|visions/([^/]++)(?|/edit(*:2861)|(*:2870))|stricts/([^/]++)(?|/edit(*:2904)|(*:2913)))|/thanas/([^/]++)(?|/edit(*:2948)|(*:2957))|/users/([^/]++)(?|/edit(*:2990)|(*:2999))|/core/(?|tenants/([^/]++)(?|/e(?|nter(*:3046)|dit(*:3058))|(*:3068))|admins/([^/]++)(?|/edit(*:3101)|(*:3110))|p(?|lan(?|s/([^/]++)(?|/edit(*:3148)|(*:3157))|\\-permissions/([^/]++)(*:3189))|ayments/(?|([^/]++)(*:3218)|callback/([^/]++)/([^/]++)(*:3253)|notify/([^/]++)/([^/]++)(*:3286))|ermissions/([^/]++)(*:3315))|s(?|ubscriptions/([^/]++)(?|/edit(*:3358)|(*:3367))|ettings/([^/]++)(?|/edit(*:3401)|(*:3410))|ms\\-(?|accounts/([^/]++)(?|/edit(*:3452)|(*:3461))|recharges/([^/]++)(?|/proof(*:3498)|(*:3507))|history/([^/]++)(?|/resolve(*:3544)|(*:3553))))|invoices/([^/]++)(?|/(?|issue(*:3594)|void(*:3607)|edit(*:3620))|(*:3630))|checkouts/([^/]++)/(?|approve(*:3669)|reject(*:3684))|roles/([^/]++)(?|/edit(*:3716)|(*:3725))))/?$}sDu',
+      0 => '{^(?|/_debugbar/clockwork/([^/]++)(*:36)|/a(?|ccounting/(?|chart\\-of\\-accounts/([^/]++)(?|/edit(*:97)|(*:104))|account\\-modules/([^/]++)(?|/edit(*:146)|(*:154))|payment\\-accounts/([^/]++)(?|/edit(*:197)|(*:205))|journal\\-entries/([^/]++)(?|(*:242)|/edit(*:255)|(*:263)))|u(?|dit\\-logs/([^/]++)(*:295)|th/(?|tenant\\-entry/([^/]++)(*:331)|reset\\-password/([^/]++)(*:363))))|/hospital/(?|settings/([^/]++)(*:404)|investigation(?|\\-categories/([^/]++)(?|/edit(*:457)|(*:465))|s/([^/]++)(?|/edit(*:492)|(*:500)))|operation(?|\\-categories/([^/]++)(?|/edit(*:551)|(*:559))|s/([^/]++)(?|/edit(*:586)|(*:594)))|appointments/([^/]++)(?|/edit(*:633)|(*:641))|co(?|nsultations/([^/]++)(?|(*:678)|/edit(*:691)|(*:699))|mmissions/(consultation|investigation|operation)/([0-9]+)(*:765))|patient(?|\\-(?|investigations/([^/]++)(?|(*:815)|/edit(*:828)|(*:836))|operations/([^/]++)(?|(*:867)|/edit(*:880)|(*:888)))|s/([^/]++)(?|/edit(*:916)|(*:924)))|d(?|e(?|livery\\-investigations/([^/]++)(*:973)|partments/([^/]++)(?|/edit(*:1007)|(*:1016)))|ue\\-collections/([^/]++)(?|(*:1054)|/edit(*:1068)|(*:1077))|octors/([^/]++)(?|(*:1105)|/edit(*:1119)|(*:1128)))|ref(?|und(?|s/([^/]++)(?|(*:1164)|/edit(*:1178)|(*:1187))|\\-causes/([^/]++)(?|/edit(*:1222)|(*:1231)))|erences/([^/]++)(?|/edit(*:1266)|(*:1275))))|/p(?|harmacy/(?|s(?|ettings/([^/]++)(*:1323)|helf/([^/]++)(?|/edit(*:1353)|(*:1362))|uppliers/([^/]++)(?|/edit(*:1397)|(*:1406))|ale(?|s/([^/]++)(?|/(?|void(*:1443)|edit(*:1456))|(*:1466))|\\-(?|returns/([^/]++)(?|/(?|void(*:1508)|edit(*:1521))|(*:1531))|payments/([^/]++)(?|/void(*:1566)|(*:1575)))))|categories/([^/]++)(?|/edit(*:1615)|(*:1624))|d(?|osages/([^/]++)(?|/edit(*:1661)|(*:1670))|amage/([^/]++)(?|/void(*:1702)|(*:1711)))|units/([^/]++)(?|/edit(*:1744)|(*:1753))|p(?|roduct(?|s/([^/]++)(?|/edit(*:1794)|(*:1803))|\\-units/([^/]++)(?|/edit(*:1837)|(*:1846)))|urchase(?|s/([^/]++)(?|/(?|void(*:1888)|edit(*:1901))|(*:1911))|\\-(?|returns/([^/]++)(?|/(?|void(*:1953)|edit(*:1966))|(*:1976))|payments/([^/]++)(?|/void(*:2011)|(*:2020)))))|variants/([^/]++)(?|/edit(*:2058)|(*:2067))|opening\\-stock/([^/]++)(?|/void(*:2108)|(*:2117))|adjustments/([^/]++)(?|/void(*:2155)|(*:2164))|transfers/([^/]++)(?|/void(*:2200)|(*:2209)))|rescription/(?|options/([^/]++)(?|/edit(*:2259)|(*:2268))|settings/([^/]++)(*:2295)|prescriptions/([^/]++)(?|(*:2329)|/edit(*:2343)|(*:2352))|glass\\-prescriptions/([^/]++)(?|(*:2394)|/edit(*:2408)|(*:2417)))|ayment\\-types/([^/]++)(?|/edit(*:2458)|(*:2467)))|/s(?|ms/recharges/([^/]++)/proof(*:2510)|ettings/([^/]++)(?|/edit(*:2543)|(*:2552)))|/b(?|ranch(?|\\-dashboard/([^/]++)(*:2596)|es/([^/]++)(?|/edit(*:2624)|(*:2633)))|illing/invoices/([^/]++)(?|(*:2671)|/checkouts(*:2690)))|/income(?|\\-heads/([^/]++)(?|/edit(*:2735)|(*:2744))|s/([^/]++)(?|/edit(*:2772)|(*:2781)))|/expense(?|\\-heads/([^/]++)(?|/edit(*:2827)|(*:2836))|s/([^/]++)(?|/edit(*:2864)|(*:2873)))|/di(?|visions/([^/]++)(?|/edit(*:2914)|(*:2923))|stricts/([^/]++)(?|/edit(*:2957)|(*:2966)))|/thanas/([^/]++)(?|/edit(*:3001)|(*:3010))|/users/([^/]++)(?|/edit(*:3043)|(*:3052))|/core/(?|tenants/([^/]++)(?|/e(?|nter(*:3099)|dit(*:3111))|(*:3121))|admins/([^/]++)(?|/edit(*:3154)|(*:3163))|p(?|lan(?|s/([^/]++)(?|/edit(*:3201)|(*:3210))|\\-permissions/([^/]++)(*:3242))|ayments/(?|([^/]++)(*:3271)|callback/([^/]++)/([^/]++)(*:3306)|notify/([^/]++)/([^/]++)(*:3339))|ermissions/([^/]++)(*:3368))|s(?|ubscriptions/([^/]++)(?|/edit(*:3411)|(*:3420))|ettings/([^/]++)(?|/edit(*:3454)|(*:3463))|ms\\-(?|accounts/([^/]++)(?|/edit(*:3505)|(*:3514))|recharges/([^/]++)(?|/proof(*:3551)|(*:3560))|history/([^/]++)(?|/resolve(*:3597)|(*:3606))))|invoices/([^/]++)(?|/(?|issue(*:3647)|void(*:3660)|edit(*:3673))|(*:3683))|checkouts/([^/]++)/(?|approve(*:3722)|reject(*:3737))|roles/([^/]++)(?|/edit(*:3769)|(*:3778))))/?$}sDu',
     ),
     3 => 
     array (
@@ -7150,7 +7246,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1505 => 
+      1508 => 
       array (
         0 => 
         array (
@@ -7172,7 +7268,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1518 => 
+      1521 => 
       array (
         0 => 
         array (
@@ -7195,7 +7291,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1528 => 
+      1531 => 
       array (
         0 => 
         array (
@@ -7257,7 +7353,71 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1567 => 
+      1566 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'pharmacy.sale-payments.void',
+          ),
+          1 => 
+          array (
+            0 => 'sale_payment',
+          ),
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      1575 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'pharmacy.sale-payments.show',
+          ),
+          1 => 
+          array (
+            0 => 'sale_payment',
+          ),
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => true,
+          6 => NULL,
+        ),
+        1 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'pharmacy.sale-payments.destroy',
+          ),
+          1 => 
+          array (
+            0 => 'sale_payment',
+          ),
+          2 => 
+          array (
+            'DELETE' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => true,
+          6 => NULL,
+        ),
+      ),
+      1615 => 
       array (
         0 => 
         array (
@@ -7280,7 +7440,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1576 => 
+      1624 => 
       array (
         0 => 
         array (
@@ -7322,7 +7482,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1613 => 
+      1661 => 
       array (
         0 => 
         array (
@@ -7345,7 +7505,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1622 => 
+      1670 => 
       array (
         0 => 
         array (
@@ -7387,7 +7547,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1654 => 
+      1702 => 
       array (
         0 => 
         array (
@@ -7409,7 +7569,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1663 => 
+      1711 => 
       array (
         0 => 
         array (
@@ -7432,7 +7592,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1696 => 
+      1744 => 
       array (
         0 => 
         array (
@@ -7455,7 +7615,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1705 => 
+      1753 => 
       array (
         0 => 
         array (
@@ -7497,7 +7657,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1746 => 
+      1794 => 
       array (
         0 => 
         array (
@@ -7520,7 +7680,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1755 => 
+      1803 => 
       array (
         0 => 
         array (
@@ -7562,7 +7722,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1789 => 
+      1837 => 
       array (
         0 => 
         array (
@@ -7585,7 +7745,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1798 => 
+      1846 => 
       array (
         0 => 
         array (
@@ -7627,7 +7787,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1840 => 
+      1888 => 
       array (
         0 => 
         array (
@@ -7649,7 +7809,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1853 => 
+      1901 => 
       array (
         0 => 
         array (
@@ -7672,7 +7832,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1863 => 
+      1911 => 
       array (
         0 => 
         array (
@@ -7734,7 +7894,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1902 => 
+      1953 => 
       array (
         0 => 
         array (
@@ -7756,7 +7916,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1915 => 
+      1966 => 
       array (
         0 => 
         array (
@@ -7779,7 +7939,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1925 => 
+      1976 => 
       array (
         0 => 
         array (
@@ -7841,17 +8001,17 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1960 => 
+      2011 => 
       array (
         0 => 
         array (
           0 => 
           array (
-            '_route' => 'pharmacy.payments.void',
+            '_route' => 'pharmacy.purchase-payments.void',
           ),
           1 => 
           array (
-            0 => 'payment',
+            0 => 'purchase_payment',
           ),
           2 => 
           array (
@@ -7863,17 +8023,17 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      1969 => 
+      2020 => 
       array (
         0 => 
         array (
           0 => 
           array (
-            '_route' => 'pharmacy.payments.show',
+            '_route' => 'pharmacy.purchase-payments.show',
           ),
           1 => 
           array (
-            0 => 'payment',
+            0 => 'purchase_payment',
           ),
           2 => 
           array (
@@ -7889,11 +8049,11 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'pharmacy.payments.destroy',
+            '_route' => 'pharmacy.purchase-payments.destroy',
           ),
           1 => 
           array (
-            0 => 'payment',
+            0 => 'purchase_payment',
           ),
           2 => 
           array (
@@ -7905,7 +8065,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2005 => 
+      2058 => 
       array (
         0 => 
         array (
@@ -7928,7 +8088,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2014 => 
+      2067 => 
       array (
         0 => 
         array (
@@ -7970,7 +8130,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2055 => 
+      2108 => 
       array (
         0 => 
         array (
@@ -7992,7 +8152,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2064 => 
+      2117 => 
       array (
         0 => 
         array (
@@ -8015,7 +8175,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2102 => 
+      2155 => 
       array (
         0 => 
         array (
@@ -8037,7 +8197,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2111 => 
+      2164 => 
       array (
         0 => 
         array (
@@ -8060,7 +8220,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2147 => 
+      2200 => 
       array (
         0 => 
         array (
@@ -8082,7 +8242,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2156 => 
+      2209 => 
       array (
         0 => 
         array (
@@ -8105,7 +8265,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2206 => 
+      2259 => 
       array (
         0 => 
         array (
@@ -8128,7 +8288,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2215 => 
+      2268 => 
       array (
         0 => 
         array (
@@ -8170,7 +8330,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2242 => 
+      2295 => 
       array (
         0 => 
         array (
@@ -8192,7 +8352,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2276 => 
+      2329 => 
       array (
         0 => 
         array (
@@ -8215,7 +8375,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2290 => 
+      2343 => 
       array (
         0 => 
         array (
@@ -8238,7 +8398,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2299 => 
+      2352 => 
       array (
         0 => 
         array (
@@ -8280,7 +8440,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2341 => 
+      2394 => 
       array (
         0 => 
         array (
@@ -8303,7 +8463,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2355 => 
+      2408 => 
       array (
         0 => 
         array (
@@ -8326,7 +8486,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2364 => 
+      2417 => 
       array (
         0 => 
         array (
@@ -8368,7 +8528,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2405 => 
+      2458 => 
       array (
         0 => 
         array (
@@ -8391,7 +8551,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2414 => 
+      2467 => 
       array (
         0 => 
         array (
@@ -8433,7 +8593,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2457 => 
+      2510 => 
       array (
         0 => 
         array (
@@ -8456,7 +8616,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2490 => 
+      2543 => 
       array (
         0 => 
         array (
@@ -8479,7 +8639,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2499 => 
+      2552 => 
       array (
         0 => 
         array (
@@ -8502,7 +8662,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2543 => 
+      2596 => 
       array (
         0 => 
         array (
@@ -8524,7 +8684,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2571 => 
+      2624 => 
       array (
         0 => 
         array (
@@ -8547,7 +8707,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2580 => 
+      2633 => 
       array (
         0 => 
         array (
@@ -8589,7 +8749,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2618 => 
+      2671 => 
       array (
         0 => 
         array (
@@ -8612,7 +8772,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2637 => 
+      2690 => 
       array (
         0 => 
         array (
@@ -8634,7 +8794,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2682 => 
+      2735 => 
       array (
         0 => 
         array (
@@ -8657,7 +8817,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2691 => 
+      2744 => 
       array (
         0 => 
         array (
@@ -8699,7 +8859,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2719 => 
+      2772 => 
       array (
         0 => 
         array (
@@ -8722,7 +8882,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2728 => 
+      2781 => 
       array (
         0 => 
         array (
@@ -8764,7 +8924,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2774 => 
+      2827 => 
       array (
         0 => 
         array (
@@ -8787,7 +8947,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2783 => 
+      2836 => 
       array (
         0 => 
         array (
@@ -8829,7 +8989,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2811 => 
+      2864 => 
       array (
         0 => 
         array (
@@ -8852,7 +9012,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2820 => 
+      2873 => 
       array (
         0 => 
         array (
@@ -8894,7 +9054,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2861 => 
+      2914 => 
       array (
         0 => 
         array (
@@ -8917,7 +9077,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2870 => 
+      2923 => 
       array (
         0 => 
         array (
@@ -8959,7 +9119,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2904 => 
+      2957 => 
       array (
         0 => 
         array (
@@ -8982,7 +9142,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2913 => 
+      2966 => 
       array (
         0 => 
         array (
@@ -9024,7 +9184,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2948 => 
+      3001 => 
       array (
         0 => 
         array (
@@ -9047,7 +9207,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2957 => 
+      3010 => 
       array (
         0 => 
         array (
@@ -9089,7 +9249,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2990 => 
+      3043 => 
       array (
         0 => 
         array (
@@ -9112,7 +9272,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2999 => 
+      3052 => 
       array (
         0 => 
         array (
@@ -9154,7 +9314,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3046 => 
+      3099 => 
       array (
         0 => 
         array (
@@ -9176,7 +9336,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3058 => 
+      3111 => 
       array (
         0 => 
         array (
@@ -9199,7 +9359,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3068 => 
+      3121 => 
       array (
         0 => 
         array (
@@ -9241,7 +9401,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3101 => 
+      3154 => 
       array (
         0 => 
         array (
@@ -9264,7 +9424,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3110 => 
+      3163 => 
       array (
         0 => 
         array (
@@ -9306,7 +9466,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3148 => 
+      3201 => 
       array (
         0 => 
         array (
@@ -9329,7 +9489,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3157 => 
+      3210 => 
       array (
         0 => 
         array (
@@ -9371,7 +9531,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3189 => 
+      3242 => 
       array (
         0 => 
         array (
@@ -9394,7 +9554,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3218 => 
+      3271 => 
       array (
         0 => 
         array (
@@ -9417,7 +9577,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3253 => 
+      3306 => 
       array (
         0 => 
         array (
@@ -9442,7 +9602,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3286 => 
+      3339 => 
       array (
         0 => 
         array (
@@ -9465,7 +9625,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3315 => 
+      3368 => 
       array (
         0 => 
         array (
@@ -9488,7 +9648,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3358 => 
+      3411 => 
       array (
         0 => 
         array (
@@ -9511,7 +9671,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3367 => 
+      3420 => 
       array (
         0 => 
         array (
@@ -9534,7 +9694,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3401 => 
+      3454 => 
       array (
         0 => 
         array (
@@ -9557,7 +9717,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3410 => 
+      3463 => 
       array (
         0 => 
         array (
@@ -9580,7 +9740,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3452 => 
+      3505 => 
       array (
         0 => 
         array (
@@ -9603,7 +9763,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3461 => 
+      3514 => 
       array (
         0 => 
         array (
@@ -9626,7 +9786,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3498 => 
+      3551 => 
       array (
         0 => 
         array (
@@ -9649,7 +9809,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3507 => 
+      3560 => 
       array (
         0 => 
         array (
@@ -9692,7 +9852,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3544 => 
+      3597 => 
       array (
         0 => 
         array (
@@ -9714,7 +9874,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3553 => 
+      3606 => 
       array (
         0 => 
         array (
@@ -9737,7 +9897,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3594 => 
+      3647 => 
       array (
         0 => 
         array (
@@ -9759,7 +9919,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3607 => 
+      3660 => 
       array (
         0 => 
         array (
@@ -9781,7 +9941,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3620 => 
+      3673 => 
       array (
         0 => 
         array (
@@ -9804,7 +9964,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3630 => 
+      3683 => 
       array (
         0 => 
         array (
@@ -9847,7 +10007,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3669 => 
+      3722 => 
       array (
         0 => 
         array (
@@ -9869,7 +10029,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3684 => 
+      3737 => 
       array (
         0 => 
         array (
@@ -9891,7 +10051,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3716 => 
+      3769 => 
       array (
         0 => 
         array (
@@ -9914,7 +10074,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3725 => 
+      3778 => 
       array (
         0 => 
         array (
@@ -10211,7 +10371,7 @@ app('router')->setCompiledRoutes(
             }
 
             return response()->json([\'status\' => \'logged\']);
-        }";s:5:"scope";s:34:"Laravel\\Boost\\BoostServiceProvider";s:4:"this";N;s:4:"self";s:32:"000000000000113c0000000000000000";}}',
+        }";s:5:"scope";s:34:"Laravel\\Boost\\BoostServiceProvider";s:4:"this";N;s:4:"self";s:32:"000000000000114e0000000000000000";}}',
         'as' => 'boost.browser-logs',
         'excluded_middleware' => 
         array (
@@ -17320,6 +17480,49 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
+    'pharmacy.purchase-items.options' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'pharmacy/selectors/purchase-items',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'tenant',
+          3 => 'access',
+          4 => 'subscribed',
+          5 => 'branch:required',
+          6 => 'pharmacy.permission',
+        ),
+        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchaseItemSelectorController@items',
+        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchaseItemSelectorController@items',
+        'as' => 'pharmacy.purchase-items.options',
+        'namespace' => NULL,
+        'prefix' => 'pharmacy/selectors',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
     'pharmacy.customers.options' => 
     array (
       'methods' => 
@@ -17343,92 +17546,6 @@ app('router')->setCompiledRoutes(
         'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\CustomerController@choices',
         'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\CustomerController@choices',
         'as' => 'pharmacy.customers.options',
-        'namespace' => NULL,
-        'prefix' => 'pharmacy/selectors',
-        'where' => 
-        array (
-        ),
-      ),
-      'fallback' => false,
-      'defaults' => 
-      array (
-      ),
-      'wheres' => 
-      array (
-      ),
-      'bindingFields' => 
-      array (
-      ),
-      'lockSeconds' => NULL,
-      'waitSeconds' => NULL,
-      'withTrashed' => false,
-    ),
-    'pharmacy.payments.customers' => 
-    array (
-      'methods' => 
-      array (
-        0 => 'GET',
-        1 => 'HEAD',
-      ),
-      'uri' => 'pharmacy/selectors/payment-customers',
-      'action' => 
-      array (
-        'middleware' => 
-        array (
-          0 => 'web',
-          1 => 'auth',
-          2 => 'tenant',
-          3 => 'access',
-          4 => 'subscribed',
-          5 => 'branch:required',
-          6 => 'pharmacy.permission',
-        ),
-        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@customers',
-        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@customers',
-        'as' => 'pharmacy.payments.customers',
-        'namespace' => NULL,
-        'prefix' => 'pharmacy/selectors',
-        'where' => 
-        array (
-        ),
-      ),
-      'fallback' => false,
-      'defaults' => 
-      array (
-      ),
-      'wheres' => 
-      array (
-      ),
-      'bindingFields' => 
-      array (
-      ),
-      'lockSeconds' => NULL,
-      'waitSeconds' => NULL,
-      'withTrashed' => false,
-    ),
-    'pharmacy.payments.suppliers' => 
-    array (
-      'methods' => 
-      array (
-        0 => 'GET',
-        1 => 'HEAD',
-      ),
-      'uri' => 'pharmacy/selectors/payment-suppliers',
-      'action' => 
-      array (
-        'middleware' => 
-        array (
-          0 => 'web',
-          1 => 'auth',
-          2 => 'tenant',
-          3 => 'access',
-          4 => 'subscribed',
-          5 => 'branch:required',
-          6 => 'pharmacy.permission',
-        ),
-        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@suppliers',
-        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@suppliers',
-        'as' => 'pharmacy.payments.suppliers',
         'namespace' => NULL,
         'prefix' => 'pharmacy/selectors',
         'where' => 
@@ -21798,14 +21915,14 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'pharmacy.payments.invoices' => 
+    'pharmacy.sale-payments.invoices' => 
     array (
       'methods' => 
       array (
         0 => 'GET',
         1 => 'HEAD',
       ),
-      'uri' => 'pharmacy/payments/invoices',
+      'uri' => 'pharmacy/sale-payments/invoices',
       'action' => 
       array (
         'middleware' => 
@@ -21818,11 +21935,11 @@ app('router')->setCompiledRoutes(
           5 => 'branch:required',
           6 => 'pharmacy.permission',
         ),
-        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@invoices',
-        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@invoices',
-        'as' => 'pharmacy.payments.invoices',
+        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\SalePaymentController@invoices',
+        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\SalePaymentController@invoices',
+        'as' => 'pharmacy.sale-payments.invoices',
         'namespace' => NULL,
-        'prefix' => 'pharmacy/payments',
+        'prefix' => 'pharmacy/sale-payments',
         'where' => 
         array (
         ),
@@ -21841,13 +21958,56 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'pharmacy.payments.void' => 
+    'pharmacy.sale-payments.customers' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'pharmacy/sale-payments/customers',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'tenant',
+          3 => 'access',
+          4 => 'subscribed',
+          5 => 'branch:required',
+          6 => 'pharmacy.permission',
+        ),
+        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\SalePaymentController@customers',
+        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\SalePaymentController@customers',
+        'as' => 'pharmacy.sale-payments.customers',
+        'namespace' => NULL,
+        'prefix' => 'pharmacy/sale-payments',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'pharmacy.sale-payments.void' => 
     array (
       'methods' => 
       array (
         0 => 'POST',
       ),
-      'uri' => 'pharmacy/payments/{payment}/void',
+      'uri' => 'pharmacy/sale-payments/{sale_payment}/void',
       'action' => 
       array (
         'middleware' => 
@@ -21860,11 +22020,11 @@ app('router')->setCompiledRoutes(
           5 => 'branch:required',
           6 => 'pharmacy.permission',
         ),
-        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@reverse',
-        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@reverse',
-        'as' => 'pharmacy.payments.void',
+        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\SalePaymentController@reverse',
+        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\SalePaymentController@reverse',
+        'as' => 'pharmacy.sale-payments.void',
         'namespace' => NULL,
-        'prefix' => 'pharmacy/payments',
+        'prefix' => 'pharmacy/sale-payments',
         'where' => 
         array (
         ),
@@ -21883,14 +22043,14 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'pharmacy.payments.index' => 
+    'pharmacy.sale-payments.index' => 
     array (
       'methods' => 
       array (
         0 => 'GET',
         1 => 'HEAD',
       ),
-      'uri' => 'pharmacy/payments',
+      'uri' => 'pharmacy/sale-payments',
       'action' => 
       array (
         'middleware' => 
@@ -21903,9 +22063,9 @@ app('router')->setCompiledRoutes(
           5 => 'branch:required',
           6 => 'pharmacy.permission',
         ),
-        'as' => 'pharmacy.payments.index',
-        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@index',
-        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@index',
+        'as' => 'pharmacy.sale-payments.index',
+        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\SalePaymentController@index',
+        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\SalePaymentController@index',
         'namespace' => NULL,
         'prefix' => 'pharmacy',
         'where' => 
@@ -21926,14 +22086,14 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'pharmacy.payments.create' => 
+    'pharmacy.sale-payments.create' => 
     array (
       'methods' => 
       array (
         0 => 'GET',
         1 => 'HEAD',
       ),
-      'uri' => 'pharmacy/payments/create',
+      'uri' => 'pharmacy/sale-payments/create',
       'action' => 
       array (
         'middleware' => 
@@ -21946,9 +22106,9 @@ app('router')->setCompiledRoutes(
           5 => 'branch:required',
           6 => 'pharmacy.permission',
         ),
-        'as' => 'pharmacy.payments.create',
-        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@create',
-        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@create',
+        'as' => 'pharmacy.sale-payments.create',
+        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\SalePaymentController@create',
+        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\SalePaymentController@create',
         'namespace' => NULL,
         'prefix' => 'pharmacy',
         'where' => 
@@ -21969,13 +22129,13 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'pharmacy.payments.store' => 
+    'pharmacy.sale-payments.store' => 
     array (
       'methods' => 
       array (
         0 => 'POST',
       ),
-      'uri' => 'pharmacy/payments',
+      'uri' => 'pharmacy/sale-payments',
       'action' => 
       array (
         'middleware' => 
@@ -21988,9 +22148,9 @@ app('router')->setCompiledRoutes(
           5 => 'branch:required',
           6 => 'pharmacy.permission',
         ),
-        'as' => 'pharmacy.payments.store',
-        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@store',
-        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@store',
+        'as' => 'pharmacy.sale-payments.store',
+        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\SalePaymentController@store',
+        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\SalePaymentController@store',
         'namespace' => NULL,
         'prefix' => 'pharmacy',
         'where' => 
@@ -22011,14 +22171,14 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'pharmacy.payments.show' => 
+    'pharmacy.sale-payments.show' => 
     array (
       'methods' => 
       array (
         0 => 'GET',
         1 => 'HEAD',
       ),
-      'uri' => 'pharmacy/payments/{payment}',
+      'uri' => 'pharmacy/sale-payments/{sale_payment}',
       'action' => 
       array (
         'middleware' => 
@@ -22031,9 +22191,9 @@ app('router')->setCompiledRoutes(
           5 => 'branch:required',
           6 => 'pharmacy.permission',
         ),
-        'as' => 'pharmacy.payments.show',
-        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@show',
-        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@show',
+        'as' => 'pharmacy.sale-payments.show',
+        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\SalePaymentController@show',
+        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\SalePaymentController@show',
         'namespace' => NULL,
         'prefix' => 'pharmacy',
         'where' => 
@@ -22054,13 +22214,13 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'pharmacy.payments.destroy' => 
+    'pharmacy.sale-payments.destroy' => 
     array (
       'methods' => 
       array (
         0 => 'DELETE',
       ),
-      'uri' => 'pharmacy/payments/{payment}',
+      'uri' => 'pharmacy/sale-payments/{sale_payment}',
       'action' => 
       array (
         'middleware' => 
@@ -22073,9 +22233,350 @@ app('router')->setCompiledRoutes(
           5 => 'branch:required',
           6 => 'pharmacy.permission',
         ),
-        'as' => 'pharmacy.payments.destroy',
-        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@destroy',
-        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PaymentController@destroy',
+        'as' => 'pharmacy.sale-payments.destroy',
+        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\SalePaymentController@destroy',
+        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\SalePaymentController@destroy',
+        'namespace' => NULL,
+        'prefix' => 'pharmacy',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'pharmacy.purchase-payments.invoices' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'pharmacy/purchase-payments/invoices',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'tenant',
+          3 => 'access',
+          4 => 'subscribed',
+          5 => 'branch:required',
+          6 => 'pharmacy.permission',
+        ),
+        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchasePaymentController@invoices',
+        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchasePaymentController@invoices',
+        'as' => 'pharmacy.purchase-payments.invoices',
+        'namespace' => NULL,
+        'prefix' => 'pharmacy/purchase-payments',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'pharmacy.purchase-payments.suppliers' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'pharmacy/purchase-payments/suppliers',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'tenant',
+          3 => 'access',
+          4 => 'subscribed',
+          5 => 'branch:required',
+          6 => 'pharmacy.permission',
+        ),
+        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchasePaymentController@suppliers',
+        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchasePaymentController@suppliers',
+        'as' => 'pharmacy.purchase-payments.suppliers',
+        'namespace' => NULL,
+        'prefix' => 'pharmacy/purchase-payments',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'pharmacy.purchase-payments.void' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'POST',
+      ),
+      'uri' => 'pharmacy/purchase-payments/{purchase_payment}/void',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'tenant',
+          3 => 'access',
+          4 => 'subscribed',
+          5 => 'branch:required',
+          6 => 'pharmacy.permission',
+        ),
+        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchasePaymentController@reverse',
+        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchasePaymentController@reverse',
+        'as' => 'pharmacy.purchase-payments.void',
+        'namespace' => NULL,
+        'prefix' => 'pharmacy/purchase-payments',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'pharmacy.purchase-payments.index' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'pharmacy/purchase-payments',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'tenant',
+          3 => 'access',
+          4 => 'subscribed',
+          5 => 'branch:required',
+          6 => 'pharmacy.permission',
+        ),
+        'as' => 'pharmacy.purchase-payments.index',
+        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchasePaymentController@index',
+        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchasePaymentController@index',
+        'namespace' => NULL,
+        'prefix' => 'pharmacy',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'pharmacy.purchase-payments.create' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'pharmacy/purchase-payments/create',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'tenant',
+          3 => 'access',
+          4 => 'subscribed',
+          5 => 'branch:required',
+          6 => 'pharmacy.permission',
+        ),
+        'as' => 'pharmacy.purchase-payments.create',
+        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchasePaymentController@create',
+        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchasePaymentController@create',
+        'namespace' => NULL,
+        'prefix' => 'pharmacy',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'pharmacy.purchase-payments.store' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'POST',
+      ),
+      'uri' => 'pharmacy/purchase-payments',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'tenant',
+          3 => 'access',
+          4 => 'subscribed',
+          5 => 'branch:required',
+          6 => 'pharmacy.permission',
+        ),
+        'as' => 'pharmacy.purchase-payments.store',
+        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchasePaymentController@store',
+        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchasePaymentController@store',
+        'namespace' => NULL,
+        'prefix' => 'pharmacy',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'pharmacy.purchase-payments.show' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'pharmacy/purchase-payments/{purchase_payment}',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'tenant',
+          3 => 'access',
+          4 => 'subscribed',
+          5 => 'branch:required',
+          6 => 'pharmacy.permission',
+        ),
+        'as' => 'pharmacy.purchase-payments.show',
+        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchasePaymentController@show',
+        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchasePaymentController@show',
+        'namespace' => NULL,
+        'prefix' => 'pharmacy',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'pharmacy.purchase-payments.destroy' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'DELETE',
+      ),
+      'uri' => 'pharmacy/purchase-payments/{purchase_payment}',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'tenant',
+          3 => 'access',
+          4 => 'subscribed',
+          5 => 'branch:required',
+          6 => 'pharmacy.permission',
+        ),
+        'as' => 'pharmacy.purchase-payments.destroy',
+        'uses' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchasePaymentController@destroy',
+        'controller' => 'Modules\\Pharmacy\\Http\\Controllers\\PurchasePaymentController@destroy',
         'namespace' => NULL,
         'prefix' => 'pharmacy',
         'where' => 
@@ -29966,7 +30467,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::fIbZUuvykDNNLTiC' => 
+    'generated::IeVNAKEpurx9ORyz' => 
     array (
       'methods' => 
       array (
@@ -29978,7 +30479,7 @@ app('router')->setCompiledRoutes(
       array (
         'uses' => 'Illuminate\\Foundation\\Http\\HealthCheck@__invoke',
         'controller' => 'Illuminate\\Foundation\\Http\\HealthCheck',
-        'as' => 'generated::fIbZUuvykDNNLTiC',
+        'as' => 'generated::IeVNAKEpurx9ORyz',
       ),
       'fallback' => false,
       'defaults' => 

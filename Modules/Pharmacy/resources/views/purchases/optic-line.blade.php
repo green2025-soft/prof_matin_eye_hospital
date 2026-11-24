@@ -13,6 +13,7 @@
     }
     $opticUnitLabel = $opticUnit?->symbol ?: ($opticUnit?->name ?: ($savedLine === null ? 'Pcs' : 'Saved unit'));
     $discountUnitLabel = '/ '.$opticUnitLabel;
+    $latestPurchaseItem = $variant?->latestPurchaseItem;
     $quantity = $hasOldLines ? ($lineValues['quantity'] ?? '') : ($savedLine?->quantity ?? '');
     $unitPrice = $hasOldLines ? ($lineValues['unit_price'] ?? '') : ($savedLine === null ? '' : moneyDecimal($savedLine->unit_price));
     $quantityHelpId = 'trade_'.$lineIndex.'_quantity-unit';
@@ -49,6 +50,9 @@
     data-pharmacy-line
     data-index="{{ $lineIndex }}"
     data-pharmacy-fixed-unit="{{ $opticUnitLabel }}"
+    data-last-purchase-rate="{{ $latestPurchaseItem === null ? '' : moneyDecimal($latestPurchaseItem->unit_price) }}"
+    data-last-purchase-factor="{{ $latestPurchaseItem?->factor ?? '' }}"
+    data-preserve-rate-on-edit="{{ $hasOldLines ? '1' : '0' }}"
 >
     <legend class="visually-hidden">Item details</legend>
     <div>

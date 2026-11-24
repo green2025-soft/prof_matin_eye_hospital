@@ -1,0 +1,355 @@
+<?php $__env->startSection('title', $pageTitle); ?>
+
+<?php $__env->startSection('content'); ?>
+    <?php
+        $domainValues = array_slice(array_values(getValue('domains', null, $domains)), 0, 20) ?: [''];
+        $domainCount = count($domainValues);
+    ?>
+    <?php echo $__env->make('core::partials.heading', ['title' => $pageTitle, 'description' => $tenant->exists ? 'Update workspace details and domain access.' : 'Set up a workspace and its administrator.'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <form class="app-card p-3 p-md-4" action="<?php echo e($formAction); ?>" method="POST" enctype="multipart/form-data" data-tenant-form
+        data-tenant-create="<?php echo e($tenant->exists ? '0' : '1'); ?>" data-tenant-base-domain="<?php echo e($tenantBaseDomain); ?>">
+        <?php echo csrf_field(); ?>
+        <input name="domains_auto" type="hidden" value="0" data-tenant-domain-auto>
+        <?php if($formMethod !== 'POST'): ?>
+            <?php echo method_field($formMethod); ?>
+        <?php endif; ?>
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <section class="app-form-section" aria-labelledby="tenant-details-heading">
+                    <h2 class="app-form-section-title" id="tenant-details-heading"><span class="app-form-section-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span>Workspace details</h2>
+                    <p class="app-form-section-note">The organization name and its unique identifier.</p>
+                    <div class="mb-3">
+                        <label class="form-label" for="tenant-name">Organization Name <span class="text-danger" aria-hidden="true">*</span></label>
+                        <input class="<?php echo e(inputClass('name')); ?>" id="tenant-name" name="name" type="text" value="<?php echo e(getValue('name', $tenant)); ?>" maxlength="255" required autofocus <?php echo e(inputAttrs('name', 'tenant-name')); ?>>
+                        <?php $__errorArgs = ['name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <div class="invalid-feedback d-block" id="tenant-name-error"><?php echo e($message); ?></div>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label" for="tenant-slug">Slug <span class="text-danger" aria-hidden="true">*</span></label>
+                        <input class="<?php echo e(inputClass('slug')); ?>" id="tenant-slug" name="slug" type="text" value="<?php echo e(getValue('slug', $tenant)); ?>" maxlength="80" autocomplete="off" required <?php if(! $tenant->exists): echo 'readonly'; endif; ?> <?php echo e(inputAttrs('slug', 'tenant-slug', 'tenant-slug-help')); ?>>
+                        <?php $__errorArgs = ['slug'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <div class="invalid-feedback d-block" id="tenant-slug-error"><?php echo e($message); ?></div>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                        <div class="form-text" id="tenant-slug-help">
+                            <?php echo e($tenant->exists ? 'Use lowercase letters, numbers, or hyphens. Changing the name does not change the slug.' : 'Generated from the workspace name. A suffix is added if the name is already used.'); ?>
+
+                        </div>
+                    </div>
+                </section>
+                <section class="app-form-section" aria-labelledby="tenant-contact-heading">
+                    <h2 class="app-form-section-title" id="tenant-contact-heading">Contact and branding</h2>
+                    <div class="mb-3">
+                        <label class="form-label" for="tenant-address">Address</label>
+                        <textarea class="<?php echo e(inputClass('address')); ?>" id="tenant-address" name="address" rows="3" maxlength="2000" <?php echo e(inputAttrs('address', 'tenant-address')); ?>><?php echo e(getValue('address', $tenant)); ?></textarea>
+                        <?php $__errorArgs = ['address'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <div class="invalid-feedback d-block" id="tenant-address-error"><?php echo e($message); ?></div>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="tenant-phone">Phone</label>
+                        <input class="<?php echo e(inputClass('phone')); ?>" id="tenant-phone" name="phone" type="tel" inputmode="numeric" value="<?php echo e(getValue('phone', $tenant)); ?>" maxlength="30" pattern="[0-9]{1,30}" <?php echo e(inputAttrs('phone', 'tenant-phone', 'tenant-phone-help')); ?>>
+                        <div class="form-text" id="tenant-phone-help">Optional. Enter digits without spaces or symbols.</div>
+                        <?php $__errorArgs = ['phone'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <div class="invalid-feedback d-block" id="tenant-phone-error"><?php echo e($message); ?></div>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                    </div>
+                    <div>
+                        <label class="form-label" for="tenant-logo">Logo</label>
+                        <?php if($logoUrl): ?>
+                            <div class="mb-2">
+                                <img class="rounded border object-fit-cover" src="<?php echo e($logoUrl); ?>" width="96" height="96" alt="<?php echo e($tenant->name); ?> logo">
+                            </div>
+                        <?php endif; ?>
+                        <input class="<?php echo e(inputClass('logo')); ?>" id="tenant-logo" name="logo" type="file" accept="image/png,image/jpeg,image/webp,image/gif" <?php echo e(inputAttrs('logo', 'tenant-logo', 'tenant-logo-help')); ?>>
+                        <div class="form-text" id="tenant-logo-help">Optional PNG, JPG, WebP, or GIF, up to 2 MB. Leave blank to keep the current logo.</div>
+                        <?php $__errorArgs = ['logo'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <div class="invalid-feedback d-block" id="tenant-logo-error"><?php echo e($message); ?></div>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                    </div>
+                </section>
+                <fieldset class="app-form-section" data-domain-editor <?php echo e(inputAttrs('domains', null, 'domains-help')); ?>>
+                    <legend class="app-form-section-title"><span class="app-form-section-icon"><i class="fa-solid fa-globe" aria-hidden="true"></i></span>Domains</legend>
+                    <p class="app-form-section-note" id="domains-help">A domain is suggested from the slug and <?php echo e($tenantBaseDomain); ?>. Edit it or add up to 20 hostnames without http:// or ports. Blank domains use the automatic domain.</p>
+                    <div class="d-grid gap-2 mb-3" data-domain-list>
+                        <?php $__currentLoopData = $domainValues; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $domainValue): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <div class="d-flex align-items-start gap-2" data-domain-row>
+                                <div class="flex-grow-1 app-domain-field">
+                                    <label class="visually-hidden" for="tenant-domain-<?php echo e($index); ?>" data-domain-label>Domain <?php echo e($index + 1); ?></label>
+                                    <input class="<?php echo e(inputClass('domains.'.$index)); ?>" id="tenant-domain-<?php echo e($index); ?>" name="domains[]" type="text" value="<?php echo e(getValue('domains.'.$index, null, is_scalar($domainValue) ? $domainValue : '')); ?>" placeholder="workspace.<?php echo e($tenantBaseDomain); ?>" maxlength="253" autocomplete="off" autocapitalize="none" spellcheck="false" <?php echo e(inputAttrs('domains.'.$index, 'tenant-domain-'.$index, 'domains-help')); ?>>
+                                    <?php $__errorArgs = ['domains.'.$index];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                        <div class="invalid-feedback d-block" id="tenant-domain-<?php echo e($index); ?>-error"><?php echo e($message); ?></div>
+                                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                                </div>
+                                <button class="btn btn-outline-secondary app-domain-remove" type="button" data-domain-remove aria-label="Remove domain <?php echo e($index + 1); ?>" <?php if($domainCount === 1): echo 'disabled'; endif; ?>><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+                            </div>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </div>
+                    <?php $__errorArgs = ['domains'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <div class="invalid-feedback d-block mb-2" id="domains-error"><?php echo e($message); ?></div>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" data-domain-add <?php if($domainCount >= 20): echo 'disabled'; endif; ?>><i class="fa-solid fa-plus me-2" aria-hidden="true"></i>Add domain</button>
+                    <span class="visually-hidden" data-domain-announcement aria-live="polite"></span>
+                    <template data-domain-template>
+                        <div class="d-flex align-items-start gap-2" data-domain-row>
+                            <div class="flex-grow-1 app-domain-field">
+                                <label class="visually-hidden" for="tenant-domain-template" data-domain-label>Domain</label>
+                                <input class="form-control" id="tenant-domain-template" name="domains[]" type="text" placeholder="workspace.<?php echo e($tenantBaseDomain); ?>" maxlength="253" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="domains-help">
+                            </div>
+                            <button class="btn btn-outline-secondary app-domain-remove" type="button" data-domain-remove aria-label="Remove domain"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+                        </div>
+                    </template>
+                </fieldset>
+                <section class="app-form-section">
+                    <input name="has_branches" type="hidden" value="0">
+                    <label class="form-check d-flex align-items-center gap-2" for="tenant-has-branches">
+                        <input class="<?php echo e(inputClass('has_branches', 'form-check-input')); ?>" id="tenant-has-branches" name="has_branches" type="checkbox" value="1" <?php echo e(getChecked(1, 'has_branches', $tenant, false)); ?> <?php echo e(inputAttrs('has_branches', 'tenant-has-branches')); ?>>
+                        This workspace has branches
+                    </label>
+                    <?php $__errorArgs = ['has_branches'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <div class="invalid-feedback d-block" id="tenant-has-branches-error"><?php echo e($message); ?></div>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                </section>
+            </div>
+            <div class="col-lg-5">
+                <section class="app-form-section" aria-labelledby="tenant-database-heading">
+                    <h2 class="app-form-section-title" id="tenant-database-heading"><span class="app-form-section-icon"><i class="fa-solid fa-database" aria-hidden="true"></i></span>Database</h2>
+                    <p class="app-form-section-note"><?php echo e($tenant->exists ? 'Database connection for this workspace.' : 'Create an empty database and user in hosting panel first. Tables/default data are added automatically.'); ?></p>
+                    <?php $__errorArgs = ['credentials'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <div class="invalid-feedback d-block mb-2"><?php echo e($message); ?></div>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                    <fieldset class="row g-3" aria-labelledby="tenant-database-heading" <?php if($tenant->exists): echo 'disabled'; endif; ?>>
+                        <div class="col-12">
+                            <label class="form-label" for="tenant-database">DB_DATABASE <span class="text-danger" aria-hidden="true">*</span></label>
+                            <input class="<?php echo e(inputClass('credentials.database')); ?>" id="tenant-database" name="credentials[database]" type="text"
+                                value="<?php echo e($databaseCredentials['database']); ?>" maxlength="64" autocomplete="off" autocapitalize="none" spellcheck="false"
+                                required <?php echo e(inputAttrs('credentials.database', 'tenant-database')); ?>>
+                            <?php $__errorArgs = ['credentials.database'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback d-block" id="tenant-database-error"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="tenant-database-username">DB_USERNAME <span class="text-danger" aria-hidden="true">*</span></label>
+                            <input class="<?php echo e(inputClass('credentials.username')); ?>" id="tenant-database-username" name="credentials[username]" type="text"
+                                value="<?php echo e($databaseCredentials['username']); ?>" maxlength="128" autocomplete="off" autocapitalize="none" spellcheck="false"
+                                required <?php echo e(inputAttrs('credentials.username', 'tenant-database-username')); ?>>
+                            <?php $__errorArgs = ['credentials.username'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback d-block" id="tenant-database-username-error"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="tenant-database-password">DB_PASSWORD</label>
+                            <input class="<?php echo e(inputClass('credentials.password')); ?>" id="tenant-database-password" name="credentials[password]" type="text"
+                                value="<?php echo e($databaseCredentials['password']); ?>" maxlength="4096" autocomplete="off"
+                                <?php echo e(inputAttrs('credentials.password', 'tenant-database-password')); ?>>
+                            <?php $__errorArgs = ['credentials.password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback d-block" id="tenant-database-password-error"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                        </div>
+                    </fieldset>
+                </section>
+                <section class="app-form-section" aria-labelledby="tenant-account-heading">
+                    <h2 class="app-form-section-title" id="tenant-account-heading"><span class="app-form-section-icon"><i class="fa-solid fa-user-shield" aria-hidden="true"></i></span>Administrator</h2>
+                    <p class="app-form-section-note"><?php echo e($tenant->exists ? 'The administrator email is fixed for this workspace.' : 'Create the first administrator for this workspace.'); ?></p>
+                    <?php if($tenant->exists): ?>
+                        <div class="mb-0">
+                            <label class="form-label" for="owner-email">Email address</label>
+                            <input class="<?php echo e(inputClass('owner_email')); ?>" id="owner-email" type="email" value="<?php echo e($tenant->owner_email); ?>" readonly <?php echo e(inputAttrs('owner_email', 'owner-email')); ?>>
+                            <?php $__errorArgs = ['owner_email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback d-block" id="owner-email-error"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="mb-3">
+                            <label class="form-label" for="owner-name">Responsible Person Name <span class="text-danger" aria-hidden="true">*</span></label>
+                            <input class="<?php echo e(inputClass('owner_name')); ?>" id="owner-name" name="owner_name" type="text" value="<?php echo e(getValue('owner_name')); ?>" maxlength="255" autocomplete="name" required <?php echo e(inputAttrs('owner_name', 'owner-name')); ?>>
+                            <?php $__errorArgs = ['owner_name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback d-block" id="owner-name-error"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label" for="owner-email">Email address <span class="text-danger" aria-hidden="true">*</span></label>
+                            <input class="<?php echo e(inputClass('owner_email')); ?>" id="owner-email" name="owner_email" type="email" value="<?php echo e(getValue('owner_email')); ?>" maxlength="255" autocomplete="email" required <?php echo e(inputAttrs('owner_email', 'owner-email')); ?>>
+                            <?php $__errorArgs = ['owner_email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback d-block" id="owner-email-error"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                        </div>
+                    <?php endif; ?>
+                </section>
+                <section class="app-form-section" aria-labelledby="tenant-access-heading">
+                    <h2 class="app-form-section-title" id="tenant-access-heading"><span class="app-form-section-icon"><i class="fa-solid fa-lock" aria-hidden="true"></i></span><?php echo e($tenant->exists ? 'Workspace access' : 'Password & security'); ?></h2>
+                    <p class="app-form-section-note"><?php echo e($tenant->exists ? 'Control whether this workspace can be accessed.' : 'Set an administrator password with at least '.$passwordMinLength.' characters.'); ?></p>
+                    <?php if($tenant->exists): ?>
+                        <div class="mb-0">
+                            <label class="form-label" for="tenant-status">Status <?php if(count($statusOptions) > 1): ?><span class="text-danger" aria-hidden="true">*</span><?php endif; ?></label>
+                            <?php if(count($statusOptions) > 1): ?>
+                                <select class="<?php echo e(inputClass('status', 'form-select')); ?>" id="tenant-status" name="status" required <?php echo e(inputAttrs('status', 'tenant-status')); ?>>
+                                    <?php $__currentLoopData = $statusOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $value => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($value); ?>" <?php echo e(getSelected($value, 'status', $tenant)); ?>><?php echo e($label); ?></option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </select>
+                            <?php else: ?>
+                                <input class="<?php echo e(inputClass('status')); ?>" id="tenant-status" type="text" value="<?php echo e(array_values($statusOptions)[0] ?? ''); ?>" disabled <?php echo e(inputAttrs('status', 'tenant-status', 'tenant-status-help')); ?>>
+                                <input name="status" type="hidden" value="<?php echo e($tenant->status); ?>">
+                                <div class="form-text" id="tenant-status-help">Access can be changed after workspace setup completes.</div>
+                            <?php endif; ?>
+                            <?php $__errorArgs = ['status'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback d-block" id="tenant-status-error"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="mb-3">
+                            <label class="form-label" for="owner-password">Password <span class="text-danger" aria-hidden="true">*</span></label>
+                            <div class="app-input-wrap">
+                                <input class="<?php echo e(inputClass('password')); ?> app-password-input" id="owner-password" name="password" type="password" minlength="<?php echo e($passwordMinLength); ?>" maxlength="4096" autocomplete="new-password" required <?php echo e(inputAttrs('password', 'owner-password')); ?>>
+                                <button class="app-password-toggle" type="button" data-password-toggle aria-controls="owner-password" aria-label="Show password" aria-pressed="false" title="Show password"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
+                            </div>
+                            <?php $__errorArgs = ['password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback d-block" id="owner-password-error"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label" for="owner-password-confirmation">Confirm password <span class="text-danger" aria-hidden="true">*</span></label>
+                            <div class="app-input-wrap">
+                                <input class="<?php echo e(inputClass('password_confirmation')); ?> app-password-input" id="owner-password-confirmation" name="password_confirmation" type="password" minlength="<?php echo e($passwordMinLength); ?>" maxlength="4096" autocomplete="new-password" required <?php echo e(inputAttrs('password_confirmation', 'owner-password-confirmation')); ?>>
+                                <button class="app-password-toggle" type="button" data-password-toggle aria-controls="owner-password-confirmation" aria-label="Show password" aria-pressed="false" title="Show password"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
+                            </div>
+                            <?php $__errorArgs = ['password_confirmation'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback d-block" id="owner-password-confirmation-error"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                        </div>
+                    <?php endif; ?>
+                </section>
+            </div>
+        </div>
+        <?php echo $__env->make('core::partials.form-actions', ['model' => $tenant, 'routePrefix' => 'core.tenants', 'submitLabel' => $submitLabel], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    </form>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('core::layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\laragon\www\laravel_project\prof_matin_eye_hospital\Modules\Core\resources\views\tenants\form.blade.php ENDPATH**/ ?>

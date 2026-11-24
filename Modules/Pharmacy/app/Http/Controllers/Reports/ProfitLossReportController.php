@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
 use Modules\Core\Http\Controllers\BaseController;
 use Modules\Pharmacy\Http\Requests\DateRangeReportRequest;
-use Modules\Pharmacy\Models\Payment;
 use Modules\Pharmacy\Models\Product;
 use Modules\Pharmacy\Models\ProductVariant;
+use Modules\Pharmacy\Models\PurchasePayment;
+use Modules\Pharmacy\Models\SalePayment;
 
 class ProfitLossReportController extends BaseController
 {
@@ -164,12 +165,14 @@ class ProfitLossReportController extends BaseController
         $summary->customer_discount = '0';
         $summary->supplier_discount = '0';
         if ($includeSettlements) {
-            $payments = Payment::where('product_type', $filters['product_type'])
+            $salePayments = SalePayment::where('product_type', $filters['product_type'])
                 ->whereNull('voided_at')
                 ->whereBetween('payment_date', [$filters['from_date'], $filters['to_date']]);
-            $summary->customer_discount = (clone $payments)->where('direction', 'customer')
-                ->sum('discount');
-            $summary->supplier_discount = (clone $payments)->where('direction', 'supplier')
+            $purchasePayments = PurchasePayment::where('product_type', $filters['product_type'])
+                ->whereNull('voided_at')
+                ->whereBetween('payment_date', [$filters['from_date'], $filters['to_date']]);
+            $summary->customer_discount = $salePayments->sum('discount');
+            $summary->supplier_discount = $purchasePayments
                 ->sum('discount');
         }
         $summary->net_profit = (string) BigInteger::of($summary->profit)

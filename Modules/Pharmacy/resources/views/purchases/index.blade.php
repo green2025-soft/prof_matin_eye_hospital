@@ -7,13 +7,13 @@
         @include('core::partials.heading', ['title' => ucfirst($filters['product_type'] ?? 'medicine').' Purchases'])
         @if ($canCreate)
             <a class="btn btn-primary text-nowrap" href="{{ route($routePrefix.'.create', ['product_type' => $filters['product_type'] ?? 'medicine']) }}">
-                <i class="fa-solid fa-plus me-2" aria-hidden="true"></i>New purchase
+                <i class="fa-solid fa-plus me-2" aria-hidden="true"></i>New Purchase
             </a>
         @endif
     </div>
 
     <section class="app-card overflow-hidden">
-        @include('pharmacy::entries.partials.filters', ['numberLabel' => 'Invoice no.'])
+        @include('pharmacy::entries.partials.filters', ['numberLabel' => 'Invoice No.'])
 
         <div class="table-responsive">
             <table class="table app-table align-middle mb-0">

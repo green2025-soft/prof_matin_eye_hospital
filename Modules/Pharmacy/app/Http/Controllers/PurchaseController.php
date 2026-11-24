@@ -64,6 +64,7 @@ class PurchaseController extends BaseController
     public function show(Request $request, Purchase $purchase, PurchaseService $entries): View
     {
         $actor = $request->user('web');
+        
         $request->attributes->set('pharmacy_product_type', $purchase->product_type);
 
         $data = $entries->invoiceData($actor, $purchase) + [
@@ -91,6 +92,7 @@ class PurchaseController extends BaseController
                 'lines' => fn ($query) => $query->orderBy('id'),
                 'lines.productUnit:id,unit_id',
                 'lines.variant.product:id,name,type,purchase_price,sale_price',
+                'lines.variant.latestPurchaseItem:id,variant_id,unit_price,factor',
                 'lines.variant.product.units' => fn ($query) => $query->orderBy('factor')
                     ->orderBy('id'),
                 'lines.variant.product.units.unit:id,name,symbol',

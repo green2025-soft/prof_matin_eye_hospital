@@ -44,23 +44,23 @@
         <div class="row g-3 align-items-start">
             <div class="col-12 col-xl-9 app-pharmacy-trade-main">
                 <section class="app-form-section" aria-labelledby="sale-invoice-heading">
-                    <h2 class="app-form-section-title" id="sale-invoice-heading">
+                    {{-- <h2 class="app-form-section-title" id="sale-invoice-heading">
                         <span class="app-form-section-icon"><i class="fa-solid fa-file-invoice" aria-hidden="true"></i></span>
                         Sale details
-                    </h2>
+                    </h2> --}}
                     <div class="row g-2">
                         <div class="col-md-6">
                             <label class="form-label" for="pharmacy_customer">Customer <span class="text-danger" aria-hidden="true">*</span></label>
-                            <div class="d-flex gap-2">
+                            <div class="input-group flex-nowrap app-pharmacy-customer-group">
                                 <select class="{{ inputClass('customer_id', 'form-select') }}" id="pharmacy_customer" name="customer_id" data-ajax-select data-url="{{ route('pharmacy.customers.options', ['new_sale' => 1]) }}" data-label-field="text" data-placeholder="Patient ID, name or mobile" required {{ inputAttrs('customer_id', 'pharmacy_customer') }}>
-                                    <option value=""></option>
                                     @if ($selectedCustomer)
                                         <option value="{{ $selectedCustomer['id'] }}" selected>{{ $selectedCustomer['text'] }}</option>
                                     @endif
                                 </select>
                                 @if ($canCreateCustomer)
-                                    <button class="btn btn-outline-primary text-nowrap" type="button" data-bs-toggle="modal" data-bs-target="#pharmacy-customer-modal">
-                                        <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>New
+                                    <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="modal"
+                                        data-bs-target="#pharmacy-customer-modal" aria-label="Add customer" title="Add customer">
+                                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
                                     </button>
                                 @endif
                             </div>

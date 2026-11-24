@@ -39,7 +39,7 @@
                 <section class="app-form-section" aria-labelledby="purchase-invoice-heading">
                     <h2 class="app-form-section-title" id="purchase-invoice-heading">
                         <span class="app-form-section-icon"><i class="fa-solid fa-file-invoice" aria-hidden="true"></i></span>
-                        Purchase details
+                        Purchase Details
                     </h2>
                     <div class="row g-2">
                         <div class="col-md-6 col-xl-4">
@@ -55,7 +55,7 @@
                             @enderror
                         </div>
                         <div class="col-md-6 col-xl-3">
-                            <label class="form-label" for="supplier_invoice_no">Supplier invoice no.</label>
+                            <label class="form-label" for="supplier_invoice_no">Supplier Invoice No.</label>
                             <input class="{{ inputClass('supplier_invoice_no') }}" id="supplier_invoice_no" name="supplier_invoice_no" type="text" maxlength="80" autocomplete="off" value="{{ getValue('supplier_invoice_no', $entry) }}" {{ inputAttrs('supplier_invoice_no') }}>
                             @error('supplier_invoice_no')
                                 <div class="invalid-feedback d-block" id="supplier_invoice_no-error">{{ $message }}</div>

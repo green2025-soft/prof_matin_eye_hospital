@@ -7,10 +7,11 @@ use Modules\Core\Http\Controllers\BaseController;
 use Modules\Pharmacy\Http\Requests\DateRangeReportRequest;
 use Modules\Pharmacy\Models\Adjustment;
 use Modules\Pharmacy\Models\OpeningStock;
-use Modules\Pharmacy\Models\Payment;
 use Modules\Pharmacy\Models\Purchase;
+use Modules\Pharmacy\Models\PurchasePayment;
 use Modules\Pharmacy\Models\PurchaseReturn;
 use Modules\Pharmacy\Models\Sale;
+use Modules\Pharmacy\Models\SalePayment;
 use Modules\Pharmacy\Models\SaleReturn;
 use Modules\Pharmacy\Models\Transfer;
 use Modules\Pharmacy\Models\Wastage;
@@ -48,7 +49,10 @@ class DailyReportController extends BaseController
             ->whereNull('voided_at')
             ->where('product_type', $productType)
             ->whereBetween('entry_date', $dateRange);
-        $payments = Payment::whereNull('voided_at')
+        $salePayments = SalePayment::whereNull('voided_at')
+            ->where('product_type', $productType)
+            ->whereBetween('payment_date', $dateRange);
+        $purchasePayments = PurchasePayment::whereNull('voided_at')
             ->where('product_type', $productType)
             ->whereBetween('payment_date', $dateRange);
 
@@ -84,10 +88,14 @@ class DailyReportController extends BaseController
                     ->toBase()
             )
             ->union(
-                (clone $payments)->select('payment_date as activity_date')
+                (clone $salePayments)->select('payment_date as activity_date')
+                    ->toBase()
+            )
+            ->union(
+                (clone $purchasePayments)->select('payment_date as activity_date')
                     ->toBase()
             );
-        $query = (new Payment)->getConnection()
+        $query = (new SalePayment)->getConnection()
             ->query()
             ->fromSub($dates, 'activity_dates')
             ->orderByDesc('activity_date');
@@ -103,8 +111,8 @@ class DailyReportController extends BaseController
             ->concat($reports->stockActivities($adjustments, $pageDates, 'adjustment'))
             ->concat($reports->stockActivities($wastages, $pageDates, 'damage'))
             ->concat($reports->stockActivities($transfers, $pageDates, 'transfer'))
-            ->concat($reports->paymentActivities((clone $payments)->where('direction', 'customer'), $pageDates, 'customer_collection', 1))
-            ->concat($reports->paymentActivities((clone $payments)->where('direction', 'supplier'), $pageDates, 'supplier_payment', -1));
+            ->concat($reports->paymentActivities($salePayments, $pageDates, 'customer_collection', 1))
+            ->concat($reports->paymentActivities($purchasePayments, $pageDates, 'supplier_payment', -1));
         $records->setCollection($activities);
 
         $data = [

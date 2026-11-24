@@ -22,7 +22,8 @@
 
     $isMedicine = ($moduleMenu['productType'] ?? null) === 'medicine';
     $isOptic = ($moduleMenu['productType'] ?? null) === 'optic';
-    $paymentDirection = request()->attributes->get('pharmacy_payment_direction', request('direction', 'customer'));
+    $isSalePayment = request()->routeIs('pharmacy.sale-payments.*');
+    $isPurchasePayment = request()->routeIs('pharmacy.purchase-payments.*');
 @endphp
 
 @if ($hasModuleMenu)
@@ -45,7 +46,8 @@
                 @endif
                 @if ($permissions['pharmacy-sale-returns.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Sales returns', 'icon' => 'rotate-left',
+                        'label' => 'Sales Return',
+                        'icon' => 'rotate-left',
                         'url' => route('pharmacy.sale-returns.index', ['product_type' => 'medicine']),
                         'active' => ($isMedicine && request()->routeIs('pharmacy.sale-returns.*')),
                     ])
@@ -58,13 +60,14 @@
         <details class="app-nav-group" @if (($isMedicine && request()->routeIs('pharmacy.purchases.*', 'pharmacy.purchase-returns.*'))) open @endif>
             <summary class="app-nav-link app-nav-group-toggle{{ ($isMedicine && request()->routeIs('pharmacy.purchases.*', 'pharmacy.purchase-returns.*')) ? ' active' : '' }}" title="Medicine Purchases">
                 <span class="app-nav-icon"><i class="fa-solid fa-truck-ramp-box" aria-hidden="true"></i></span>
-                <span class="app-nav-copy">Purchases</span>
+                <span class="app-nav-copy">Purchase</span>
                 <i class="fa-solid fa-chevron-down app-nav-group-caret ms-auto" aria-hidden="true"></i>
             </summary>
             <div class="app-nav-submenu ps-3">
                 @if ($permissions['pharmacy-purchases.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Purchases', 'icon' => 'file-invoice',
+                        'label' => 'Purchase',
+                        'icon' => 'file-invoice',
                         'url' => route('pharmacy.purchases.index', ['product_type' => 'medicine']),
                         'active' => ($isMedicine && request()->routeIs('pharmacy.purchases.*')),
                     ])
@@ -90,28 +93,32 @@
             <div class="app-nav-submenu ps-3">
                 @if ($permissions['pharmacy-opening-stock.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Opening stock', 'icon' => 'box-open',
+                        'label' => 'Opening Stock',
+                        'icon' => 'box-open',
                         'url' => route('pharmacy.opening-stock.index', ['product_type' => 'medicine']),
                         'active' => ($isMedicine && request()->routeIs('pharmacy.opening-stock.*')),
                     ])
                 @endif
                 @if ($permissions['pharmacy-adjustments.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Adjustments', 'icon' => 'sliders',
+                        'label' => 'Adjustment',
+                        'icon' => 'sliders',
                         'url' => route('pharmacy.adjustments.index', ['product_type' => 'medicine']),
                         'active' => ($isMedicine && request()->routeIs('pharmacy.adjustments.*')),
                     ])
                 @endif
                 @if ($permissions['pharmacy-damage.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Damage / wastage', 'icon' => 'box-archive',
+                        'label' => 'Damage / Wastage',
+                        'icon' => 'box-archive',
                         'url' => route('pharmacy.damage.index', ['product_type' => 'medicine']),
                         'active' => ($isMedicine && request()->routeIs('pharmacy.damage.*')),
                     ])
                 @endif
                 @if ($permissions['pharmacy-transfers.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Branch transfers', 'icon' => 'arrow-right-arrow-left',
+                        'label' => 'Branch Transfer',
+                        'icon' => 'arrow-right-arrow-left',
                         'url' => route('pharmacy.transfers.index', ['product_type' => 'medicine']),
                         'active' => ($isMedicine && request()->routeIs('pharmacy.transfers.*')),
                     ])
@@ -121,8 +128,8 @@
     @endif
 
     @if ($hasPeopleMenu)
-        <details class="app-nav-group" @if (($isMedicine && request()->routeIs('pharmacy.suppliers.*', 'pharmacy.payments.*'))) open @endif>
-            <summary class="app-nav-link app-nav-group-toggle{{ ($isMedicine && request()->routeIs('pharmacy.suppliers.*', 'pharmacy.payments.*')) ? ' active' : '' }}" title="Medicine People & payments">
+        <details class="app-nav-group" @if (($isMedicine && request()->routeIs('pharmacy.suppliers.*', 'pharmacy.sale-payments.*', 'pharmacy.purchase-payments.*'))) open @endif>
+            <summary class="app-nav-link app-nav-group-toggle{{ ($isMedicine && request()->routeIs('pharmacy.suppliers.*', 'pharmacy.sale-payments.*', 'pharmacy.purchase-payments.*')) ? ' active' : '' }}" title="Medicine People & payments">
                 <span class="app-nav-icon"><i class="fa-solid fa-users" aria-hidden="true"></i></span>
                 <span class="app-nav-copy">Payment</span>
                 <i class="fa-solid fa-chevron-down app-nav-group-caret ms-auto" aria-hidden="true"></i>
@@ -133,13 +140,13 @@
                     @include('core::partials.navigation-link', [
                         'label' => 'Customer Collection',
                          'icon' => 'money-bill-transfer',
-                        'url' => route('pharmacy.payments.index', ['product_type' => 'medicine', 'direction' => 'customer']),
-                        'active' => ($isMedicine && request()->routeIs('pharmacy.payments.*') && $paymentDirection === 'customer'),
+                        'url' => route('pharmacy.sale-payments.index', ['product_type' => 'medicine']),
+                        'active' => ($isMedicine && $isSalePayment),
                     ])
                     @include('core::partials.navigation-link', [
                         'label' => 'Supplier Payment', 'icon' => 'money-bill-transfer',
-                        'url' => route('pharmacy.payments.index', ['product_type' => 'medicine', 'direction' => 'supplier']),
-                        'active' => ($isMedicine && request()->routeIs('pharmacy.payments.*') && $paymentDirection === 'supplier'),
+                        'url' => route('pharmacy.purchase-payments.index', ['product_type' => 'medicine']),
+                        'active' => ($isMedicine && $isPurchasePayment),
                     ])
                 @endif
                  @if ($permissions['pharmacy-suppliers.view'] ?? false)
@@ -168,47 +175,55 @@
         <details class="app-nav-group" @if (($isMedicine && request()->routeIs('pharmacy.reports.*'))) open @endif>
             <summary class="app-nav-link app-nav-group-toggle{{ ($isMedicine && request()->routeIs('pharmacy.reports.*')) ? ' active' : '' }}" title="Medicine reports">
                 <span class="app-nav-icon"><i class="fa-solid fa-chart-column" aria-hidden="true"></i></span>
-                <span class="app-nav-copy">Reports</span>
+                <span class="app-nav-copy">Report</span>
                 <i class="fa-solid fa-chevron-down app-nav-group-caret ms-auto" aria-hidden="true"></i>
             </summary>
             <div class="app-nav-submenu ps-3">
                 @include('core::partials.navigation-link', [
-                    'label' => 'Stock report', 'icon' => 'chart-column',
+                    'label' => 'Stock Report',
+                    'icon' => 'chart-column',
                     'url' => route('pharmacy.reports.stock', ['product_type' => 'medicine']),
                     'active' => ($isMedicine && request()->routeIs('pharmacy.reports.stock', 'pharmacy.reports.index')),
                 ])
                 @include('core::partials.navigation-link', [
-                    'label' => 'Stock movements', 'icon' => 'chart-column',
+                    'label' => 'Stock Movement',
+                    'icon' => 'chart-column',
                     'url' => route('pharmacy.reports.movements', ['product_type' => 'medicine']),
                     'active' => ($isMedicine && request()->routeIs('pharmacy.reports.movements')),
                 ])
                 @include('core::partials.navigation-link', [
-                    'label' => 'Expiry report', 'icon' => 'chart-column',
+                    'label' => 'Expiry Report',
+                    'icon' => 'chart-column',
                     'url' => route('pharmacy.reports.expiry', ['product_type' => 'medicine']),
                     'active' => ($isMedicine && request()->routeIs('pharmacy.reports.expiry')),
                 ])
                 @include('core::partials.navigation-link', [
-                    'label' => 'Profit / loss', 'icon' => 'chart-column',
+                    'label' => 'Profit / Loss',
+                    'icon' => 'chart-column',
                     'url' => route('pharmacy.reports.profit-loss', ['product_type' => 'medicine']),
                     'active' => ($isMedicine && request()->routeIs('pharmacy.reports.profit-loss')),
                 ])
                 @include('core::partials.navigation-link', [
-                    'label' => 'Purchase discounts', 'icon' => 'chart-column',
+                    'label' => 'Purchase Discount',
+                    'icon' => 'chart-column',
                     'url' => route('pharmacy.reports.purchase-discounts', ['product_type' => 'medicine']),
                     'active' => ($isMedicine && request()->routeIs('pharmacy.reports.purchase-discounts')),
                 ])
                 @include('core::partials.navigation-link', [
-                    'label' => 'Daily report', 'icon' => 'chart-column',
+                    'label' => 'Daily Report',
+                    'icon' => 'chart-column',
                     'url' => route('pharmacy.reports.daily', ['product_type' => 'medicine']),
                     'active' => ($isMedicine && request()->routeIs('pharmacy.reports.daily')),
                 ])
                 @include('core::partials.navigation-link', [
-                    'label' => 'Customer dues', 'icon' => 'file-invoice-dollar',
+                    'label' => 'Customer Due',
+                    'icon' => 'file-invoice-dollar',
                     'url' => route('pharmacy.reports.customer-dues', ['product_type' => 'medicine']),
                     'active' => ($isMedicine && request()->routeIs('pharmacy.reports.customer-dues')),
                 ])
                 @include('core::partials.navigation-link', [
-                    'label' => 'Supplier dues', 'icon' => 'file-invoice-dollar',
+                    'label' => 'Supplier Due',
+                    'icon' => 'file-invoice-dollar',
                     'url' => route('pharmacy.reports.supplier-dues', ['product_type' => 'medicine']),
                     'active' => ($isMedicine && request()->routeIs('pharmacy.reports.supplier-dues')),
                 ])
@@ -228,14 +243,16 @@
             <div class="app-nav-submenu ps-3">
                 @if ($permissions['pharmacy-sales.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Sales', 'icon' => 'receipt',
+                        'label' => 'Sales',
+                        'icon' => 'receipt',
                         'url' => route('pharmacy.sales.index', ['product_type' => 'optic']),
                         'active' => ($isOptic && request()->routeIs('pharmacy.sales.*')),
                     ])
                 @endif
                 @if ($permissions['pharmacy-sale-returns.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Sales returns', 'icon' => 'rotate-left',
+                        'label' => 'Sales Return',
+                        'icon' => 'rotate-left',
                         'url' => route('pharmacy.sale-returns.index', ['product_type' => 'optic']),
                         'active' => ($isOptic && request()->routeIs('pharmacy.sale-returns.*')),
                     ])
@@ -248,20 +265,22 @@
         <details class="app-nav-group" @if (($isOptic && request()->routeIs('pharmacy.purchases.*', 'pharmacy.purchase-returns.*'))) open @endif>
             <summary class="app-nav-link app-nav-group-toggle{{ ($isOptic && request()->routeIs('pharmacy.purchases.*', 'pharmacy.purchase-returns.*')) ? ' active' : '' }}" title="Optic Purchases">
                 <span class="app-nav-icon"><i class="fa-solid fa-truck-ramp-box" aria-hidden="true"></i></span>
-                <span class="app-nav-copy">Purchases</span>
+                <span class="app-nav-copy">Purchase</span>
                 <i class="fa-solid fa-chevron-down app-nav-group-caret ms-auto" aria-hidden="true"></i>
             </summary>
             <div class="app-nav-submenu ps-3">
                 @if ($permissions['pharmacy-purchases.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Purchases', 'icon' => 'file-invoice',
+                        'label' => 'Purchase',
+                        'icon' => 'file-invoice',
                         'url' => route('pharmacy.purchases.index', ['product_type' => 'optic']),
                         'active' => ($isOptic && request()->routeIs('pharmacy.purchases.*')),
                     ])
                 @endif
                 @if ($permissions['pharmacy-purchase-returns.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Purchase returns', 'icon' => 'rotate-left',
+                        'label' => 'Purchase Return',
+                        'icon' => 'rotate-left',
                         'url' => route('pharmacy.purchase-returns.index', ['product_type' => 'optic']),
                         'active' => ($isOptic && request()->routeIs('pharmacy.purchase-returns.*')),
                     ])
@@ -280,28 +299,32 @@
             <div class="app-nav-submenu ps-3">
                 @if ($permissions['pharmacy-opening-stock.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Opening stock', 'icon' => 'box-open',
+                        'label' => 'Opening Stock',
+                        'icon' => 'box-open',
                         'url' => route('pharmacy.opening-stock.index', ['product_type' => 'optic']),
                         'active' => ($isOptic && request()->routeIs('pharmacy.opening-stock.*')),
                     ])
                 @endif
                 @if ($permissions['pharmacy-adjustments.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Adjustments', 'icon' => 'sliders',
+                        'label' => 'Adjustment',
+                        'icon' => 'sliders',
                         'url' => route('pharmacy.adjustments.index', ['product_type' => 'optic']),
                         'active' => ($isOptic && request()->routeIs('pharmacy.adjustments.*')),
                     ])
                 @endif
                 @if ($permissions['pharmacy-damage.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Damage / wastage', 'icon' => 'box-archive',
+                        'label' => 'Damage / Wastage',
+                        'icon' => 'box-archive',
                         'url' => route('pharmacy.damage.index', ['product_type' => 'optic']),
                         'active' => ($isOptic && request()->routeIs('pharmacy.damage.*')),
                     ])
                 @endif
                 @if ($permissions['pharmacy-transfers.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Branch transfers', 'icon' => 'arrow-right-arrow-left',
+                        'label' => 'Branch Transfer',
+                        'icon' => 'arrow-right-arrow-left',
                         'url' => route('pharmacy.transfers.index', ['product_type' => 'optic']),
                         'active' => ($isOptic && request()->routeIs('pharmacy.transfers.*')),
                     ])
@@ -311,30 +334,33 @@
     @endif
 
     @if ($hasPeopleMenu)
-        <details class="app-nav-group" @if (($isOptic && request()->routeIs('pharmacy.suppliers.*', 'pharmacy.payments.*'))) open @endif>
-            <summary class="app-nav-link app-nav-group-toggle{{ ($isOptic && request()->routeIs('pharmacy.suppliers.*', 'pharmacy.payments.*')) ? ' active' : '' }}" title="Optic People & payments">
+        <details class="app-nav-group" @if (($isOptic && request()->routeIs('pharmacy.suppliers.*', 'pharmacy.sale-payments.*', 'pharmacy.purchase-payments.*'))) open @endif>
+            <summary class="app-nav-link app-nav-group-toggle{{ ($isOptic && request()->routeIs('pharmacy.suppliers.*', 'pharmacy.sale-payments.*', 'pharmacy.purchase-payments.*')) ? ' active' : '' }}" title="Optic People & payments">
                 <span class="app-nav-icon"><i class="fa-solid fa-users" aria-hidden="true"></i></span>
-                <span class="app-nav-copy">People & payments</span>
+                <span class="app-nav-copy">Payment</span>
                 <i class="fa-solid fa-chevron-down app-nav-group-caret ms-auto" aria-hidden="true"></i>
             </summary>
             <div class="app-nav-submenu ps-3">
                 @if ($permissions['pharmacy-suppliers.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Suppliers', 'icon' => 'truck',
+                        'label' => 'Supplier',
+                        'icon' => 'truck',
                         'url' => route('pharmacy.suppliers.index', ['type' => 'optic']),
                         'active' => ($isOptic && request()->routeIs('pharmacy.suppliers.*')),
                     ])
                 @endif
                 @if ($permissions['pharmacy-payments.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Customer payments', 'icon' => 'money-bill-transfer',
-                        'url' => route('pharmacy.payments.index', ['product_type' => 'optic', 'direction' => 'customer']),
-                        'active' => ($isOptic && request()->routeIs('pharmacy.payments.*') && $paymentDirection === 'customer'),
+                        'label' => 'Customer Payment',
+                        'icon' => 'money-bill-transfer',
+                        'url' => route('pharmacy.sale-payments.index', ['product_type' => 'optic']),
+                        'active' => ($isOptic && $isSalePayment),
                     ])
                     @include('core::partials.navigation-link', [
-                        'label' => 'Supplier payments', 'icon' => 'money-bill-transfer',
-                        'url' => route('pharmacy.payments.index', ['product_type' => 'optic', 'direction' => 'supplier']),
-                        'active' => ($isOptic && request()->routeIs('pharmacy.payments.*') && $paymentDirection === 'supplier'),
+                        'label' => 'Supplier Payment',
+                        'icon' => 'money-bill-transfer',
+                        'url' => route('pharmacy.purchase-payments.index', ['product_type' => 'optic']),
+                        'active' => ($isOptic && $isPurchasePayment),
                     ])
                 @endif
             </div>
@@ -355,42 +381,49 @@
         <details class="app-nav-group" @if (($isOptic && request()->routeIs('pharmacy.reports.*'))) open @endif>
             <summary class="app-nav-link app-nav-group-toggle{{ ($isOptic && request()->routeIs('pharmacy.reports.*')) ? ' active' : '' }}" title="Optic reports">
                 <span class="app-nav-icon"><i class="fa-solid fa-chart-column" aria-hidden="true"></i></span>
-                <span class="app-nav-copy">Reports</span>
+                <span class="app-nav-copy">Report</span>
                 <i class="fa-solid fa-chevron-down app-nav-group-caret ms-auto" aria-hidden="true"></i>
             </summary>
             <div class="app-nav-submenu ps-3">
                 @include('core::partials.navigation-link', [
-                    'label' => 'Stock report', 'icon' => 'chart-column',
+                    'label' => 'Stock Report',
+                    'icon' => 'chart-column',
                     'url' => route('pharmacy.reports.stock', ['product_type' => 'optic']),
                     'active' => ($isOptic && request()->routeIs('pharmacy.reports.stock', 'pharmacy.reports.index')),
                 ])
                 @include('core::partials.navigation-link', [
-                    'label' => 'Stock movements', 'icon' => 'chart-column',
+                    'label' => 'Stock Movement',
+                    'icon' => 'chart-column',
                     'url' => route('pharmacy.reports.movements', ['product_type' => 'optic']),
                     'active' => ($isOptic && request()->routeIs('pharmacy.reports.movements')),
                 ])
                 @include('core::partials.navigation-link', [
-                    'label' => 'Profit / loss', 'icon' => 'chart-column',
+                    'label' => 'Profit / Loss',
+                    'icon' => 'chart-column',
                     'url' => route('pharmacy.reports.profit-loss', ['product_type' => 'optic']),
                     'active' => ($isOptic && request()->routeIs('pharmacy.reports.profit-loss')),
                 ])
                 @include('core::partials.navigation-link', [
-                    'label' => 'Purchase discounts', 'icon' => 'chart-column',
+                    'label' => 'Purchase Discount',
+                    'icon' => 'chart-column',
                     'url' => route('pharmacy.reports.purchase-discounts', ['product_type' => 'optic']),
                     'active' => ($isOptic && request()->routeIs('pharmacy.reports.purchase-discounts')),
                 ])
                 @include('core::partials.navigation-link', [
-                    'label' => 'Daily report', 'icon' => 'chart-column',
+                    'label' => 'Daily Report',
+                    'icon' => 'chart-column',
                     'url' => route('pharmacy.reports.daily', ['product_type' => 'optic']),
                     'active' => ($isOptic && request()->routeIs('pharmacy.reports.daily')),
                 ])
                 @include('core::partials.navigation-link', [
-                    'label' => 'Customer dues', 'icon' => 'file-invoice-dollar',
+                    'label' => 'Customer Due',
+                    'icon' => 'file-invoice-dollar',
                     'url' => route('pharmacy.reports.customer-dues', ['product_type' => 'optic']),
                     'active' => ($isOptic && request()->routeIs('pharmacy.reports.customer-dues')),
                 ])
                 @include('core::partials.navigation-link', [
-                    'label' => 'Supplier dues', 'icon' => 'file-invoice-dollar',
+                    'label' => 'Supplier Due',
+                    'icon' => 'file-invoice-dollar',
                     'url' => route('pharmacy.reports.supplier-dues', ['product_type' => 'optic']),
                     'active' => ($isOptic && request()->routeIs('pharmacy.reports.supplier-dues')),
                 ])
@@ -400,15 +433,15 @@
 
 @endif
 
-@if ($hasSharedSetup)
+{{-- @if ($hasSharedSetup)
     <p class="app-nav-label">Shared setup</p>
-@endif
-@if ($permissions['pharmacy-cash-report.view'] ?? false)
+@endif --}}
+{{-- @if ($permissions['pharmacy-cash-report.view'] ?? false)
     @include('core::partials.navigation-link', ['label' => 'Cash & Due Balance', 'icon' => 'money-bill-wave', 'url' => route('pharmacy.reports.cash-balance'), 'active' => request()->routeIs('pharmacy.reports.cash-balance')])
-@endif
+@endif --}}
 @if ($permissions['pharmacy-customers.view'] ?? false)
     @include('core::partials.navigation-link', [
-        'label' => 'Customers / patients',
+        'label' => 'Customer / Patient',
         'icon' => 'users',
         'url' => route('pharmacy.customers.index'),
         'active' => request()->routeIs('pharmacy.customers.*'),
@@ -416,7 +449,7 @@
 @endif
 @if ($permissions['pharmacy-dosages.view'] ?? false)
     @include('core::partials.navigation-link', [
-        'label' => 'Dosages',
+        'label' => 'Dosage',
         'icon' => 'capsules',
         'url' => route('pharmacy.dosages.index'),
         'active' => request()->routeIs('pharmacy.dosages.*'),
@@ -424,7 +457,7 @@
 @endif
 @if ($permissions['pharmacy-units.view'] ?? false)
     @include('core::partials.navigation-link', [
-        'label' => 'Units',
+        'label' => 'Unit',
         'icon' => 'ruler',
         'url' => route('pharmacy.units.index'),
         'active' => request()->routeIs('pharmacy.units.*'),
@@ -432,7 +465,7 @@
 @endif
 @if ($permissions['settings.view'] ?? false)
     @include('core::partials.navigation-link', [
-        'label' => 'Pharmacy settings',
+        'label' => 'Pharmacy Settings',
         'icon' => 'gear',
         'url' => route('pharmacy.settings.index'),
         'active' => request()->routeIs('pharmacy.settings.*'),

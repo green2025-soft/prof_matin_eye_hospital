@@ -5,6 +5,7 @@
     $selectedProfile = $variant?->product?->units->firstWhere('id', $lineValues['product_unit_id'] ?? null);
     $unitId = $lineValues['unit_id'] ?? ($hasOldLines ? $selectedProfile?->unit_id : $savedLine?->productUnit?->unit_id);
     $unitFactor = $lineValues['unit_factor'] ?? ($hasOldLines ? $selectedProfile?->factor : $savedLine?->factor);
+    $latestPurchaseItem = $variant?->latestPurchaseItem;
     $quantity = $hasOldLines ? ($lineValues['quantity'] ?? '') : ($savedLine?->quantity ?? '');
     $unitPrice = $hasOldLines ? ($lineValues['unit_price'] ?? '') : ($savedLine === null ? '' : moneyDecimal($savedLine->unit_price));
     $expiryDate = $itemFields['expiry'] && $hasOldLines ? ($lineValues['expiry_date'] ?? '') : $savedLine?->expiry_date?->toDateString();
@@ -16,6 +17,9 @@
     data-index="{{ $lineIndex }}"
     data-product-id="{{ $variant?->product_id }}"
     data-purchase-price="{{ $variant?->product?->purchase_price ?? '0.00' }}"
+    data-last-purchase-rate="{{ $latestPurchaseItem === null ? '' : moneyDecimal($latestPurchaseItem->unit_price) }}"
+    data-last-purchase-factor="{{ $latestPurchaseItem?->factor ?? '' }}"
+    data-preserve-rate-on-edit="{{ $hasOldLines ? '1' : '0' }}"
     data-unit-profiles="{{ $variant ? $variant->product->units->map(fn ($unit) => ['id' => $unit->id, 'unit_id' => $unit->unit_id, 'factor' => $unit->factor])->toJson() : '[]' }}"
 >
     <legend class="visually-hidden">Item details</legend>

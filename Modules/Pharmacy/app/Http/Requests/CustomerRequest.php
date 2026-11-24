@@ -25,7 +25,7 @@ class CustomerRequest extends BaseRequest
 
         return [
             'name' => ['required', 'string', 'max:255'],
-            'mobile_no' => ['required', 'string', 'max:30', 'regex:/\A(?=.*[0-9])[0-9+() .-]+\z/'],
+            'mobile_no' => ['nullable', 'string', 'max:30', 'regex:/\A(?=.*[0-9])[0-9+() .-]+\z/'],
             'age' => ['nullable', 'integer', 'between:0,150'], 'gender' => ['nullable', 'in:male,female,other'],
             'address' => ['nullable', 'string', 'max:2000'],
         ];

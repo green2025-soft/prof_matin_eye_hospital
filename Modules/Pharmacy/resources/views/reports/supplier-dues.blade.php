@@ -10,7 +10,7 @@
             <div class="col-md-7 col-lg-5">
                 <label class="form-label small" for="supplier_id">Supplier</label>
                 <select class="{{ inputClass('supplier_id', 'form-select') }}" id="supplier_id" name="supplier_id"
-                    data-ajax-select data-url="{{ route('pharmacy.payments.suppliers', ['product_type' => $filters['product_type']]) }}"
+                    data-ajax-select data-url="{{ route('pharmacy.purchase-payments.suppliers', ['product_type' => $filters['product_type']]) }}"
                     data-placeholder="Search supplier"
                     {{ inputAttrs('supplier_id') }}>
                     <option value=""></option>
@@ -74,7 +74,7 @@
                         <td class="text-end">{{ moneyDecimal($record->settlement_discount) }}</td>
                         <td class="text-end fw-semibold">{{ moneyDecimal($record->due) }}</td>
                         @if ($canCreatePayment)
-                            <td class="text-end d-print-none"><a class="btn btn-outline-primary btn-sm text-nowrap" href="{{ route('pharmacy.payments.create', ['product_type' => $filters['product_type'], 'direction' => 'supplier', 'supplier_id' => $record->party_id]) }}">Pay due</a></td>
+                            <td class="text-end d-print-none"><a class="btn btn-outline-primary btn-sm text-nowrap" href="{{ route('pharmacy.purchase-payments.create', ['product_type' => $filters['product_type'], 'supplier_id' => $record->party_id]) }}">Pay due</a></td>
                         @endif
                     </tr>
                 @empty

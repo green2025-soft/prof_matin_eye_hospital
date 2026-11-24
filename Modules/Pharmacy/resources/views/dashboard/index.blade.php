@@ -57,14 +57,14 @@
             @if ($canCreatePayment)
                 <div class="col">
                     <a class="btn btn-info bg-gradient d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
-                        href="{{ route('pharmacy.payments.create', ['product_type' => $productType, 'direction' => 'customer']) }}">
+                        href="{{ route('pharmacy.sale-payments.create', ['product_type' => $productType]) }}">
                         <i class="fa-solid fa-hand-holding-dollar fs-4" aria-hidden="true"></i>
                         <span class="small fw-semibold">Customer collection</span>
                     </a>
                 </div>
                 <div class="col">
                     <a class="btn btn-warning bg-gradient d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
-                        href="{{ route('pharmacy.payments.create', ['product_type' => $productType, 'direction' => 'supplier']) }}">
+                        href="{{ route('pharmacy.purchase-payments.create', ['product_type' => $productType]) }}">
                         <i class="fa-solid fa-money-bill-transfer fs-4" aria-hidden="true"></i>
                         <span class="small fw-semibold">Supplier payment</span>
                     </a>

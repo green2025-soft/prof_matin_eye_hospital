@@ -1,10 +1,10 @@
 <section class="app-form-section mt-3" aria-labelledby="pharmacy-products-heading">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-        <h2 class="h6 mb-0" id="pharmacy-products-heading">Products</h2>
+        {{-- <h2 class="h6 mb-0" id="pharmacy-products-heading">Products</h2> --}}
         <span class="small text-body-secondary"><span data-pharmacy-line-count>{{ $hasOldLines ? count($lineInputs) : min(100, $savedLines->count()) }}</span> items</span>
     </div>
     <details class="app-pharmacy-shortcuts mb-2">
-        <summary>Keyboard shortcuts</summary>
+        <summary>Keyboard ূhortcuts</summary>
         <ul class="row g-2 list-unstyled small mb-0 mt-1">
             <li class="col-sm-6"><kbd>F2</kbd> Add product</li>
             @if ($pharmacyPurchase)
@@ -25,10 +25,10 @@
     <section class="app-pharmacy-item-editor border rounded p-2 p-md-3 mt-2" aria-labelledby="pharmacy-product-picker-label">
         <div class="row g-2 align-items-center">
             <div class="col-12 col-md-8 col-lg-5 col-xl-4">
-                <label class="form-label" id="pharmacy-product-picker-label" for="pharmacy_product_picker">Add product</label>
+                <label class="form-label" id="pharmacy-product-picker-label" for="pharmacy_product_picker">Select Medicine/Product</label>
                 <select class="{{ inputClass('lines', 'form-select') }}" id="pharmacy_product_picker" data-ajax-select
-                    data-url="{{ route('pharmacy.items.options', ['product_type' => $productType, 'purpose' => 'purchase']) }}"
-                    data-placeholder="Search product name or SKU to add" aria-keyshortcuts="F2"
+                    data-url="{{ route('pharmacy.purchase-items.options', ['product_type' => $productType]) }}"
+                    data-placeholder="Search Product Name or ID" aria-keyshortcuts="F2"
                     {{ inputAttrs('lines', 'pharmacy_product_picker', 'pharmacy-product-feedback') }}>
                     <option value=""></option>
                 </select>
@@ -38,17 +38,24 @@
                 @enderror
             </div>
             <div class="col-12 col-md-4 col-lg-7 col-xl-8 text-md-end text-break" data-pharmacy-active-product hidden>
-                <h3 class="small text-body-secondary mb-1">Add item</h3>
+                <h3 class="small text-body-secondary mb-1">Add</h3>
                 <strong class="d-block app-pharmacy-entry-name"></strong>
                 <small class="d-block text-body-secondary"></small>
             </div>
         </div>
         <div class="mt-2" data-pharmacy-editor-panel hidden>
             <div data-pharmacy-item-editor></div>
-            <div class="d-flex flex-wrap gap-2 mt-2">
-                <button class="btn btn-primary" type="button" data-pharmacy-commit-item aria-keyshortcuts="Alt+A" title="Add / update item (Alt+A)" disabled>Add item</button>
-                <button class="btn btn-warning" type="button" data-pharmacy-cancel-item hidden>Cancel edit</button>
+           <div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-5">
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    <button class="btn btn-warning" type="button" data-pharmacy-cancel-item hidden>Reset</button>
+                    <button class="btn btn-primary" type="button" data-pharmacy-commit-item aria-keyshortcuts="Alt+A" title="Add / update item (Alt+A)" disabled>Add</button>
+                </div>
+
             </div>
+           </div>
+
         </div>
     </section>
     <div hidden data-pharmacy-line-storage>

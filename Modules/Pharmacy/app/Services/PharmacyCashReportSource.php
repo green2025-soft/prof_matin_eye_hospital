@@ -5,10 +5,11 @@ namespace Modules\Pharmacy\Services;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Modules\Pharmacy\Models\Payment;
 use Modules\Pharmacy\Models\Purchase;
+use Modules\Pharmacy\Models\PurchasePayment;
 use Modules\Pharmacy\Models\PurchaseReturn;
 use Modules\Pharmacy\Models\Sale;
+use Modules\Pharmacy\Models\SalePayment;
 use Modules\Pharmacy\Models\SaleReturn;
 use Modules\TenantCore\Contracts\CashReportSource;
 
@@ -94,9 +95,8 @@ class PharmacyCashReportSource implements CashReportSource
 
     private function customerPayments(string $through, Closure $record, ?string $from): void
     {
-        Payment::query()
+        SalePayment::query()
             ->select(['id', 'number', 'customer_id', 'product_type', 'payment_date', 'amount', 'discount'])
-            ->where('direction', 'customer')
             ->whereNull('voided_at')
             ->where('payment_date', '<=', $through)
             ->when($from, fn (Builder $query) => $query->where('payment_date', '>=', $from))
@@ -119,9 +119,8 @@ class PharmacyCashReportSource implements CashReportSource
 
     private function supplierPayments(string $through, Closure $record, ?string $from): void
     {
-        Payment::query()
+        PurchasePayment::query()
             ->select(['id', 'number', 'supplier_id', 'product_type', 'payment_date', 'amount', 'discount'])
-            ->where('direction', 'supplier')
             ->whereNull('voided_at')
             ->where('payment_date', '<=', $through)
             ->when($from, fn (Builder $query) => $query->where('payment_date', '>=', $from))

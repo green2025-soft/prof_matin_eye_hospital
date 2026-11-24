@@ -116,7 +116,9 @@ export function initializeTradeEditor(form, {
     selectVariant,
     refreshEntryTotal,
     setDefaultPrice,
+    onEntryOpened,
     onProductSelected,
+    onItemsCommitted,
 }) {
     const $form = $(form);
     const $editor = $form.find('[data-pharmacy-item-editor]');
@@ -201,9 +203,11 @@ export function initializeTradeEditor(form, {
     }
 
     function refreshRows() {
-        refreshEntryTotal(form);
+        const total = refreshEntryTotal(form);
         $empty.prop('hidden', entries.size > 0);
         entries.forEach(renderSummary);
+        if (!active) onItemsCommitted?.(form, total);
+        return total;
     }
 
     function createEntry($row, prepend = false) {
@@ -252,7 +256,7 @@ export function initializeTradeEditor(form, {
         return true;
     }
 
-    function openEntry($row, preferredInput = null) {
+    function openEntry($row, preferredInput = null, applyDefaultRate = true) {
         const entry = entries.get($row.data('pharmacyLineIndex'));
         if (active?.$row.is($row)) {
             focusControl(preferredInput || $row.find('[name$="[quantity]"]').get(0));
@@ -266,6 +270,7 @@ export function initializeTradeEditor(form, {
         $editor.empty().append($row);
         setPayloadDisabled(entry, true);
         window.initDateTimePickers?.($row.get(0));
+        if (applyDefaultRate) onEntryOpened?.($row.get(0));
         updateEditor();
         refreshRows();
         focusControl(preferredInput || $row.find('[name$="[quantity]"]').get(0));
@@ -535,7 +540,7 @@ export function initializeTradeEditor(form, {
             }).get(0);
             if (!invalid) continue;
             event.preventDefault();
-            openEntry(entry.$row, invalid);
+            openEntry(entry.$row, invalid, false);
             invalid.reportValidity();
             return;
         }
@@ -564,7 +569,7 @@ export function initializeTradeEditor(form, {
             return !$input.prop('disabled') && !$input.closest('[data-pharmacy-hidden-item-field]').length;
         }).get(0);
         if (!invalid && !entry.$row.find('.invalid-feedback').length) continue;
-        openEntry(entry.$row, invalid);
+        openEntry(entry.$row, invalid, false);
         break;
     }
     return editor;

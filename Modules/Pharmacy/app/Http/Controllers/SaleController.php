@@ -59,6 +59,9 @@ class SaleController extends BaseController
 
     public function store(SaleRequest $request): RedirectResponse
     {
+         if(!$this->isUpdate($request)){
+            $this->redirectMode ='create_show';
+        }
         return $this->saveData($request);
     }
 
@@ -74,7 +77,9 @@ class SaleController extends BaseController
             'salePosWidth' => $settings['sale_pos_width_mm'],
         ];
 
-        return view($this->views.'.show', $data);
+
+
+        return view('pharmacy::sales.show', $data);
     }
 
     protected function formData(Account $actor, Model $record): array
@@ -100,9 +105,10 @@ class SaleController extends BaseController
         // Show current stock consistently with the picker; posting also checks the invoice date.
         $stockDate      = now()->toDateString();
         $stock          = app(StockService::class);
-        $customerId     = getValue('customer_id', $record);
+        $customerId     = getValue('customer_id', $record)??1;
         $customerId     = is_scalar($customerId) && ctype_digit((string) $customerId) ? (int) $customerId : null;
         $customers      = $customerId === null ? [] : app(PharmacyCustomers::class)->findMany($actor, [$customerId]);
+
         $permissions    = $request->attributes->get('navigation_permissions', []);
 
         $data = [

@@ -6,13 +6,14 @@ use Modules\Pharmacy\Http\Controllers\CustomerController;
 use Modules\Pharmacy\Http\Controllers\DashboardController;
 use Modules\Pharmacy\Http\Controllers\DosageController;
 use Modules\Pharmacy\Http\Controllers\OpeningStockController;
-use Modules\Pharmacy\Http\Controllers\PaymentController;
 use Modules\Pharmacy\Http\Controllers\PharmacySelectorController;
 use Modules\Pharmacy\Http\Controllers\ProductCategoryController;
 use Modules\Pharmacy\Http\Controllers\ProductController;
 use Modules\Pharmacy\Http\Controllers\ProductUnitController;
 use Modules\Pharmacy\Http\Controllers\ProductVariantController;
 use Modules\Pharmacy\Http\Controllers\PurchaseController;
+use Modules\Pharmacy\Http\Controllers\PurchaseItemSelectorController;
+use Modules\Pharmacy\Http\Controllers\PurchasePaymentController;
 use Modules\Pharmacy\Http\Controllers\PurchaseReturnController;
 use Modules\Pharmacy\Http\Controllers\Reports\CashBalanceReportController;
 use Modules\Pharmacy\Http\Controllers\Reports\CustomerDueReportController;
@@ -24,6 +25,7 @@ use Modules\Pharmacy\Http\Controllers\Reports\StockMovementReportController;
 use Modules\Pharmacy\Http\Controllers\Reports\StockReportController;
 use Modules\Pharmacy\Http\Controllers\Reports\SupplierDueReportController;
 use Modules\Pharmacy\Http\Controllers\SaleController;
+use Modules\Pharmacy\Http\Controllers\SalePaymentController;
 use Modules\Pharmacy\Http\Controllers\SaleReturnController;
 use Modules\Pharmacy\Http\Controllers\SettingController;
 use Modules\Pharmacy\Http\Controllers\ShelfController;
@@ -59,13 +61,10 @@ Route::middleware(['web', 'auth', 'tenant', 'access'])->prefix('pharmacy')->name
                 Route::get('sale-sources', 'saleSources')->name('sale-sources.options');
                 Route::get('lots', 'lots')->name('lots.options');
             });
+            Route::get('purchase-items', [PurchaseItemSelectorController::class, 'items'])->name('purchase-items.options');
 
             Route::get('customers', [CustomerController::class, 'choices'])->name('customers.options');
 
-            Route::controller(PaymentController::class)->group(function (): void {
-                Route::get('payment-customers', 'customers')->name('payments.customers');
-                Route::get('payment-suppliers', 'suppliers')->name('payments.suppliers');
-            });
         });
 
         Route::controller(CustomerController::class)->prefix('customers')->name('customers.')->group(function (): void {
@@ -99,11 +98,22 @@ Route::middleware(['web', 'auth', 'tenant', 'access'])->prefix('pharmacy')->name
         Route::post('transfers/{transfer}/void', [TransferController::class, 'reverse'])->name('transfers.void');
         Route::resource('transfers', TransferController::class)->only(['index', 'create', 'store', 'show']);
 
-        Route::controller(PaymentController::class)->prefix('payments')->name('payments.')->group(function (): void {
+        Route::controller(SalePaymentController::class)->prefix('sale-payments')->name('sale-payments.')->group(function (): void {
             Route::get('invoices', 'invoices')->name('invoices');
-            Route::post('{payment}/void', 'reverse')->name('void');
+            Route::get('customers', 'customers')->name('customers');
+            Route::post('{sale_payment}/void', 'reverse')->name('void');
         });
-        Route::resource('payments', PaymentController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
+        Route::resource('sale-payments', SalePaymentController::class)
+            ->parameters(['sale-payments' => 'sale_payment'])
+            ->only(['index', 'create', 'store', 'show', 'destroy']);
+        Route::controller(PurchasePaymentController::class)->prefix('purchase-payments')->name('purchase-payments.')->group(function (): void {
+            Route::get('invoices', 'invoices')->name('invoices');
+            Route::get('suppliers', 'suppliers')->name('suppliers');
+            Route::post('{purchase_payment}/void', 'reverse')->name('void');
+        });
+        Route::resource('purchase-payments', PurchasePaymentController::class)
+            ->parameters(['purchase-payments' => 'purchase_payment'])
+            ->only(['index', 'create', 'store', 'show', 'destroy']);
 
         Route::prefix('reports')->name('reports.')->group(function (): void {
             Route::get('cash-balance', [CashBalanceReportController::class, 'index'])->name('cash-balance');

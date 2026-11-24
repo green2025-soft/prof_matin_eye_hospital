@@ -2,7 +2,9 @@
     @csrf
     @method('PUT')
     <fieldset class="app-form-section border-0 p-0 mb-0" aria-labelledby="settings-pharmacy-heading" @disabled(! $canUpdate)>
-        <h2 class="app-form-section-title" id="settings-pharmacy-heading"><span class="app-form-section-icon"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i></span>Pharmacy</h2>
+        {{-- <h2 class="app-form-section-title" id="settings-pharmacy-heading">
+            <span class="app-form-section-icon"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i></span>Pharmacy
+        </h2> --}}
         @error('data')<div class="invalid-feedback d-block mb-3">{{ $message }}</div>@enderror
         @error('section')<div class="invalid-feedback d-block mb-3">{{ $message }}</div>@enderror
 
@@ -10,7 +12,7 @@
         @if ($activePharmacySection === 'general')
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label class="form-label" for="pharmacy-stock-method">Stock method</label>
+                    <label class="form-label" for="pharmacy-stock-method">Stock Method</label>
                     <select class="{{ inputClass('data.stock_method', 'form-select') }}" id="pharmacy-stock-method" name="data[stock_method]" required>
                         <option value="fifo" @selected(getValue('data.stock_method', null, $values['data']['stock_method']) === 'fifo')>FIFO — oldest stock first</option>
                         <option value="lifo" @selected(getValue('data.stock_method', null, $values['data']['stock_method']) === 'lifo')>LIFO — newest stock first</option>
@@ -18,7 +20,7 @@
                     @error('data.stock_method')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label" for="pharmacy-customer-scope">Sales customers</label>
+                    <label class="form-label" for="pharmacy-customer-scope">Sales Customer</label>
                     <select class="{{ inputClass('data.customer_scope', 'form-select') }}" id="pharmacy-customer-scope" name="data[customer_scope]" required>
                         <option value="all" @selected(getValue('data.customer_scope', null, $values['data']['customer_scope']) === 'all')>All patients and customers</option>
                         <option value="customer" @selected(getValue('data.customer_scope', null, $values['data']['customer_scope']) === 'customer')>Customers only</option>
@@ -42,7 +44,7 @@
                     @error('data.optic_sale_without_stock_enabled')<div class="invalid-feedback d-block" id="pharmacy-optic-sale-without-stock-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label" for="pharmacy-sale-invoice-paper">Sales invoice paper</label>
+                    <label class="form-label" for="pharmacy-sale-invoice-paper">Sales Invoice Paper</label>
                     <select class="{{ inputClass('data.sale_invoice_paper', 'form-select') }}" id="pharmacy-sale-invoice-paper" name="data[sale_invoice_paper]" required {{ inputAttrs('data.sale_invoice_paper', 'pharmacy-sale-invoice-paper') }}>
                         <option value="a4" @selected(getValue('data.sale_invoice_paper', null, $values['data']['sale_invoice_paper']) === 'a4')>A4</option>
                         <option value="a5" @selected(getValue('data.sale_invoice_paper', null, $values['data']['sale_invoice_paper']) === 'a5')>A5</option>
@@ -64,7 +66,7 @@
                     @error('data.vat_enabled')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label" for="pharmacy-vat-mode">VAT calculation</label>
+                    <label class="form-label" for="pharmacy-vat-mode">VAT Calculation</label>
                     <select class="{{ inputClass('data.vat_mode', 'form-select') }}" id="pharmacy-vat-mode" name="data[vat_mode]" required>
                         <option value="exclusive" @selected(getValue('data.vat_mode', null, $values['data']['vat_mode']) === 'exclusive')>Add to price</option>
                         <option value="inclusive" @selected(getValue('data.vat_mode', null, $values['data']['vat_mode']) === 'inclusive')>Included in price</option>

@@ -87,6 +87,19 @@ class ProductVariant extends BaseModel
         return $this->hasMany(SaleItem::class, 'variant_id');
     }
 
+    public function latestPurchaseItem(): HasOne
+    {
+        return $this->hasOne(PurchaseItem::class, 'variant_id')
+            ->ofMany(['id' => 'max'], static function (Builder $items): void {
+                $items->whereNull('superseded_at')
+                    ->whereHas('purchase', static fn (Builder $purchase) => $purchase
+                        ->whereNull('deleted_at')
+                        ->whereNull('voided_at')
+                        ->whereNull('stock_reversed_at')
+                        ->whereNotNull('posted_at'));
+            });
+    }
+
     public function saleReturnItems(): HasMany
     {
         return $this->hasMany(SaleReturnItem::class, 'variant_id');

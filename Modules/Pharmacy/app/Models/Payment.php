@@ -2,21 +2,15 @@
 
 namespace Modules\Pharmacy\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\TenantCore\Models\PaymentType;
 
-class Payment extends BaseModel
+abstract class Payment extends BaseModel
 {
-    protected $table = 'phr_payments';
-
     protected string $crudPermission = 'pharmacy-payments';
 
     protected bool $branchScoped = true;
-
-    protected array $exposed = [
-        'id', 'branch_id', 'number', 'direction', 'product_type', 'payment_date',
-        'customer_id', 'supplier_id', 'payment_type_id',
-        'amount', 'discount', 'notes', 'voided_at', 'created_at',
-    ];
 
     protected array $searchable = ['number'];
 
@@ -26,12 +20,12 @@ class Payment extends BaseModel
 
     protected string $defaultDirection = 'desc';
 
+    abstract public function items(): HasMany;
+
     protected function casts(): array
     {
         return [
             'branch_id' => 'integer',
-            'customer_id' => 'integer',
-            'supplier_id' => 'integer',
             'payment_type_id' => 'integer',
             'payment_date' => 'date',
             'amount' => 'integer',
@@ -40,13 +34,8 @@ class Payment extends BaseModel
         ];
     }
 
-    public function purchaseAllocations(): HasMany
+    public function paymentType(): BelongsTo
     {
-        return $this->hasMany(PurchasePaymentItem::class, 'payment_id');
-    }
-
-    public function saleAllocations(): HasMany
-    {
-        return $this->hasMany(SalePaymentItem::class, 'payment_id');
+        return $this->belongsTo(PaymentType::class);
     }
 }

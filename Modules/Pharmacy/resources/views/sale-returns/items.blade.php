@@ -1,7 +1,7 @@
 <section class="app-form-section" aria-labelledby="return-items-heading">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-        <h2 class="h6 mb-0" id="return-items-heading">Items to return</h2>
-        <span class="small text-body-secondary"><span data-pharmacy-return-count>0</span> selected</span>
+        <h2 class="h6 mb-0" id="return-items-heading">Item to Return</h2>
+        <span class="small text-body-secondary"><span data-pharmacy-return-count>0</span> Selected</span>
     </div>
     @error('lines')<div class="alert alert-danger">{{ $message }}</div>@enderror
 
@@ -82,7 +82,7 @@
                     </div>
                 </dl>
             </div>
-            <p class="small text-danger mt-2 mb-0" data-pharmacy-return-payment-note hidden>Choose a payment type for the cash amount.</p>
+            <p class="small text-danger mt-2 mb-0 d-none" data-pharmacy-return-payment-note hidden>Choose a payment type for the cash amount.</p>
         </div>
     </div>
 </section>

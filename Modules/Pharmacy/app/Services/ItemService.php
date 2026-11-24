@@ -3,6 +3,8 @@
 namespace Modules\Pharmacy\Services;
 
 use Brick\Math\BigInteger;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Modules\Pharmacy\Models\Product;
@@ -59,6 +61,7 @@ class ItemService
 
         return ProductVariant::with([
             'product:id,name,type,purchase_price,sale_price',
+            'latestPurchaseItem:id,variant_id,unit_price,factor',
             'product.units' => fn ($query) => $query
                 ->orderBy('factor')
                 ->orderBy('id'),
@@ -67,6 +70,104 @@ class ItemService
             ->whereIn('id', $ids)
             ->get()
             ->keyBy('id');
+    }
+
+    public function optionRecords(Builder $products, string $search, int $page): Paginator
+    {
+        $query = ProductVariant::where('active', true)
+            ->whereIn('product_id', $products->select('id'))
+            ->with([
+                'product:id,name,purchase_price,sale_price',
+                'product.units' => fn ($units) => $units
+                    ->select(['id', 'product_id', 'unit_id', 'factor'])
+                    ->orderBy('factor')
+                    ->orderBy('id'),
+                'product.units.unit:id,name,symbol',
+            ]);
+
+        return $this->searchOptions($query, $search)
+            ->orderBy('sku')
+            ->orderBy('id')
+            ->simplePaginate(20, ['id', 'product_id', 'sku', 'name', 'color', 'size', 'sph', 'cyl'], 'page', $page);
+    }
+
+    public function optionResults(Paginator $records, Collection $balances): array
+    {
+        $results = [];
+
+        foreach ($records as $variant) {
+            $product = $variant->product;
+            $description = $variant->description();
+            $units = [];
+
+            foreach ($product->units as $productUnit) {
+                $unit = $productUnit->unit;
+                $units[] = [
+                    'id' => $productUnit->id,
+                    'unit_id' => $productUnit->unit_id,
+                    'name' => $unit->symbol ?: $unit->name,
+                    'symbol' => $unit->symbol,
+                    'factor' => $productUnit->factor,
+                ];
+            }
+
+            $results[] = [
+                'id' => $variant->id,
+                'product_id' => $variant->product_id,
+                'name' => $product->name.' / '.$description,
+                'description' => $description,
+                'product_name' => $product->name,
+                'sku' => $variant->sku,
+                'available_quantity' => (string) ($balances->get($variant->id) ?? 0),
+                'purchase_price' => $product->purchase_price,
+                'sale_price' => $product->sale_price,
+                'units' => $units,
+            ];
+        }
+
+        return $results;
+    }
+
+    private function searchOptions(Builder $query, string $search): Builder
+    {
+        if ($search === '') {
+            return $query;
+        }
+
+        $exactQuery = (clone $query)->where(fn ($matches) => $matches
+            ->where('sku', $search)
+            ->orWhereHas('product', fn ($products) => $products
+                ->where('code', $search)
+                ->orWhere('barcode', $search)));
+
+        // A scanned identifier must not include unrelated partial name matches.
+        if ($exactQuery->exists()) {
+            return $exactQuery;
+        }
+
+        $term = '%'.addcslashes($search, '\\%_').'%';
+        $numeric = ctype_digit($search);
+
+        return $query->where(function ($matches) use ($search, $term, $numeric): void {
+            if ($numeric) {
+                $digits = str_pad($search, 6, '0', STR_PAD_LEFT);
+                $matches->whereIn('sku', [$search, 'MED-'.$search, 'OPT-'.$search, 'MED-'.$digits, 'OPT-'.$digits]);
+            } else {
+                $matches->whereLike('sku', $term);
+            }
+
+            $matches->orWhereLike('name', $term)
+                ->orWhereHas('product', function ($products) use ($search, $term, $numeric): void {
+                    $products->whereLike('name', $term);
+
+                    if ($numeric) {
+                        $products->orWhereKey($search)
+                            ->orWhere('source_key', 'drug_medicine:'.$search);
+                    } else {
+                        $products->orWhereLike('code', $term);
+                    }
+                });
+        });
     }
 
     public function prepareQuantities(StockEntry $entry, array $inputs): array

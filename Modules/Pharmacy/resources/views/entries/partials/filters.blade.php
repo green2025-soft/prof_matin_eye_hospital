@@ -7,7 +7,7 @@
             <input class="form-control" id="search" name="search" value="{{ $filters['search'] ?? '' }}" maxlength="80">
         </div>
         <div class="col-sm-6 col-lg-2">
-            <label class="form-label small" for="from_date">From date</label>
+            <label class="form-label small" for="from_date">From Date</label>
             <div class="input-group" data-datepicker>
                 <input class="{{ inputClass('from_date') }}" id="from_date" name="from_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD" value="{{ getValue('from_date', null, $filters['from_date'] ?? '') }}" data-input {{ inputAttrs('from_date') }}>
                 <button class="btn btn-outline-secondary" type="button" data-toggle aria-controls="from_date" aria-label="Choose start date" title="Choose start date">
@@ -19,7 +19,7 @@
             @enderror
         </div>
         <div class="col-sm-6 col-lg-2">
-            <label class="form-label small" for="to_date">To date</label>
+            <label class="form-label small" for="to_date">To Date</label>
             <div class="input-group" data-datepicker>
                 <input class="{{ inputClass('to_date') }}" id="to_date" name="to_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD" value="{{ getValue('to_date', null, $filters['to_date'] ?? '') }}" data-input {{ inputAttrs('to_date') }}>
                 <button class="btn btn-outline-secondary" type="button" data-toggle aria-controls="to_date" aria-label="Choose end date" title="Choose end date">

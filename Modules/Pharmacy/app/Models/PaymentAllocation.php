@@ -17,8 +17,5 @@ abstract class PaymentAllocation extends BaseModel
         ];
     }
 
-    public function payment(): BelongsTo
-    {
-        return $this->belongsTo(Payment::class, 'payment_id');
-    }
+    abstract public function payment(): BelongsTo;
 }

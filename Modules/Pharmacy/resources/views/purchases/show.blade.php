@@ -39,6 +39,8 @@
         $outstandingMinor = $entry->voided_at ? 0 : $entry->outstandingMinor();
         $invoiceStatus = $entry->voided_at ? 'VOID' : ($outstandingMinor > 0 ? 'DUE' : 'PAID');
         $showSalePrice = $entry->lines->contains(fn ($line) => $line->sale_price_per_piece !== null);
+        $itemDiscountTotal = $entry->lines->sum('discount');
+        $invoiceDiscountTotal = $entry->discount - $itemDiscountTotal;
     @endphp
 
     <article class="app-card app-invoice-document app-clinical-invoice app-pharmacy-invoice" aria-labelledby="pharmacy-invoice-title">
@@ -56,11 +58,20 @@
                 @endif
             </div>
             <div>
-                @include('pharmacy::entries.partials.invoice-meta')
-                @include('pharmacy::entries.partials.invoice-payment-meta')
+
+                   @if ($entry->paymentType)
+                  <dl class="mb-1">
+                        <div><b>Date</b> : {{ $entry->entry_date->format('d-m-Y') }}</div>
+                    </dl>
+                @endif
+                @if ($entry->paymentType)
+                  <dl class="mb-1">
+                        <div><b>Payment Type</b> : {{ $entry->paymentType->name }}</div>
+                    </dl>
+                @endif
                 @if ($entry->supplier_invoice_no)
-                    <dl class="app-clinical-invoice-meta mb-0">
-                        <div><dt>Supplier invoice no.</dt><dd>{{ $entry->supplier_invoice_no }}</dd></div>
+                    <dl class="mb-0">
+                        <div><b>Supplier invoice no.</b> : {{ $entry->supplier_invoice_no }}</div>
                     </dl>
                 @endif
             </div>
@@ -86,8 +97,12 @@
                         <dd>{{ moneyDecimal($entry->subtotal) }}</dd>
                     </div>
                     <div>
-                        <dt>Total discounts</dt>
-                        <dd>{{ moneyDecimal($entry->discount) }}</dd>
+                        <dt>Item discount</dt>
+                        <dd>{{ moneyDecimal($itemDiscountTotal) }}</dd>
+                    </div>
+                    <div>
+                        <dt>Invoice discount</dt>
+                        <dd>{{ moneyDecimal($invoiceDiscountTotal) }}</dd>
                     </div>
                     @php
                         $addedVatMinor = $entry->lines->where('vat_mode', 'exclusive')->sum('vat');
