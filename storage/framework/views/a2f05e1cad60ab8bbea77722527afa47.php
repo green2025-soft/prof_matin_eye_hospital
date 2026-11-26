@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('report-page-class', 'app-report-wide'); ?>
 
 <?php $__env->startSection('report-filters'); ?>
@@ -20,7 +18,7 @@
 <?php $__env->startSection('report-context'); ?>
     <span>Period: <strong><?php echo e($filters['from_date']); ?></strong> to <strong><?php echo e($filters['to_date']); ?></strong></span>
     <span>Product: <?php echo e($selectedProduct?->product?->name ?? 'All products'); ?> <?php echo e($selectedProduct?->description()); ?></span>
-    <span>Quantities in Pcs. Sales exclude VAT and include saved discounts.</span>
+
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('report-summary'); ?>

@@ -16,7 +16,7 @@ class OperationController extends BaseController
 {
     protected string $model = Operation::class;
 
-    protected string $title = 'Operation';
+    protected string $title = 'Operation Name';
 
     protected string $views = 'hospital::operations';
 

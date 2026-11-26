@@ -76,7 +76,7 @@
         <?php endif; ?>
         <?php if($settings['glass_lens_options_enabled'] && ! empty($record->lens_options)): ?>
             <section aria-labelledby="glass-print-lens-heading">
-                <h3 class="h6" id="glass-print-lens-heading">Glasses and use</h3>
+                <h3 class="h6" id="glass-print-lens-heading">Glasses and Use</h3>
                 <ul class="app-prescription-lens-list list-unstyled d-flex flex-wrap column-gap-3 row-gap-1">
                     <?php $__currentLoopData = $record->lens_options; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $option): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <li><i class="fa-regular fa-square-check"></i> <?php echo e($lensOptions[$option] ?? $option); ?></li>

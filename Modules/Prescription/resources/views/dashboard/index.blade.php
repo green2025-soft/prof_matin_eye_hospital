@@ -16,7 +16,7 @@
 
     @if ($canCreateGeneral || $canCreateGlass || $canViewGeneral || $canViewGlass)
         <section class="mb-4" aria-labelledby="prescription-quick-entry-heading">
-            <h2 class="h6 fw-semibold mb-3" id="prescription-quick-entry-heading">Quick access</h2>
+            <h2 class="h6 fw-semibold mb-3" id="prescription-quick-entry-heading">Quick Access</h2>
             <div class="row row-cols-2 row-cols-lg-4 g-3">
                 @if ($canCreateGeneral)
                     <div class="col flex-grow-1">
@@ -29,7 +29,7 @@
                 @endif
                 @if ($canCreateGlass)
                     <div class="col flex-grow-1">
-                        <a class="btn btn-info bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
+                        <a class="btn btn-danger bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
                             href="{{ route('prescription.glass-prescriptions.create') }}">
                             <i class="fa-solid fa-glasses fs-3" aria-hidden="true"></i>
                             <span class="small fw-semibold">New Glass Prescription</span>
@@ -47,7 +47,7 @@
                 @endif
                 @if ($canViewGlass)
                     <div class="col flex-grow-1">
-                        <a class="btn btn-warning bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
+                        <a class="btn btn-primary bg-gradient border-0 rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center gap-2 py-3 h-100"
                             href="{{ route('prescription.glass-prescriptions.index') }}">
                             <i class="fa-solid fa-list-check fs-3" aria-hidden="true"></i>
                             <span class="small fw-semibold">Glass Prescription</span>

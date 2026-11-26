@@ -8,7 +8,7 @@
 <?php $__env->startSection('content'); ?>
     <?php echo $__env->make('core::partials.heading', [
         'title' => $pageTitle,
-        'create' => ['model' => \Modules\Pharmacy\Models\Product::class, 'url' => route($routePrefix.'.create', $routeParameters), 'label' => 'Add product'],
+        'create' => ['model' => \Modules\Pharmacy\Models\Product::class, 'url' => route($routePrefix.'.create', $routeParameters), 'label' => 'Add Medicine'],
     ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <section class="app-card overflow-hidden">
@@ -16,7 +16,7 @@
             <input name="type" type="hidden" value="<?php echo e($filters['type'] ?? 'medicine'); ?>">
             <div class="row g-2 align-items-end">
                 <div class="col-sm-8 col-xl-6">
-                    <label class="form-label small" for="search">Name, ID, SKU or barcode</label>
+                    <label class="form-label small" for="search">Name, ID or Barcode</label>
                     <div class="app-input-wrap app-search-field">
                         <i class="fa-solid fa-magnifying-glass app-search-icon" aria-hidden="true"></i>
                         <input class="<?php echo e(inputClass('search')); ?>" id="search" name="search" type="search" value="<?php echo e($filters['search'] ?? ''); ?>" maxlength="100" autocomplete="off" spellcheck="false" <?php echo e(inputAttrs('search')); ?>>

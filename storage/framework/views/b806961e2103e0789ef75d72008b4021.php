@@ -6,10 +6,10 @@
 
     <h2 class="h6 mb-3"><?php echo e($pageTitle); ?></h2>
     <div class="mb-3">
-        <label class="form-label" for="section">Section <span class="text-danger" aria-hidden="true">*</span></label>
+        <label class="form-label" for="section">Type <span class="text-danger" aria-hidden="true">*</span></label>
         <select class="<?php echo e(inputClass('section', 'form-select')); ?>" id="section" name="section" required
             <?php echo e(inputAttrs('section')); ?>>
-            <option value="">Select section</option>
+            <option value="">Select Type</option>
             <?php $__currentLoopData = $sections; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $value => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <option value="<?php echo e($value); ?>"
                     <?php if(getValue('section', $prescription_option, request()->query('section')) === $value): echo 'selected'; endif; ?>>

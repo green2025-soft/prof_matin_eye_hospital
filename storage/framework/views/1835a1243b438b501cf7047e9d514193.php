@@ -21,61 +21,52 @@
         'app-prescription-paper-a5' => $paperSize === 'a5',
         'app-prescription-paper-custom' => $paperSize === 'custom',
     ]); ?>">
-        <?php if($showHeader): ?>
-            <header class="app-prescription-letterhead">
-                <?php if($logoUrl): ?>
-                    <img class="app-prescription-logo" src="<?php echo e($logoUrl); ?>" alt="">
-                <?php endif; ?>
-                <div>
-                    <h2><?php echo e($company['name']); ?></h2>
-                    <p><?php echo e($company['address']); ?></p>
-                    <p><?php echo e($company['phone']); ?> <?php echo e($company['email']); ?></p>
-                </div>
-            </header>
-        <?php endif; ?>
+
         <?php if($showHeader): ?>
             <div class="app-prescription-doctor">
-                <div>
+
+                <div  lang="bn">
+                    <h2><?php echo e($doctor?->bn_name); ?></h2>
+                    <p class="app-prescription-text"><?php echo e($doctor?->bn_education_degree); ?></p>
+                    <p><?php echo e($doctor?->bn_specialist); ?></p>
+                    <p class="app-prescription-text"><?php echo e($doctor?->bn_current_employment); ?></p>
+                    <?php if(filled($doctor?->bn_bmdc_reg)): ?><p>বিএমডিসি রেজি: <?php echo e($doctor->bn_bmdc_reg); ?></p><?php endif; ?>
+                </div>
+                <div class="app-prescription-doctor-bangla">
                     <h2><?php echo e($doctor?->name); ?></h2>
                     <p class="app-prescription-text"><?php echo e($doctor?->education_degree); ?></p>
                     <p><?php echo e($doctor?->designation); ?></p>
                     <p><?php echo e($doctor?->specialist); ?></p>
                     <p class="app-prescription-text"><?php echo e($doctor?->current_employment); ?></p>
-                    <?php if(filled($doctor?->bmdc_reg)): ?><p>BMDC: <?php echo e($doctor->bmdc_reg); ?></p><?php endif; ?>
-                </div>
-                <div class="app-prescription-doctor-bangla" lang="bn">
-                    <h2><?php echo e($doctor?->bn_name); ?></h2>
-                    <p class="app-prescription-text"><?php echo e($doctor?->bn_education_degree); ?></p>
-                    <p><?php echo e($doctor?->bn_specialist); ?></p>
-                    <p class="app-prescription-text"><?php echo e($doctor?->bn_current_employment); ?></p>
-                    <?php if(filled($doctor?->bn_bmdc_reg)): ?><p>বিএমডিসি: <?php echo e($doctor->bn_bmdc_reg); ?></p><?php endif; ?>
+                    <?php if(filled($doctor?->bmdc_reg)): ?><p>BMDC Reg: <?php echo e($doctor->bmdc_reg); ?></p><?php endif; ?>
                 </div>
             </div>
         <?php endif; ?>
 
         <div class="app-prescription-identity">
-            <div class="app-prescription-patient-barcode">
+            <div class="app-prescription-patient-barcode d-none">
                 <?php if(filled($patient?->patient_id)): ?>
                     <svg class="app-prescription-barcode" data-patient-id="<?php echo e($patient->patient_id); ?>"
                         role="img" aria-label="Patient ID barcode <?php echo e($patient->patient_id); ?>"></svg>
                 <?php endif; ?>
             </div>
-            <div class="app-prescription-reference">
-                <p><b>V.Date:</b> <?php echo e($entryDate); ?></p>
-                <p><i class="fa-solid fa-prescription" aria-hidden="true"></i> <?php echo e($referenceNumber); ?></p>
-            </div>
+            
         </div>
 
         
+
         <div class="app-prescription-patien">
             <div class="row gx-0">
                 <div class="col-6">
-                    <div><b>P.Name:</b> <?php echo e($patient?->name); ?></div>
+                    <div><b>Pt. Name:</b> <?php echo e($patient?->name); ?></div>
                     <div><b>Age:</b> <?php echo e($patientAge); ?> <b> Sex:</b><?php echo e(ucfirst($patient?->gender ?? '')); ?></div>
+                    <div><b>Mobile:</b> <?php echo e($patient?->mobile_no); ?> </div>
                 </div>
                 <div class="col-6 text-end">
                     <div><b>Patient ID:</b> <?php echo e($patient?->patient_id); ?></div>
-                    <div><b>Mobile:</b> <?php echo e($patient?->mobile_no); ?> </div>
+                    <div><b><i class="fa-solid fa-prescription" aria-hidden="true"></i></b>  <?php echo e($referenceNumber); ?></div>
+                    <div><b>Date:</b> <?php echo e(date('d-m-Y', strtotime($prescription->prescription_date))); ?></div>
+
                 </div>
             </div>
         </div>
@@ -83,11 +74,22 @@
         <?php echo $__env->yieldContent('prescription-content'); ?>
 
         <footer class="app-prescription-footer">
-            <div>
-                
-            </div>
-            
+
         </footer>
+         <?php if($showHeader): ?>
+                <header class="app-prescription-letterhead">
+                    <?php if($logoUrl): ?>
+                        <img style="margin-left: -65px; margin-top: -50px" class="app-prescription-logo" src="<?php echo e($logoUrl); ?>" alt="">
+                    <?php endif; ?>
+
+                    <div>
+                        <h2><?php echo e($company['name']); ?></h2>
+                        <p style="width: 290px"><i class="fa-solid fa-location-dot"></i> <?php echo $company['address']; ?></p>
+                        <p class="mb-0"><i class="fa-solid fa-phone"></i> <?php echo e($company['phone']); ?></p>
+                        <p><i class="fa-solid fa-envelope"></i> <?php echo e($company['email']); ?></p>
+                    </div>
+                </header>
+            <?php endif; ?>
     </article>
 <?php $__env->stopSection(); ?>
 

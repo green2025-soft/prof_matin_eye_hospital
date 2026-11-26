@@ -30,18 +30,7 @@
             @endif
 
             <div class="app-card app-prescription-editor d-flex flex-column overflow-hidden">
-                <header class="app-prescription-editor-header d-flex flex-shrink-0 align-items-center
-                    justify-content-between gap-3">
-                    <div>
-                        <h2>{{ request()->attributes->get('application_name') }}</h2>
-                        @if (filled(request()->attributes->get('branch_name')))
-                            <p>{{ request()->attributes->get('branch_name') }}</p>
-                        @endif
-                    </div>
-                    <div class="app-prescription-editor-title d-flex flex-shrink-0 align-items-center">
-                        <i class="fa-solid fa-prescription d-none d-sm-inline" aria-hidden="true"></i>
-                    </div>
-                </header>
+
 
                 <div class="app-prescription-editor-identity flex-shrink-0">
                     @include('prescription::partials.identity')
@@ -51,11 +40,11 @@
                     aria-label="Prescription sections">
                     <button class="nav-link active" id="prescription-treatment-tab" type="button" role="tab"
                         data-bs-toggle="tab" data-bs-target="#prescription-treatment-pane"
-                        aria-controls="prescription-treatment-pane" aria-selected="true">Rx &amp; advice</button>
+                        aria-controls="prescription-treatment-pane" aria-selected="true">Rx &amp; Advice</button>
                     @if ($hasClinicalFields)
                         <button class="nav-link" id="prescription-notes-tab" type="button" role="tab"
                             data-bs-toggle="tab" data-bs-target="#prescription-notes-pane"
-                            aria-controls="prescription-notes-pane" aria-selected="false">Clinical notes</button>
+                            aria-controls="prescription-notes-pane" aria-selected="false">Clinical Notes</button>
                     @endif
                 </div>
 
@@ -131,7 +120,7 @@
                                 aria-live="polite" aria-atomic="true"></span>
                         </div>
                          <ol class="app-prescription-rx-preview list-unstyled mb-0" id="prescription-medicine-preview"></ol>
-                        <p class="small text-body-secondary" id="prescription-medicine-empty">No medicines added.</p>
+                        <p class="small text-body-secondary" id="prescription-medicine-empty">No Medicines Added.</p>
 
 
 
@@ -156,7 +145,7 @@
             <div class="app-prescription-editor-actions d-flex flex-shrink-0 flex-wrap justify-content-end gap-2">
                 <a class="btn btn-warning" href="{{ route($routePrefix.'.index') }}">Cancel</a>
                 <button class="btn btn-primary px-4" type="submit">
-                    <i class="fa-solid fa-floppy-disk me-2" aria-hidden="true"></i>{{ $submitLabel }} prescription
+                    <i class="fa-solid fa-floppy-disk me-2" aria-hidden="true"></i>{{ $submitLabel }}
                 </button>
             </div>
         </form>

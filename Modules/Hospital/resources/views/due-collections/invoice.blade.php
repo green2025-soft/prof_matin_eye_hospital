@@ -9,9 +9,9 @@
                 <tr>
                     <th scope="col">Service</th>
                     <th scope="col">Invoice</th>
-                    <th scope="col">Payment type</th>
+                    {{-- <th scope="col">Payment type</th> --}}
                     <th scope="col" class="text-end">Discount</th>
-                    <th class="app-clinical-invoice-amount text-end" scope="col">Payment (Tk)</th>
+                    <th class="app-clinical-invoice-amount text-end" scope="col">Amount</th>
                 </tr>
             </thead>
             <tbody>
@@ -23,7 +23,7 @@
                 <tr>
                     <td>{{ $sourceServiceLabel }}</td>
                     <td class="text-break">{{ $originalInvoiceNumber }}</td>
-                    <td class="text-break">{{ $collectionPaymentType ?? '-' }}</td>
+                    {{-- <td class="text-break">{{ $collectionPaymentType ?? '-' }}</td> --}}
                     <td class="text-break text-end">{{ $objData->discount  }}</td>
                     <td class="text-end text-nowrap">{{ $collectionAmount }}</td>
                 </tr>

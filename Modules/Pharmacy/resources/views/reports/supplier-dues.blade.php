@@ -31,7 +31,6 @@
 @section('report-context')
     <span>As of: <strong>{{ now()->toDateString() }}</strong></span>
     <span>Supplier: {{ $selectedSupplier?->name ?? 'All suppliers with dues' }}</span>
-    <span>All current outstanding invoices, including earlier periods.</span>
 @endsection
 
 @section('report-summary')

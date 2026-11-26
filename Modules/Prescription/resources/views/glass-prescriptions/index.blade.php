@@ -5,8 +5,8 @@
 @section('content')
     @include('core::partials.heading', [
         'title' => $pageTitle,
-        'description' => 'Glass prescriptions at the selected branch.',
-        'create' => ['model' => \Modules\Prescription\Models\GlassPrescription::class, 'url' => route($routePrefix.'.create'), 'label' => 'New glass prescription'],
+        'description' => '',
+        'create' => ['model' => \Modules\Prescription\Models\GlassPrescription::class, 'url' => route($routePrefix.'.create'), 'label' => 'New Glass Prescription'],
     ])
 
     <section class="app-card overflow-hidden">
@@ -14,7 +14,7 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-7 col-xl-5">
                     <label class="form-label small" for="glass_search">Search</label>
-                    <input class="{{ inputClass('search') }}" id="glass_search" name="search" type="search" maxlength="80" value="{{ getValue('search', null, $filters['search'] ?? '') }}" placeholder="Rx number, ID or date" {{ inputAttrs('search', 'glass_search') }}>
+                    <input class="{{ inputClass('search') }}" id="glass_search" name="search" type="search" maxlength="80" value="{{ getValue('search', null, $filters['search'] ?? '') }}" placeholder="Rx Number, ID or Date" {{ inputAttrs('search', 'glass_search') }}>
                     @error('search')<div class="invalid-feedback d-block" id="glass_search-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-5">
@@ -32,7 +32,7 @@
                         <th scope="col">Date</th>
                         <th scope="col">Patient</th>
                         <th scope="col">Doctor</th>
-                        <th class="text-end" scope="col">Actions</th>
+                        <th class="text-end" scope="col">Action</th>
                     </tr>
                 </thead>
                 <tbody>

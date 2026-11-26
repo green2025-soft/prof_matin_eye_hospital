@@ -90,7 +90,7 @@
                 </select>
                 @error('payment_type_id')<div class="invalid-feedback d-block" id="due_collection_payment_type_id-error">{{ $message }}</div>@enderror
             </div>
-            <div class="col-12">
+            <div class="col-6">
                 <label class="form-label" for="due_collection_remarks">Remarks</label>
                 <textarea class="{{ inputClass('remarks') }}" id="due_collection_remarks" name="remarks" rows="2" maxlength="2000" {{ inputAttrs('remarks', 'due_collection_remarks') }}>{{ getValue('remarks', $due_collection) }}</textarea>
                 @error('remarks')<div class="invalid-feedback d-block" id="due_collection_remarks-error">{{ $message }}</div>@enderror

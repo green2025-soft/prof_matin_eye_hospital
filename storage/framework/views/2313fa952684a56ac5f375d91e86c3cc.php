@@ -1,5 +1,5 @@
 <section class="app-form-section mb-3" aria-labelledby="prescription-identity-heading">
-    <h2 class="h6 mb-3" id="prescription-identity-heading">Patient and doctor</h2>
+    <h2 class="h6 mb-3" id="prescription-identity-heading">Patient and Doctor</h2>
     <div class="row g-3">
         <div class="col-md-5">
             <label class="form-label" for="prescription_patient_id">Patient Name <span class="text-danger" aria-hidden="true">*</span></label>
@@ -7,7 +7,7 @@
                 <div class="flex-grow-1">
                     <select class="<?php echo e(inputClass('patient_id', 'form-select')); ?>" id="prescription_patient_id" name="patient_id"
                         data-patient-select data-ajax-select data-url="<?php echo e(route('hospital.patients.options')); ?>"
-                        data-value-field="id" data-label-field="text" data-placeholder="Search patient ID, name or mobile"
+                        data-value-field="id" data-label-field="text" data-placeholder="Search Patient ID, Name or Mobile"
                         required <?php echo e(inputAttrs('patient_id', 'prescription_patient_id')); ?>>
                         <option value=""></option>
                         <?php if($selectedPatient !== null): ?>
@@ -42,7 +42,7 @@ unset($__errorArgs, $__bag); ?>
             <?php else: ?>
                 <select class="<?php echo e(inputClass('doctor_id', 'form-select')); ?>" id="prescription_doctor_id" name="doctor_id"
                     data-ajax-select data-url="<?php echo e(route('hospital.doctors.options')); ?>" data-value-field="id"
-                    data-label-field="text" data-placeholder="Select doctor" required
+                    data-label-field="text" data-placeholder="Select Doctor" required
                     <?php echo e(inputAttrs('doctor_id', 'prescription_doctor_id')); ?>>
                     <option value=""></option>
                     <?php if($selectedDoctor !== null): ?>

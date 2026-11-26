@@ -8,23 +8,23 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3 d-print-none">
         @include('core::partials.heading', ['title' => $reportTitle])
         <button class="btn btn-outline-primary" type="button" data-print>
-            <i class="fa-solid fa-print me-2" aria-hidden="true"></i>Print report
+            <i class="fa-solid fa-print me-2" aria-hidden="true"></i>Print Report
         </button>
     </div>
 
     <nav class="d-flex flex-wrap gap-2 mb-3 d-print-none" aria-label="Pharmacy reports">
         <a class="btn btn-sm {{ request()->routeIs('pharmacy.reports.stock') ? 'btn-primary' : 'btn-outline-secondary' }}" href="{{ route('pharmacy.reports.stock', ['product_type' => $filters['product_type']]) }}">Stock</a>
-        <a class="btn btn-sm {{ request()->routeIs('pharmacy.reports.movements') ? 'btn-primary' : 'btn-outline-secondary' }}" href="{{ route('pharmacy.reports.movements', ['product_type' => $filters['product_type']]) }}">Movements</a>
-        <a class="btn btn-sm {{ request()->routeIs('pharmacy.reports.expiry') ? 'btn-primary' : 'btn-outline-secondary' }}" href="{{ route('pharmacy.reports.expiry', ['product_type' => 'medicine']) }}">Medicine expiry</a>
+        <a class="btn btn-sm {{ request()->routeIs('pharmacy.reports.movements') ? 'btn-primary' : 'btn-outline-secondary' }}" href="{{ route('pharmacy.reports.movements', ['product_type' => $filters['product_type']]) }}">Movement</a>
+        <a class="btn btn-sm {{ request()->routeIs('pharmacy.reports.expiry') ? 'btn-primary' : 'btn-outline-secondary' }}" href="{{ route('pharmacy.reports.expiry', ['product_type' => 'medicine']) }}">Medicine Expired</a>
         <a class="btn btn-sm {{ request()->routeIs('pharmacy.reports.profit-loss') ? 'btn-primary' : 'btn-outline-secondary' }}"
-            href="{{ route('pharmacy.reports.profit-loss', ['product_type' => $filters['product_type']]) }}">Profit / loss</a>
+            href="{{ route('pharmacy.reports.profit-loss', ['product_type' => $filters['product_type']]) }}">Profit / Loss</a>
         <a class="btn btn-sm {{ request()->routeIs('pharmacy.reports.purchase-discounts') ? 'btn-primary' : 'btn-outline-secondary' }}"
-            href="{{ route('pharmacy.reports.purchase-discounts', ['product_type' => $filters['product_type']]) }}">Purchase discounts</a>
+            href="{{ route('pharmacy.reports.purchase-discounts', ['product_type' => $filters['product_type']]) }}">Purchase Discount</a>
         <a class="btn btn-sm {{ request()->routeIs('pharmacy.reports.daily') ? 'btn-primary' : 'btn-outline-secondary' }}" href="{{ route('pharmacy.reports.daily', ['product_type' => $filters['product_type']]) }}">Daily</a>
         <a class="btn btn-sm {{ request()->routeIs('pharmacy.reports.customer-dues') ? 'btn-primary' : 'btn-outline-secondary' }}"
-            href="{{ route('pharmacy.reports.customer-dues', ['product_type' => $filters['product_type']]) }}">Customer dues</a>
+            href="{{ route('pharmacy.reports.customer-dues', ['product_type' => $filters['product_type']]) }}">Customer Due</a>
         <a class="btn btn-sm {{ request()->routeIs('pharmacy.reports.supplier-dues') ? 'btn-primary' : 'btn-outline-secondary' }}"
-            href="{{ route('pharmacy.reports.supplier-dues', ['product_type' => $filters['product_type']]) }}">Supplier dues</a>
+            href="{{ route('pharmacy.reports.supplier-dues', ['product_type' => $filters['product_type']]) }}">Supplier Due</a>
     </nav>
 
     <div class="app-card mb-3 d-print-none">

@@ -60,7 +60,7 @@
                 @error('patient_type')<div class="invalid-feedback d-block" id="consultation_patient_type-error">{{ $message }}</div>@enderror
             </fieldset>
             <div class="col-md-4">
-                <label class="form-label" for="consultation_entry_date">Entry date <span class="text-danger" aria-hidden="true">*</span></label>
+                <label class="form-label" for="consultation_entry_date">Entry Date <span class="text-danger" aria-hidden="true">*</span></label>
                 <div class="input-group" data-datepicker>
                     <input class="{{ inputClass('entry_date') }}" id="consultation_entry_date" name="entry_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD"
                         value="{{ getValue('entry_date', null, $entryDate) }}" required data-input

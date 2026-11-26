@@ -68,6 +68,7 @@
                         <thead>
                             <tr>
                                 <th scope="col">Serial</th>
+                                <th scope="col">Invoice</th>
                                 <th scope="col">Doctor</th>
                                 <th scope="col">Patient</th>
                                 <th scope="col">Mobile no.</th>
@@ -81,11 +82,10 @@
                                 <tr>
                                     <th class="fw-semibold" scope="row">
                                         {{ $appointment->serial_no ?? '-' }}
-                                        <div class="small fw-normal text-body-secondary">#{{ $appointment->id }}</div>
-                                        @if ($appointment->invoice_no !== null)
-                                            <div class="small fw-normal text-body-secondary">Invoice {{ $appointment->invoice_no }}</div>
-                                        @endif
                                     </th>
+                                    <td>
+                                        {{ $appointment->invoice_no }}
+                                    </td>
                                     <td class="text-break">{{ $appointment->doctor?->name ?? '-' }}</td>
                                     <td class="text-break">{{ $appointment->patient?->name ?? '-' }}<div class="small text-body-secondary">{{ $appointment->patient?->patient_id }}</div></td>
                                     <td class="text-break">{{ $appointment->patient?->mobile_no ?? '-' }}</td>

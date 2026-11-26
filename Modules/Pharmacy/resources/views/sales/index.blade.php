@@ -13,13 +13,13 @@
         @include('core::partials.heading', ['title' => $pageTitle])
         @if ($canCreate)
             <a class="btn btn-primary text-nowrap" href="{{ route($routePrefix.'.create', ['product_type' => $productType]) }}">
-                <i class="fa-solid fa-plus me-2" aria-hidden="true"></i>New sale
+                <i class="fa-solid fa-plus me-2" aria-hidden="true"></i>New Sale
             </a>
         @endif
     </div>
 
     <section class="app-card overflow-hidden">
-        @include('pharmacy::entries.partials.filters', ['numberLabel' => 'Invoice no.'])
+        @include('pharmacy::entries.partials.filters', ['numberLabel' => 'Invoice No.'])
 
         <div class="table-responsive">
             <table class="table app-table align-middle mb-0">
@@ -34,7 +34,7 @@
                         <th scope="col" class="text-end">Due</th>
                         <th scope="col">Status</th>
                         @if ($showActions)
-                            <th scope="col" class="text-end">Actions</th>
+                            <th scope="col" class="text-end">Action</th>
                         @endif
                     </tr>
                 </thead>

@@ -338,7 +338,14 @@ return [
             'sms_optic_supplier_payment_enabled' => false,
             'sms_optic_supplier_payment_template' => '{organization}: Dear {name}, paid BDT {amount} on {date}. Receipt {invoice}. Remaining due BDT {due}.',
         ],
-        'company' => ['name' => env('APP_NAME', 'Laravel Modular Boilerplate'), 'email' => env('MAIL_FROM_ADDRESS', 'hello@example.com'), 'phone' => '', 'address' => '', 'tax_id' => ''],
+        'company' => [
+            'name' => env('APP_NAME', 'Laravel Modular Boilerplate'),
+            'email' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+            'phone' => '',
+            'address' => '',
+            'tax_id' => '',
+            'website' => '',
+        ],
         'branding' => [
             'app_name' => env('APP_NAME', 'Laravel Modular Boilerplate'),
             'tagline' => '',
@@ -522,6 +529,7 @@ return [
             'phone' => ['nullable', 'string', 'max:30', 'regex:/\A[0-9]+\z/'],
             'address' => ['nullable', 'string', 'max:2000'],
             'tax_id' => ['nullable', 'string', 'max:100'],
+            'website' => ['nullable', 'string', 'max:255'],
         ],
         'branding' => [
             'app_name' => ['required', 'string', 'max:120'],

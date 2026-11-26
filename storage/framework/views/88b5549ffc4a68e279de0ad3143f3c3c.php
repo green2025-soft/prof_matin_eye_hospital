@@ -14,10 +14,10 @@
         <?php endif; ?>
 
         <section aria-labelledby="doctor-details-heading">
-            <h2 class="visually-hidden" id="doctor-details-heading">Doctor details</h2>
+            <h2 class="visually-hidden" id="doctor-details-heading">Doctor Details</h2>
             <div class="row g-3">
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="name">Doctor name <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="name">Doctor Name <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="<?php echo e(inputClass('name')); ?>" id="name" name="name" type="text" value="<?php echo e(getValue('name', $doctor)); ?>" maxlength="255" autocomplete="name" required autofocus <?php echo e(inputAttrs('name')); ?>>
                     <?php $__errorArgs = ['name'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -41,7 +41,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="mobile_no">Mobile no. <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="mobile_no">Mobile No. <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="<?php echo e(inputClass('mobile_no')); ?>" id="mobile_no" name="mobile_no" type="tel" value="<?php echo e(getValue('mobile_no', $doctor)); ?>" maxlength="30" autocomplete="tel" required <?php echo e(inputAttrs('mobile_no')); ?>>
                     <?php $__errorArgs = ['mobile_no'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -56,7 +56,7 @@ unset($__errorArgs, $__bag); ?>
                     <label class="form-label" for="department_id">Department <span class="text-danger" aria-hidden="true">*</span></label>
                     <select class="<?php echo e(inputClass('department_id', 'form-select')); ?>" id="department_id" name="department_id"
                         data-ajax-select data-url="<?php echo e(route('hospital.departments.options')); ?>"
-                        data-value-field="id" data-label-field="name" data-placeholder="Select a department" required
+                        data-value-field="id" data-label-field="name" data-placeholder="Select Department" required
                         <?php echo e(inputAttrs('department_id')); ?>>
                         <option value=""></option>
                         <?php if($selectedDepartment !== null): ?>
@@ -127,7 +127,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="bmdc_reg">BMDC registration</label>
+                    <label class="form-label" for="bmdc_reg">BMDC Registration</label>
                     <input class="<?php echo e(inputClass('bmdc_reg')); ?>" id="bmdc_reg" name="bmdc_reg" type="text" value="<?php echo e(getValue('bmdc_reg', $doctor)); ?>" maxlength="100" <?php echo e(inputAttrs('bmdc_reg')); ?>>
                     <?php $__errorArgs = ['bmdc_reg'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -168,7 +168,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="blood_group">Blood group</label>
+                    <label class="form-label" for="blood_group">Blood Group</label>
                     <select class="<?php echo e(inputClass('blood_group', 'form-select')); ?>" id="blood_group" name="blood_group" <?php echo e(inputAttrs('blood_group')); ?>>
                         <option value="">Select</option>
                         <?php $__currentLoopData = $bloodGroups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $value => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -185,7 +185,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="education_degree">Education / degree</label>
+                    <label class="form-label" for="education_degree">Education / Degree</label>
                     <textarea class="<?php echo e(inputClass('education_degree')); ?>" id="education_degree" name="education_degree" rows="2" maxlength="2000" <?php echo e(inputAttrs('education_degree')); ?>><?php echo e(getValue('education_degree', $doctor)); ?></textarea>
                     <?php $__errorArgs = ['education_degree'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -209,7 +209,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="current_employment">Current employment</label>
+                    <label class="form-label" for="current_employment">Current Employment</label>
                     <textarea class="<?php echo e(inputClass('current_employment')); ?>" id="current_employment" name="current_employment" rows="2" maxlength="2000" <?php echo e(inputAttrs('current_employment')); ?>><?php echo e(getValue('current_employment', $doctor)); ?></textarea>
                     <?php $__errorArgs = ['current_employment'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -221,7 +221,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="bn_current_employment" lang="bn">বর্তমান চাকরি</label>
+                    <label class="form-label" for="bn_current_employment" lang="bn">বর্তমান কর্মরত</label>
                     <textarea class="<?php echo e(inputClass('bn_current_employment')); ?>" id="bn_current_employment" name="bn_current_employment" rows="2" maxlength="2000" lang="bn" <?php echo e(inputAttrs('bn_current_employment')); ?>><?php echo e(getValue('bn_current_employment', $doctor)); ?></textarea>
                     <?php $__errorArgs = ['bn_current_employment'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -245,7 +245,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-sm-6">
-                    <label class="form-label" for="pad_footer_text">Pad footer text</label>
+                    <label class="form-label" for="pad_footer_text">Pad Footer Text</label>
                     <textarea class="<?php echo e(inputClass('pad_footer_text')); ?>" id="pad_footer_text" name="pad_footer_text" rows="2" maxlength="4000" <?php echo e(inputAttrs('pad_footer_text')); ?>><?php echo e(getValue('pad_footer_text', $doctor)); ?></textarea>
                     <?php $__errorArgs = ['pad_footer_text'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -257,7 +257,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="consultation_fee">Consultation fee <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="consultation_fee">Consultation Fee <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="<?php echo e(inputClass('consultation_fee')); ?>" id="consultation_fee" name="consultation_fee" type="text" inputmode="decimal" value="<?php echo e(getValue('consultation_fee', $doctor, '0.00')); ?>" maxlength="13" required <?php echo e(inputAttrs('consultation_fee')); ?>>
                     <?php $__errorArgs = ['consultation_fee'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -269,7 +269,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="follow_up_fee">Follow-up fee <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="follow_up_fee">Follow-Up Fee <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="<?php echo e(inputClass('follow_up_fee')); ?>" id="follow_up_fee" name="follow_up_fee" type="text" inputmode="decimal" value="<?php echo e(getValue('follow_up_fee', $doctor, '0.00')); ?>" maxlength="13" required <?php echo e(inputAttrs('follow_up_fee')); ?>>
                     <?php $__errorArgs = ['follow_up_fee'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -281,7 +281,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="email">Email address <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="email">Email Address <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="<?php echo e(inputClass('email')); ?>" id="email" name="email" type="email" value="<?php echo e(getValue('email', $doctor)); ?>" maxlength="255" autocomplete="email" required <?php echo e(inputAttrs('email')); ?>>
                     <?php $__errorArgs = ['email'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -293,7 +293,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="password"><?php echo e($doctor->exists ? 'New password' : 'Password'); ?> <?php if(! $doctor->exists): ?><span class="text-danger" aria-hidden="true">*</span><?php endif; ?></label>
+                    <label class="form-label" for="password"><?php echo e($doctor->exists ? 'New Password' : 'Password'); ?> <?php if(! $doctor->exists): ?><span class="text-danger" aria-hidden="true">*</span><?php endif; ?></label>
                     <div class="app-input-wrap">
                         <input class="<?php echo e(inputClass('password')); ?> app-password-input" id="password" name="password" type="password" minlength="<?php echo e($passwordMinLength); ?>" maxlength="4096" autocomplete="new-password" <?php if(! $doctor->exists): echo 'required'; endif; ?> <?php echo e(inputAttrs('password')); ?>>
                         <button class="app-password-toggle" type="button" data-password-toggle aria-controls="password" aria-label="Show password" aria-pressed="false" title="Show password"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>

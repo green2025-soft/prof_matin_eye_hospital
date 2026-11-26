@@ -18,7 +18,7 @@ function moveChoiceFocus(event, $choices) {
     $choices.eq((next + $choices.length) % $choices.length).trigger('focus');
 }
 
-// Navigate visible dose/unit choices with arrows, Home and End.
+// Navigate visible Unit choices with arrows, Home and End.
 function bindPaletteNavigation($menu) {
     $menu.on('keydown.prescriptionKeyboard', '.dropdown-item', function (event) {
         if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
@@ -99,13 +99,13 @@ export function initializePrescriptionKeyboard($modal, $search, $rows) {
             });
     }
 
-    // Typed dose advances to food before Unit; ArrowDown opens the visible schedule.
+    // Typed dose advances to food before Unit; ArrowDown focuses the dose presets.
     function moveFromFrequency(event) {
         if (event.altKey || event.ctrlKey || event.metaKey || event.originalEvent?.isComposing) return;
 
         const $row = $(event.currentTarget).closest('.prescription-medicine-row');
         if (event.key === 'ArrowDown' && !event.shiftKey) {
-            const $picker = $row.find('.prescription-schedule-dose:visible').first();
+            const $picker = $row.find('.prescription-frequency-mode:visible').first();
             if ($picker.length) {
                 event.preventDefault();
                 $picker.trigger('focus');
@@ -142,7 +142,6 @@ export function initializePrescriptionKeyboard($modal, $search, $rows) {
     $(document).on('keydown.prescriptionKeyboard', handleShortcut);
     $modal.on('select2:open.prescriptionKeyboard', bindSearchShortcuts);
     bindSearchShortcuts();
-    bindPaletteNavigation($('#prescription-dose-palette'));
     bindPaletteNavigation($('#prescription-unit-palette'));
 
     $rows.on('focusin.prescriptionKeyboard', '.prescription-medicine-row', function () {

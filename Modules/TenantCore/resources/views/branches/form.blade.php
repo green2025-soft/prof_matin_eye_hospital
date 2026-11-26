@@ -48,7 +48,7 @@
                     @enderror
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label" for="branch-telephone">Telephone number</label>
+                    <label class="form-label" for="branch-telephone">Telephone Number</label>
                     <input class="{{ inputClass('telephone_no') }}" id="branch-telephone" name="telephone_no" type="tel"
                         value="{{ getValue('telephone_no', $branch) }}" maxlength="30" autocomplete="tel"
                         {{ inputAttrs('telephone_no', 'branch-telephone') }}>
@@ -57,12 +57,21 @@
                     @enderror
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label" for="branch-email">Email address</label>
+                    <label class="form-label" for="branch-email">Email Address</label>
                     <input class="{{ inputClass('email') }}" id="branch-email" name="email" type="email"
                         value="{{ getValue('email', $branch) }}" maxlength="255" autocomplete="email"
                         {{ inputAttrs('email', 'branch-email') }}>
                     @error('email')
                         <div class="invalid-feedback d-block" id="branch-email-error">{{ $message }}</div>
+                    @enderror
+                </div>
+                   <div class="col-md-6">
+                    <label class="form-label" for="branch-website">Web</label>
+                    <input class="{{ inputClass('website') }}" id="branch-website" name="website" type="text"
+                        value="{{ getValue('website', $branch) }}" maxlength="255" autocomplete="text"
+                        {{ inputAttrs('text', 'branch-website') }}>
+                    @error('website')
+                        <div class="invalid-feedback d-block" id="branch-website-error">{{ $message }}</div>
                     @enderror
                 </div>
             </div>

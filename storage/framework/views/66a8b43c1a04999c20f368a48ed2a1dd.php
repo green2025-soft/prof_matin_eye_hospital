@@ -134,6 +134,20 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
+                <?php if (! ($isPlatform)): ?>
+                    <div class="col-md-6">
+                        <label class="form-label" for="company-website">Website</label>
+                        <input class="<?php echo e(inputClass('data.website')); ?>" id="company-website" name="data[website]" type="text" value="<?php echo e(getValue('data.website', null, $values['data']['website'] ?? '')); ?>" maxlength="255" placeholder="https://example.com"  <?php echo e(inputAttrs('data.website', 'company-website')); ?>>
+                        <?php $__errorArgs = ['data.website'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-block" id="company-website-error"><?php echo e($message); ?></div><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                    </div>
+                <?php endif; ?>
                 
                 <div class="col-md-6">
                     <label class="form-label" for="company-address">Address</label>

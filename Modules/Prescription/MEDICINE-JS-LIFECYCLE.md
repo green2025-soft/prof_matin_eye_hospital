@@ -13,11 +13,11 @@ Glass Prescription-এর আলাদা form এই editor ব্যবহা�
 
 | File | কাজ |
 | --- | --- |
-| [prescription-medicines.js](../../resources/js/prescription-medicines.js) | Search, medicine row, schedule, duration, unit ও Rx preview |
+| [prescription-medicines.js](../../resources/js/prescription-medicines.js) | Search, medicine row, dose presets, duration, unit ও Rx preview |
 | [prescription-application-dose.js](../../resources/js/prescription-application-dose.js) | Dosage group, Drop/Gel quantity ও daily-use entry |
 | [prescription-instructions.js](../../resources/js/prescription-instructions.js) | Food buttons, instruction search ও inline instruction save |
 | [prescription-keyboard.js](../../resources/js/prescription-keyboard.js) | Shortcut ও field-to-field focus |
-| [prescription-palette.js](../../resources/js/prescription-palette.js) | Dose/Unit-এর একই positioning, trigger keyboard, Escape ও open/close |
+| [prescription-palette.js](../../resources/js/prescription-palette.js) | Unit picker-এর positioning, trigger keyboard, Escape ও open/close |
 | [prescription-header-dropdown.js](../../resources/js/prescription-header-dropdown.js) | Modal header search-এর নিচে Select2 results রাখা |
 | [select2-empty-search.js](../../resources/js/select2-empty-search.js) | Search-এ মিল না পাওয়ার পরই নতুন নাম যোগের অনুমতি |
 
@@ -49,7 +49,8 @@ form-এর বাইরে render হয়; তাই submit হওয়া modal c
 | `#prescription-medicine-template` | নতুন row-এর Blade template; `__INDEX__` replace হয় |
 | `.prescription-medicine-row` | একটি medicine-এর সব control ও row state |
 | `#prescription-medicine-preview` | মূল pad-এর Rx summary |
-| `#prescription-dose-palette`, `#prescription-unit-palette` | Reusable floating choices |
+| `.prescription-frequency-mode` | Dose preset dropdown for the row's Dose field |
+| `#prescription-unit-palette` | Reusable floating Unit choices |
 
 Row markup এক জায়গায়: [`medicine-row.blade.php`](resources/views/prescriptions/medicine-row.blade.php)।
 একই partial saved row এবং `<template>`-এর জন্য ব্যবহৃত হয়।
@@ -68,9 +69,9 @@ Row markup এক জায়গায়: [`medicine-row.blade.php`](resources/views
 | `duration` | `5 দিন`, `চলবে` অথবা Custom text |
 | `instructions` | Food instruction অথবা নির্বাচিত custom instruction |
 
-UI-এর **Dose** label আসলে `frequency` field সম্পাদনা করে; **Unit** label `dose` field লেখে।
-Drop quantity/times, duration count/unit, schedule buttons এবং instruction search নিজে আলাদা
-medicine column পাঠায় না; এগুলো উপরের canonical field-গুলো update করে।
+UI-এর **Dose** label আসলে `frequency` field সম্পাদনা করে; dropdown-এর saved preset একই field-এ কপি হয়।
+**Unit** label `dose` field লেখে। Drop/Gel quantity, duration count/unit এবং instruction search
+নিজে আলাদা medicine column পাঠায় না; এগুলো উপরের canonical field-গুলো update করে।
 
 ## 3. Browser state কোথায় থাকে
 
@@ -84,12 +85,13 @@ medicine column পাঠায় না; এগুলো উপরের canonica
 | `suggestionButtons` | Choice ID → result chip; selection highlight update করে |
 | `unitNames` | Preset, loaded ও saved Unit label-এর Set |
 | `unitButtons` | Label → current palette button; duplicate button ঠেকায় |
-| `$activeDose`, `$activeUnit` | খোলা palette কোন control-এর জন্য কাজ করছে |
+| `$activeUnit` | খোলা Unit palette কোন control-এর জন্য কাজ করছে |
+| `nextPreviewOrder` | Modal order বজায় রেখে preview-তে medicine-এর chronological অবস্থান |
 | `$focusAfterOpen` | Modal খুলে গেলে কোন input-এ focus ফিরবে |
 | `unitOptionsRequest`, `unitOptionsLoaded` | একসঙ্গে এক Unit request এবং loaded state |
 
-প্রতি row-এ jQuery `.data()`-তে `choiceId`, `scheduleValues` ও `preview` থাকে।
-এগুলো database field নয়; যথাক্রমে selection link, dose slots ও summary element ধরে।
+প্রতি row-এ jQuery `.data()`-তে `choiceId`, `previewOrder` ও `preview` থাকে।
+এগুলো database field নয়; যথাক্রমে selection link, pad preview order ও summary element ধরে।
 Row delete হলে অন্য row-এর index নতুন করে সাজানো হয় না। Save order DOM-এর order থেকে আসে।
 
 Instruction module-এর আলাদা `pendingInstructionWrites` counter এবং selector-এর
@@ -100,14 +102,14 @@ Prescription submit অপেক্ষা করে; ব্যর্থ হল�
 
 1. `PrescriptionController::formData()` saved/old medicine values ও প্রয়োজনীয় catalog metadata প্রস্তুত করে।
 2. Blade saved row render করে; validation failure হলে old input অগ্রাধিকার পায়।
-3. `initializePrescriptionMedicines()` DOM handles, palette, instruction manager ও maps তৈরি করে।
+3. `initializePrescriptionMedicines()` DOM handles, Unit palette, instruction manager ও maps তৈরি করে।
 4. Saved row-এর input name পড়ে `nextIndex` নির্ধারণ করে এবং প্রতিটিতে `attachRow()` চালায়।
 5. `attachRow()` frequency, duration, Unit, instructions, dosage mode, choice link ও preview প্রস্তুত করে।
 6. Medicine Select2 configure হয়; তারপর selection/modal/row events bind হয়।
 7. শেষে `initializePrescriptionKeyboard()` shortcuts ও focus order connect করে।
 
-Initialize করার সময় saved custom directions নতুন format-এ লিখে দেওয়া হয় না।
-চেনা duration/schedule controls-এ দেখা যায়; না চেনা text Custom/বর্তমান নির্দেশ হিসেবে থাকে।
+Initialize করার সময় saved directions নতুন format-এ লিখে দেওয়া হয় না।
+Saved Dose preset মিললে dropdown-এ সেটি দেখা যায়; না মিললে Custom dose দেখায়।
 
 ### কোন function কোথা থেকে call হয়
 
@@ -116,13 +118,13 @@ Initialize করার সময় saved custom directions নতুন format-�
 | Page ready | `initializePrescriptionForm` → `initializePrescriptionMedicines` |
 | Saved row / নতুন row | Saved-row iteration / `addMedicine` → `attachRow` → editors + `registerChoice` + `attachPreview` |
 | Search selection | `select2:select` → `addMedicine` → `firstPrescriptionDoseControl` → `focusMedicineInput` |
-| Schedule mode / dose choice | `changeScheduleMode` / `enterScheduleDose` / `selectDose` → `updateFrequency` → frequency `input` → `syncFrequencyPicker` → `updatePreview` |
+| Dose preset / custom choice | `selectDosePreset` / `selectCustomDose` → `frequency` input → `syncFrequencyPicker` → `updatePreview` |
 | Type change | `changeDosageType` → `initializeFrequency` → `refreshUnitToggle` → `updatePrescriptionDoseType` → `updatePreview` |
 | Duration change | `updateDuration` → duration-value `input` → `updatePreview` |
 | Pad title / native invalid input | Title click / `showInvalidMedicine` → `focusMedicineInput` |
 
 ফাইলের প্রথম নয়টি row/value helper module scope-এ আছে; প্রয়োজনীয় `$row`/value argument নেয়।
-Maps/palettes-এর state-নির্ভর functions `initializePrescriptionMedicines()` closure-এর ভিতরে থাকে।
+Maps ও Unit palette-এর state-নির্ভর functions `initializePrescriptionMedicines()` closure-এর ভিতরে থাকে।
 
 ## 5. Search থেকে medicine যোগ হওয়া
 
@@ -146,7 +148,7 @@ Search debounce `250 ms`; request-এ `search` ও `page` যায়।
 - `attachRow()` controls, state, preview এবং native invalid-field focus connect করে।
 - Pad-এর medicine title click করলে `focusMedicineInput()` সেই row-এর dose entry খুলে দেয়।
 - Name সরাসরি বদলালে `detachRenamedMedicine()` → `detachChoice()` চলে; `product_id` ও Generic display clear হয়ে manual হয়।
-- `removeRow()` pending instruction save পরীক্ষা করে, palettes ও Select2 বন্ধ/destroy করে,
+- `removeRow()` pending instruction save পরীক্ষা করে, Unit palette ও Select2 বন্ধ/destroy করে,
   choice link, preview এবং row সরায়; তারপর count update করে।
 - Search unselect বা selected chip click-এ `removeChoice()` matching rows সরানোর চেষ্টা করে।
   Pending save-এর কারণে row থাকলে search choice আবার selected রাখা হয়।
@@ -158,17 +160,15 @@ Search debounce `250 ms`; request-এ `search` ও `page` যায়।
 
 ### Tablet / Capsule ও Other
 
-`readSchedule()` numeric/fraction `+`-separated frequency চিনতে পারে; অন্য text Custom থাকে।
-`initializeFrequency()` saved value পড়ে; `renderSchedule()` প্রয়োজনীয় buttons বানায়।
-Menu থেকে 3/4/5/6 slots বাছা যায়; matching saved 1–6 slots-ও restore হয়।
-Dose button বা palette choice → `updateFrequency()` → canonical `frequency` → preview।
-Typed frequency → `syncFrequencyPicker()` → matching schedule buttons।
+`PrescriptionController::formData()` tenant-এর dose presets ID order-এ আনে।
+`medicine-row.blade.php` একই options menu saved ও নতুন row-তে render করে।
+Preset click → `selectDosePreset()` → canonical `frequency` → preview; Custom dose-এর text সরাসরি edit হয়।
 
 ### Drop ও Gel / Ointment
 
 `initializePrescriptionDosage()` saved Type, catalog dosage অথবা explicit medicine-name token থেকে group নেয়।
 Doctor Type বদলাতে পারেন; অচেনা brand name থেকে dosage অনুমান না করে `other` থাকে।
-`updatePrescriptionDoseType()` application inputs দেখায়, oral Unit/food/schedule লুকায় ও food disable করে।
+`updatePrescriptionDoseType()` application inputs দেখায়, oral Unit/food/Dose preset লুকায় ও food disable করে।
 শুধু Type পাল্টানোর সময় আগের saved directions মুছে দেওয়া হয় না।
 
 Quick field edit হলে `updateApplicationDose()` existing `frequency` লেখে এবং `dose` blank করে:
@@ -197,13 +197,13 @@ Unit button `dose` field-এর palette খোলে। `renderUnitPalette()` pr
 `loadUnitOptions()` catalog থেকে paginated extra labels আনে, failure হলে পুনরায় খোলায় retry করা যায়।
 Unit select → hidden `dose` update → palette close → Duration focus।
 
-### Palette-এর একই operation এক জায়গায়
+### Unit palette-এর একই operation এক জায়গায়
 
 `createPrescriptionPalette()` থেকে `open`, `close`, `bindToggle`, `update` পাওয়া যায়।
-Medicine editor `bindToggle($rows, selector, openPalette)` দিয়ে Dose ও Unit-এর trigger bind করে।
+Medicine editor `bindToggle($rows, selector, openPalette)` দিয়ে Unit-এর trigger bind করে।
 Click, ArrowUp/Down, Enter/Space, প্রথম selected choice focus এবং Escape-এর নিয়ম একবারই লেখা আছে।
 `closeOnEscape()` menu বন্ধ করে opener-এ focus দেয়; `closeOutside()` বাইরের click/focus-এ menu বন্ধ করে।
-`openDosePalette()` ও `openUnitPalette()` নিজেদের selection/value rule রাখে; shared palette কোনো Type পরীক্ষা করে না।
+Dose preset-গুলো row-এর Bootstrap dropdown ব্যবহার করে; এই palette helper-এর অংশ নয়।
 
 ## 8. Event ও preview flow
 
@@ -218,7 +218,7 @@ Clinical note previews-এর আলাদা [prescription-preview.js](../../re
 আছে; Rx medicine summary-এর owner `prescription-medicines.js`।
 
 Modal open-এর focus rule `focusOpenedModal()`-এ এবং close/pending-save rule `closeEditor()`-এ আছে।
-`closeMedicineControls($selects)` শুধু caller দেওয়া Select2 controls ও দুই palette বন্ধ করে।
+`closeMedicineControls($selects)` শুধু caller দেওয়া Select2 controls ও Unit palette বন্ধ করে।
 Search খোলার সময় শুধু row selectors দেওয়া হয়; modal বন্ধের সময় header-সহ modal-এর সব selectors দেওয়া হয়।
 
 ## 9. Keyboard flow
@@ -230,14 +230,14 @@ Search খোলার সময় শুধু row selectors দেওয়া হ�
 | `F8` | Rx Done/close; pending instruction save থাকলে close অপেক্ষা করে |
 | Medicine name / Type-এ `Enter` | প্রথম applicable dose input |
 | Dose text-এ `Enter` / forward `Tab` | Visible food choice, তারপর Unit |
-| Schedule button-এ `0`–`6` | Value বসিয়ে পরের slot; শেষ slot-এর পরে food/Unit |
-| Dose/Unit palette-এ arrows, `Home`, `End` | Visible enabled choice navigation |
+| Dose text-এ `ArrowDown` | Preset dropdown focus; preset বাছলে Dose field update হয় |
+| Unit palette-এ arrows, `Home`, `End` | Visible enabled choice navigation |
 | Food button select | Instruction বসিয়ে Unit focus |
 | Drop/Gel quantity-এ `Enter` | Times → Duration count → Duration unit → instruction search |
 
 Food buttons-এ Left/Right/Home/End কাজ করে; forward Tab Unit-এ যায়।
-Dose text-এ ArrowDown visible schedule-এর প্রথম slot focus করে।
-Palette-এ Escape প্রথমে palette বন্ধ করে focus ফেরায়; closed palette-এর trigger-এ Escape Rx close করতে পারে।
+Dose dropdown-এর Arrow/Enter/Space keys Bootstrap-এর native menu behavior ব্যবহার করে।
+Unit palette-এ Escape menu বন্ধ করে focus ফেরায়; closed palette-এর trigger-এ Escape Rx close করতে পারে।
 Shortcut handler অন্য modal open থাকলে কাজ করে না; modified Enter/IME typing বাধা দেয় না।
 
 ## 10. Submit থেকে server save
@@ -262,12 +262,12 @@ header save করে এবং submitted order-এ medicine rows replace কর
 | Row lifecycle | `addMedicine`, `attachRow`, `removeRow`, `removeChoice`, `updateCount` |
 | Selection state | `registerChoice`, `detachChoice`, `selectChoice`, `deselectChoice`, `syncSearchChecks` |
 | Search display | `medicineResult`, `renderSuggestions`, `updateSuggestion`, Select2 `createTag`/`data`/`processResults` |
-| Frequency | `readSchedule`, `initializeFrequency`, `setFrequencyMode`, `renderSchedule`, `syncFrequencyPicker`, `updateFrequency`, `changeScheduleMode`, `enterScheduleDose`, `selectDose` |
+| Dose | `initializeFrequency`, `syncFrequencyPicker`, `selectDosePreset`, `selectCustomDose` |
 | Duration | `initializeDuration`, `displayDurationMode`, `updateDuration`, `previewDuration` |
 | Application | `dosageGroup`, `applicationType`, `readApplicationDose`, `updateApplicationDose`, `updatePrescriptionDoseType` |
-| Focus | `focusMedicineInput`, `showInvalidMedicine`, `firstPrescriptionDoseControl`, `nextDoseControl` |
-| Unit/palette | `refreshUnitToggle`, `appendUnitChoice`, `renderUnitPalette`, `loadUnitOptions`, `openUnitPalette`, `closeUnitPalette`, `selectUnit` |
-| Dose palette | `openDosePalette`, `closeDosePalette`, `createPrescriptionPalette`, `bindToggle`, `closeOnEscape`, `closeOutside` |
+| Focus | `focusMedicineInput`, `showInvalidMedicine`, `firstPrescriptionDoseControl` |
+| Unit palette | `refreshUnitToggle`, `appendUnitChoice`, `renderUnitPalette`, `loadUnitOptions`, `openUnitPalette`, `closeUnitPalette`, `selectUnit` |
+| Preview order | `attachPreview`, saved `ordering`, `nextPreviewOrder` |
 | Instruction | `initializeRow`, `initializeInstructionSearch`, `selectInstruction`, `createInstruction`, `updateInstructionRow` |
 | Instruction failure/pending | `showInstructionFailure`, `clearInstructionError`, `finishInstructionSave`, `preventWhileSaving`, `canRemoveRow` |
 | Search eligibility | `setTerm`, `begin`, `complete`, `canCreate`, `bindSearch` |

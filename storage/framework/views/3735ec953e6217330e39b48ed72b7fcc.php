@@ -1,26 +1,24 @@
-
-
 <?php $__env->startSection('title', $pageTitle); ?>
 
 <?php $__env->startSection('content'); ?>
     <?php echo $__env->make('core::partials.heading', [
         'title' => $pageTitle,
-        'description' => 'Manage investigations, categories, and rates.',
-        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New investigation'],
+        'description' => 'Manage Test Name, Category and Rate.',
+        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'Add Test Name'],
     ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <section class="app-card overflow-hidden">
         <div class="app-card-heading d-flex align-items-center gap-2 px-3 px-md-4 py-3 border-bottom">
             <i class="fa-solid fa-flask text-body-secondary" aria-hidden="true"></i>
-            <h2 class="h6 mb-0">Investigations</h2>
+            <h2 class="h6 mb-0">Test Name</h2>
         </div>
         <form class="px-3 px-md-4 py-3 border-bottom" action="<?php echo e(route($routePrefix.'.index')); ?>" method="GET" aria-label="Filter investigations">
             <div class="row g-2 align-items-end">
                 <div class="col-12 col-xl-7">
-                    <label class="form-label small" for="search">Search investigations</label>
+                    <label class="form-label small" for="search">Search Test Name</label>
                     <div class="app-input-wrap app-search-field">
                         <i class="fa-solid fa-magnifying-glass app-search-icon" aria-hidden="true"></i>
-                        <input class="<?php echo e(inputClass('search')); ?>" id="search" name="search" type="search" value="<?php echo e(getValue('search', null, $filters['search'] ?? '')); ?>" maxlength="80" placeholder="Investigation name starts with..." <?php echo e(inputAttrs('search')); ?>>
+                        <input class="<?php echo e(inputClass('search')); ?>" id="search" name="search" type="search" value="<?php echo e(getValue('search', null, $filters['search'] ?? '')); ?>" maxlength="80" placeholder="Test name Start with..." <?php echo e(inputAttrs('search')); ?>>
                     </div>
                     <?php $__errorArgs = ['search'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -38,14 +36,14 @@ unset($__errorArgs, $__bag); ?>
         </form>
 
         <?php if($records->isEmpty()): ?>
-            <?php echo $__env->make('core::partials.empty', ['title' => 'No investigations found', 'description' => 'Try another investigation name or clear the filters.', 'icon' => 'flask'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+            <?php echo $__env->make('core::partials.empty', ['title' => 'No Test Name found', 'description' => 'Try another investigation name or clear the filters.', 'icon' => 'flask'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
         <?php else: ?>
             <div class="table-responsive">
                 <table class="table app-table align-middle mb-0">
                     <caption class="visually-hidden">Investigations, categories, rates, and display order</caption>
                     <thead>
                         <tr>
-                            <th scope="col">Name</th>
+                            <th scope="col">Test Name</th>
                             <th scope="col">Category</th>
                             <th class="text-end" scope="col">Single rate</th>
                             <th class="text-end" scope="col">Both rate</th>

@@ -1,5 +1,5 @@
 <div>
-    <label class="form-label" for="<?php echo e($selectorId); ?>">Patient <span class="text-danger" aria-hidden="true">*</span></label>
+    <label class="form-label" for="<?php echo e($selectorId); ?>">Select Patient <span class="text-danger" aria-hidden="true">*</span></label>
     <div class="row g-2">
         <div class="col">
             <select class="<?php echo e(inputClass('patient_id', 'form-select')); ?>" id="<?php echo e($selectorId); ?>" name="patient_id" data-patient-select

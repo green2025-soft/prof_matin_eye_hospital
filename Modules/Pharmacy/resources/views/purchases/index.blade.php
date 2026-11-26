@@ -28,7 +28,7 @@
                         <th scope="col" class="text-end">Paid</th>
                         <th scope="col" class="text-end">Due</th>
                         <th scope="col">Status</th>
-                        <th scope="col" class="text-end">Actions</th>
+                        <th scope="col" class="text-end">Action</th>
                     </tr>
                 </thead>
                 <tbody>

@@ -5,13 +5,13 @@
         <?php echo $__env->make('core::partials.heading', ['title' => ucfirst($filters['product_type'] ?? 'medicine').' Opening Stock'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
         <?php if($canCreate): ?>
             <a class="btn btn-primary text-nowrap" href="<?php echo e(route($routePrefix.'.create', ['product_type' => $filters['product_type'] ?? 'medicine'])); ?>">
-                <i class="fa-solid fa-plus me-2" aria-hidden="true"></i>New opening stock
+                <i class="fa-solid fa-plus me-2" aria-hidden="true"></i>New Opening Stock
             </a>
         <?php endif; ?>
     </div>
 
     <section class="app-card overflow-hidden">
-        <?php echo $__env->make('pharmacy::entries.partials.filters', ['numberLabel' => 'Entry no.'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+        <?php echo $__env->make('pharmacy::entries.partials.filters', ['numberLabel' => 'Entry No.'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
         <div class="table-responsive">
             <table class="table app-table align-middle mb-0">
@@ -20,7 +20,7 @@
                     <tr>
                         <th scope="col">Number</th>
                         <th scope="col">Date</th>
-                        <th scope="col" class="text-end">Stock value</th>
+                        <th scope="col" class="text-end">Stock Value</th>
                         <th scope="col">Status</th>
                     </tr>
                 </thead>

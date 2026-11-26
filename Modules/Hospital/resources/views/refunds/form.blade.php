@@ -80,20 +80,20 @@
                 @error('item_ids.*')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
             <div class="col-md-4">
-                <label class="form-label" for="refund_credit_amount">Selected value</label>
+                <label class="form-label" for="refund_credit_amount">Sales Value</label>
                 <input class="form-control" id="refund_credit_amount" type="text" value="0.00" readonly data-refund-credit>
             </div>
             <div class="col-md-4">
-                <label class="form-label" for="refund_due_adjustment">Due adjustment</label>
+                <label class="form-label" for="refund_due_adjustment">Due Adjustment</label>
                 <input class="form-control" id="refund_due_adjustment" type="text" value="{{ $refund->exists ? $refund->due_adjustment : '0.00' }}" readonly data-refund-due-adjustment>
             </div>
             <div class="col-md-4">
-                <label class="form-label" for="refund_amount">Cash refund</label>
+                <label class="form-label" for="refund_amount">Refund Amount</label>
                 <input class="form-control" id="refund_amount" type="text" value="{{ $refund->exists ? $refund->amount : '0.00' }}" readonly data-refund-amount aria-describedby="refund_amount-help">
                 <div class="form-text" id="refund_amount-help">The selected value reduces the outstanding due first. Any balance is refunded in cash.</div>
             </div>
             <div class="col-md-4">
-                <label class="form-label" for="cause_id">Refund cause <span class="text-danger" aria-hidden="true">*</span></label>
+                <label class="form-label" for="cause_id">Refund Cause <span class="text-danger" aria-hidden="true">*</span></label>
                 <select class="{{ inputClass('cause_id', 'form-select') }}" id="cause_id" name="cause_id" required {{ inputAttrs('cause_id') }}>
                     <option value="">Select a refund cause</option>
                     @foreach ($refundCauses as $cause)

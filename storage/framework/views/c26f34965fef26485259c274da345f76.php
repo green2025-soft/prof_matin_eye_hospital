@@ -4,7 +4,7 @@
         <div class="row g-2 align-items-end">
             <?php echo $__env->make('pharmacy::entries.partials.stock-product-fields', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             <div class="col-6 col-lg-2">
-                <label class="form-label small" for="line_<?php echo e($lineIndex); ?>_price">Unit price</label>
+                <label class="form-label small" for="line_<?php echo e($lineIndex); ?>_price">Unit Price</label>
                 <input class="<?php echo e(inputClass('lines.'.$lineIndex.'.unit_price', 'form-control')); ?>" id="line_<?php echo e($lineIndex); ?>_price" name="lines[<?php echo e($lineIndex); ?>][unit_price]" type="number" min="0" step="0.01" value="<?php echo e($lineValues['unit_price'] ?? '0.00'); ?>" <?php echo e(inputAttrs('lines.'.$lineIndex.'.unit_price', 'line_'.$lineIndex.'_price')); ?>>
                 <?php $__errorArgs = ['lines.'.$lineIndex.'.unit_price'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');

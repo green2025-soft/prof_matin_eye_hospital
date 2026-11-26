@@ -9,7 +9,7 @@ use Modules\Core\Models\Tenant;
 use Modules\Core\Services\ContextCache;
 use Modules\TenantCore\Policies\BranchPolicy;
 
-#[Fillable(['name', 'address', 'mobile_no', 'telephone_no', 'email', 'logo_path'])]
+#[Fillable(['name', 'address', 'mobile_no', 'telephone_no', 'email','website', 'logo_path'])]
 #[UsePolicy(BranchPolicy::class)]
 class Branch extends BaseModel
 {
@@ -17,7 +17,7 @@ class Branch extends BaseModel
 
     protected array $queryConstraints = ['is_default' => false];
 
-    protected array $exposed = ['id', 'name', 'address', 'mobile_no', 'telephone_no', 'email', 'logo_path', 'created_at'];
+    protected array $exposed = ['id', 'name', 'address', 'mobile_no', 'telephone_no', 'email', 'website', 'logo_path', 'created_at'];
 
     protected function casts(): array
     {

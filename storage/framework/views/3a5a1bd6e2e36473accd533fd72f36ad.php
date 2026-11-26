@@ -7,9 +7,9 @@
                 <tr>
                     <th scope="col">Service</th>
                     <th scope="col">Invoice</th>
-                    <th scope="col">Payment type</th>
+                    
                     <th scope="col" class="text-end">Discount</th>
-                    <th class="app-clinical-invoice-amount text-end" scope="col">Payment (Tk)</th>
+                    <th class="app-clinical-invoice-amount text-end" scope="col">Amount</th>
                 </tr>
             </thead>
             <tbody>
@@ -21,7 +21,7 @@
                 <tr>
                     <td><?php echo e($sourceServiceLabel); ?></td>
                     <td class="text-break"><?php echo e($originalInvoiceNumber); ?></td>
-                    <td class="text-break"><?php echo e($collectionPaymentType ?? '-'); ?></td>
+                    
                     <td class="text-break text-end"><?php echo e($objData->discount); ?></td>
                     <td class="text-end text-nowrap"><?php echo e($collectionAmount); ?></td>
                 </tr>

@@ -36,18 +36,18 @@
         <section class="app-form-section mb-3" aria-labelledby="return-invoice-heading">
             <h2 class="app-form-section-title" id="return-invoice-heading">
                 <span class="app-form-section-icon"><i class="fa-solid fa-arrow-rotate-left" aria-hidden="true"></i></span>
-                Return details
+                Return Details
             </h2>
             <div class="row g-3 align-items-end">
                 <div class="col-md-6 col-xl-4">
-                    <label class="form-label" for="purchase">Original purchase invoice</label>
+                    <label class="form-label" for="purchase">Original Purchase Invoice</label>
                     @if ($entry->exists)
                         <output class="form-control bg-body-tertiary" id="purchase">
                             {{ $source->number }}
                             <span class="small text-body-secondary ms-2">{{ $source->entry_date->toDateString() }}</span>
                         </output>
                     @else
-                        <select class="{{ inputClass('purchase_id', 'form-select') }}" id="purchase" name="purchase_id" form="pharmacy-return-source-form" data-ajax-select data-url="{{ route('pharmacy.purchase-sources.options') }}" data-parent-select="source_product_type" data-parent-field="product_type" data-placeholder="Search invoice number" {{ inputAttrs('purchase_id', 'purchase') }}>
+                        <select class="{{ inputClass('purchase_id', 'form-select') }}" id="purchase" name="purchase_id" form="pharmacy-return-source-form" data-ajax-select data-url="{{ route('pharmacy.purchase-sources.options') }}" data-parent-select="source_product_type" data-parent-field="product_type" data-placeholder="Search Invoice Number" {{ inputAttrs('purchase_id', 'purchase') }}>
                             <option value=""></option>
                             @if ($source)
                                 <option value="{{ $source->id }}" selected>{{ $source->number }} / {{ $source->entry_date->toDateString() }}</option>

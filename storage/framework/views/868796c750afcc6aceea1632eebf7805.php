@@ -12,7 +12,8 @@
     $dosageType = data_get($medicine, 'dosage_type') ?? data_get($product, 'dosage.name', '');
 ?>
 
-<li class="prescription-medicine-row d-flex flex-column mt-3" id="<?php echo e($errorId); ?>-row">
+<li class="prescription-medicine-row d-flex flex-column mt-3" id="<?php echo e($errorId); ?>-row"
+    data-ordering="<?php echo e(data_get($medicine, 'ordering')); ?>" data-medicine-index="<?php echo e($medicineIndex); ?>">
     <div class="app-prescription-rx-card-heading d-flex align-items-center">
         <span class="prescription-medicine-number" aria-hidden="true"></span>
         <div class="flex-grow-1">
@@ -117,25 +118,25 @@ unset($__errorArgs, $__bag); ?>
                     </div>
                 </div>
             </div>
-            <div class="dropdown prescription-schedule-menu">
+            <div class="dropdown prescription-dose-menu">
                 <button class="btn btn-sm dropdown-toggle prescription-frequency-mode" type="button"
-                    data-bs-toggle="dropdown" aria-expanded="false" value="3">Schedule</button>
+                    data-bs-toggle="dropdown" aria-expanded="false">Dose</button>
                 <ul class="dropdown-menu" role="menu">
-                    <?php $__currentLoopData = [3, 4, 5, 6]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $periodCount): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php $__currentLoopData = $doseOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $doseOption): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <li>
-                            <button class="dropdown-item prescription-schedule-count" type="button"
-                                role="menuitemradio" aria-checked="false"
-                                value="<?php echo e($periodCount); ?>"><?php echo e($periodCount); ?></button>
+                            <button class="dropdown-item prescription-dose-preset" type="button"
+                                role="menuitem" value="<?php echo e($doseOption->name); ?>"><?php echo e($doseOption->name); ?></button>
                         </li>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                    <li><hr class="dropdown-divider"></li>
+                    <?php if($doseOptions->isNotEmpty()): ?>
+                        <li><hr class="dropdown-divider"></li>
+                    <?php endif; ?>
                     <li>
-                        <button class="dropdown-item prescription-schedule-count" type="button"
-                            role="menuitemradio" aria-checked="false" value="custom">Custom frequency</button>
+                        <button class="dropdown-item prescription-custom-dose" type="button"
+                            role="menuitem">Custom dose</button>
                     </li>
                 </ul>
             </div>
-            <div class="prescription-schedule-controls" role="group" aria-label="Daily schedule"></div>
             <div class="app-prescription-food-options" role="group" aria-label="Food instructions">
                 <button class="prescription-food-instruction" type="button" aria-pressed="false">
                     খাওয়ার পরে
@@ -202,7 +203,7 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
             </div>
-            <div class="app-prescription-instruction-row w-100">
+            <div class="app-prescription-instruction-row w-100 d-none">
                 <label class="visually-hidden" for="<?php echo e($errorId); ?>-instruction-search">
                     Search medicine instructions
                 </label>

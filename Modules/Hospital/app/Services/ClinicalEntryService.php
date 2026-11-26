@@ -83,7 +83,10 @@ abstract class ClinicalEntryService
     // Every invoice uses these source facts; the owner prepares its own document fields.
     protected function invoiceValues(Account $actor, Consultation|PatientInvestigation|PatientOperation $source, array $state): array
     {
-        $patient = $source->patient()->first(['id', 'patient_id', 'name', 'age', 'gender', 'mobile_no']);
+        $patient = $source->patient()->first([
+            'id', 'patient_id', 'name', 'age', 'age_months', 'age_days',
+            'date_of_birth', 'gender', 'mobile_no',
+        ]);
         $doctor = $source->doctor()->where('branch_id', $source->branch_id)->first(['id', 'name']);
         $branch = Branch::find($source->branch_id, ['id', 'name', 'address', 'mobile_no', 'telephone_no', 'email', 'logo_path']);
         $company = Setting::values('company', $source->getConnectionName());
@@ -101,6 +104,7 @@ abstract class ClinicalEntryService
                 'address' => filled($company['address']) ? $company['address'] : $branch?->address,
                 'phone' => filled($company['phone']) ? $company['phone'] : $branchPhone,
                 'email' => filled($company['email']) ? $company['email'] : $branch?->email,
+                'website' => $company['website'] ?? '',
                 'tax_id' => $company['tax_id'],
             ],
             'logoUrl' => filled($logoPath) ? Storage::disk('public')->url($logoPath) : null,

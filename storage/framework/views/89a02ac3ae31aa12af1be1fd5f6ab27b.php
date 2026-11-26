@@ -34,11 +34,11 @@
         <section class="app-form-section mb-3" aria-labelledby="return-invoice-heading">
             <h2 class="app-form-section-title" id="return-invoice-heading">
                 <span class="app-form-section-icon"><i class="fa-solid fa-arrow-rotate-left" aria-hidden="true"></i></span>
-                Return details
+                Return Details
             </h2>
             <div class="row g-3 align-items-end">
                 <div class="col-md-6 col-xl-4">
-                    <label class="form-label" for="purchase">Original purchase invoice</label>
+                    <label class="form-label" for="purchase">Original Purchase Invoice</label>
                     <?php if($entry->exists): ?>
                         <output class="form-control bg-body-tertiary" id="purchase">
                             <?php echo e($source->number); ?>
@@ -46,7 +46,7 @@
                             <span class="small text-body-secondary ms-2"><?php echo e($source->entry_date->toDateString()); ?></span>
                         </output>
                     <?php else: ?>
-                        <select class="<?php echo e(inputClass('purchase_id', 'form-select')); ?>" id="purchase" name="purchase_id" form="pharmacy-return-source-form" data-ajax-select data-url="<?php echo e(route('pharmacy.purchase-sources.options')); ?>" data-parent-select="source_product_type" data-parent-field="product_type" data-placeholder="Search invoice number" <?php echo e(inputAttrs('purchase_id', 'purchase')); ?>>
+                        <select class="<?php echo e(inputClass('purchase_id', 'form-select')); ?>" id="purchase" name="purchase_id" form="pharmacy-return-source-form" data-ajax-select data-url="<?php echo e(route('pharmacy.purchase-sources.options')); ?>" data-parent-select="source_product_type" data-parent-field="product_type" data-placeholder="Search Invoice Number" <?php echo e(inputAttrs('purchase_id', 'purchase')); ?>>
                             <option value=""></option>
                             <?php if($source): ?>
                                 <option value="<?php echo e($source->id); ?>" selected><?php echo e($source->number); ?> / <?php echo e($source->entry_date->toDateString()); ?></option>

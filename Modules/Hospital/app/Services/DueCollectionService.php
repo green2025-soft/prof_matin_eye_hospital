@@ -129,8 +129,9 @@ class DueCollectionService extends ClinicalEntryService
         $state = $this->invoices->balance($source);
         $data = $this->invoiceValues($actor, $source, $state);
         $collection->withService();
-        
+
         $invoiceData = $collection?->service??'';
+
 
         return $data + [
             'pageTitle'         => 'Due Collection',
@@ -141,7 +142,7 @@ class DueCollectionService extends ClinicalEntryService
             'entryDate'         => $collection->collection_date?->format('d M Y') ?? '—',
             'entryDateLabel'    => 'Collection date',
             'objData'           => $collection,
-            'entryTime'         => '',
+            'entryTime'         => $collection->created_at?->format('h:i A') ?? '—',
             'collectionAmount'  => $collection->amount,
             'collectionPaymentType' => $collection->paymentType()->value('name'),
             'remarks'           => $collection->remarks,

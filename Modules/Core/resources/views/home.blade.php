@@ -4,7 +4,7 @@
 
 @section('content')
     @php
-        $recentTitle = $central ? 'Recent tenants' : 'Recently added users';
+        $recentTitle = $central ? 'Recent tenants' : 'Recently Added User';
         $recentDescription = $central ? 'The newest workspaces on your platform.' : 'The newest accounts in your workspace.';
         $recentRoutePrefix = $central ? 'core.tenants' : $accountRoutePrefix;
     @endphp
@@ -37,17 +37,17 @@
                     'available' => $central,
                 ],
                 'accounts.create' => [
-                    'label' => $central ? 'Add administrator' : 'Add user',
+                    'label' => $central ? 'Add administrator' : 'Add User',
                     'icon' => 'user-plus',
                     'url' => route($accountRoutePrefix.'.create'),
                     'tone' => 'success',
                     'available' => true,
                 ],
                 'roles.create' => [
-                    'label' => 'Create role',
+                    'label' => 'Create Role',
                     'icon' => 'shield-halved',
                     'url' => route('core.roles.create'),
-                    'tone' => 'warning',
+                    'tone' => 'danger',
                     'available' => true,
                 ],
                 'tenants.view' => [
@@ -58,52 +58,52 @@
                     'available' => $central,
                 ],
                 'accounts.view' => [
-                    'label' => $central ? 'Administrators' : 'Users',
+                    'label' => $central ? 'Administrators' : 'User List',
                     'icon' => 'users',
                     'url' => route($accountRoutePrefix.'.index'),
                     'tone' => 'primary',
                     'available' => true,
                 ],
                 'roles.view' => [
-                    'label' => 'Roles',
+                    'label' => 'Role List',
                     'icon' => 'shield-halved',
                     'url' => route('core.roles.index'),
-                    'tone' => 'warning',
+                    'tone' => 'primary',
                     'available' => true,
                 ],
                 'permissions.view' => [
-                    'label' => 'Permissions',
+                    'label' => 'Permission',
                     'icon' => 'key',
                     'url' => route('core.permissions.index'),
-                    'tone' => 'info',
+                    'tone' => 'danger',
                     'available' => true,
                 ],
                 'audit-logs.view' => [
-                    'label' => 'Audit logs',
+                    'label' => 'Audit Log',
                     'icon' => 'clock-rotate-left',
                     'url' => route('tenantcore.audit-logs.index'),
-                    'tone' => 'primary',
+                    'tone' => 'success',
                     'available' => ! $central,
                 ],
                 'branches.view' => [
-                    'label' => 'Branches',
+                    'label' => 'All Branch',
                     'icon' => 'building',
                     'url' => route('tenantcore.branches.index'),
                     'tone' => 'success',
                     'available' => ! $central && $hasBranches,
                 ],
                 'billing.view' => [
-                    'label' => 'Billing',
+                    'label' => 'Software Bill',
                     'icon' => 'file-invoice-dollar',
                     'url' => route('tenantcore.billing.index'),
-                    'tone' => 'danger',
+                    'tone' => 'primary',
                     'available' => ! $central,
                 ],
                 'settings.view' => [
                     'label' => 'Settings',
                     'icon' => 'gear',
                     'url' => route($central ? 'core.settings.index' : 'tenantcore.settings.index'),
-                    'tone' => 'secondary',
+                    'tone' => 'success',
                     'available' => true,
                 ],
             ];
@@ -112,7 +112,7 @@
                 static fn (array $action): bool => $action['available'],
             );
         @endphp
-        <h2 class="h6 fw-semibold mb-2" id="quick-actions-heading">Quick actions</h2>
+        <h2 class="h6 fw-semibold mb-2" id="quick-actions-heading">Quick Action</h2>
         <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xl-6 justify-content-center g-3">
             @forelse ($quickActions as $action)
                 <div class="col">
@@ -134,7 +134,7 @@
         @php
             $metrics = [
                 [
-                    'label' => 'Tenants',
+                    'label' => 'Tenant',
                     'value' => $tenantCount,
                     'caption' => 'Registered workspaces',
                     'icon' => 'building',
@@ -142,7 +142,7 @@
                     'url' => route('core.tenants.index'),
                 ],
                 [
-                    'label' => $central ? 'Administrators' : 'Users',
+                    'label' => $central ? 'Administrators' : 'User',
                     'value' => $accountCount,
                     'caption' => $central ? 'Platform accounts' : 'Workspace accounts',
                     'icon' => 'users',
@@ -150,7 +150,7 @@
                     'url' => route($accountRoutePrefix.'.index'),
                 ],
                 [
-                    'label' => 'Roles',
+                    'label' => 'Role',
                     'value' => $roleCount,
                     'caption' => 'Access roles in this workspace',
                     'icon' => 'shield-halved',
@@ -158,7 +158,7 @@
                     'url' => route('core.roles.index'),
                 ],
                 [
-                    'label' => 'Your permissions',
+                    'label' => 'Your Permission',
                     'value' => $permissionCount,
                     'caption' => 'Assigned access permissions',
                     'icon' => 'key',

@@ -5,7 +5,7 @@
         <?php echo $__env->make('core::partials.heading', ['title' => ucfirst($filters['product_type'] ?? 'medicine').' Purchase Returns'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
         <?php if($canCreate): ?>
             <a class="btn btn-primary text-nowrap" href="<?php echo e(route($routePrefix.'.create', ['product_type' => $filters['product_type'] ?? 'medicine'])); ?>">
-                <i class="fa-solid fa-plus me-2" aria-hidden="true"></i>New purchase return
+                <i class="fa-solid fa-plus me-2" aria-hidden="true"></i>New Purchase Return
             </a>
         <?php endif; ?>
     </div>
@@ -26,7 +26,7 @@
                         <th scope="col" class="text-end">Cash received</th>
                         <th scope="col">Status</th>
                         <?php if($canUpdateReturns || $canDeleteReturns): ?>
-                            <th class="text-end" scope="col">Actions</th>
+                            <th class="text-end" scope="col">Action</th>
                         <?php endif; ?>
                     </tr>
                 </thead>

@@ -32,7 +32,7 @@
 @section('report-context')
     <span>As of: <strong>{{ now()->toDateString() }}</strong></span>
     <span>Customer: {{ $selectedCustomer['text'] ?? 'All customers with dues' }}</span>
-    <span>All current outstanding invoices, including earlier periods.</span>
+    
 @endsection
 
 @section('report-summary')

@@ -64,6 +64,10 @@ class SettingRequest extends BaseRequest
         $setting = $this->record();
 
         $fields = config('settings.rules.'.$setting->group);
+        if ($setting->group === 'company' && $setting->getConnection()->getName() === 'central') {
+            unset($fields['website']);
+        }
+
         $credentials = config('settings.credentials.'.$setting->group, []);
         $configured = $setting->configuredCredentials();
         $enabled = in_array($this->input('data.enabled'), [1, '1', true], true);

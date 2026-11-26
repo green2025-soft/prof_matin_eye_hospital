@@ -74,7 +74,7 @@
                 @endif
                 @if ($permissions['pharmacy-purchase-returns.view'] ?? false)
                     @include('core::partials.navigation-link', [
-                        'label' => 'Purchase returns', 'icon' => 'rotate-left',
+                        'label' => 'Purchase Return', 'icon' => 'rotate-left',
                         'url' => route('pharmacy.purchase-returns.index', ['product_type' => 'medicine']),
                         'active' => ($isMedicine && request()->routeIs('pharmacy.purchase-returns.*')),
                     ])

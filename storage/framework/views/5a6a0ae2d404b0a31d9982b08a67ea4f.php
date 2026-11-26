@@ -44,11 +44,11 @@
     <div class="row g-4 app-clinical-invoice-summary">
         <?php echo $__env->make('hospital::invoices.notes', ['wordsLabel' => 'Refund value in words'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
         <section class="col-12 col-sm-6 app-clinical-invoice-totals" aria-labelledby="clinical-invoice-totals-title">
-            <h2 class="app-clinical-invoice-section-title" id="clinical-invoice-totals-title">Refund summary</h2>
+            <h2 class="app-clinical-invoice-section-title" id="clinical-invoice-totals-title">Refund Summary</h2>
             <dl class="mb-0">
-                <div class="app-clinical-invoice-total"><dt>Selected value</dt><dd><?php echo e($refundCreditAmount); ?></dd></div>
-                <div><dt>Due adjustment</dt><dd><?php echo e($refundDueAdjustment); ?></dd></div>
-                <div class="app-clinical-invoice-refund-total"><dt>Cash refund</dt><dd><?php echo e($refundAmount); ?></dd></div>
+                <div class="app-clinical-invoice-total"><dt>Sales Value</dt><dd><?php echo e($refundCreditAmount); ?></dd></div>
+                <div><dt>Due Adjustment</dt><dd><?php echo e($refundDueAdjustment); ?></dd></div>
+                <div class="app-clinical-invoice-refund-total"><dt>Cash Refund</dt><dd><?php echo e($refundAmount); ?></dd></div>
             </dl>
         </section>
     </div>

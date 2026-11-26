@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('report-filters'); ?>
     <form class="p-3" action="<?php echo e(route('pharmacy.reports.movements')); ?>" method="GET" aria-label="Filter stock movements">
         <input name="product_type" type="hidden" value="<?php echo e($filters['product_type']); ?>">
@@ -19,7 +17,6 @@
     <?php if(isset($filters['search'])): ?><span>Search: <?php echo e($filters['search']); ?></span><?php endif; ?>
     <span>Period: <strong><?php echo e($filters['from_date']); ?></strong> to <strong><?php echo e($filters['to_date']); ?></strong></span>
     <span>Product: <?php echo e($selectedProduct?->product?->name ?? 'All products'); ?> <?php echo e($selectedProduct?->description()); ?></span>
-    <span>Quantities in Pcs. Reversals retain their original entry number.</span>
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('report-summary'); ?>

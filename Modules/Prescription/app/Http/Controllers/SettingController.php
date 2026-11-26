@@ -14,7 +14,7 @@ class SettingController extends BaseController
 {
     protected string $model = Setting::class;
 
-    protected string $title = 'Prescription settings';
+    protected string $title = 'Prescription Settings';
 
     protected string $parameter = 'setting';
 
@@ -25,7 +25,7 @@ class SettingController extends BaseController
         $setting = Setting::where('group', 'prescription')->firstOrFail();
 
         $data = [
-            'pageTitle'     => 'Prescription settings',
+            'pageTitle'     => $this->title,
             'setting'       => $setting,
             'values'        => $setting->publicValues(),
             'canUpdate'     => Gate::forUser($request->user('web'))->allows('update', $setting),

@@ -8,14 +8,14 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 class PrescriptionOption extends BaseModel
 {
     private const SECTIONS = [
-        'chief_complaints' => 'Chief complaints',
+        'chief_complaints' => 'Chief Complaint',
         'history' => 'History',
-        'examination' => 'On examination',
+        'examination' => 'On Examination (O/E)',
         'diagnosis' => 'Diagnosis',
         'advice' => 'Advice',
-        'follow_up_notes' => 'Follow-up',
-        'medicine_unit' => 'Medicine unit',
-        'medicine_instruction' => 'Medicine instruction',
+        'follow_up_notes' => 'Follow-Up',
+        'medicine_unit' => 'Medicine Unit',
+        'medicine_instruction' => 'Medicine Instruction',
     ];
 
     protected string $crudPermission = 'prescription-options';

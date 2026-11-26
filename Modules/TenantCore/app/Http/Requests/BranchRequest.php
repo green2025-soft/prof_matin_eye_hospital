@@ -12,6 +12,7 @@ class BranchRequest extends BaseRequest
         'mobile_no' => ['nullable', 'string', 'max:30'],
         'telephone_no' => ['nullable', 'string', 'max:30'],
         'email' => ['nullable', 'string', 'email', 'max:255'],
+        'website' => ['nullable', 'string', 'max:255'],
         'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp,gif', 'extensions:png,jpg,jpeg,webp,gif', 'max:2048'],
         'logo_path' => ['missing'],
     ];

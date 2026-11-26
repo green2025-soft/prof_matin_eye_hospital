@@ -22,7 +22,7 @@ class SettingController extends BaseController
 {
     protected string $model = Setting::class;
 
-    protected string $title = 'Setting';
+    protected string $title = 'Settings';
 
     protected string $views = 'core::settings';
 

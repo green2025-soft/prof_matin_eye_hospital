@@ -13,7 +13,7 @@ class OperationCategoryController extends BaseController
 {
     protected string $model = OperationCategory::class;
 
-    protected string $title = 'Operation category';
+    protected string $title = 'Operation Category';
 
     protected string $views = 'hospital::operation-categories';
 

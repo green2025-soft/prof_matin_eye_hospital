@@ -6,7 +6,7 @@
     @include('core::partials.heading', [
         'title' => $pageTitle,
         'description' => 'Review refunds at the selected branch.',
-        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New refund'],
+        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New Refund'],
     ])
 
     <section class="app-card overflow-hidden">
@@ -17,7 +17,7 @@
         <form class="px-3 px-md-4 py-3 border-bottom" action="{{ route($routePrefix.'.index') }}" method="GET" aria-label="Filter refunds">
             <div class="row g-2 align-items-end">
                 <div class="col-md-8">
-                    <label class="form-label small" for="search">Search refunds</label>
+                    <label class="form-label small" for="search">Search Refunds</label>
                     <div class="app-input-wrap app-search-field">
                         <i class="fa-solid fa-magnifying-glass app-search-icon" aria-hidden="true"></i>
                         <input class="{{ inputClass('search') }}" id="search" name="search" type="search" value="{{ getValue('search', null, $filters['search'] ?? '') }}" maxlength="80" placeholder="Refund ID or remarks starts with..." {{ inputAttrs('search') }}>

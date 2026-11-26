@@ -70,7 +70,7 @@ function writeSelection(state, names) {
     state.$value.val(names.join('\n')).trigger('change');
 }
 
-// Add one new name at the top without duplicating an existing selection.
+// Add one new name after existing selections to keep previews in ascending entry order.
 function selectName(state, name) {
     const names = selectedNames(state);
     const key = itemKey(name);
@@ -79,7 +79,7 @@ function selectName(state, name) {
         return;
     }
 
-    writeSelection(state, [name, ...names]);
+    writeSelection(state, [...names, name]);
 }
 
 // Remove a selected name while preserving the order of the remaining items.

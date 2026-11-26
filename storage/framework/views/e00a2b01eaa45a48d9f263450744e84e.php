@@ -5,7 +5,7 @@
     <?php endif; ?>
 
     <section class="app-form-section" aria-labelledby="appointment-form-heading">
-        <h2 class="h6 mb-2" id="appointment-form-heading"><?php echo e($pageTitle); ?></h2>
+        
         <?php if($appointment->exists && ($appointment->serial_no !== null || $appointment->invoice_no !== null)): ?>
             <p class="small text-body-secondary d-flex flex-wrap gap-3 mb-2">
                 <?php if($appointment->serial_no !== null): ?>
@@ -18,7 +18,7 @@
         <?php endif; ?>
         <div class="row g-2 align-items-end">
             <div class="col-md-6 col-xl-3">
-                <label class="form-label" for="appointment_doctor_id">Doctor <span class="text-danger" aria-hidden="true">*</span></label>
+                <label class="form-label" for="appointment_doctor_id">Select Doctor <span class="text-danger" aria-hidden="true">*</span></label>
                 <select class="<?php echo e(inputClass('doctor_id', 'form-select')); ?>" id="appointment_doctor_id" name="doctor_id"
                     data-ajax-select data-url="<?php echo e(route('hospital.doctors.options')); ?>"
                     data-value-field="id" data-label-field="text" data-placeholder="Select a doctor" required

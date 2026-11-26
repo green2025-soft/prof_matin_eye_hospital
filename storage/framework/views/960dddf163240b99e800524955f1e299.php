@@ -5,7 +5,7 @@
         'title' => $pageTitle,
         'description' => 'Manage doctors, departments, and consultation fees at the selected branch.',
         'create' => isset($permissions['doctors.create'])
-            ? ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New doctor']
+            ? ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New Doctor']
             : null,
     ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 

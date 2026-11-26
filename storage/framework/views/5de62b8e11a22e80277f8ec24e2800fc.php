@@ -4,7 +4,7 @@
     <?php echo $__env->make('core::partials.heading', [
         'title' => $pageTitle,
         'description' => '',
-        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New operation'],
+        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'Operation Bill'],
     ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <section class="app-card overflow-hidden">

@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('report-page-class', 'app-report-wide'); ?>
 
 <?php $__env->startSection('report-filters'); ?>
@@ -39,7 +37,7 @@ unset($__errorArgs, $__bag); ?>
 <?php $__env->startSection('report-context'); ?>
     <span>As of: <strong><?php echo e(now()->toDateString()); ?></strong></span>
     <span>Customer: <?php echo e($selectedCustomer['text'] ?? 'All customers with dues'); ?></span>
-    <span>All current outstanding invoices, including earlier periods.</span>
+    
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('report-summary'); ?>

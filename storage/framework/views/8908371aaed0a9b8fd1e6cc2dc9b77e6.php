@@ -1,7 +1,7 @@
 <?php $__env->startSection('title', $pageTitle); ?>
 
 <?php $__env->startSection('content'); ?>
-    <?php echo $__env->make('core::partials.heading', ['title' => $pageTitle, 'description' => 'Record the operation and patient payment details.'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    
     <?php echo $__env->make('hospital::partials.clinical-tabs', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <form
@@ -35,7 +35,7 @@
                 <?php echo $__env->make('hospital::patients.selector', ['selectedPatient' => $selectedPatient, 'selectorId' => 'operation_patient_id'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             </div>
             <div class="col-md-4">
-                <label class="form-label" for="operation_entry_date">Entry date <span class="text-danger" aria-hidden="true">*</span></label>
+                <label class="form-label" for="operation_entry_date">Entry Date <span class="text-danger" aria-hidden="true">*</span></label>
                 <div class="input-group" data-datepicker>
                     <input class="<?php echo e(inputClass('entry_date')); ?>" id="operation_entry_date" name="entry_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD" value="<?php echo e(getValue('entry_date', null, $entryDate)); ?>" required data-input <?php echo e(inputAttrs('entry_date', 'operation_entry_date')); ?>>
                     <button class="btn btn-outline-secondary" type="button" data-toggle aria-controls="operation_entry_date" aria-label="Choose entry date" title="Choose entry date"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></button>
@@ -50,7 +50,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
             </div>
             <fieldset class="col-md-4" <?php echo e(inputAttrs('eye_type', 'operation_eye_type')); ?>>
-                <legend class="form-label mb-2">Eye type <span class="text-danger" aria-hidden="true">*</span></legend>
+                <legend class="form-label mb-2">Eye Type <span class="text-danger" aria-hidden="true">*</span></legend>
                 <div class="btn-group w-100" role="group" aria-label="Eye type">
                     <?php $__currentLoopData = $eyeTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $value => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <input class="<?php echo e(inputClass('eye_type', 'btn-check')); ?>" id="operation_eye_type_<?php echo e($value); ?>" name="eye_type" type="radio" value="<?php echo e($value); ?>" <?php echo e(getChecked($value, 'eye_type', $patient_operation, 'left')); ?> required>
@@ -89,23 +89,7 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
             </div>
-            <div class="col-md-4">
-                <label class="form-label" for="operation_payment_type_id">Payment Type <span class="text-danger" aria-hidden="true">*</span></label>
-                <select class="<?php echo e(inputClass('payment_type_id', 'form-select')); ?>" id="operation_payment_type_id" name="payment_type_id" required <?php echo e(inputAttrs('payment_type_id', 'operation_payment_type_id')); ?>>
 
-                    <?php $__currentLoopData = $paymentTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $paymentType): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($paymentType->id); ?>" <?php echo e(getSelected($paymentType->id, 'payment_type_id', $patient_operation)); ?>><?php echo e($paymentType->name); ?></option>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                </select>
-                <?php $__errorArgs = ['payment_type_id'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-block" id="operation_payment_type_id-error"><?php echo e($message); ?></div><?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-            </div>
             <div class="col-md-4">
                 <label class="form-label" for="operation_consultant_id">Consultant</label>
                 <select class="<?php echo e(inputClass('consultant_id', 'form-select')); ?>" id="operation_consultant_id" name="consultant_id"
@@ -126,11 +110,28 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
             </div>
+            <div class="col-md-4">
+                <label class="form-label" for="operation_payment_type_id">Payment Type <span class="text-danger" aria-hidden="true">*</span></label>
+                <select class="<?php echo e(inputClass('payment_type_id', 'form-select')); ?>" id="operation_payment_type_id" name="payment_type_id" required <?php echo e(inputAttrs('payment_type_id', 'operation_payment_type_id')); ?>>
+
+                    <?php $__currentLoopData = $paymentTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $paymentType): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($paymentType->id); ?>" <?php echo e(getSelected($paymentType->id, 'payment_type_id', $patient_operation)); ?>><?php echo e($paymentType->name); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </select>
+                <?php $__errorArgs = ['payment_type_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-block" id="operation_payment_type_id-error"><?php echo e($message); ?></div><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+            </div>
         </div>
 
         <div class="row g-3 mt-0">
             <div class="col-md-4">
-                <label class="form-label" for="operation_operation_id">Operation <span class="text-danger" aria-hidden="true">*</span></label>
+                <label class="form-label" for="operation_operation_id">Select Operation Name <span class="text-danger" aria-hidden="true">*</span></label>
                 <select class="<?php echo e(inputClass('operation_id', 'form-select')); ?>" id="operation_operation_id" name="operation_id"
                     data-ajax-select data-url="<?php echo e(route('hospital.operations.options')); ?>"
                     data-value-field="id" data-label-field="name" data-placeholder="Select an operation" required
@@ -151,7 +152,7 @@ unset($__errorArgs, $__bag); ?>
             </div>
 
             <div class="col-md-4">
-                <label class="form-label" for="operation_operation_date">Operation date <span class="text-danger" aria-hidden="true">*</span></label>
+                <label class="form-label" for="operation_operation_date">Operation Date <span class="text-danger" aria-hidden="true">*</span></label>
                 <div class="input-group" data-datepicker>
                     <input class="<?php echo e(inputClass('operation_date')); ?>" id="operation_operation_date" name="operation_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD"
                         value="<?php echo e(getValue('operation_date', null, $operationDate)); ?>" required data-input
@@ -167,22 +168,19 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
             </div>
-        </div>
-
-        <?php if($referenceEnabled): ?>
-            <div class="row g-3 mt-0">
-                <div class="col-md-4">
-                    <label class="form-label" for="operation_reference_id">Reference</label>
-                    <select class="<?php echo e(inputClass('reference_id', 'form-select')); ?>" id="operation_reference_id" name="reference_id"
-                        data-ajax-select data-url="<?php echo e(route('hospital.references.options')); ?>"
-                        data-value-field="id" data-label-field="text" data-placeholder="Select a reference"
-                        <?php echo e(inputAttrs('reference_id', 'operation_reference_id')); ?>>
-                        <option value=""></option>
-                        <?php if($selectedReference !== null): ?>
-                            <option value="<?php echo e($selectedReference->id); ?>" selected><?php echo e($selectedReference->reference_id); ?> — <?php echo e($selectedReference->name); ?><?php echo e($selectedReference->contact_no ? ' ('.$selectedReference->contact_no.')' : ''); ?></option>
-                        <?php endif; ?>
-                    </select>
-                    <?php $__errorArgs = ['reference_id'];
+            <?php if($referenceEnabled): ?>
+           <div class="col-md-4">
+                <label class="form-label" for="operation_reference_id">Select Reference</label>
+                <select class="<?php echo e(inputClass('reference_id', 'form-select')); ?>" id="operation_reference_id" name="reference_id"
+                    data-ajax-select data-url="<?php echo e(route('hospital.references.options')); ?>"
+                    data-value-field="id" data-label-field="text" data-placeholder="Select a reference"
+                    <?php echo e(inputAttrs('reference_id', 'operation_reference_id')); ?>>
+                    <option value=""></option>
+                    <?php if($selectedReference !== null): ?>
+                        <option value="<?php echo e($selectedReference->id); ?>" selected><?php echo e($selectedReference->reference_id); ?> — <?php echo e($selectedReference->name); ?><?php echo e($selectedReference->contact_no ? ' ('.$selectedReference->contact_no.')' : ''); ?></option>
+                    <?php endif; ?>
+                </select>
+                <?php $__errorArgs = ['reference_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -190,19 +188,21 @@ $message = $__bag->first($__errorArgs[0]); ?><div class="invalid-feedback d-bloc
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
-                </div>
             </div>
         <?php endif; ?>
+        </div>
+
+
 
         <section class="app-form-section mt-3" aria-labelledby="operation_payment_heading">
-            <h2 class="h6 mb-3" id="operation_payment_heading">Payment details</h2>
+            <h2 class="h6 mb-3" id="operation_payment_heading">Payment Details</h2>
             <div class="row g-3">
                 <div class="col-sm-6 col-xl-3">
                     <label class="form-label" for="operation_amount">Amount</label>
                     <input class="form-control" id="operation_amount" type="text" value="<?php echo e($patient_operation->amount ?? '0.00'); ?>" readonly data-clinical-amount>
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="operation_discount_amount">Discount Amount <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="operation_discount_amount">Discount  <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="<?php echo e(inputClass('discount_amount')); ?>" id="operation_discount_amount" name="discount_amount" type="text" inputmode="decimal" maxlength="13"
                         value="<?php echo e(getValue('discount_amount', $patient_operation, '0.00')); ?>" required data-clinical-discount-amount
                         <?php echo e(inputAttrs('discount_amount', 'operation_discount_amount')); ?>>

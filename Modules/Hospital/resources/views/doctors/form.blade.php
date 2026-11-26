@@ -16,10 +16,10 @@
         @endif
 
         <section aria-labelledby="doctor-details-heading">
-            <h2 class="visually-hidden" id="doctor-details-heading">Doctor details</h2>
+            <h2 class="visually-hidden" id="doctor-details-heading">Doctor Details</h2>
             <div class="row g-3">
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="name">Doctor name <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="name">Doctor Name <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="{{ inputClass('name') }}" id="name" name="name" type="text" value="{{ getValue('name', $doctor) }}" maxlength="255" autocomplete="name" required autofocus {{ inputAttrs('name') }}>
                     @error('name')<div class="invalid-feedback d-block" id="name-error">{{ $message }}</div>@enderror
                 </div>
@@ -29,7 +29,7 @@
                     @error('bn_name')<div class="invalid-feedback d-block" id="bn_name-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="mobile_no">Mobile no. <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="mobile_no">Mobile No. <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="{{ inputClass('mobile_no') }}" id="mobile_no" name="mobile_no" type="tel" value="{{ getValue('mobile_no', $doctor) }}" maxlength="30" autocomplete="tel" required {{ inputAttrs('mobile_no') }}>
                     @error('mobile_no')<div class="invalid-feedback d-block" id="mobile_no-error">{{ $message }}</div>@enderror
                 </div>
@@ -37,7 +37,7 @@
                     <label class="form-label" for="department_id">Department <span class="text-danger" aria-hidden="true">*</span></label>
                     <select class="{{ inputClass('department_id', 'form-select') }}" id="department_id" name="department_id"
                         data-ajax-select data-url="{{ route('hospital.departments.options') }}"
-                        data-value-field="id" data-label-field="name" data-placeholder="Select a department" required
+                        data-value-field="id" data-label-field="name" data-placeholder="Select Department" required
                         {{ inputAttrs('department_id') }}>
                         <option value=""></option>
                         @if ($selectedDepartment !== null)
@@ -73,7 +73,7 @@
                     @error('picture')<div class="invalid-feedback d-block" id="picture-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="bmdc_reg">BMDC registration</label>
+                    <label class="form-label" for="bmdc_reg">BMDC Registration</label>
                     <input class="{{ inputClass('bmdc_reg') }}" id="bmdc_reg" name="bmdc_reg" type="text" value="{{ getValue('bmdc_reg', $doctor) }}" maxlength="100" {{ inputAttrs('bmdc_reg') }}>
                     @error('bmdc_reg')<div class="invalid-feedback d-block" id="bmdc_reg-error">{{ $message }}</div>@enderror
                 </div>
@@ -93,7 +93,7 @@
                     @error('gender')<div class="invalid-feedback d-block" id="gender-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="blood_group">Blood group</label>
+                    <label class="form-label" for="blood_group">Blood Group</label>
                     <select class="{{ inputClass('blood_group', 'form-select') }}" id="blood_group" name="blood_group" {{ inputAttrs('blood_group') }}>
                         <option value="">Select</option>
                         @foreach ($bloodGroups as $value => $label)
@@ -103,7 +103,7 @@
                     @error('blood_group')<div class="invalid-feedback d-block" id="blood_group-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="education_degree">Education / degree</label>
+                    <label class="form-label" for="education_degree">Education / Degree</label>
                     <textarea class="{{ inputClass('education_degree') }}" id="education_degree" name="education_degree" rows="2" maxlength="2000" {{ inputAttrs('education_degree') }}>{{ getValue('education_degree', $doctor) }}</textarea>
                     @error('education_degree')<div class="invalid-feedback d-block" id="education_degree-error">{{ $message }}</div>@enderror
                 </div>
@@ -113,12 +113,12 @@
                     @error('bn_education_degree')<div class="invalid-feedback d-block" id="bn_education_degree-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="current_employment">Current employment</label>
+                    <label class="form-label" for="current_employment">Current Employment</label>
                     <textarea class="{{ inputClass('current_employment') }}" id="current_employment" name="current_employment" rows="2" maxlength="2000" {{ inputAttrs('current_employment') }}>{{ getValue('current_employment', $doctor) }}</textarea>
                     @error('current_employment')<div class="invalid-feedback d-block" id="current_employment-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="bn_current_employment" lang="bn">বর্তমান চাকরি</label>
+                    <label class="form-label" for="bn_current_employment" lang="bn">বর্তমান কর্মরত</label>
                     <textarea class="{{ inputClass('bn_current_employment') }}" id="bn_current_employment" name="bn_current_employment" rows="2" maxlength="2000" lang="bn" {{ inputAttrs('bn_current_employment') }}>{{ getValue('bn_current_employment', $doctor) }}</textarea>
                     @error('bn_current_employment')<div class="invalid-feedback d-block" id="bn_current_employment-error">{{ $message }}</div>@enderror
                 </div>
@@ -128,27 +128,27 @@
                     @error('address')<div class="invalid-feedback d-block" id="address-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6">
-                    <label class="form-label" for="pad_footer_text">Pad footer text</label>
+                    <label class="form-label" for="pad_footer_text">Pad Footer Text</label>
                     <textarea class="{{ inputClass('pad_footer_text') }}" id="pad_footer_text" name="pad_footer_text" rows="2" maxlength="4000" {{ inputAttrs('pad_footer_text') }}>{{ getValue('pad_footer_text', $doctor) }}</textarea>
                     @error('pad_footer_text')<div class="invalid-feedback d-block" id="pad_footer_text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="consultation_fee">Consultation fee <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="consultation_fee">Consultation Fee <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="{{ inputClass('consultation_fee') }}" id="consultation_fee" name="consultation_fee" type="text" inputmode="decimal" value="{{ getValue('consultation_fee', $doctor, '0.00') }}" maxlength="13" required {{ inputAttrs('consultation_fee') }}>
                     @error('consultation_fee')<div class="invalid-feedback d-block" id="consultation_fee-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="follow_up_fee">Follow-up fee <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="follow_up_fee">Follow-Up Fee <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="{{ inputClass('follow_up_fee') }}" id="follow_up_fee" name="follow_up_fee" type="text" inputmode="decimal" value="{{ getValue('follow_up_fee', $doctor, '0.00') }}" maxlength="13" required {{ inputAttrs('follow_up_fee') }}>
                     @error('follow_up_fee')<div class="invalid-feedback d-block" id="follow_up_fee-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="email">Email address <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="email">Email Address <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="{{ inputClass('email') }}" id="email" name="email" type="email" value="{{ getValue('email', $doctor) }}" maxlength="255" autocomplete="email" required {{ inputAttrs('email') }}>
                     @error('email')<div class="invalid-feedback d-block" id="email-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="password">{{ $doctor->exists ? 'New password' : 'Password' }} @if (! $doctor->exists)<span class="text-danger" aria-hidden="true">*</span>@endif</label>
+                    <label class="form-label" for="password">{{ $doctor->exists ? 'New Password' : 'Password' }} @if (! $doctor->exists)<span class="text-danger" aria-hidden="true">*</span>@endif</label>
                     <div class="app-input-wrap">
                         <input class="{{ inputClass('password') }} app-password-input" id="password" name="password" type="password" minlength="{{ $passwordMinLength }}" maxlength="4096" autocomplete="new-password" @required(! $doctor->exists) {{ inputAttrs('password') }}>
                         <button class="app-password-toggle" type="button" data-password-toggle aria-controls="password" aria-label="Show password" aria-pressed="false" title="Show password"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>

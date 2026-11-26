@@ -1,5 +1,5 @@
 <div class="col-sm-6 col-lg-2">
-    <label class="form-label small" for="report_from">From date</label>
+    <label class="form-label small" for="report_from">From Date</label>
     <div class="input-group" data-datepicker>
         <input class="<?php echo e(inputClass('from_date')); ?>" id="report_from" name="from_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD"
             value="<?php echo e(getValue('from_date', null, $filters['from_date'])); ?>" required data-input
@@ -16,7 +16,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
 </div>
 <div class="col-sm-6 col-lg-2">
-    <label class="form-label small" for="report_to">To date</label>
+    <label class="form-label small" for="report_to">To Date</label>
     <div class="input-group" data-datepicker>
         <input class="<?php echo e(inputClass('to_date')); ?>" id="report_to" name="to_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD"
             value="<?php echo e(getValue('to_date', null, $filters['to_date'])); ?>" required data-input

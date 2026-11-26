@@ -51,6 +51,9 @@ class CoreServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Laravel resolves HTTP error templates from the configured view paths.
+        config()->set('view.paths', array_merge(config('view.paths', []), [resource_path('views')]));
+
         Auth::provider('cached-eloquent', fn (Application $app, array $configuration): CachedUserProvider => new CachedUserProvider(
             $app['hash'], $configuration['model'],
         ));

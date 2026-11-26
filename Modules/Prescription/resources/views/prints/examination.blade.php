@@ -75,7 +75,7 @@
 @endphp
 
 @if (filled($prescription->examination) || $hasMeasurements)
-    <section class="min-height100">
+    <section class="">
         <h3>O/E :</h3>
         <div class="mb-1">
             @if (filled($prescription->examination))

@@ -3,8 +3,8 @@
 <?php $__env->startSection('content'); ?>
     <?php echo $__env->make('core::partials.heading', [
         'title' => $pageTitle,
-        'description' => 'Prescriptions at the selected branch.',
-        'create' => ['model' => \Modules\Prescription\Models\Prescription::class, 'url' => route($routePrefix.'.create'), 'label' => 'New prescription'],
+        'description' => '',
+        'create' => ['model' => \Modules\Prescription\Models\Prescription::class, 'url' => route($routePrefix.'.create'), 'label' => 'New Prescription'],
     ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <section class="app-card overflow-hidden">
@@ -12,7 +12,7 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-6 col-xl-4">
                     <label class="form-label small" for="prescription_search">Search</label>
-                    <input class="<?php echo e(inputClass('search')); ?>" id="prescription_search" name="search" type="search" maxlength="80" value="<?php echo e(getValue('search', null, $filters['search'] ?? '')); ?>" placeholder="Rx number, ID or date" <?php echo e(inputAttrs('search', 'prescription_search')); ?>>
+                    <input class="<?php echo e(inputClass('search')); ?>" id="prescription_search" name="search" type="search" maxlength="80" value="<?php echo e(getValue('search', null, $filters['search'] ?? '')); ?>" placeholder="Rx Number, ID or Date" <?php echo e(inputAttrs('search', 'prescription_search')); ?>>
                     <?php $__errorArgs = ['search'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -23,8 +23,8 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-md-6 col-xl-5">
-                    <label class="form-label small" for="filter_patient_id">Patient history</label>
-                    <select class="<?php echo e(inputClass('filter_patient_id', 'form-select')); ?>" id="filter_patient_id" name="filter_patient_id" data-ajax-select data-url="<?php echo e(route('hospital.patients.options')); ?>" data-value-field="id" data-label-field="text" data-placeholder="All patients" <?php echo e(inputAttrs('filter_patient_id')); ?>>
+                    <label class="form-label small" for="filter_patient_id">Patient History</label>
+                    <select class="<?php echo e(inputClass('filter_patient_id', 'form-select')); ?>" id="filter_patient_id" name="filter_patient_id" data-ajax-select data-url="<?php echo e(route('hospital.patients.options')); ?>" data-value-field="id" data-label-field="text" data-placeholder="All Patient" <?php echo e(inputAttrs('filter_patient_id')); ?>>
                         <option value=""></option>
                         <?php if($selectedPatient !== null): ?>
                             <option value="<?php echo e($selectedPatient->id); ?>" selected><?php echo e($selectedPatient->patient_id); ?> / <?php echo e($selectedPatient->name); ?> / <?php echo e($selectedPatient->mobile_no); ?></option>
@@ -55,7 +55,7 @@ unset($__errorArgs, $__bag); ?>
                         <th scope="col">Patient</th>
                         <th scope="col">Doctor</th>
                         <th scope="col">Follow-up</th>
-                        <th class="text-end" scope="col">Actions</th>
+                        <th class="text-end" scope="col">Action</th>
                     </tr>
                 </thead>
                 <tbody>

@@ -24,7 +24,7 @@ class ConsultationController extends BaseController
 {
     protected string $model = Consultation::class;
 
-    protected string $title = 'Consultation';
+    protected string $title = 'Doctor Consultation';
 
     protected string $service = ConsultationService::class;
 

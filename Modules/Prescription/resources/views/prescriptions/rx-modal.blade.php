@@ -35,13 +35,6 @@
             </div>
         </div>
     </div>
-    <div class="app-prescription-dose-palette bg-white border rounded shadow-sm" id="prescription-dose-palette"
-        role="menu" aria-label="Choose a dose" hidden>
-        @foreach (['0', '¼', '⅓', '½', '¾', '1', '1¼', '1½', '1¾', '2', '2½', '3', '3½', '4', '5', '6'] as $doseChoice)
-            <button class="dropdown-item prescription-dose-choice" type="button" role="menuitem"
-                value="{{ $doseChoice }}">{{ $doseChoice }}</button>
-        @endforeach
-    </div>
     <div class="app-prescription-unit-palette bg-white border rounded shadow-sm" id="prescription-unit-palette"
         role="menu" aria-label="Choose a unit" hidden
         data-url="{{ route('prescription.options.selector', ['section' => 'medicine_unit']) }}">

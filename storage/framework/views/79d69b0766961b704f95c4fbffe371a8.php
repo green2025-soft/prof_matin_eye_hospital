@@ -18,7 +18,7 @@
                 <div class="app-clinical-invoice-company-details">
                     <h2 class="app-clinical-invoice-company"><?php echo e($company['name']); ?></h2>
                     <?php if($company['address'] ?? ''): ?>
-                        <p class="app-clinical-invoice-address invoice-body-font"><?php echo e($company['address']); ?></p>
+                        <p class="app-clinical-invoice-address invoice-body-font"><b><?php echo e($company['address']); ?></b></p>
                     <?php endif; ?>
                     <?php if($company['phone'] ?? ''): ?>
                     <div class="app-clinical-invoice-contact-line invoice-body-font">
@@ -26,9 +26,10 @@
 
                     </div>
                     <?php endif; ?>
-                    <?php if($company['email'] ?? ''): ?>
+                    
+                    <?php if($company['website'] ?? ''): ?>
                     <div class="app-clinical-invoice-contact-line invoice-body-font">
-                        <strong>E-MAIL : </strong><?php echo e($company['email']); ?>
+                        <strong>Web : </strong><?php echo e($company['website']); ?>
 
                     </div>
                     <?php endif; ?>
@@ -87,7 +88,7 @@
                                 <div class="info-label">Age</div>
                             </td>
                             <td>
-                                <div class="info-value">: <?php echo e($patient?->age ?? '-'); ?></div>
+                                <div class="info-value">: <?php echo e($patient?->ageLabel() ?? '-'); ?></div>
                             </td>
                         </tr>
                         <tr>
@@ -101,7 +102,7 @@
                         <?php if(!isset($isDoctor)): ?>
                         <tr>
                             <td>
-                                <div class="info-label">Doctor</div>
+                                <div class="info-label">Ref. By</div>
                             </td>
                             <td colspan="5">
                                 <div class="info-value">:  <?php echo e($doctor?->name ?? '-'); ?></div>

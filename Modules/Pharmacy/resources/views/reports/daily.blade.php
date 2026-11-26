@@ -16,7 +16,7 @@
 
 @section('report-context')
     <span>Period: <strong>{{ $filters['from_date'] }}</strong> to <strong>{{ $filters['to_date'] }}</strong></span>
-    <span>Daily totals by activity. Positive cash is received; negative cash is paid.</span>
+    
 @endsection
 
 @section('report-table')

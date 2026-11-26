@@ -1,6 +1,7 @@
 # Prescription Module
 
 এই module-এ **General Prescription** ও **Glass Prescription** দুটি আলাদা CRUD আছে।
+Prescription Dose ও Prescription Option-এর tenant-wide catalog CRUD-ও আছে।
 দুটি একই module-এর menu, tenant context ও print layout ব্যবহার করে; তাদের form এবং সংরক্ষণের কাজ আলাদা।
 পুরো project-এর নিয়মের জন্য [AGENTS.md](../../AGENTS.md) ও [ARCHITECTURE.md](../../ARCHITECTURE.md) দেখুন।
 Medicine entry-এর function ও event ধরে বিস্তারিত প্রবাহ: [Medicine JS Lifecycle](MEDICINE-JS-LIFECYCLE.md)।
@@ -13,10 +14,11 @@ Medicine entry-এর function ও event ধরে বিস্তারিত �
 | `/prescription/prescriptions` | General Prescription তালিকা ও CRUD |
 | `/prescription/glass-prescriptions` | Glass Prescription তালিকা ও CRUD |
 | `/prescription/options` | Clinical preset, medicine unit ও instruction-এর inline CRUD |
+| `/prescription/prescription-dose` | Dose preset-এর সাধারণ CRUD |
 | `/prescription/settings` | Feature, optional section, Rx number ও print settings |
 
 সব route [routes/web.php](routes/web.php)-তে আছে। সাধারণ middleware ওই group-এ দেওয়া আছে।
-Dashboard এবং দুই prescription CRUD-এ selected branch প্রয়োজন; preset ও settings tenant-wide।
+Dashboard এবং দুই prescription CRUD-এ selected branch প্রয়োজন; prescription options, dose presets ও settings tenant-wide।
 
 ## CRUD-এর মূল প্রবাহ
 
@@ -52,6 +54,9 @@ Section enable/disable অনুযায়ী data Controller-এ প্রস্
 | [GlassPrescription](app/Models/GlassPrescription.php) | Right/Left DV/NV values, PD, lens options ও relations |
 | [PrescriptionPolicy](app/Policies/PrescriptionPolicy.php) | Shared CRUD authority-এর সঙ্গে Doctor update ownership check |
 | [PrescriptionServiceProvider](app/Providers/PrescriptionServiceProvider.php) | Routes/views, composers, Rx pattern validation ও created event registration |
+| [PrescriptionDoseController](app/Http/Controllers/PrescriptionDoseController.php) | Dose preset-এর standard CRUD delegation |
+| [PrescriptionDose](app/Models/PrescriptionDose.php) | Tenant-wide Dose catalog এবং query contract |
+| [PrescriptionDoseRequest](app/Http/Requests/PrescriptionDoseRequest.php) | Dose নাম validation |
 | [General views](resources/views/prescriptions) | `index`, shared `form`, `show` ও section/Rx modal partials |
 | [Glass views](resources/views/glass-prescriptions) | Glass-এর নিজস্ব `index`, shared `form` ও `show` |
 
@@ -63,6 +68,7 @@ Section enable/disable অনুযায়ী data Controller-এ প্রস্
 | `prescription_medicines` | `prescription_id` অনুযায়ী ordered medicine rows |
 | `glass_prescriptions` | Glass header ও দুই চোখের DV/NV values |
 | `prescription_options` | `section`, `name`, `ordering` অনুযায়ী tenant-wide presets |
+| `prescription_doses` | Prescription medicine-এর tenant-wide dose presets |
 
 General ও Glass branch-scoped; module [BaseModel](app/Models/BaseModel.php) native tenant connection ব্যবহার করে।
 Medicine row-এ optional `product_id` এবং `medicine_name` snapshot থাকে। হাতে লেখা medicine-এ Product link থাকে না।
@@ -74,6 +80,7 @@ Settings module-এর আলাদা prescription table নেই; Core `Setti
 1. [form.blade.php](resources/views/prescriptions/form.blade.php) Patient, Doctor ও date দেখায়; section-গুলো modal-এ edit হয়।
 2. Controller edit-এর saved medicine এবং সংশ্লিষ্ট Product/Generic/Dosage data প্রস্তুত করে।
 3. Browser-এর editor মূল form-এর field value বদলায়; pad preview সেই value থেকে আপডেট হয়।
+   C/C, O/E, Investigations, Diagnosis ও Advice-এ নতুন selection শেষে যোগ হয়, তাই preview ও saved order প্রথমে যোগ করা item আগে দেখায়।
 4. Submit হলে `PrescriptionRequest` বর্তমান settings এবং branch অনুযায়ী payload যাচাই করে।
 5. `PrescriptionService::save()` tenant transaction-এ permission এবং নির্বাচিত Patient/Doctor আবার যাচাই করে।
 6. Catalog-linked medicine-এর নাম Product থেকে নেয়; manual medicine-এর entered name নেয়।
@@ -117,7 +124,7 @@ Root [app.js](../../resources/js/app.js) থেকে [prescription.js](../../re
 | JS ফাইল | দায়িত্ব |
 | --- | --- |
 | [prescription.js](../../resources/js/prescription.js) | Page initialization, history catalogs, follow-up sync, modal tab search ও server error focus |
-| [prescription-medicines.js](../../resources/js/prescription-medicines.js) | Rx search, add/remove, saved rows, schedule/unit/duration এবং medicine pad preview |
+| [prescription-medicines.js](../../resources/js/prescription-medicines.js) | Rx search, add/remove, saved rows, dose preset/unit/duration এবং medicine pad preview |
 | [prescription-application-dose.js](../../resources/js/prescription-application-dose.js) | Medicine অনুযায়ী dosage group, Drop/Gel controls ও existing frequency text |
 | [prescription-keyboard.js](../../resources/js/prescription-keyboard.js) | F2/F4/F8, Enter navigation এবং palette keyboard movement |
 | [prescription-instructions.js](../../resources/js/prescription-instructions.js) | Food instruction, instruction search/create, badge ও pending-save state |
@@ -126,7 +133,7 @@ Root [app.js](../../resources/js/app.js) থেকে [prescription.js](../../re
 | [prescription-preview.js](../../resources/js/prescription-preview.js) | Clinical/history/examination/follow-up pad preview ও linked removal |
 | [prescription-examination.js](../../resources/js/prescription-examination.js) | Optional examination measurement row expand/collapse |
 | [prescription-header-dropdown.js](../../resources/js/prescription-header-dropdown.js) | Modal header-এর Select2 results search-এর নিচে স্থির রাখা |
-| [prescription-palette.js](../../resources/js/prescription-palette.js) | Dose/Unit-এর একই positioning, trigger keyboard, Escape ও open/close operation |
+| [prescription-palette.js](../../resources/js/prescription-palette.js) | Unit picker-এর positioning, trigger keyboard, Escape ও open/close operation |
 | [prescription-print.js](../../resources/js/prescription-print.js) | Patient ID barcode এবং print paper/margin CSS rules প্রয়োগ |
 | [prescription-settings.js](../../resources/js/prescription-settings.js) | General/Glass Custom paper dimensions দেখানো এবং input enable/disable |
 
@@ -146,20 +153,22 @@ Root [app.js](../../resources/js/app.js) থেকে [prescription.js](../../re
 
 Print ও Settings scripts নিজের document-ready handler-এ তাদের page-এর controls খুঁজে কাজ করে।
 Medicine-এর search result থেকে row এবং submitted fields তৈরির বিস্তারিত [Medicine JS Lifecycle](MEDICINE-JS-LIFECYCLE.md)-এ আছে।
+Dose CRUD-এর route, permission, persistence এবং medicine picker-এর data flow [CRUD.md](CRUD.md)-এ আছে।
 
 ### Event code পড়ার নিয়ম
 
 প্রতিটি editor-এ imports ও প্রয়োজনীয় state আগে, কাজের named functions পরে, এবং ছোট jQuery event bindings শেষে রাখা হয়।
-একই আচরণ একবার লেখা হয়; Dose ও Unit-এর আলাদা value/focus rule থাকে medicine editor-এ।
-`createPrescriptionPalette().bindToggle()` দুটির অপরিবর্তিত click/arrow/Escape operation চালায়।
+একই আচরণ একবার লেখা হয়; Dose preset ও Unit-এর আলাদা value/focus rule থাকে medicine editor-এ।
+`createPrescriptionPalette().bindToggle()` শুধু Unit picker-এর click/arrow/Escape operation চালায়;
+Dose preset-এর জন্য Bootstrap dropdown ব্যবহৃত হয়।
 এখানে কোনো medicine/resource type দেখে shared behavior বদলানো হয় না।
 
 | কাজ | Function |
 | --- | --- |
 | Rx modal-এ আগের edit বা validation error focus | `focusOpenedModal`, `closeEditor` |
-| Schedule mode, number-key dose ও palette dose | `changeScheduleMode`, `enterScheduleDose`, `selectDose` |
+| Dose preset বা custom direction | `selectDosePreset`, `selectCustomDose`, `syncFrequencyPicker` |
 | Unit, manual medicine name ও dosage group বদলানো | `selectUnit`, `detachRenamedMedicine`, `changeDosageType` |
-| Food/palette choices-এর একই arrow/Home/End movement | `moveChoiceFocus` |
+| Food/Unit choices-এর একই arrow/Home/End movement | `moveChoiceFocus` |
 | Dose থেকে food/Unit focus | `moveFromFrequency`, `moveFromFood` |
 | Preset search request ও save result | `transportSearch`, `presetSaved`, `presetFailed` |
 | Instruction save শেষে controls ও focus ফেরানো | `finishInstructionSave` |

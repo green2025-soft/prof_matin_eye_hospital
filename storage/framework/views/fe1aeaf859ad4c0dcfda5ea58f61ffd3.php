@@ -15,12 +15,12 @@
                 <section class="app-card overflow-hidden">
                     <div class="app-card-heading d-flex align-items-center gap-2 px-3 px-md-4 py-3 border-bottom">
                         <i class="fa-solid fa-tags text-body-secondary" aria-hidden="true"></i>
-                        <h2 class="h6 mb-0">Operation categories</h2>
+                        <h2 class="h6 mb-0"><?php echo e($pageTitle); ?></h2>
                     </div>
                     <form class="px-3 px-md-4 py-3 border-bottom" action="<?php echo e(route($routePrefix.'.index')); ?>" method="GET" aria-label="Filter operation categories">
                         <div class="row g-2 align-items-end">
                             <div class="col-12 col-xl-7">
-                                <label class="form-label small" for="search">Search categories</label>
+                                <label class="form-label small" for="search">Search Category</label>
                                 <div class="app-input-wrap app-search-field">
                                     <i class="fa-solid fa-magnifying-glass app-search-icon" aria-hidden="true"></i>
                                     <input class="<?php echo e(inputClass('search')); ?>" id="search" name="search" type="search" value="<?php echo e(getValue('search', null, $filters['search'] ?? '')); ?>" maxlength="80" placeholder="Category name starts with..." <?php echo e(inputAttrs('search')); ?>>
@@ -48,7 +48,7 @@ unset($__errorArgs, $__bag); ?>
                                 <caption class="visually-hidden">Operation categories and their display order</caption>
                                 <thead>
                                     <tr>
-                                        <th scope="col">Name</th>
+                                        <th scope="col">Category Name</th>
                                         <th scope="col">Ordering</th>
                                         <th class="text-end" scope="col">Actions</th>
                                     </tr>

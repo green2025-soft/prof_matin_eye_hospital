@@ -13,7 +13,7 @@ class RefundCauseController extends BaseController
 {
     protected string $model = RefundCause::class;
 
-    protected string $title = 'Refund cause';
+    protected string $title = 'Refund Causes';
 
     protected string $views = 'hospital::refund-causes';
 

@@ -43,7 +43,7 @@ class StockMovementReportController extends BaseController
         );
 
         $data = [
-            'pageTitle' => 'Stock Movements',
+            'pageTitle' => 'Stock Movement',
             'filters' => $filters,
             'summary' => $summary,
             'records' => $records,

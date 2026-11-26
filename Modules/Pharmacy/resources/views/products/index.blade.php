@@ -10,7 +10,7 @@
 @section('content')
     @include('core::partials.heading', [
         'title' => $pageTitle,
-        'create' => ['model' => \Modules\Pharmacy\Models\Product::class, 'url' => route($routePrefix.'.create', $routeParameters), 'label' => 'Add product'],
+        'create' => ['model' => \Modules\Pharmacy\Models\Product::class, 'url' => route($routePrefix.'.create', $routeParameters), 'label' => 'Add Medicine'],
     ])
 
     <section class="app-card overflow-hidden">
@@ -18,7 +18,7 @@
             <input name="type" type="hidden" value="{{ $filters['type'] ?? 'medicine' }}">
             <div class="row g-2 align-items-end">
                 <div class="col-sm-8 col-xl-6">
-                    <label class="form-label small" for="search">Name, ID, SKU or barcode</label>
+                    <label class="form-label small" for="search">Name, ID or Barcode</label>
                     <div class="app-input-wrap app-search-field">
                         <i class="fa-solid fa-magnifying-glass app-search-icon" aria-hidden="true"></i>
                         <input class="{{ inputClass('search') }}" id="search" name="search" type="search" value="{{ $filters['search'] ?? '' }}" maxlength="100" autocomplete="off" spellcheck="false" {{ inputAttrs('search') }}>

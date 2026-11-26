@@ -16,7 +16,7 @@ class InvestigationController extends BaseController
 {
     protected string $model = Investigation::class;
 
-    protected string $title = 'Investigation';
+    protected string $title = 'Test Name';
 
     protected string $views = 'hospital::investigations';
 

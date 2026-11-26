@@ -14,12 +14,13 @@ class PrintComposer
 
     public function compose(View $view): void
     {
-        $branch = Branch::query()->findOrFail($this->request->attributes->get('branch_id'));
-        $company = Setting::values('company', $branch->getConnectionName());
-        $branding = Setting::values('branding', $branch->getConnectionName());
-        $phone = implode(' / ', array_filter([$branch->mobile_no, $branch->telephone_no]));
-        $logo = $branch->logo_path ?: $branding['logo_path'];
-        $data = $view->getData();
+        $branch     = Branch::query()->findOrFail($this->request->attributes->get('branch_id'));
+        $company    = Setting::values('company', $branch->getConnectionName());
+        $branding   = Setting::values('branding', $branch->getConnectionName());
+        $phone      = implode(', ', array_filter([$branch->telephone_no, $branch->mobile_no]));
+        $logo       = $branch->logo_path ?: $branding['logo_path'];
+        $data       = $view->getData();
+
         $dimensions = [
             'a4' => ['width' => 210, 'height' => 297],
             'a5' => ['width' => 148, 'height' => 210],
@@ -40,24 +41,27 @@ class PrintComposer
         // Keep the footer clear of browser/printer rounding at the page boundary.
         $contentHeight = max(1, (float) $paper['height'] - $margins['top'] - $margins['bottom'] - 3);
 
+
         $view->with([
             'company' => [
-                'name' => $company['name'] ?: $branding['app_name'],
-                'branch_name' => $branch->is_default ? '' : $branch->name,
-                'address' => $branch->address ?: $company['address'],
-                'phone' => $phone ?: $company['phone'],
-                'email' => $branch->email ?: $company['email'],
+                'name'          => $company['name'] ?: $branding['app_name'],
+                'branch_name'   => $branch->is_default ? '' : $branch->name,
+                'address'       => $branch->address ?: $company['address'],
+                'phone'         => $phone ?: $company['phone'],
+                'email'         => $branch->email ?: $company['email'],
+                'website'       => $branch->website ?: $company['website'],
             ],
-            'logoUrl' => filled($logo) ? Storage::disk('public')->url($logo) : null,
+            'logoUrl'   => filled($logo) ? Storage::disk('public')->url($logo) : null,
             'printedBy' => $this->request->user('web')->name,
             'printedAt' => now(config('app.timezone'))->format('d M Y, h:i A'),
+
             'printConfiguration' => [
                 'page' => 'prescription-'.$data['paperSize'],
-                'paperSize' => $paper['width'].'mm '.$paper['height'].'mm',
-                'paperWidth' => $paper['width'].'mm',
-                'paperHeight' => $paper['height'].'mm',
-                'margins' => implode('mm ', $margins).'mm',
-                'minHeight' => $contentHeight.'mm',
+                'paperSize'     => $paper['width'].'mm '.$paper['height'].'mm',
+                'paperWidth'    => $paper['width'].'mm',
+                'paperHeight'   => $paper['height'].'mm',
+                'margins'       => implode('mm ', $margins).'mm',
+                'minHeight'     => $contentHeight.'mm',
                 'documentSelector' => $selectors[$data['paperSize']],
             ],
         ]);

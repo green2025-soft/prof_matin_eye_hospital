@@ -131,7 +131,7 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
             </div>
-            <div class="col-12">
+            <div class="col-6">
                 <label class="form-label" for="due_collection_remarks">Remarks</label>
                 <textarea class="<?php echo e(inputClass('remarks')); ?>" id="due_collection_remarks" name="remarks" rows="2" maxlength="2000" <?php echo e(inputAttrs('remarks', 'due_collection_remarks')); ?>><?php echo e(getValue('remarks', $due_collection)); ?></textarea>
                 <?php $__errorArgs = ['remarks'];

@@ -6,10 +6,10 @@
 
     <h2 class="h6 mb-3">{{ $pageTitle }}</h2>
     <div class="mb-3">
-        <label class="form-label" for="section">Section <span class="text-danger" aria-hidden="true">*</span></label>
+        <label class="form-label" for="section">Type <span class="text-danger" aria-hidden="true">*</span></label>
         <select class="{{ inputClass('section', 'form-select') }}" id="section" name="section" required
             {{ inputAttrs('section') }}>
-            <option value="">Select section</option>
+            <option value="">Select Type</option>
             @foreach ($sections as $value => $label)
                 <option value="{{ $value }}"
                     @selected(getValue('section', $prescription_option, request()->query('section')) === $value)>

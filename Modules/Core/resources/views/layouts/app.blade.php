@@ -34,7 +34,7 @@
 
                         @if ($layout['navigation']['modules']['allowed'])
                             @include('core::partials.navigation-link', [
-                                'label' => 'Modules', 'icon' => 'layer-group',
+                                'label' => 'Module', 'icon' => 'layer-group',
                                 'url' => $layout['navigation']['modules']['url'],
                                 'active' => $layout['navigation']['modules']['active'],
                             ])
@@ -54,12 +54,21 @@
                             <a href="{{ $layout['homeUrl'] }}">Home</a>
                             <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                             <span aria-current="page">@yield('title', $pageTitle ?? 'Dashboard')</span>
+                             @if (($moduleMenu['homeAllowed'] ?? $layout['navigation']['dashboard']['allowed']) || ($layout['navigation']['modules']['allowed']))
+                            <i class="fa-solid fa-grip-lines-vertical"></i>
+                            @endif
+                            @if ($moduleMenu['homeAllowed'] ?? $layout['navigation']['dashboard']['allowed'])
+                            <a class="btn btn-primary text-white" href="{{ $moduleMenu['homeUrl'] ?? $layout['navigation']['dashboard']['url']}}">Dashboard</a>
+                            @endif
+                            @if ($layout['navigation']['modules']['allowed'])
+                            <a class="btn btn-success text-white" href="{{ $layout['navigation']['modules']['url']}}">Module</a>
+                            @endif
                         </nav>
                         @if (filled($layout['branchName']))
                             <div class="app-branch-context">
                                 <span class="app-branch-badge" title="Active branch: {{ $layout['branchName'] }}">
                                     <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                                    <span class="visually-hidden">Active branch:</span>
+                                    <span class="visually-hidden">Active Branch:</span>
                                     <span class="app-branch-context-name">{{ $layout['branchName'] }}</span>
                                 </span>
                                 @if ($layout['canSwitchBranch'])

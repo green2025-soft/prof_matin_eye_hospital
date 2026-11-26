@@ -24,7 +24,7 @@ class PatientOperationController extends BaseController
 {
     protected string $model = PatientOperation::class;
 
-    protected string $title = 'Operation';
+    protected string $title = 'Operation Bill';
 
     protected string $service = PatientOperationService::class;
 

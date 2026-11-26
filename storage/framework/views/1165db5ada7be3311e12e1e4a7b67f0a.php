@@ -72,7 +72,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
             </fieldset>
             <div class="col-md-4">
-                <label class="form-label" for="consultation_entry_date">Entry date <span class="text-danger" aria-hidden="true">*</span></label>
+                <label class="form-label" for="consultation_entry_date">Entry Date <span class="text-danger" aria-hidden="true">*</span></label>
                 <div class="input-group" data-datepicker>
                     <input class="<?php echo e(inputClass('entry_date')); ?>" id="consultation_entry_date" name="entry_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD"
                         value="<?php echo e(getValue('entry_date', null, $entryDate)); ?>" required data-input

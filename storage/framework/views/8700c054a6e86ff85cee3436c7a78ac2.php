@@ -3,8 +3,8 @@
 <?php $__env->startSection('content'); ?>
     <?php echo $__env->make('core::partials.heading', [
         'title' => $pageTitle,
-        'description' => 'Glass prescriptions at the selected branch.',
-        'create' => ['model' => \Modules\Prescription\Models\GlassPrescription::class, 'url' => route($routePrefix.'.create'), 'label' => 'New glass prescription'],
+        'description' => '',
+        'create' => ['model' => \Modules\Prescription\Models\GlassPrescription::class, 'url' => route($routePrefix.'.create'), 'label' => 'New Glass Prescription'],
     ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <section class="app-card overflow-hidden">
@@ -12,7 +12,7 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-7 col-xl-5">
                     <label class="form-label small" for="glass_search">Search</label>
-                    <input class="<?php echo e(inputClass('search')); ?>" id="glass_search" name="search" type="search" maxlength="80" value="<?php echo e(getValue('search', null, $filters['search'] ?? '')); ?>" placeholder="Rx number, ID or date" <?php echo e(inputAttrs('search', 'glass_search')); ?>>
+                    <input class="<?php echo e(inputClass('search')); ?>" id="glass_search" name="search" type="search" maxlength="80" value="<?php echo e(getValue('search', null, $filters['search'] ?? '')); ?>" placeholder="Rx Number, ID or Date" <?php echo e(inputAttrs('search', 'glass_search')); ?>>
                     <?php $__errorArgs = ['search'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -37,7 +37,7 @@ unset($__errorArgs, $__bag); ?>
                         <th scope="col">Date</th>
                         <th scope="col">Patient</th>
                         <th scope="col">Doctor</th>
-                        <th class="text-end" scope="col">Actions</th>
+                        <th class="text-end" scope="col">Action</th>
                     </tr>
                 </thead>
                 <tbody>

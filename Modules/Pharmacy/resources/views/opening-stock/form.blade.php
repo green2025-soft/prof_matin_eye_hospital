@@ -21,7 +21,7 @@
         <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
             <h2 class="h6 mb-0">Items</h2>
             <button class="btn btn-outline-primary btn-sm" type="button" data-pharmacy-add-line>
-                <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add item
+                <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add Item
             </button>
         </div>
         @error('lines')

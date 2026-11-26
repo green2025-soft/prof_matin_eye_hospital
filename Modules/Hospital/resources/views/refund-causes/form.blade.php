@@ -8,7 +8,7 @@
         <h2 class="app-form-section-title" id="refund-cause-form-heading"><span class="app-form-section-icon"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i></span>{{ $pageTitle }}</h2>
         <p class="app-form-section-note">Set the refund cause name and display order.</p>
         <div class="mb-3">
-            <label class="form-label" for="name">Name <span class="text-danger" aria-hidden="true">*</span></label>
+            <label class="form-label" for="name">Refund Name <span class="text-danger" aria-hidden="true">*</span></label>
             <input class="{{ inputClass('name') }}" id="name" name="name" type="text" value="{{ getValue('name', $refund_cause) }}" maxlength="255" autocomplete="off" required autofocus {{ inputAttrs('name') }}>
             @error('name')<div class="invalid-feedback d-block" id="name-error">{{ $message }}</div>@enderror
         </div>

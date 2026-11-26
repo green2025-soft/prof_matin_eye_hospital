@@ -54,7 +54,7 @@ class DashboardController extends BaseController
         }
 
         $data = [
-            'pageTitle' => 'Prescription dashboard',
+            'pageTitle' => 'Prescription Dashboard',
             'branchName' => (string) $request->attributes->get('branch_name'),
             'todayLabel' => $today->format('d M Y'),
             'todayIso' => $today->toDateString(),

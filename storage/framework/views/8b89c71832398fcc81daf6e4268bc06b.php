@@ -1,9 +1,9 @@
 <?php $__env->startSection('title', ucfirst($entry->product_type).' Sales Invoice'); ?>
 
 <?php $__env->startSection('content'); ?>
-    <div class="app-print-hidden ">
-        <?php echo $__env->make('core::partials.heading', ['title' => ucfirst($entry->product_type).' '.$entry->number], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-        <div class="d-flex flex-wrap gap-2 mb-3">
+    <div class="app-print-hidden text-end ">
+        
+        <div class="flex-wrap gap-2 mb-3 text-end">
             <a class="btn btn-outline-secondary btn-sm" href="<?php echo e(route($routePrefix.'.index', ['product_type' => $entry->product_type])); ?>">
                 <i class="fa-solid fa-arrow-left me-2" aria-hidden="true"></i>Back
             </a>
@@ -15,13 +15,7 @@
                     <i class="fa-solid fa-pen-to-square me-2" aria-hidden="true"></i>Edit
                 </a>
             <?php endif; ?>
-            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('delete', $entry)): ?>
-                <form action="<?php echo e(route($routePrefix.'.destroy', [$resourceParameter => $entry, 'product_type' => $entry->product_type])); ?>" method="POST" data-confirm="Delete this sales invoice and reverse its stock and amounts?">
-                    <?php echo csrf_field(); ?>
-                    <?php echo method_field('DELETE'); ?>
-                    <button class="btn btn-outline-danger btn-sm" type="submit"><i class="fa-solid fa-trash-can me-2" aria-hidden="true"></i>Delete</button>
-                </form>
-            <?php endif; ?>
+            
 
         </div>
     </div>

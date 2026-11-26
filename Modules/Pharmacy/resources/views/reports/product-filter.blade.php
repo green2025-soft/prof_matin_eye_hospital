@@ -1,8 +1,8 @@
 <div class="col-md-6 col-lg-4">
-    <label class="form-label small" for="report_product">Product / SKU</label>
+    <label class="form-label small" for="report_product">Medicine/Products</label>
     <select class="{{ inputClass('variant_id', 'form-select') }}" id="report_product" name="variant_id"
         data-ajax-select data-url="{{ route('pharmacy.reports.products', ['product_type' => $filters['product_type']]) }}"
-        data-placeholder="All products / SKUs"
+        data-placeholder="All Medicine/Products"
         {{ inputAttrs('variant_id', 'report_product') }}>
         <option value=""></option>
         @if ($selectedProduct !== null)

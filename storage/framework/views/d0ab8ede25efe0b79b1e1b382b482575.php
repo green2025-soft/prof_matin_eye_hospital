@@ -4,7 +4,7 @@
     <?php echo $__env->make('core::partials.heading', [
         'title' => $pageTitle,
         'description' => 'Review refunds at the selected branch.',
-        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New refund'],
+        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New Refund'],
     ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <section class="app-card overflow-hidden">
@@ -15,7 +15,7 @@
         <form class="px-3 px-md-4 py-3 border-bottom" action="<?php echo e(route($routePrefix.'.index')); ?>" method="GET" aria-label="Filter refunds">
             <div class="row g-2 align-items-end">
                 <div class="col-md-8">
-                    <label class="form-label small" for="search">Search refunds</label>
+                    <label class="form-label small" for="search">Search Refunds</label>
                     <div class="app-input-wrap app-search-field">
                         <i class="fa-solid fa-magnifying-glass app-search-icon" aria-hidden="true"></i>
                         <input class="<?php echo e(inputClass('search')); ?>" id="search" name="search" type="search" value="<?php echo e(getValue('search', null, $filters['search'] ?? '')); ?>" maxlength="80" placeholder="Refund ID or remarks starts with..." <?php echo e(inputAttrs('search')); ?>>

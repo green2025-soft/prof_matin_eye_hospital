@@ -34,7 +34,7 @@
 
                         <?php if($layout['navigation']['modules']['allowed']): ?>
                             <?php echo $__env->make('core::partials.navigation-link', [
-                                'label' => 'Modules', 'icon' => 'layer-group',
+                                'label' => 'Module', 'icon' => 'layer-group',
                                 'url' => $layout['navigation']['modules']['url'],
                                 'active' => $layout['navigation']['modules']['active'],
                             ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
@@ -54,12 +54,21 @@
                             <a href="<?php echo e($layout['homeUrl']); ?>">Home</a>
                             <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                             <span aria-current="page"><?php echo $__env->yieldContent('title', $pageTitle ?? 'Dashboard'); ?></span>
+                             <?php if(($moduleMenu['homeAllowed'] ?? $layout['navigation']['dashboard']['allowed']) || ($layout['navigation']['modules']['allowed'])): ?>
+                            <i class="fa-solid fa-grip-lines-vertical"></i>
+                            <?php endif; ?>
+                            <?php if($moduleMenu['homeAllowed'] ?? $layout['navigation']['dashboard']['allowed']): ?>
+                            <a class="btn btn-primary text-white" href="<?php echo e($moduleMenu['homeUrl'] ?? $layout['navigation']['dashboard']['url']); ?>">Dashboard</a>
+                            <?php endif; ?>
+                            <?php if($layout['navigation']['modules']['allowed']): ?>
+                            <a class="btn btn-success text-white" href="<?php echo e($layout['navigation']['modules']['url']); ?>">Module</a>
+                            <?php endif; ?>
                         </nav>
                         <?php if(filled($layout['branchName'])): ?>
                             <div class="app-branch-context">
                                 <span class="app-branch-badge" title="Active branch: <?php echo e($layout['branchName']); ?>">
                                     <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                                    <span class="visually-hidden">Active branch:</span>
+                                    <span class="visually-hidden">Active Branch:</span>
                                     <span class="app-branch-context-name"><?php echo e($layout['branchName']); ?></span>
                                 </span>
                                 <?php if($layout['canSwitchBranch']): ?>

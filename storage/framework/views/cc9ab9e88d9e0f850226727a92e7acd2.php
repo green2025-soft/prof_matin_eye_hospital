@@ -37,7 +37,8 @@
             <?php endif; ?>
             <?php if($permissions['patient-investigations.view'] ?? false): ?>
                 <?php echo $__env->make('core::partials.navigation-link', [
-                    'label' => 'Investigation', 'icon' => 'eye',
+                    'label' => 'Test Invoice',
+                    'icon' => 'eye',
                     'url' => route('hospital.patient-investigations.index'),
                     'active' => request()->routeIs('hospital.patient-investigations.*'),
                 ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
@@ -45,7 +46,7 @@
 
             <?php if($permissions['patient-operations.view'] ?? false): ?>
                 <?php echo $__env->make('core::partials.navigation-link', [
-                    'label' => 'Operation', 'icon' => 'stethoscope',
+                    'label' => 'Operation Bill', 'icon' => 'stethoscope',
                     'url' => route('hospital.patient-operations.index'),
                     'active' => request()->routeIs('hospital.patient-operations.*'),
                 ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
@@ -57,13 +58,7 @@
                     'active' => request()->routeIs('hospital.delivery-investigations.*'),
                 ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             <?php endif; ?>
-            <?php if($permissions['commissions.view'] ?? false): ?>
-                <?php echo $__env->make('core::partials.navigation-link', [
-                    'label' => 'PC Commission', 'icon' => 'percent',
-                    'url' => route('hospital.commissions.index'),
-                    'active' => request()->routeIs('hospital.commissions.*'),
-                ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-            <?php endif; ?>
+
             <?php if($permissions['due-collections.view'] ?? false): ?>
                 <?php echo $__env->make('core::partials.navigation-link', [
                     'label' => 'Due Collection', 'icon' => 'hand-holding-dollar',
@@ -76,6 +71,13 @@
                     'label' => 'Refund', 'icon' => 'money-bill-transfer',
                     'url' => route('hospital.refunds.index'),
                     'active' => request()->routeIs('hospital.refunds.*'),
+                ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+            <?php endif; ?>
+             <?php if($permissions['commissions.view'] ?? false): ?>
+                <?php echo $__env->make('core::partials.navigation-link', [
+                    'label' => 'PC Commission', 'icon' => 'percent',
+                    'url' => route('hospital.commissions.index'),
+                    'active' => request()->routeIs('hospital.commissions.*'),
                 ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             <?php endif; ?>
         </div>
@@ -104,16 +106,11 @@
                     'active' => request()->routeIs('hospital.patients.*'),
                 ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             <?php endif; ?>
-            <?php if($permissions['references.view'] ?? false): ?>
-                <?php echo $__env->make('core::partials.navigation-link', [
-                    'label' => 'Reference', 'icon' => 'user-group',
-                    'url' => route('hospital.references.index'),
-                    'active' => request()->routeIs('hospital.references.*'),
-                ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-            <?php endif; ?>
+
             <?php if($permissions['doctors.view'] ?? false): ?>
                 <?php echo $__env->make('core::partials.navigation-link', [
-                    'label' => 'Doctor', 'icon' => 'user-doctor',
+                    'label' => 'Doctor',
+                    'icon' => 'user-doctor',
                     'url' => route('hospital.doctors.index'),
                     'active' => request()->routeIs('hospital.doctors.*') && ! request()->routeIs('hospital.doctors.permissions*'),
                 ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
@@ -123,6 +120,14 @@
                     'label' => 'Dr. Permission', 'icon' => 'key',
                     'url' => route('hospital.doctors.permissions'),
                     'active' => request()->routeIs('hospital.doctors.permissions', 'hospital.doctors.permissions-update'),
+                ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+            <?php endif; ?>
+            <?php if($permissions['references.view'] ?? false): ?>
+                <?php echo $__env->make('core::partials.navigation-link', [
+                    'label' => 'Reference',
+                    'icon' => 'user-group',
+                    'url' => route('hospital.references.index'),
+                    'active' => request()->routeIs('hospital.references.*'),
                 ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             <?php endif; ?>
         </div>
@@ -143,35 +148,37 @@
         <div class="app-nav-submenu ps-3">
             <?php if($permissions['departments.view'] ?? false): ?>
                 <?php echo $__env->make('core::partials.navigation-link', [
-                    'label' => 'Doctor Departments', 'icon' => 'user-doctor',
+                    'label' => 'Create Department',
+                    'icon' => 'user-doctor',
                     'url' => route('hospital.departments.index'),
                     'active' => request()->routeIs('hospital.departments.*'),
                 ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             <?php endif; ?>
             <?php if($permissions['investigation-categories.view'] ?? false): ?>
                 <?php echo $__env->make('core::partials.navigation-link', [
-                    'label' => 'Investigation Categories', 'icon' => 'flask',
+                    'label' => 'Test Category', 'icon' => 'flask',
                     'url' => route('hospital.investigation-categories.index'),
                     'active' => request()->routeIs('hospital.investigation-categories.*'),
                 ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             <?php endif; ?>
             <?php if($permissions['investigations.view'] ?? false): ?>
                 <?php echo $__env->make('core::partials.navigation-link', [
-                    'label' => 'Investigations', 'icon' => 'eye',
+                    'label' => 'Test Name',
+                    'icon' => 'eye',
                     'url' => route('hospital.investigations.index'),
                     'active' => request()->routeIs('hospital.investigations.*'),
                 ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             <?php endif; ?>
             <?php if($permissions['operation-categories.view'] ?? false): ?>
                 <?php echo $__env->make('core::partials.navigation-link', [
-                    'label' => 'Operation Categories', 'icon' => 'tags',
+                    'label' => 'Operation Category', 'icon' => 'tags',
                     'url' => route('hospital.operation-categories.index'),
                     'active' => request()->routeIs('hospital.operation-categories.*'),
                 ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             <?php endif; ?>
             <?php if($permissions['operations.view'] ?? false): ?>
                 <?php echo $__env->make('core::partials.navigation-link', [
-                    'label' => 'Operations', 'icon' => 'stethoscope',
+                    'label' => 'Operation Name', 'icon' => 'stethoscope',
                     'url' => route('hospital.operations.index'),
                     'active' => request()->routeIs('hospital.operations.*'),
                 ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>

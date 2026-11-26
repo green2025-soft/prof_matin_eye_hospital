@@ -64,11 +64,9 @@ export function updatePrescriptionDoseType($row) {
     $row.toggleClass('prescription-application-entry', application);
     $row.find('.prescription-application-dose').prop('hidden', !application);
     $row.find('.prescription-application-dose :input').prop('disabled', !application).prop('required', false);
-    $row.find('.prescription-schedule-menu, .app-prescription-food-options, .prescription-dose-field')
+    $row.find('.prescription-dose-menu, .app-prescription-food-options, .prescription-dose-field')
         .prop('hidden', application);
     $row.find('.prescription-food-instruction').prop('disabled', application);
-    $row.find('.prescription-schedule-controls')
-        .prop('hidden', application || $row.find('.prescription-frequency-mode').val() === 'custom');
     $row.find('.prescription-frequency-value').prop('hidden', hideFrequency);
     $row.find('.prescription-frequency-label').text(application ? 'বর্তমান নির্দেশ' : 'Dose')
         .prop('hidden', hideFrequency);

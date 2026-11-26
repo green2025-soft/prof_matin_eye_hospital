@@ -20,7 +20,7 @@
 @section('report-context')
     <span>Period: <strong>{{ $filters['from_date'] }}</strong> to <strong>{{ $filters['to_date'] }}</strong></span>
     <span>Product: {{ $selectedProduct?->product?->name ?? 'All products' }} {{ $selectedProduct?->description() }}</span>
-    <span>Quantities in Pcs. Sales exclude VAT and include saved discounts.</span>
+
 @endsection
 
 @section('report-summary')

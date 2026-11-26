@@ -13,7 +13,7 @@ class DepartmentController extends BaseController
 {
     protected string $model = Department::class;
 
-    protected string $title = 'Doctor Department';
+    protected string $title = 'Department';
 
     protected string $views = 'hospital::departments';
 

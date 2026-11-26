@@ -19,7 +19,6 @@
     @isset($filters['search'])<span>Search: {{ $filters['search'] }}</span>@endisset
     <span>Period: <strong>{{ $filters['from_date'] }}</strong> to <strong>{{ $filters['to_date'] }}</strong></span>
     <span>Product: {{ $selectedProduct?->product?->name ?? 'All products' }} {{ $selectedProduct?->description() }}</span>
-    <span>Quantities in Pcs. Reversals retain their original entry number.</span>
 @endsection
 
 @section('report-summary')

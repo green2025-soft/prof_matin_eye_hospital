@@ -87,6 +87,7 @@ unset($__errorArgs, $__bag); ?>
                         <thead>
                             <tr>
                                 <th scope="col">Serial</th>
+                                <th scope="col">Invoice</th>
                                 <th scope="col">Doctor</th>
                                 <th scope="col">Patient</th>
                                 <th scope="col">Mobile no.</th>
@@ -101,11 +102,11 @@ unset($__errorArgs, $__bag); ?>
                                     <th class="fw-semibold" scope="row">
                                         <?php echo e($appointment->serial_no ?? '-'); ?>
 
-                                        <div class="small fw-normal text-body-secondary">#<?php echo e($appointment->id); ?></div>
-                                        <?php if($appointment->invoice_no !== null): ?>
-                                            <div class="small fw-normal text-body-secondary">Invoice <?php echo e($appointment->invoice_no); ?></div>
-                                        <?php endif; ?>
                                     </th>
+                                    <td>
+                                        <?php echo e($appointment->invoice_no); ?>
+
+                                    </td>
                                     <td class="text-break"><?php echo e($appointment->doctor?->name ?? '-'); ?></td>
                                     <td class="text-break"><?php echo e($appointment->patient?->name ?? '-'); ?><div class="small text-body-secondary"><?php echo e($appointment->patient?->patient_id); ?></div></td>
                                     <td class="text-break"><?php echo e($appointment->patient?->mobile_no ?? '-'); ?></td>

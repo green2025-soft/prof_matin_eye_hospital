@@ -42,13 +42,6 @@ unset($__errorArgs, $__bag); ?>
             </div>
         </div>
     </div>
-    <div class="app-prescription-dose-palette bg-white border rounded shadow-sm" id="prescription-dose-palette"
-        role="menu" aria-label="Choose a dose" hidden>
-        <?php $__currentLoopData = ['0', '¼', '⅓', '½', '¾', '1', '1¼', '1½', '1¾', '2', '2½', '3', '3½', '4', '5', '6']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $doseChoice): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-            <button class="dropdown-item prescription-dose-choice" type="button" role="menuitem"
-                value="<?php echo e($doseChoice); ?>"><?php echo e($doseChoice); ?></button>
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-    </div>
     <div class="app-prescription-unit-palette bg-white border rounded shadow-sm" id="prescription-unit-palette"
         role="menu" aria-label="Choose a unit" hidden
         data-url="<?php echo e(route('prescription.options.selector', ['section' => 'medicine_unit'])); ?>">

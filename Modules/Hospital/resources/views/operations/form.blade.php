@@ -15,12 +15,12 @@
             <h2 class="app-form-section-title" id="operation-form-heading">
                 <span class="app-form-section-icon">
                     <i class="fa-solid fa-scissors" aria-hidden="true"></i>
-                </span>Operation details
+                </span>Operation Details
             </h2>
 
             <div class="row g-3">
                 <div class="col-sm-6">
-                    <label class="form-label" for="name">Name <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="name">Operation Name <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="{{ inputClass('name') }}" id="name" name="name" type="text" value="{{ getValue('name', $operation) }}" maxlength="255" autocomplete="off" required autofocus {{ inputAttrs('name') }}>
                     @error('name')<div class="invalid-feedback d-block" id="name-error">{{ $message }}</div>@enderror
                 </div>
@@ -38,18 +38,18 @@
                     @error('category_id')<div class="invalid-feedback d-block" id="category_id-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6">
-                    <label class="form-label" for="single_rate">Single rate <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="single_rate">Single Rate <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="{{ inputClass('single_rate') }}" id="single_rate" name="single_rate" type="text" inputmode="decimal" value="{{ getValue('single_rate', $operation, '0.00') }}" maxlength="13" required {{ inputAttrs('single_rate') }}>
                     @error('single_rate')<div class="invalid-feedback d-block" id="single_rate-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6">
-                    <label class="form-label" for="both_rate">Both rate <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="both_rate">Both Rate <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="{{ inputClass('both_rate') }}" id="both_rate" name="both_rate" type="text" inputmode="decimal" value="{{ getValue('both_rate', $operation, '0.00') }}" maxlength="13" required {{ inputAttrs('both_rate') }}>
                     @error('both_rate')<div class="invalid-feedback d-block" id="both_rate-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6">
-                    <label class="form-label" for="commission_type">Commission type <span class="text-danger" aria-hidden="true">*</span></label>
-                    <select class="{{ inputClass('commission_type', 'form-select') }}" id="commission_type" name="commission_type" required {{ inputAttrs('commission_type') }}>
+                    <label class="form-label" for="commission_type">Commission Type </label>
+                    <select class="{{ inputClass('commission_type', 'form-select') }}" id="commission_type" name="commission_type" {{ inputAttrs('commission_type') }}>
                         <option value="">Select</option>
                         @foreach ($commissionTypes as $value => $label)
                             <option value="{{ $value }}" {{ getSelected($value, 'commission_type', $operation) }}>{{ $label }}</option>
@@ -58,8 +58,8 @@
                     @error('commission_type')<div class="invalid-feedback d-block" id="commission_type-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6">
-                    <label class="form-label" for="commission_amount">Commission amount <span class="text-danger" aria-hidden="true">*</span></label>
-                    <input class="{{ inputClass('commission_amount') }}" id="commission_amount" name="commission_amount" type="text" inputmode="decimal" value="{{ getValue('commission_amount', $operation, '0.00') }}" maxlength="13" required {{ inputAttrs('commission_amount') }}>
+                    <label class="form-label" for="commission_amount">Commission Amount <span class="text-danger" aria-hidden="true">*</span></label>
+                    <input class="{{ inputClass('commission_amount') }}" id="commission_amount" name="commission_amount" type="text" inputmode="decimal" value="{{ getValue('commission_amount', $operation, '0.00') }}" maxlength="13"  {{ inputAttrs('commission_amount') }}>
                     @error('commission_amount')<div class="invalid-feedback d-block" id="commission_amount-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-sm-6">

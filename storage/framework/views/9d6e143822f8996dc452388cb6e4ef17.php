@@ -26,7 +26,7 @@
                         <th scope="col" class="text-end">Cash refunded</th>
                         <th scope="col">Status</th>
                         <?php if($canUpdateReturns || $canDeleteReturns): ?>
-                            <th class="text-end" scope="col">Actions</th>
+                            <th class="text-end" scope="col">Action</th>
                         <?php endif; ?>
                     </tr>
                 </thead>

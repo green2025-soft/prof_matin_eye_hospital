@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('title', 'Shelf'); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -33,7 +31,7 @@
                                 <tr>
                                     <th scope="col">Shelf Name</th>
                                     <th scope="col">Shelf No</th>
-                                    <th class="text-end" scope="col">Actions</th>
+                                    <th class="text-end" scope="col">Action</th>
                                 </tr>
                             </thead>
                             <tbody>

@@ -171,6 +171,14 @@ return [
         'prescription.options.edit' => 'prescription-options.update',
         'prescription.options.update' => 'prescription-options.update',
         'prescription.options.destroy' => 'prescription-options.delete',
+
+        'prescription.prescription-dose.index' => 'prescription-dose.view',
+        'prescription.prescription-dose.create' => 'prescription-dose.create',
+        'prescription.prescription-dose.store' => 'prescription-dose.create',
+        'prescription.prescription-dose.edit' => 'prescription-dose.update',
+        'prescription.prescription-dose.update' => 'prescription-dose.update',
+        'prescription.prescription-dose.destroy' => 'prescription-dose.delete',
+
         'prescription.glass-prescriptions.index' => 'glass-prescriptions.view',
         'prescription.glass-prescriptions.show' => 'glass-prescriptions.view',
         'prescription.glass-prescriptions.create' => 'glass-prescriptions.create',
@@ -534,6 +542,7 @@ return [
         'prescription-dashboard' => ['label' => 'Prescription dashboard', 'area' => 'Prescription'],
         'prescriptions' => ['label' => 'General prescriptions', 'area' => 'Prescription'],
         'prescription-options' => ['label' => 'Prescription options', 'area' => 'Prescription'],
+        'prescription-dose' => ['label' => 'Prescription doses', 'area' => 'Prescription'],
         'glass-prescriptions' => ['label' => 'Glass prescriptions', 'area' => 'Prescription'],
         'pharmacy' => ['label' => 'Pharmacy', 'area' => 'Pharmacy'],
         'pharmacy-dashboard' => ['label' => 'Pharmacy dashboard', 'area' => 'Pharmacy'],

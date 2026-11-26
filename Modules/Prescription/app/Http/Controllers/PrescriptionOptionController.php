@@ -16,7 +16,7 @@ class PrescriptionOptionController extends BaseController
 {
     protected string $model = PrescriptionOption::class;
 
-    protected string $title = 'Prescription option';
+    protected string $title = 'Prescription Content';
 
     protected string $views = 'prescription::options';
 

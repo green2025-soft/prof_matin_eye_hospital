@@ -12,7 +12,7 @@
             @if ($chiefComplaints !== null)
                 @include('prescription::prints.selected-notes', [
                     'heading' => 'C/C :',
-                    'className' => 'min-height100',
+                    'className' => '',
                     'text' => $prescription->chief_complaints,
                     'details' => $chiefComplaints,
                 ])
@@ -24,7 +24,7 @@
                 @include('prescription::prints.examination')
             @endif
             @if ($investigationNotes->isNotEmpty())
-                <section class="min-height100">
+                <section class="">
                     <h3>Investigation :</h3>
                     <ul>
                         @foreach ($investigationNotes as $investigation)
@@ -36,7 +36,7 @@
             @if ($diagnosisNotes !== null)
                 @include('prescription::prints.selected-notes', [
                     'heading' => 'Diagnosis :',
-                    'className' => 'min-height100',
+                    'className' => '',
                     'text' => $prescription->diagnosis,
                     'details' => $diagnosisNotes,
                 ])
@@ -53,6 +53,7 @@
             {{-- <h3 class="app-prescription-rx">℞</h3> --}}
             <h5><i class="fa-solid fa-prescription" aria-hidden="true"></i></h5>
             <ol class="app-prescription-medicine-list">
+
                 @forelse ($medicines as $medicine)
                     <li>
                         <h3>
@@ -61,7 +62,7 @@
                                 <span class="fw-normal">({{ $medicine->generic->name }})</span>
                             @endif
                         </h3>
-                        <p class="app-prescription-text">{{ $medicine->frequency }} {{ $medicine->dose }} {{ $medicine->instructions }} {{ $medicine->duration }} </p>
+                        <p class="app-prescription-text">{{ $medicine->frequency }} {{ $medicine->dose?$medicine->dose.' করে, ':''}} {{ $medicine->instructions?$medicine->instructions.',':'' }} {{ $medicine->duration }}। </p>
                     </li>
                 @empty
                     <li class="list-unstyled text-body-secondary">No medicines prescribed.</li>

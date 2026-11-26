@@ -3,7 +3,7 @@
 @section('title', $pageTitle)
 
 @section('content')
-    @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Record the operation and patient payment details.'])
+    {{-- @include('core::partials.heading', ['title' => $pageTitle, 'description' => 'Record the operation and patient payment details.']) --}}
     @include('hospital::partials.clinical-tabs')
 
     <form
@@ -37,7 +37,7 @@
                 @include('hospital::patients.selector', ['selectedPatient' => $selectedPatient, 'selectorId' => 'operation_patient_id'])
             </div>
             <div class="col-md-4">
-                <label class="form-label" for="operation_entry_date">Entry date <span class="text-danger" aria-hidden="true">*</span></label>
+                <label class="form-label" for="operation_entry_date">Entry Date <span class="text-danger" aria-hidden="true">*</span></label>
                 <div class="input-group" data-datepicker>
                     <input class="{{ inputClass('entry_date') }}" id="operation_entry_date" name="entry_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD" value="{{ getValue('entry_date', null, $entryDate) }}" required data-input {{ inputAttrs('entry_date', 'operation_entry_date') }}>
                     <button class="btn btn-outline-secondary" type="button" data-toggle aria-controls="operation_entry_date" aria-label="Choose entry date" title="Choose entry date"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></button>
@@ -45,7 +45,7 @@
                 @error('entry_date')<div class="invalid-feedback d-block" id="operation_entry_date-error">{{ $message }}</div>@enderror
             </div>
             <fieldset class="col-md-4" {{ inputAttrs('eye_type', 'operation_eye_type') }}>
-                <legend class="form-label mb-2">Eye type <span class="text-danger" aria-hidden="true">*</span></legend>
+                <legend class="form-label mb-2">Eye Type <span class="text-danger" aria-hidden="true">*</span></legend>
                 <div class="btn-group w-100" role="group" aria-label="Eye type">
                     @foreach ($eyeTypes as $value => $label)
                         <input class="{{ inputClass('eye_type', 'btn-check') }}" id="operation_eye_type_{{ $value }}" name="eye_type" type="radio" value="{{ $value }}" {{ getChecked($value, 'eye_type', $patient_operation, 'left') }} required>
@@ -70,16 +70,7 @@
                 </select>
                 @error('doctor_id')<div class="invalid-feedback d-block" id="operation_doctor_id-error">{{ $message }}</div>@enderror
             </div>
-            <div class="col-md-4">
-                <label class="form-label" for="operation_payment_type_id">Payment Type <span class="text-danger" aria-hidden="true">*</span></label>
-                <select class="{{ inputClass('payment_type_id', 'form-select') }}" id="operation_payment_type_id" name="payment_type_id" required {{ inputAttrs('payment_type_id', 'operation_payment_type_id') }}>
 
-                    @foreach ($paymentTypes as $paymentType)
-                        <option value="{{ $paymentType->id }}" {{ getSelected($paymentType->id, 'payment_type_id', $patient_operation) }}>{{ $paymentType->name }}</option>
-                    @endforeach
-                </select>
-                @error('payment_type_id')<div class="invalid-feedback d-block" id="operation_payment_type_id-error">{{ $message }}</div>@enderror
-            </div>
             <div class="col-md-4">
                 <label class="form-label" for="operation_consultant_id">Consultant</label>
                 <select class="{{ inputClass('consultant_id', 'form-select') }}" id="operation_consultant_id" name="consultant_id"
@@ -93,11 +84,21 @@
                 </select>
                 @error('consultant_id')<div class="invalid-feedback d-block" id="operation_consultant_id-error">{{ $message }}</div>@enderror
             </div>
+            <div class="col-md-4">
+                <label class="form-label" for="operation_payment_type_id">Payment Type <span class="text-danger" aria-hidden="true">*</span></label>
+                <select class="{{ inputClass('payment_type_id', 'form-select') }}" id="operation_payment_type_id" name="payment_type_id" required {{ inputAttrs('payment_type_id', 'operation_payment_type_id') }}>
+
+                    @foreach ($paymentTypes as $paymentType)
+                        <option value="{{ $paymentType->id }}" {{ getSelected($paymentType->id, 'payment_type_id', $patient_operation) }}>{{ $paymentType->name }}</option>
+                    @endforeach
+                </select>
+                @error('payment_type_id')<div class="invalid-feedback d-block" id="operation_payment_type_id-error">{{ $message }}</div>@enderror
+            </div>
         </div>
 
         <div class="row g-3 mt-0">
             <div class="col-md-4">
-                <label class="form-label" for="operation_operation_id">Operation <span class="text-danger" aria-hidden="true">*</span></label>
+                <label class="form-label" for="operation_operation_id">Select Operation Name <span class="text-danger" aria-hidden="true">*</span></label>
                 <select class="{{ inputClass('operation_id', 'form-select') }}" id="operation_operation_id" name="operation_id"
                     data-ajax-select data-url="{{ route('hospital.operations.options') }}"
                     data-value-field="id" data-label-field="name" data-placeholder="Select an operation" required
@@ -111,7 +112,7 @@
             </div>
 
             <div class="col-md-4">
-                <label class="form-label" for="operation_operation_date">Operation date <span class="text-danger" aria-hidden="true">*</span></label>
+                <label class="form-label" for="operation_operation_date">Operation Date <span class="text-danger" aria-hidden="true">*</span></label>
                 <div class="input-group" data-datepicker>
                     <input class="{{ inputClass('operation_date') }}" id="operation_operation_date" name="operation_date" type="text" inputmode="numeric" autocomplete="off" placeholder="YYYY-MM-DD"
                         value="{{ getValue('operation_date', null, $operationDate) }}" required data-input
@@ -120,35 +121,34 @@
                 </div>
                 @error('operation_date')<div class="invalid-feedback d-block" id="operation_operation_date-error">{{ $message }}</div>@enderror
             </div>
-        </div>
-
-        @if ($referenceEnabled)
-            <div class="row g-3 mt-0">
-                <div class="col-md-4">
-                    <label class="form-label" for="operation_reference_id">Reference</label>
-                    <select class="{{ inputClass('reference_id', 'form-select') }}" id="operation_reference_id" name="reference_id"
-                        data-ajax-select data-url="{{ route('hospital.references.options') }}"
-                        data-value-field="id" data-label-field="text" data-placeholder="Select a reference"
-                        {{ inputAttrs('reference_id', 'operation_reference_id') }}>
-                        <option value=""></option>
-                        @if ($selectedReference !== null)
-                            <option value="{{ $selectedReference->id }}" selected>{{ $selectedReference->reference_id }} — {{ $selectedReference->name }}{{ $selectedReference->contact_no ? ' ('.$selectedReference->contact_no.')' : '' }}</option>
-                        @endif
-                    </select>
-                    @error('reference_id')<div class="invalid-feedback d-block" id="operation_reference_id-error">{{ $message }}</div>@enderror
-                </div>
+            @if ($referenceEnabled)
+           <div class="col-md-4">
+                <label class="form-label" for="operation_reference_id">Select Reference</label>
+                <select class="{{ inputClass('reference_id', 'form-select') }}" id="operation_reference_id" name="reference_id"
+                    data-ajax-select data-url="{{ route('hospital.references.options') }}"
+                    data-value-field="id" data-label-field="text" data-placeholder="Select a reference"
+                    {{ inputAttrs('reference_id', 'operation_reference_id') }}>
+                    <option value=""></option>
+                    @if ($selectedReference !== null)
+                        <option value="{{ $selectedReference->id }}" selected>{{ $selectedReference->reference_id }} — {{ $selectedReference->name }}{{ $selectedReference->contact_no ? ' ('.$selectedReference->contact_no.')' : '' }}</option>
+                    @endif
+                </select>
+                @error('reference_id')<div class="invalid-feedback d-block" id="operation_reference_id-error">{{ $message }}</div>@enderror
             </div>
         @endif
+        </div>
+
+
 
         <section class="app-form-section mt-3" aria-labelledby="operation_payment_heading">
-            <h2 class="h6 mb-3" id="operation_payment_heading">Payment details</h2>
+            <h2 class="h6 mb-3" id="operation_payment_heading">Payment Details</h2>
             <div class="row g-3">
                 <div class="col-sm-6 col-xl-3">
                     <label class="form-label" for="operation_amount">Amount</label>
                     <input class="form-control" id="operation_amount" type="text" value="{{ $patient_operation->amount ?? '0.00' }}" readonly data-clinical-amount>
                 </div>
                 <div class="col-sm-6 col-xl-3">
-                    <label class="form-label" for="operation_discount_amount">Discount Amount <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="operation_discount_amount">Discount  <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="{{ inputClass('discount_amount') }}" id="operation_discount_amount" name="discount_amount" type="text" inputmode="decimal" maxlength="13"
                         value="{{ getValue('discount_amount', $patient_operation, '0.00') }}" required data-clinical-discount-amount
                         {{ inputAttrs('discount_amount', 'operation_discount_amount') }}>

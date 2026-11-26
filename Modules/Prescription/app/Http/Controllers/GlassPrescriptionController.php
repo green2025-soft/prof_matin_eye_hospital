@@ -20,7 +20,7 @@ class GlassPrescriptionController extends BaseController
 {
     protected string $model = GlassPrescription::class;
 
-    protected string $title = 'Glass prescription';
+    protected string $title = 'Glass Prescription';
 
     protected string $views = 'prescription::glass-prescriptions';
 

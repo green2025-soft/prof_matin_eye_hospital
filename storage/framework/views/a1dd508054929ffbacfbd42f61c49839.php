@@ -17,10 +17,10 @@
                         aria-label="Filter prescription options">
                         <div class="row g-2 align-items-end">
                             <div class="col-12 col-lg-4">
-                                <label class="form-label small" for="filter-section">Section</label>
+                                <label class="form-label small" for="filter-section">Type</label>
                                 <select class="<?php echo e(inputClass('section', 'form-select')); ?>" id="filter-section"
                                     name="section" <?php echo e(inputAttrs('section', 'filter-section')); ?>>
-                                    <option value="">All sections</option>
+                                    <option value="">All Type</option>
                                     <?php $__currentLoopData = $sections; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $value => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <option value="<?php echo e($value); ?>"
                                             <?php if(($filters['section'] ?? '') === $value): echo 'selected'; endif; ?>><?php echo e($label); ?></option>
@@ -65,9 +65,9 @@ unset($__errorArgs, $__bag); ?>
                             <thead>
                                 <tr>
                                     <th scope="col">Name</th>
-                                    <th scope="col">Section</th>
+                                    <th scope="col">Content Type</th>
                                     <th scope="col">Ordering</th>
-                                    <th class="text-end" scope="col">Actions</th>
+                                    <th class="text-end" scope="col">Action</th>
                                 </tr>
                             </thead>
                             <tbody>

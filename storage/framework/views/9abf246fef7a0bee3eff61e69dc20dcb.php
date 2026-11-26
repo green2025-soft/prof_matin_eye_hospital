@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('report-filters'); ?>
     <form class="p-3" action="<?php echo e(route('pharmacy.reports.daily')); ?>" method="GET" aria-label="Filter daily activity">
         <input name="product_type" type="hidden" value="<?php echo e($filters['product_type']); ?>">
@@ -16,7 +14,7 @@
 
 <?php $__env->startSection('report-context'); ?>
     <span>Period: <strong><?php echo e($filters['from_date']); ?></strong> to <strong><?php echo e($filters['to_date']); ?></strong></span>
-    <span>Daily totals by activity. Positive cash is received; negative cash is paid.</span>
+    
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('report-table'); ?>

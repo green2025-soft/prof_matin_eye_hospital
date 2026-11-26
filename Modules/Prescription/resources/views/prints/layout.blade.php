@@ -23,61 +23,55 @@
         'app-prescription-paper-a5' => $paperSize === 'a5',
         'app-prescription-paper-custom' => $paperSize === 'custom',
     ])>
-        @if ($showHeader)
-            <header class="app-prescription-letterhead">
-                @if ($logoUrl)
-                    <img class="app-prescription-logo" src="{{ $logoUrl }}" alt="">
-                @endif
-                <div>
-                    <h2>{{ $company['name'] }}</h2>
-                    <p>{{ $company['address'] }}</p>
-                    <p>{{ $company['phone'] }} {{ $company['email'] }}</p>
-                </div>
-            </header>
-        @endif
+
         @if ($showHeader)
             <div class="app-prescription-doctor">
-                <div>
+
+                <div  lang="bn">
+                    <h2>{{ $doctor?->bn_name }}</h2>
+                    <p class="app-prescription-text">{{ $doctor?->bn_education_degree }}</p>
+                    <p>{{ $doctor?->bn_specialist }}</p>
+                    <p class="app-prescription-text">{{ $doctor?->bn_current_employment }}</p>
+                    @if (filled($doctor?->bn_bmdc_reg))<p>বিএমডিসি রেজি: {{ $doctor->bn_bmdc_reg }}</p>@endif
+                </div>
+                <div class="app-prescription-doctor-bangla">
                     <h2>{{ $doctor?->name }}</h2>
                     <p class="app-prescription-text">{{ $doctor?->education_degree }}</p>
                     <p>{{ $doctor?->designation }}</p>
                     <p>{{ $doctor?->specialist }}</p>
                     <p class="app-prescription-text">{{ $doctor?->current_employment }}</p>
-                    @if (filled($doctor?->bmdc_reg))<p>BMDC: {{ $doctor->bmdc_reg }}</p>@endif
-                </div>
-                <div class="app-prescription-doctor-bangla" lang="bn">
-                    <h2>{{ $doctor?->bn_name }}</h2>
-                    <p class="app-prescription-text">{{ $doctor?->bn_education_degree }}</p>
-                    <p>{{ $doctor?->bn_specialist }}</p>
-                    <p class="app-prescription-text">{{ $doctor?->bn_current_employment }}</p>
-                    @if (filled($doctor?->bn_bmdc_reg))<p>বিএমডিসি: {{ $doctor->bn_bmdc_reg }}</p>@endif
+                    @if (filled($doctor?->bmdc_reg))<p>BMDC Reg: {{ $doctor->bmdc_reg }}</p>@endif
                 </div>
             </div>
         @endif
 
         <div class="app-prescription-identity">
-            <div class="app-prescription-patient-barcode">
+            <div class="app-prescription-patient-barcode d-none">
                 @if (filled($patient?->patient_id))
                     <svg class="app-prescription-barcode" data-patient-id="{{ $patient->patient_id }}"
                         role="img" aria-label="Patient ID barcode {{ $patient->patient_id }}"></svg>
                 @endif
             </div>
-            <div class="app-prescription-reference">
+            {{-- <div class="app-prescription-reference">
                 <p><b>V.Date:</b> {{ $entryDate }}</p>
                 <p><i class="fa-solid fa-prescription" aria-hidden="true"></i> {{ $referenceNumber }}</p>
-            </div>
+            </div> --}}
         </div>
 
         {{-- <dl class="app-prescription-patient"> --}}
+
         <div class="app-prescription-patien">
             <div class="row gx-0">
                 <div class="col-6">
-                    <div><b>P.Name:</b> {{ $patient?->name }}</div>
+                    <div><b>Pt. Name:</b> {{ $patient?->name }}</div>
                     <div><b>Age:</b> {{ $patientAge }} <b> Sex:</b>{{ ucfirst($patient?->gender ?? '') }}</div>
+                    <div><b>Mobile:</b> {{ $patient?->mobile_no }} </div>
                 </div>
                 <div class="col-6 text-end">
                     <div><b>Patient ID:</b> {{ $patient?->patient_id }}</div>
-                    <div><b>Mobile:</b> {{ $patient?->mobile_no }} </div>
+                    <div><b><i class="fa-solid fa-prescription" aria-hidden="true"></i></b>  {{ $referenceNumber }}</div>
+                    <div><b>Date:</b> {{ date('d-m-Y', strtotime($prescription->prescription_date))}}</div>
+
                 </div>
             </div>
         </div>
@@ -85,11 +79,21 @@
         @yield('prescription-content')
 
         <footer class="app-prescription-footer">
-            <div>
-                {{-- <p class="app-prescription-text">{{ $doctor?->pad_footer_text }}</p>
-                <p class="small mb-0">{{ $printedBy }} · {{ $printedAt }}</p> --}}
-            </div>
-            {{-- <div class="app-prescription-signature"><span>Doctor's signature</span></div> --}}
+
         </footer>
+         @if ($showHeader)
+                <header class="app-prescription-letterhead">
+                    @if ($logoUrl)
+                        <img style="margin-left: -65px; margin-top: -50px" class="app-prescription-logo" src="{{ $logoUrl }}" alt="">
+                    @endif
+
+                    <div>
+                        <h2>{{ $company['name'] }}</h2>
+                        <p style="width: 290px"><i class="fa-solid fa-location-dot"></i> {!! $company['address'] !!}</p>
+                        <p class="mb-0"><i class="fa-solid fa-phone"></i> {{ $company['phone'] }}</p>
+                        <p><i class="fa-solid fa-envelope"></i> {{ $company['email'] }}</p>
+                    </div>
+                </header>
+            @endif
     </article>
 @endsection

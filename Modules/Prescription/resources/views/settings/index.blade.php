@@ -21,7 +21,7 @@
                             <input name="data[general_enabled]" type="hidden" value="0">
                             <div class="form-check form-switch">
                                 <input class="{{ inputClass('data.general_enabled', 'form-check-input') }}" id="general_enabled" name="data[general_enabled]" type="checkbox" value="1" {{ getChecked(1, 'data.general_enabled', null, $values['general_enabled']) }} {{ inputAttrs('data.general_enabled', 'general_enabled') }}>
-                                <label class="form-check-label" for="general_enabled">Enable general prescription</label>
+                                <label class="form-check-label" for="general_enabled">Enable General Prescription</label>
                             </div>
                             @error('data.general_enabled')<div class="invalid-feedback d-block" id="general_enabled-error">{{ $message }}</div>@enderror
                         </div>
@@ -29,7 +29,7 @@
                             <input name="data[general_chief_complaints_enabled]" type="hidden" value="0">
                             <div class="form-check form-switch">
                                 <input class="{{ inputClass('data.general_chief_complaints_enabled', 'form-check-input') }}" id="general_chief_complaints_enabled" name="data[general_chief_complaints_enabled]" type="checkbox" value="1" {{ getChecked(1, 'data.general_chief_complaints_enabled', null, $values['general_chief_complaints_enabled']) }} {{ inputAttrs('data.general_chief_complaints_enabled', 'general_chief_complaints_enabled') }}>
-                                <label class="form-check-label" for="general_chief_complaints_enabled">Chief complaints</label>
+                                <label class="form-check-label" for="general_chief_complaints_enabled">Chief Complaint</label>
                             </div>
                             @error('data.general_chief_complaints_enabled')<div class="invalid-feedback d-block" id="general_chief_complaints_enabled-error">{{ $message }}</div>@enderror
                         </div>
@@ -61,7 +61,7 @@
                             <input name="data[general_investigations_enabled]" type="hidden" value="0">
                             <div class="form-check form-switch">
                                 <input class="{{ inputClass('data.general_investigations_enabled', 'form-check-input') }}" id="general_investigations_enabled" name="data[general_investigations_enabled]" type="checkbox" value="1" {{ getChecked(1, 'data.general_investigations_enabled', null, $values['general_investigations_enabled']) }} {{ inputAttrs('data.general_investigations_enabled', 'general_investigations_enabled') }}>
-                                <label class="form-check-label" for="general_investigations_enabled">Investigations</label>
+                                <label class="form-check-label" for="general_investigations_enabled">Investigation</label>
                             </div>
                             @error('data.general_investigations_enabled')<div class="invalid-feedback d-block" id="general_investigations_enabled-error">{{ $message }}</div>@enderror
                         </div>
@@ -77,7 +77,7 @@
                             <input name="data[general_follow_up_enabled]" type="hidden" value="0">
                             <div class="form-check form-switch">
                                 <input class="{{ inputClass('data.general_follow_up_enabled', 'form-check-input') }}" id="general_follow_up_enabled" name="data[general_follow_up_enabled]" type="checkbox" value="1" {{ getChecked(1, 'data.general_follow_up_enabled', null, $values['general_follow_up_enabled']) }} {{ inputAttrs('data.general_follow_up_enabled', 'general_follow_up_enabled') }}>
-                                <label class="form-check-label" for="general_follow_up_enabled">Follow-up date</label>
+                                <label class="form-check-label" for="general_follow_up_enabled">Follow-Up Date</label>
                             </div>
                             @error('data.general_follow_up_enabled')<div class="invalid-feedback d-block" id="general_follow_up_enabled-error">{{ $message }}</div>@enderror
                         </div>
@@ -85,14 +85,14 @@
                             <input name="data[general_header_enabled]" type="hidden" value="0">
                             <div class="form-check form-switch">
                                 <input class="{{ inputClass('data.general_header_enabled', 'form-check-input') }}" id="general_header_enabled" name="data[general_header_enabled]" type="checkbox" value="1" {{ getChecked(1, 'data.general_header_enabled', null, $values['general_header_enabled']) }} {{ inputAttrs('data.general_header_enabled', 'general_header_enabled') }}>
-                                <label class="form-check-label" for="general_header_enabled">Print hospital header</label>
+                                <label class="form-check-label" for="general_header_enabled">Print Hospital Header</label>
                             </div>
                             @error('data.general_header_enabled')<div class="invalid-feedback d-block" id="general_header_enabled-error">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 prescription-paper-settings">
                             <div class="row g-2">
                                 <div class="col-sm-4">
-                                    <label class="form-label" for="general_paper">Print paper</label>
+                                    <label class="form-label" for="general_paper">Print Paper</label>
                                     <select class="{{ inputClass('data.general_paper', 'form-select') }} prescription-paper-size"
                                         id="general_paper" name="data[general_paper]" required {{ inputAttrs('data.general_paper', 'general_paper') }}>
                                         <option value="a4" @selected($generalPaper === 'a4')>A4</option>
@@ -133,7 +133,7 @@
                             <p class="form-text mb-0">Tokens: {SEQ:6}, {YYYY}, {YY}, {MM}, {DD}, {BRANCH}. SEQ uses the record ID.</p>
                         </div>
                         <div class="col-12">
-                            <p class="form-label mb-2">Print margins (mm)</p>
+                            <p class="form-label mb-2">Print Margin (mm)</p>
                             <div class="row g-2">
                                 <div class="col-3">
                                     <label class="form-label small" for="general_margin_top">Top</label>
@@ -179,7 +179,7 @@
                             <input name="data[glass_enabled]" type="hidden" value="0">
                             <div class="form-check form-switch">
                                 <input class="{{ inputClass('data.glass_enabled', 'form-check-input') }}" id="glass_enabled" name="data[glass_enabled]" type="checkbox" value="1" {{ getChecked(1, 'data.glass_enabled', null, $values['glass_enabled']) }} {{ inputAttrs('data.glass_enabled', 'glass_enabled') }}>
-                                <label class="form-check-label" for="glass_enabled">Enable glass prescription</label>
+                                <label class="form-check-label" for="glass_enabled">Enable Glass Prescription</label>
                             </div>
                             @error('data.glass_enabled')<div class="invalid-feedback d-block" id="glass_enabled-error">{{ $message }}</div>@enderror
                         </div>
@@ -203,7 +203,7 @@
                             <input name="data[glass_lens_options_enabled]" type="hidden" value="0">
                             <div class="form-check form-switch">
                                 <input class="{{ inputClass('data.glass_lens_options_enabled', 'form-check-input') }}" id="glass_lens_options_enabled" name="data[glass_lens_options_enabled]" type="checkbox" value="1" {{ getChecked(1, 'data.glass_lens_options_enabled', null, $values['glass_lens_options_enabled']) }} {{ inputAttrs('data.glass_lens_options_enabled', 'glass_lens_options_enabled') }}>
-                                <label class="form-check-label" for="glass_lens_options_enabled">Lens / usage options</label>
+                                <label class="form-check-label" for="glass_lens_options_enabled">Lens / Usage Option</label>
                             </div>
                             @error('data.glass_lens_options_enabled')<div class="invalid-feedback d-block" id="glass_lens_options_enabled-error">{{ $message }}</div>@enderror
                         </div>
@@ -211,14 +211,14 @@
                             <input name="data[glass_header_enabled]" type="hidden" value="0">
                             <div class="form-check form-switch">
                                 <input class="{{ inputClass('data.glass_header_enabled', 'form-check-input') }}" id="glass_header_enabled" name="data[glass_header_enabled]" type="checkbox" value="1" {{ getChecked(1, 'data.glass_header_enabled', null, $values['glass_header_enabled']) }} {{ inputAttrs('data.glass_header_enabled', 'glass_header_enabled') }}>
-                                <label class="form-check-label" for="glass_header_enabled">Print hospital header</label>
+                                <label class="form-check-label" for="glass_header_enabled">Print Hospital Header</label>
                             </div>
                             @error('data.glass_header_enabled')<div class="invalid-feedback d-block" id="glass_header_enabled-error">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 prescription-paper-settings">
                             <div class="row g-2">
                                 <div class="col-sm-4">
-                                    <label class="form-label" for="glass_paper">Print paper</label>
+                                    <label class="form-label" for="glass_paper">Print Paper</label>
                                     <select class="{{ inputClass('data.glass_paper', 'form-select') }} prescription-paper-size"
                                         id="glass_paper" name="data[glass_paper]" required {{ inputAttrs('data.glass_paper', 'glass_paper') }}>
                                         <option value="a4" @selected($glassPaper === 'a4')>A4</option>
@@ -259,7 +259,7 @@
                             <p class="form-text mb-0">Tokens: {SEQ:6}, {YYYY}, {YY}, {MM}, {DD}, {BRANCH}. SEQ uses the record ID.</p>
                         </div>
                         <div class="col-12">
-                            <p class="form-label mb-2">Print margins (mm)</p>
+                            <p class="form-label mb-2">Print Margin (mm)</p>
                             <div class="row g-2">
                                 <div class="col-3">
                                     <label class="form-label small" for="glass_margin_top">Top</label>
@@ -300,8 +300,8 @@
                 </section>
             </div>
             <div class="d-flex gap-2 mt-4">
-                <button class="btn btn-primary" type="submit">Save settings</button>
-                <a class="btn btn-warning" href="{{ route('prescription.dashboard') }}">Cancel</a>
+                <a class="btn btn-danger" href="{{ route('prescription.dashboard') }}">Cancel</a>
+                <button class="btn btn-primary" type="submit">Save</button>
             </div>
         </fieldset>
     </form>

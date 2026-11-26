@@ -4567,7 +4567,7 @@ ul.app-prescription-section-preview {
     align-self: center;
 }
 
-.prescription-schedule-menu {
+.prescription-dose-menu {
     display: flex;
     grid-column: 2;
     grid-row: 1;
@@ -4584,55 +4584,8 @@ ul.app-prescription-section-preview {
     margin-bottom: 6px;
 }
 
-.prescription-schedule-controls {
-    display: flex;
-    align-items: center;
-    justify-content: start;
-    flex-wrap: wrap;
-    gap: 2px;
-}
-
-.prescription-schedule-dose {
-    min-width: 44px;
-    min-height: 25px;
-    padding: 2px 6px;
-    border: 1px solid #d6dce3;
-    border-radius: 5px;
-    background: #fff;
-    font-size: 12px;
-}
-
-.app-prescription-dose-palette,
 .app-prescription-unit-palette {
     z-index: 1080;
-}
-
-.app-prescription-dose-palette.show {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 2px;
-    min-width: 0;
-    max-width: calc(100vw - 30px);
-    padding: 2px;
-    overflow-x: auto;
-}
-
-.app-prescription-dose-palette .dropdown-item {
-    width: auto;
-    min-width: 25px;
-    padding: 2px 4px;
-    border: 1px solid #d6dce3;
-    border-radius: 3px;
-    color: #333;
-    background: #fff;
-    font-size: 12px;
-    text-align: center;
-}
-
-.app-prescription-dose-palette .dropdown-item.active,
-.app-prescription-dose-palette .dropdown-item:hover {
-    color: #fff;
-    background: var(--prescription-accent);
 }
 
 .prescription-unit-toggle {
@@ -4840,7 +4793,6 @@ ul.app-prescription-section-preview {
     border: 0;
 }
 
-.prescription-schedule-controls,
 .prescription-duration-controls {
     gap: 2px;
     min-width: 0;
@@ -5062,8 +5014,8 @@ ul.app-prescription-section-preview {
 .app-prescription-letterhead {
     align-items: center;
     justify-content: center;
-    padding-bottom: 0.75rem;
-    border-bottom: 3px double var(--app-text);
+    /* padding-bottom: 0.75rem; */
+    /* border-bottom: 3px double var(--app-text); */
     text-align: center;
 }
 
@@ -5241,7 +5193,7 @@ ul.app-prescription-section-preview {
     align-items: end;
     flex-shrink: 0;
     margin-top: auto;
-    padding-top: 12mm;
+    padding-top: 15px;
     border-top: 1px solid var(--app-border);
     break-inside: avoid;
 }

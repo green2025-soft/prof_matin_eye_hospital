@@ -1,7 +1,7 @@
 <div class="col-12 col-sm-6 app-clinical-invoice-notes">
     <?php echo $__env->yieldContent('invoice-notes'); ?>
     <?php if($refundCause !== null): ?>
-        <h2 class="app-clinical-invoice-section-title">Refund cause</h2>
+        <h2 class="app-clinical-invoice-section-title">Refund Cause</h2>
         <p class="app-clinical-invoice-note"><?php echo e($refundCause); ?></p>
     <?php endif; ?>
     <?php if(filled($remarks)): ?>
@@ -11,7 +11,7 @@
 </div>
 
 <div class="col-12 col-sm-6 app-clinical-invoice-payment-stamp">
-    <span><?php echo e($status); ?></span>
+    
 </div>
 
 <div class="col-12 app-clinical-invoice-words">

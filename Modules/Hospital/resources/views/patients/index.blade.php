@@ -58,7 +58,7 @@
                                         <div class="small fw-normal text-body-secondary">{{ $patient->father_husband_name }}</div>
                                     @endif
                                 </th>
-                                <td class="text-nowrap">{{ $patient->age }}</td>
+                                <td class="text-nowrap">{{ $patient->ageLabel() }}</td>
                                 <td>{{ $genders[$patient->gender] ?? '-' }}</td>
                                 <td>{{ $bloodGroups[$patient->blood_group] ?? '-' }}</td>
                                 <td class="text-nowrap">{{ $patient->mobile_no }}</td>

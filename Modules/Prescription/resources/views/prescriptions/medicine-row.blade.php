@@ -12,7 +12,8 @@
     $dosageType = data_get($medicine, 'dosage_type') ?? data_get($product, 'dosage.name', '');
 @endphp
 
-<li class="prescription-medicine-row d-flex flex-column mt-3" id="{{ $errorId }}-row">
+<li class="prescription-medicine-row d-flex flex-column mt-3" id="{{ $errorId }}-row"
+    data-ordering="{{ data_get($medicine, 'ordering') }}" data-medicine-index="{{ $medicineIndex }}">
     <div class="app-prescription-rx-card-heading d-flex align-items-center">
         <span class="prescription-medicine-number" aria-hidden="true"></span>
         <div class="flex-grow-1">
@@ -87,25 +88,25 @@
                     </div>
                 </div>
             </div>
-            <div class="dropdown prescription-schedule-menu">
+            <div class="dropdown prescription-dose-menu">
                 <button class="btn btn-sm dropdown-toggle prescription-frequency-mode" type="button"
-                    data-bs-toggle="dropdown" aria-expanded="false" value="3">Schedule</button>
+                    data-bs-toggle="dropdown" aria-expanded="false">Dose</button>
                 <ul class="dropdown-menu" role="menu">
-                    @foreach ([3, 4, 5, 6] as $periodCount)
+                    @foreach ($doseOptions as $doseOption)
                         <li>
-                            <button class="dropdown-item prescription-schedule-count" type="button"
-                                role="menuitemradio" aria-checked="false"
-                                value="{{ $periodCount }}">{{ $periodCount }}</button>
+                            <button class="dropdown-item prescription-dose-preset" type="button"
+                                role="menuitem" value="{{ $doseOption->name }}">{{ $doseOption->name }}</button>
                         </li>
                     @endforeach
-                    <li><hr class="dropdown-divider"></li>
+                    @if ($doseOptions->isNotEmpty())
+                        <li><hr class="dropdown-divider"></li>
+                    @endif
                     <li>
-                        <button class="dropdown-item prescription-schedule-count" type="button"
-                            role="menuitemradio" aria-checked="false" value="custom">Custom frequency</button>
+                        <button class="dropdown-item prescription-custom-dose" type="button"
+                            role="menuitem">Custom dose</button>
                     </li>
                 </ul>
             </div>
-            <div class="prescription-schedule-controls" role="group" aria-label="Daily schedule"></div>
             <div class="app-prescription-food-options" role="group" aria-label="Food instructions">
                 <button class="prescription-food-instruction" type="button" aria-pressed="false">
                     খাওয়ার পরে
@@ -158,7 +159,7 @@
                     <div class="invalid-feedback d-block" id="{{ $errorId }}-duration-error">{{ $message }}</div>
                 @enderror
             </div>
-            <div class="app-prescription-instruction-row w-100">
+            <div class="app-prescription-instruction-row w-100 d-none">
                 <label class="visually-hidden" for="{{ $errorId }}-instruction-search">
                     Search medicine instructions
                 </label>

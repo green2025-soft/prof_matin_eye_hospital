@@ -3,22 +3,22 @@
 <?php $__env->startSection('content'); ?>
     <?php echo $__env->make('core::partials.heading', [
         'title' => $pageTitle,
-        'description' => 'Manage operations, categories, rates, and commissions.',
-        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'New operation'],
+        'description' => 'Manage Operation, Category & Rate',
+        'create' => ['model' => resourceModel($routePrefix.'.create'), 'url' => route($routePrefix.'.create'), 'label' => 'Operation Name'],
     ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <section class="app-card overflow-hidden">
         <div class="app-card-heading d-flex align-items-center gap-2 px-3 px-md-4 py-3 border-bottom">
             <i class="fa-solid fa-scissors text-body-secondary" aria-hidden="true"></i>
-            <h2 class="h6 mb-0">Operations</h2>
+            <h2 class="h6 mb-0">Operation Name</h2>
         </div>
         <form class="px-3 px-md-4 py-3 border-bottom" action="<?php echo e(route($routePrefix.'.index')); ?>" method="GET" aria-label="Filter operations">
             <div class="row g-2 align-items-end">
                 <div class="col-12 col-xl-7">
-                    <label class="form-label small" for="search">Search operations</label>
+                    <label class="form-label small" for="search">Search Operation Name</label>
                     <div class="app-input-wrap app-search-field">
                         <i class="fa-solid fa-magnifying-glass app-search-icon" aria-hidden="true"></i>
-                        <input class="<?php echo e(inputClass('search')); ?>" id="search" name="search" type="search" value="<?php echo e(getValue('search', null, $filters['search'] ?? '')); ?>" maxlength="80" placeholder="Operation name starts with..." <?php echo e(inputAttrs('search')); ?>>
+                        <input class="<?php echo e(inputClass('search')); ?>" id="search" name="search" type="search" value="<?php echo e(getValue('search', null, $filters['search'] ?? '')); ?>" maxlength="80" placeholder="Operation name start with..." <?php echo e(inputAttrs('search')); ?>>
                     </div>
                     <?php $__errorArgs = ['search'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');

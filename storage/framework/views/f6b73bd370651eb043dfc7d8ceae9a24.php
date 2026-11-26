@@ -12,11 +12,11 @@
         <?php echo $__env->make('prescription::partials.identity', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
         <section class="app-form-section mb-3" aria-labelledby="glass-powers-heading">
-            <h2 class="h6 mb-3" id="glass-powers-heading">Eye prescription</h2>
+            <h2 class="h6 mb-3" id="glass-powers-heading">Eye Prescription</h2>
             <div class="row g-3">
                 <div class="col-lg-6">
                     <div class="app-glass-eye-card">
-                        <h3 class="h6 app-glass-eye-heading">Right eye (OD)</h3>
+                        <h3 class="h6 app-glass-eye-heading">Right Eye (OD)</h3>
                         <div class="table-responsive">
                             <table class="table table-sm app-glass-eye-table align-middle mb-0">
                                 <caption class="visually-hidden">Right eye (OD) distance and near vision powers</caption>
@@ -33,7 +33,7 @@
                                     <tr>
                                         <th scope="row">DV</th>
                                         <td>
-                                            <label class="visually-hidden" for="glass_r_sphere_dv">Right eye (OD) DV SPH</label>
+                                            <label class="visually-hidden" for="glass_r_sphere_dv">Right Eye (OD) DV SPH</label>
                                             <input class="<?php echo e(inputClass('r_sphere_dv', 'form-control form-control-sm text-center')); ?>" id="glass_r_sphere_dv" name="r_sphere_dv" type="text" maxlength="30" value="<?php echo e(getValue('r_sphere_dv', $record)); ?>" <?php echo e(inputAttrs('r_sphere_dv', 'glass_r_sphere_dv')); ?>>
                                             <?php $__errorArgs = ['r_sphere_dv'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -45,7 +45,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                         </td>
                                         <td>
-                                            <label class="visually-hidden" for="glass_r_cylinder_dv">Right eye (OD) DV CYL</label>
+                                            <label class="visually-hidden" for="glass_r_cylinder_dv">Right Eye (OD) DV CYL</label>
                                             <input class="<?php echo e(inputClass('r_cylinder_dv', 'form-control form-control-sm text-center')); ?>" id="glass_r_cylinder_dv" name="r_cylinder_dv" type="text" maxlength="30" value="<?php echo e(getValue('r_cylinder_dv', $record)); ?>" <?php echo e(inputAttrs('r_cylinder_dv', 'glass_r_cylinder_dv')); ?>>
                                             <?php $__errorArgs = ['r_cylinder_dv'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -57,7 +57,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                         </td>
                                         <td>
-                                            <label class="visually-hidden" for="glass_r_axis_dv">Right eye (OD) DV Axis</label>
+                                            <label class="visually-hidden" for="glass_r_axis_dv">Right Eye (OD) DV Axis</label>
                                             <input class="<?php echo e(inputClass('r_axis_dv', 'form-control form-control-sm text-center')); ?>" id="glass_r_axis_dv" name="r_axis_dv" type="text" maxlength="30" value="<?php echo e(getValue('r_axis_dv', $record)); ?>" <?php echo e(inputAttrs('r_axis_dv', 'glass_r_axis_dv')); ?>>
                                             <?php $__errorArgs = ['r_axis_dv'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -69,7 +69,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                         </td>
                                         <td>
-                                            <label class="visually-hidden" for="glass_r_acuity_dv">Right eye (OD) DV V/A</label>
+                                            <label class="visually-hidden" for="glass_r_acuity_dv">Right Eye (OD) DV V/A</label>
                                             <input class="<?php echo e(inputClass('r_acuity_dv', 'form-control form-control-sm text-center')); ?>" id="glass_r_acuity_dv" name="r_acuity_dv" type="text" maxlength="30" value="<?php echo e(getValue('r_acuity_dv', $record)); ?>" <?php echo e(inputAttrs('r_acuity_dv', 'glass_r_acuity_dv')); ?>>
                                             <?php $__errorArgs = ['r_acuity_dv'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -84,7 +84,7 @@ unset($__errorArgs, $__bag); ?>
                                     <tr>
                                         <th scope="row">NV</th>
                                         <td>
-                                            <label class="visually-hidden" for="glass_r_sphere_nv">Right eye (OD) NV SPH</label>
+                                            <label class="visually-hidden" for="glass_r_sphere_nv">Right Eye (OD) NV SPH</label>
                                             <input class="<?php echo e(inputClass('r_sphere_nv', 'form-control form-control-sm text-center')); ?>" id="glass_r_sphere_nv" name="r_sphere_nv" type="text" maxlength="30" value="<?php echo e(getValue('r_sphere_nv', $record)); ?>" <?php echo e(inputAttrs('r_sphere_nv', 'glass_r_sphere_nv')); ?>>
                                             <?php $__errorArgs = ['r_sphere_nv'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -96,7 +96,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                         </td>
                                         <td>
-                                            <label class="visually-hidden" for="glass_r_cylinder_nv">Right eye (OD) NV CYL</label>
+                                            <label class="visually-hidden" for="glass_r_cylinder_nv">Right Eye (OD) NV CYL</label>
                                             <input class="<?php echo e(inputClass('r_cylinder_nv', 'form-control form-control-sm text-center')); ?>" id="glass_r_cylinder_nv" name="r_cylinder_nv" type="text" maxlength="30" value="<?php echo e(getValue('r_cylinder_nv', $record)); ?>" <?php echo e(inputAttrs('r_cylinder_nv', 'glass_r_cylinder_nv')); ?>>
                                             <?php $__errorArgs = ['r_cylinder_nv'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -108,7 +108,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                         </td>
                                         <td>
-                                            <label class="visually-hidden" for="glass_r_axis_nv">Right eye (OD) NV Axis</label>
+                                            <label class="visually-hidden" for="glass_r_axis_nv">Right Eye (OD) NV Axis</label>
                                             <input class="<?php echo e(inputClass('r_axis_nv', 'form-control form-control-sm text-center')); ?>" id="glass_r_axis_nv" name="r_axis_nv" type="text" maxlength="30" value="<?php echo e(getValue('r_axis_nv', $record)); ?>" <?php echo e(inputAttrs('r_axis_nv', 'glass_r_axis_nv')); ?>>
                                             <?php $__errorArgs = ['r_axis_nv'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -120,7 +120,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                         </td>
                                         <td>
-                                            <label class="visually-hidden" for="glass_r_acuity_nv">Right eye (OD) NV V/A</label>
+                                            <label class="visually-hidden" for="glass_r_acuity_nv">Right Eye (OD) NV V/A</label>
                                             <input class="<?php echo e(inputClass('r_acuity_nv', 'form-control form-control-sm text-center')); ?>" id="glass_r_acuity_nv" name="r_acuity_nv" type="text" maxlength="30" value="<?php echo e(getValue('r_acuity_nv', $record)); ?>" <?php echo e(inputAttrs('r_acuity_nv', 'glass_r_acuity_nv')); ?>>
                                             <?php $__errorArgs = ['r_acuity_nv'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -139,7 +139,7 @@ unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-lg-6">
                     <div class="app-glass-eye-card">
-                        <h3 class="h6 app-glass-eye-heading">Left eye (OS)</h3>
+                        <h3 class="h6 app-glass-eye-heading">Left Eye (OS)</h3>
                         <div class="table-responsive">
                             <table class="table table-sm app-glass-eye-table align-middle mb-0">
                                 <caption class="visually-hidden">Left eye (OS) distance and near vision powers</caption>
@@ -148,7 +148,7 @@ unset($__errorArgs, $__bag); ?>
                                     <tr>
                                         <th scope="row">DV</th>
                                         <td>
-                                            <label class="visually-hidden" for="glass_l_sphere_dv">Left eye (OS) DV SPH</label>
+                                            <label class="visually-hidden" for="glass_l_sphere_dv">Left Eye (OS) DV SPH</label>
                                             <input class="<?php echo e(inputClass('l_sphere_dv', 'form-control form-control-sm text-center')); ?>" id="glass_l_sphere_dv" name="l_sphere_dv" type="text" maxlength="30" value="<?php echo e(getValue('l_sphere_dv', $record)); ?>" <?php echo e(inputAttrs('l_sphere_dv', 'glass_l_sphere_dv')); ?>>
                                             <?php $__errorArgs = ['l_sphere_dv'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -160,7 +160,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                         </td>
                                         <td>
-                                            <label class="visually-hidden" for="glass_l_cylinder_dv">Left eye (OS) DV CYL</label>
+                                            <label class="visually-hidden" for="glass_l_cylinder_dv">Left Eye (OS) DV CYL</label>
                                             <input class="<?php echo e(inputClass('l_cylinder_dv', 'form-control form-control-sm text-center')); ?>" id="glass_l_cylinder_dv" name="l_cylinder_dv" type="text" maxlength="30" value="<?php echo e(getValue('l_cylinder_dv', $record)); ?>" <?php echo e(inputAttrs('l_cylinder_dv', 'glass_l_cylinder_dv')); ?>>
                                             <?php $__errorArgs = ['l_cylinder_dv'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -172,7 +172,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                         </td>
                                         <td>
-                                            <label class="visually-hidden" for="glass_l_axis_dv">Left eye (OS) DV Axis</label>
+                                            <label class="visually-hidden" for="glass_l_axis_dv">Left Eye (OS) DV Axis</label>
                                             <input class="<?php echo e(inputClass('l_axis_dv', 'form-control form-control-sm text-center')); ?>" id="glass_l_axis_dv" name="l_axis_dv" type="text" maxlength="30" value="<?php echo e(getValue('l_axis_dv', $record)); ?>" <?php echo e(inputAttrs('l_axis_dv', 'glass_l_axis_dv')); ?>>
                                             <?php $__errorArgs = ['l_axis_dv'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -184,7 +184,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                         </td>
                                         <td>
-                                            <label class="visually-hidden" for="glass_l_acuity_dv">Left eye (OS) DV V/A</label>
+                                            <label class="visually-hidden" for="glass_l_acuity_dv">Left Eye (OS) DV V/A</label>
                                             <input class="<?php echo e(inputClass('l_acuity_dv', 'form-control form-control-sm text-center')); ?>" id="glass_l_acuity_dv" name="l_acuity_dv" type="text" maxlength="30" value="<?php echo e(getValue('l_acuity_dv', $record)); ?>" <?php echo e(inputAttrs('l_acuity_dv', 'glass_l_acuity_dv')); ?>>
                                             <?php $__errorArgs = ['l_acuity_dv'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -199,7 +199,7 @@ unset($__errorArgs, $__bag); ?>
                                     <tr>
                                         <th scope="row">NV</th>
                                         <td>
-                                            <label class="visually-hidden" for="glass_l_sphere_nv">Left eye (OS) NV SPH</label>
+                                            <label class="visually-hidden" for="glass_l_sphere_nv">Left Eye (OS) NV SPH</label>
                                             <input class="<?php echo e(inputClass('l_sphere_nv', 'form-control form-control-sm text-center')); ?>" id="glass_l_sphere_nv" name="l_sphere_nv" type="text" maxlength="30" value="<?php echo e(getValue('l_sphere_nv', $record)); ?>" <?php echo e(inputAttrs('l_sphere_nv', 'glass_l_sphere_nv')); ?>>
                                             <?php $__errorArgs = ['l_sphere_nv'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -211,7 +211,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                         </td>
                                         <td>
-                                            <label class="visually-hidden" for="glass_l_cylinder_nv">Left eye (OS) NV CYL</label>
+                                            <label class="visually-hidden" for="glass_l_cylinder_nv">Left Eye (OS) NV CYL</label>
                                             <input class="<?php echo e(inputClass('l_cylinder_nv', 'form-control form-control-sm text-center')); ?>" id="glass_l_cylinder_nv" name="l_cylinder_nv" type="text" maxlength="30" value="<?php echo e(getValue('l_cylinder_nv', $record)); ?>" <?php echo e(inputAttrs('l_cylinder_nv', 'glass_l_cylinder_nv')); ?>>
                                             <?php $__errorArgs = ['l_cylinder_nv'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -223,7 +223,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                         </td>
                                         <td>
-                                            <label class="visually-hidden" for="glass_l_axis_nv">Left eye (OS) NV Axis</label>
+                                            <label class="visually-hidden" for="glass_l_axis_nv">Left Eye (OS) NV Axis</label>
                                             <input class="<?php echo e(inputClass('l_axis_nv', 'form-control form-control-sm text-center')); ?>" id="glass_l_axis_nv" name="l_axis_nv" type="text" maxlength="30" value="<?php echo e(getValue('l_axis_nv', $record)); ?>" <?php echo e(inputAttrs('l_axis_nv', 'glass_l_axis_nv')); ?>>
                                             <?php $__errorArgs = ['l_axis_nv'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -235,7 +235,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                         </td>
                                         <td>
-                                            <label class="visually-hidden" for="glass_l_acuity_nv">Left eye (OS) NV V/A</label>
+                                            <label class="visually-hidden" for="glass_l_acuity_nv">Left Eye (OS) NV V/A</label>
                                             <input class="<?php echo e(inputClass('l_acuity_nv', 'form-control form-control-sm text-center')); ?>" id="glass_l_acuity_nv" name="l_acuity_nv" type="text" maxlength="30" value="<?php echo e(getValue('l_acuity_nv', $record)); ?>" <?php echo e(inputAttrs('l_acuity_nv', 'glass_l_acuity_nv')); ?>>
                                             <?php $__errorArgs = ['l_acuity_nv'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -272,7 +272,7 @@ unset($__errorArgs, $__bag); ?>
             <?php endif; ?>
             <?php if($settings['glass_lens_options_enabled']): ?>
                 <fieldset class="col-sm-8 col-lg-9">
-                    <legend class="form-label">Glasses and use</legend>
+                    <legend class="form-label">Glasses and Use</legend>
                     <div class="d-flex flex-wrap gap-3 pt-1">
                         <?php $__currentLoopData = $lensOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $value => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <div class="form-check">
@@ -316,7 +316,7 @@ unset($__errorArgs, $__bag); ?>
         </div>
 
         <div class="d-flex flex-wrap gap-2 mt-3">
-            <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk me-2" aria-hidden="true"></i><?php echo e($submitLabel); ?> glass prescription</button>
+            <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk me-2" aria-hidden="true"></i><?php echo e($submitLabel); ?> </button>
             <a class="btn btn-warning" href="<?php echo e(route($routePrefix.'.index')); ?>">Cancel</a>
         </div>
     </form>

@@ -55,14 +55,14 @@ class Prescription extends BaseModel
     protected function casts(): array
     {
         return [
-            'branch_id'         => 'integer',
-            'patient_id'        => 'integer',
-            'doctor_id'         => 'integer',
+            'branch_id' => 'integer',
+            'patient_id' => 'integer',
+            'doctor_id' => 'integer',
             'prescription_date' => 'date',
-            'follow_up_date'    => 'date',
+            'follow_up_date' => 'date',
             'follow_up_interval' => 'integer',
-            'section_details'   => 'array',
-            'history_details'   => 'array',
+            'section_details' => 'array',
+            'history_details' => 'array',
             'examination_details' => 'array',
         ];
     }

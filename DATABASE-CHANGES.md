@@ -235,3 +235,59 @@ return new class extends Migration
 ```bash
 php artisan tenants:migrate
 ```
+
+
+
+
+# নতুন database column change করার নিয়ম
+
+
+এই project-এ central database ও প্রতিটি tenant-এর database আলাদা। নতুন column change করতে একটি **নতুন migration** লিখতে হবে, তারপর সঠিক migration command চালাতে হবে। আগে চালানো create migration বদলালে পুরোনো database update হবে না।
+
+##  নতুন migration তৈরি করুন
+
+সব command Laravel application folder থেকে চালাবেন—যেখানে `artisan` আছে।
+
+উদাহরণ: Accounting-এর `operations` table-এ optional `commission_type` column change করা।
+
+```bash
+ php artisan make:migration make_commission_type_nullable_in_operations_table --table=operations --path=Modules/Hospital/database/migrations
+```
+
+Artisan timestamp-সহ নতুন file তৈরি করবে। সেই file-এ লিখুন:
+
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::connection('tenant')->table('operations', function (Blueprint $table): void {
+            $table->string('commission_type', 10)->nullable()->change();
+        });
+
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::connection('tenant')->table('operations', function (Blueprint $table): void {
+             $table->string('commission_type', 10)->nullable(false)->change();
+        });
+    }
+};
+```
+##  migration চালান
+```bash
+php artisan tenants:migrate
+```

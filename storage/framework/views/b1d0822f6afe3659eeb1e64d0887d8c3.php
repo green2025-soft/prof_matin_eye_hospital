@@ -2,7 +2,7 @@
     <?php echo csrf_field(); ?>
     <?php echo method_field('PUT'); ?>
     <fieldset class="app-form-section border-0 p-0 mb-0" aria-labelledby="settings-pharmacy-heading" <?php if(! $canUpdate): echo 'disabled'; endif; ?>>
-        <h2 class="app-form-section-title" id="settings-pharmacy-heading"><span class="app-form-section-icon"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i></span>Pharmacy</h2>
+        
         <?php $__errorArgs = ['data'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -24,7 +24,7 @@ unset($__errorArgs, $__bag); ?>
         <?php if($activePharmacySection === 'general'): ?>
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label class="form-label" for="pharmacy-stock-method">Stock method</label>
+                    <label class="form-label" for="pharmacy-stock-method">Stock Method</label>
                     <select class="<?php echo e(inputClass('data.stock_method', 'form-select')); ?>" id="pharmacy-stock-method" name="data[stock_method]" required>
                         <option value="fifo" <?php if(getValue('data.stock_method', null, $values['data']['stock_method']) === 'fifo'): echo 'selected'; endif; ?>>FIFO — oldest stock first</option>
                         <option value="lifo" <?php if(getValue('data.stock_method', null, $values['data']['stock_method']) === 'lifo'): echo 'selected'; endif; ?>>LIFO — newest stock first</option>
@@ -39,7 +39,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label" for="pharmacy-customer-scope">Sales customers</label>
+                    <label class="form-label" for="pharmacy-customer-scope">Sales Customer</label>
                     <select class="<?php echo e(inputClass('data.customer_scope', 'form-select')); ?>" id="pharmacy-customer-scope" name="data[customer_scope]" required>
                         <option value="all" <?php if(getValue('data.customer_scope', null, $values['data']['customer_scope']) === 'all'): echo 'selected'; endif; ?>>All patients and customers</option>
                         <option value="customer" <?php if(getValue('data.customer_scope', null, $values['data']['customer_scope']) === 'customer'): echo 'selected'; endif; ?>>Customers only</option>
@@ -84,7 +84,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label" for="pharmacy-sale-invoice-paper">Sales invoice paper</label>
+                    <label class="form-label" for="pharmacy-sale-invoice-paper">Sales Invoice Paper</label>
                     <select class="<?php echo e(inputClass('data.sale_invoice_paper', 'form-select')); ?>" id="pharmacy-sale-invoice-paper" name="data[sale_invoice_paper]" required <?php echo e(inputAttrs('data.sale_invoice_paper', 'pharmacy-sale-invoice-paper')); ?>>
                         <option value="a4" <?php if(getValue('data.sale_invoice_paper', null, $values['data']['sale_invoice_paper']) === 'a4'): echo 'selected'; endif; ?>>A4</option>
                         <option value="a5" <?php if(getValue('data.sale_invoice_paper', null, $values['data']['sale_invoice_paper']) === 'a5'): echo 'selected'; endif; ?>>A5</option>
@@ -127,7 +127,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label" for="pharmacy-vat-mode">VAT calculation</label>
+                    <label class="form-label" for="pharmacy-vat-mode">VAT Calculation</label>
                     <select class="<?php echo e(inputClass('data.vat_mode', 'form-select')); ?>" id="pharmacy-vat-mode" name="data[vat_mode]" required>
                         <option value="exclusive" <?php if(getValue('data.vat_mode', null, $values['data']['vat_mode']) === 'exclusive'): echo 'selected'; endif; ?>>Add to price</option>
                         <option value="inclusive" <?php if(getValue('data.vat_mode', null, $values['data']['vat_mode']) === 'inclusive'): echo 'selected'; endif; ?>>Included in price</option>

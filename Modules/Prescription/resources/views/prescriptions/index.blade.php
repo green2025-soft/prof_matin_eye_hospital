@@ -5,8 +5,8 @@
 @section('content')
     @include('core::partials.heading', [
         'title' => $pageTitle,
-        'description' => 'Prescriptions at the selected branch.',
-        'create' => ['model' => \Modules\Prescription\Models\Prescription::class, 'url' => route($routePrefix.'.create'), 'label' => 'New prescription'],
+        'description' => '',
+        'create' => ['model' => \Modules\Prescription\Models\Prescription::class, 'url' => route($routePrefix.'.create'), 'label' => 'New Prescription'],
     ])
 
     <section class="app-card overflow-hidden">
@@ -14,12 +14,12 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-6 col-xl-4">
                     <label class="form-label small" for="prescription_search">Search</label>
-                    <input class="{{ inputClass('search') }}" id="prescription_search" name="search" type="search" maxlength="80" value="{{ getValue('search', null, $filters['search'] ?? '') }}" placeholder="Rx number, ID or date" {{ inputAttrs('search', 'prescription_search') }}>
+                    <input class="{{ inputClass('search') }}" id="prescription_search" name="search" type="search" maxlength="80" value="{{ getValue('search', null, $filters['search'] ?? '') }}" placeholder="Rx Number, ID or Date" {{ inputAttrs('search', 'prescription_search') }}>
                     @error('search')<div class="invalid-feedback d-block" id="prescription_search-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 col-xl-5">
-                    <label class="form-label small" for="filter_patient_id">Patient history</label>
-                    <select class="{{ inputClass('filter_patient_id', 'form-select') }}" id="filter_patient_id" name="filter_patient_id" data-ajax-select data-url="{{ route('hospital.patients.options') }}" data-value-field="id" data-label-field="text" data-placeholder="All patients" {{ inputAttrs('filter_patient_id') }}>
+                    <label class="form-label small" for="filter_patient_id">Patient History</label>
+                    <select class="{{ inputClass('filter_patient_id', 'form-select') }}" id="filter_patient_id" name="filter_patient_id" data-ajax-select data-url="{{ route('hospital.patients.options') }}" data-value-field="id" data-label-field="text" data-placeholder="All Patient" {{ inputAttrs('filter_patient_id') }}>
                         <option value=""></option>
                         @if ($selectedPatient !== null)
                             <option value="{{ $selectedPatient->id }}" selected>{{ $selectedPatient->patient_id }} / {{ $selectedPatient->name }} / {{ $selectedPatient->mobile_no }}</option>
@@ -43,7 +43,7 @@
                         <th scope="col">Patient</th>
                         <th scope="col">Doctor</th>
                         <th scope="col">Follow-up</th>
-                        <th class="text-end" scope="col">Actions</th>
+                        <th class="text-end" scope="col">Action</th>
                     </tr>
                 </thead>
                 <tbody>

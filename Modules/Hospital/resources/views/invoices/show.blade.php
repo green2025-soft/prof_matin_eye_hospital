@@ -20,16 +20,21 @@
                 <div class="app-clinical-invoice-company-details">
                     <h2 class="app-clinical-invoice-company">{{ $company['name'] }}</h2>
                     @if ($company['address'] ?? '')
-                        <p class="app-clinical-invoice-address invoice-body-font">{{ $company['address'] }}</p>
+                        <p class="app-clinical-invoice-address invoice-body-font"><b>{{ $company['address'] }}</b></p>
                     @endif
                     @if ($company['phone'] ?? '')
                     <div class="app-clinical-invoice-contact-line invoice-body-font">
                         <strong>HOTLINE : </strong>{{ $company['phone'] }}
                     </div>
                     @endif
-                    @if ($company['email'] ?? '')
+                    {{-- @if ($company['email'] ?? '')
                     <div class="app-clinical-invoice-contact-line invoice-body-font">
                         <strong>E-MAIL : </strong>{{ $company['email'] }}
+                    </div>
+                    @endif --}}
+                    @if ($company['website'] ?? '')
+                    <div class="app-clinical-invoice-contact-line invoice-body-font">
+                        <strong>Web : </strong>{{ $company['website'] }}
                     </div>
                     @endif
                     @if ($company['tax_id'] ?? '')
@@ -86,7 +91,7 @@
                                 <div class="info-label">Age</div>
                             </td>
                             <td>
-                                <div class="info-value">: {{ $patient?->age ?? '-' }}</div>
+                                <div class="info-value">: {{ $patient?->ageLabel() ?? '-' }}</div>
                             </td>
                         </tr>
                         <tr>
@@ -100,7 +105,7 @@
                         @if(!isset($isDoctor))
                         <tr>
                             <td>
-                                <div class="info-label">Doctor</div>
+                                <div class="info-label">Ref. By</div>
                             </td>
                             <td colspan="5">
                                 <div class="info-value">:  {{ $doctor?->name ?? '-' }}</div>

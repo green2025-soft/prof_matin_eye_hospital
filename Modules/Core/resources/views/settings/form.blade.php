@@ -75,6 +75,13 @@
                     <input class="{{ inputClass('data.phone') }}" id="company-phone" name="data[phone]" type="tel" inputmode="numeric" pattern="[0-9]{1,30}" value="{{ getValue('data.phone', null, $values['data']['phone']) }}" maxlength="30" autocomplete="tel" {{ inputAttrs('data.phone', 'company-phone') }}>
                     @error('data.phone')<div class="invalid-feedback d-block" id="company-phone-error">{{ $message }}</div>@enderror
                 </div>
+                @unless ($isPlatform)
+                    <div class="col-md-6">
+                        <label class="form-label" for="company-website">Website</label>
+                        <input class="{{ inputClass('data.website') }}" id="company-website" name="data[website]" type="text" value="{{ getValue('data.website', null, $values['data']['website'] ?? '') }}" maxlength="255" placeholder="https://example.com"  {{ inputAttrs('data.website', 'company-website') }}>
+                        @error('data.website')<div class="invalid-feedback d-block" id="company-website-error">{{ $message }}</div>@enderror
+                    </div>
+                @endunless
                 {{-- <div class="col-md-6 d-none">
                     <label class="form-label" for="company-tax-id">Tax identification</label>
                     <input class="{{ inputClass('data.tax_id') }}" id="company-tax-id" name="data[tax_id]" type="text" value="{{ getValue('data.tax_id', null, $values['data']['tax_id']) }}" maxlength="100" autocomplete="off" {{ inputAttrs('data.tax_id', 'company-tax-id') }}>

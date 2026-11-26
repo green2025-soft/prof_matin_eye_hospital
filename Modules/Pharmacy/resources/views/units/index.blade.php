@@ -27,12 +27,12 @@
                     </form>
                     <div class="table-responsive">
                         <table class="table app-table align-middle mb-0">
-                            <caption class="visually-hidden">Units</caption>
+                            <caption class="visually-hidden">Unit</caption>
                             <thead>
                                 <tr>
                                     <th scope="col">Name</th>
                                     <th scope="col">Symbol</th>
-                                    <th class="text-end" scope="col">Actions</th>
+                                    <th class="text-end" scope="col">Action</th>
                                 </tr>
                             </thead>
                             <tbody>

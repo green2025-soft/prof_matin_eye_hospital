@@ -48,17 +48,18 @@ class Patient extends BaseModel
         }
 
         $parts = [
-            $years > 0 ? $years.'y' : null,
-            $months > 0 ? $months.'m' : null,
-            $days > 0 ? $days.'d' : null,
+            $years > 0 ? str_pad($years, 2, '0', STR_PAD_LEFT).'y' : null,
+            $months > 0 ? str_pad($months, 2,'0', STR_PAD_LEFT).'m' : null,
+            $days > 0 ? str_pad($days, 2, '0', STR_PAD_LEFT).'d' : null,
         ];
 
-        return implode(' ', array_filter($parts)) ?: '0d';
+        return implode(', ', array_filter($parts)) ?: '0d';
     }
 
     public function smsValues(): array
     {
         $age = $this->ageLabel();
+
 
         return [
             'patient_name' => (string) $this->name,

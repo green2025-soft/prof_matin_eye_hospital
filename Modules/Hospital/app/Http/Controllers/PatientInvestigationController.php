@@ -24,7 +24,7 @@ class PatientInvestigationController extends BaseController
 {
     protected string $model = PatientInvestigation::class;
 
-    protected string $title = 'Investigation';
+    protected string $title = 'Test Invoice';
 
     protected string $service = PatientInvestigationService::class;
 
@@ -62,6 +62,7 @@ class PatientInvestigationController extends BaseController
     public function show(Request $request, PatientInvestigationService $investigations): View
     {
         $data = $investigations->invoiceData($request->user('web'), $this->record($request));
+
 
         return view('hospital::patient-investigations.invoice', $data);
     }

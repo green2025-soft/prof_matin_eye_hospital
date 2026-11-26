@@ -42,6 +42,10 @@ class DueCollectionController extends BaseController
             (int) $request->attributes->get('branch_id')
         );
 
+         if(!$this->isUpdate($request)){
+            $this->redirectMode ='create_show';
+        }
+
         return $this->redirectAfterWrite($collection)
             ->with('status', 'Due collection'.($this->isUpdate($request) ? ' updated.' : ' created.'));
     }
@@ -50,6 +54,7 @@ class DueCollectionController extends BaseController
     {
         $data = $entries->invoiceData($request->user('web'), $this->record($request));
         $data['isDoctor'] = false;
+
         return view('hospital::due-collections.invoice', $data);
     }
 

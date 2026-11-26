@@ -1868,6 +1868,12 @@
       'prescription.options.edit' => 'prescription-options.update',
       'prescription.options.update' => 'prescription-options.update',
       'prescription.options.destroy' => 'prescription-options.delete',
+      'prescription.prescription-dose.index' => 'prescription-dose.view',
+      'prescription.prescription-dose.create' => 'prescription-dose.create',
+      'prescription.prescription-dose.store' => 'prescription-dose.create',
+      'prescription.prescription-dose.edit' => 'prescription-dose.update',
+      'prescription.prescription-dose.update' => 'prescription-dose.update',
+      'prescription.prescription-dose.destroy' => 'prescription-dose.delete',
       'prescription.glass-prescriptions.index' => 'glass-prescriptions.view',
       'prescription.glass-prescriptions.show' => 'glass-prescriptions.view',
       'prescription.glass-prescriptions.create' => 'glass-prescriptions.create',
@@ -2293,6 +2299,11 @@
       'prescription-options' => 
       array (
         'label' => 'Prescription options',
+        'area' => 'Prescription',
+      ),
+      'prescription-dose' => 
+      array (
+        'label' => 'Prescription doses',
         'area' => 'Prescription',
       ),
       'glass-prescriptions' => 
@@ -3407,6 +3418,7 @@
         'phone' => '',
         'address' => '',
         'tax_id' => '',
+        'website' => '',
       ),
       'branding' => 
       array (
@@ -4032,6 +4044,12 @@
           0 => 'nullable',
           1 => 'string',
           2 => 'max:100',
+        ),
+        'website' => 
+        array (
+          0 => 'nullable',
+          1 => 'string',
+          2 => 'max:255',
         ),
       ),
       'branding' => 
@@ -4698,6 +4716,7 @@
   array (
     'paths' => 
     array (
+      0 => 'D:\\laragon\\www\\laravel_project\\prof_matin_eye_hospital\\resources\\views',
     ),
     'compiled' => 'D:\\laragon\\www\\laravel_project\\prof_matin_eye_hospital\\storage\\framework/views',
   ),

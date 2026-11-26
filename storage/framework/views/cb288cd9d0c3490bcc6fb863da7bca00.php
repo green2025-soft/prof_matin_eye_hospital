@@ -64,7 +64,7 @@ unset($__errorArgs, $__bag); ?>
                                         <div class="small fw-normal text-body-secondary"><?php echo e($patient->father_husband_name); ?></div>
                                     <?php endif; ?>
                                 </th>
-                                <td class="text-nowrap"><?php echo e($patient->age); ?></td>
+                                <td class="text-nowrap"><?php echo e($patient->ageLabel()); ?></td>
                                 <td><?php echo e($genders[$patient->gender] ?? '-'); ?></td>
                                 <td><?php echo e($bloodGroups[$patient->blood_group] ?? '-'); ?></td>
                                 <td class="text-nowrap"><?php echo e($patient->mobile_no); ?></td>

@@ -13,12 +13,12 @@
             <h2 class="app-form-section-title" id="operation-form-heading">
                 <span class="app-form-section-icon">
                     <i class="fa-solid fa-scissors" aria-hidden="true"></i>
-                </span>Operation details
+                </span>Operation Details
             </h2>
 
             <div class="row g-3">
                 <div class="col-sm-6">
-                    <label class="form-label" for="name">Name <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="name">Operation Name <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="<?php echo e(inputClass('name')); ?>" id="name" name="name" type="text" value="<?php echo e(getValue('name', $operation)); ?>" maxlength="255" autocomplete="off" required autofocus <?php echo e(inputAttrs('name')); ?>>
                     <?php $__errorArgs = ['name'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -50,7 +50,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-sm-6">
-                    <label class="form-label" for="single_rate">Single rate <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="single_rate">Single Rate <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="<?php echo e(inputClass('single_rate')); ?>" id="single_rate" name="single_rate" type="text" inputmode="decimal" value="<?php echo e(getValue('single_rate', $operation, '0.00')); ?>" maxlength="13" required <?php echo e(inputAttrs('single_rate')); ?>>
                     <?php $__errorArgs = ['single_rate'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -62,7 +62,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-sm-6">
-                    <label class="form-label" for="both_rate">Both rate <span class="text-danger" aria-hidden="true">*</span></label>
+                    <label class="form-label" for="both_rate">Both Rate <span class="text-danger" aria-hidden="true">*</span></label>
                     <input class="<?php echo e(inputClass('both_rate')); ?>" id="both_rate" name="both_rate" type="text" inputmode="decimal" value="<?php echo e(getValue('both_rate', $operation, '0.00')); ?>" maxlength="13" required <?php echo e(inputAttrs('both_rate')); ?>>
                     <?php $__errorArgs = ['both_rate'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -74,8 +74,8 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-sm-6">
-                    <label class="form-label" for="commission_type">Commission type <span class="text-danger" aria-hidden="true">*</span></label>
-                    <select class="<?php echo e(inputClass('commission_type', 'form-select')); ?>" id="commission_type" name="commission_type" required <?php echo e(inputAttrs('commission_type')); ?>>
+                    <label class="form-label" for="commission_type">Commission Type </label>
+                    <select class="<?php echo e(inputClass('commission_type', 'form-select')); ?>" id="commission_type" name="commission_type" <?php echo e(inputAttrs('commission_type')); ?>>
                         <option value="">Select</option>
                         <?php $__currentLoopData = $commissionTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $value => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <option value="<?php echo e($value); ?>" <?php echo e(getSelected($value, 'commission_type', $operation)); ?>><?php echo e($label); ?></option>
@@ -91,8 +91,8 @@ endif;
 unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="col-sm-6">
-                    <label class="form-label" for="commission_amount">Commission amount <span class="text-danger" aria-hidden="true">*</span></label>
-                    <input class="<?php echo e(inputClass('commission_amount')); ?>" id="commission_amount" name="commission_amount" type="text" inputmode="decimal" value="<?php echo e(getValue('commission_amount', $operation, '0.00')); ?>" maxlength="13" required <?php echo e(inputAttrs('commission_amount')); ?>>
+                    <label class="form-label" for="commission_amount">Commission Amount <span class="text-danger" aria-hidden="true">*</span></label>
+                    <input class="<?php echo e(inputClass('commission_amount')); ?>" id="commission_amount" name="commission_amount" type="text" inputmode="decimal" value="<?php echo e(getValue('commission_amount', $operation, '0.00')); ?>" maxlength="13"  <?php echo e(inputAttrs('commission_amount')); ?>>
                     <?php $__errorArgs = ['commission_amount'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :

@@ -11,13 +11,13 @@
         <?php echo $__env->make('core::partials.heading', ['title' => $pageTitle], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
         <?php if($canCreate): ?>
             <a class="btn btn-primary text-nowrap" href="<?php echo e(route($routePrefix.'.create', ['product_type' => $productType])); ?>">
-                <i class="fa-solid fa-plus me-2" aria-hidden="true"></i>New sale
+                <i class="fa-solid fa-plus me-2" aria-hidden="true"></i>New Sale
             </a>
         <?php endif; ?>
     </div>
 
     <section class="app-card overflow-hidden">
-        <?php echo $__env->make('pharmacy::entries.partials.filters', ['numberLabel' => 'Invoice no.'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+        <?php echo $__env->make('pharmacy::entries.partials.filters', ['numberLabel' => 'Invoice No.'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
         <div class="table-responsive">
             <table class="table app-table align-middle mb-0">
@@ -32,7 +32,7 @@
                         <th scope="col" class="text-end">Due</th>
                         <th scope="col">Status</th>
                         <?php if($showActions): ?>
-                            <th scope="col" class="text-end">Actions</th>
+                            <th scope="col" class="text-end">Action</th>
                         <?php endif; ?>
                     </tr>
                 </thead>

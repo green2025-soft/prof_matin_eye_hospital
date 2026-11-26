@@ -3488,6 +3488,62 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
+      '/prescription/prescription-dose' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'prescription.prescription-dose.index',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+        1 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'prescription.prescription-dose.store',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/prescription/prescription-dose/create' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'prescription.prescription-dose.create',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
       '/prescription/settings' => 
       array (
         0 => 
@@ -5298,7 +5354,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::IeVNAKEpurx9ORyz',
+            '_route' => 'generated::utbIabknBjMDHAHZ',
           ),
           1 => NULL,
           2 => 
@@ -5445,7 +5501,7 @@ app('router')->setCompiledRoutes(
     ),
     2 => 
     array (
-      0 => '{^(?|/_debugbar/clockwork/([^/]++)(*:36)|/a(?|ccounting/(?|chart\\-of\\-accounts/([^/]++)(?|/edit(*:97)|(*:104))|account\\-modules/([^/]++)(?|/edit(*:146)|(*:154))|payment\\-accounts/([^/]++)(?|/edit(*:197)|(*:205))|journal\\-entries/([^/]++)(?|(*:242)|/edit(*:255)|(*:263)))|u(?|dit\\-logs/([^/]++)(*:295)|th/(?|tenant\\-entry/([^/]++)(*:331)|reset\\-password/([^/]++)(*:363))))|/hospital/(?|settings/([^/]++)(*:404)|investigation(?|\\-categories/([^/]++)(?|/edit(*:457)|(*:465))|s/([^/]++)(?|/edit(*:492)|(*:500)))|operation(?|\\-categories/([^/]++)(?|/edit(*:551)|(*:559))|s/([^/]++)(?|/edit(*:586)|(*:594)))|appointments/([^/]++)(?|/edit(*:633)|(*:641))|co(?|nsultations/([^/]++)(?|(*:678)|/edit(*:691)|(*:699))|mmissions/(consultation|investigation|operation)/([0-9]+)(*:765))|patient(?|\\-(?|investigations/([^/]++)(?|(*:815)|/edit(*:828)|(*:836))|operations/([^/]++)(?|(*:867)|/edit(*:880)|(*:888)))|s/([^/]++)(?|/edit(*:916)|(*:924)))|d(?|e(?|livery\\-investigations/([^/]++)(*:973)|partments/([^/]++)(?|/edit(*:1007)|(*:1016)))|ue\\-collections/([^/]++)(?|(*:1054)|/edit(*:1068)|(*:1077))|octors/([^/]++)(?|(*:1105)|/edit(*:1119)|(*:1128)))|ref(?|und(?|s/([^/]++)(?|(*:1164)|/edit(*:1178)|(*:1187))|\\-causes/([^/]++)(?|/edit(*:1222)|(*:1231)))|erences/([^/]++)(?|/edit(*:1266)|(*:1275))))|/p(?|harmacy/(?|s(?|ettings/([^/]++)(*:1323)|helf/([^/]++)(?|/edit(*:1353)|(*:1362))|uppliers/([^/]++)(?|/edit(*:1397)|(*:1406))|ale(?|s/([^/]++)(?|/(?|void(*:1443)|edit(*:1456))|(*:1466))|\\-(?|returns/([^/]++)(?|/(?|void(*:1508)|edit(*:1521))|(*:1531))|payments/([^/]++)(?|/void(*:1566)|(*:1575)))))|categories/([^/]++)(?|/edit(*:1615)|(*:1624))|d(?|osages/([^/]++)(?|/edit(*:1661)|(*:1670))|amage/([^/]++)(?|/void(*:1702)|(*:1711)))|units/([^/]++)(?|/edit(*:1744)|(*:1753))|p(?|roduct(?|s/([^/]++)(?|/edit(*:1794)|(*:1803))|\\-units/([^/]++)(?|/edit(*:1837)|(*:1846)))|urchase(?|s/([^/]++)(?|/(?|void(*:1888)|edit(*:1901))|(*:1911))|\\-(?|returns/([^/]++)(?|/(?|void(*:1953)|edit(*:1966))|(*:1976))|payments/([^/]++)(?|/void(*:2011)|(*:2020)))))|variants/([^/]++)(?|/edit(*:2058)|(*:2067))|opening\\-stock/([^/]++)(?|/void(*:2108)|(*:2117))|adjustments/([^/]++)(?|/void(*:2155)|(*:2164))|transfers/([^/]++)(?|/void(*:2200)|(*:2209)))|rescription/(?|options/([^/]++)(?|/edit(*:2259)|(*:2268))|settings/([^/]++)(*:2295)|prescriptions/([^/]++)(?|(*:2329)|/edit(*:2343)|(*:2352))|glass\\-prescriptions/([^/]++)(?|(*:2394)|/edit(*:2408)|(*:2417)))|ayment\\-types/([^/]++)(?|/edit(*:2458)|(*:2467)))|/s(?|ms/recharges/([^/]++)/proof(*:2510)|ettings/([^/]++)(?|/edit(*:2543)|(*:2552)))|/b(?|ranch(?|\\-dashboard/([^/]++)(*:2596)|es/([^/]++)(?|/edit(*:2624)|(*:2633)))|illing/invoices/([^/]++)(?|(*:2671)|/checkouts(*:2690)))|/income(?|\\-heads/([^/]++)(?|/edit(*:2735)|(*:2744))|s/([^/]++)(?|/edit(*:2772)|(*:2781)))|/expense(?|\\-heads/([^/]++)(?|/edit(*:2827)|(*:2836))|s/([^/]++)(?|/edit(*:2864)|(*:2873)))|/di(?|visions/([^/]++)(?|/edit(*:2914)|(*:2923))|stricts/([^/]++)(?|/edit(*:2957)|(*:2966)))|/thanas/([^/]++)(?|/edit(*:3001)|(*:3010))|/users/([^/]++)(?|/edit(*:3043)|(*:3052))|/core/(?|tenants/([^/]++)(?|/e(?|nter(*:3099)|dit(*:3111))|(*:3121))|admins/([^/]++)(?|/edit(*:3154)|(*:3163))|p(?|lan(?|s/([^/]++)(?|/edit(*:3201)|(*:3210))|\\-permissions/([^/]++)(*:3242))|ayments/(?|([^/]++)(*:3271)|callback/([^/]++)/([^/]++)(*:3306)|notify/([^/]++)/([^/]++)(*:3339))|ermissions/([^/]++)(*:3368))|s(?|ubscriptions/([^/]++)(?|/edit(*:3411)|(*:3420))|ettings/([^/]++)(?|/edit(*:3454)|(*:3463))|ms\\-(?|accounts/([^/]++)(?|/edit(*:3505)|(*:3514))|recharges/([^/]++)(?|/proof(*:3551)|(*:3560))|history/([^/]++)(?|/resolve(*:3597)|(*:3606))))|invoices/([^/]++)(?|/(?|issue(*:3647)|void(*:3660)|edit(*:3673))|(*:3683))|checkouts/([^/]++)/(?|approve(*:3722)|reject(*:3737))|roles/([^/]++)(?|/edit(*:3769)|(*:3778))))/?$}sDu',
+      0 => '{^(?|/_debugbar/clockwork/([^/]++)(*:36)|/a(?|ccounting/(?|chart\\-of\\-accounts/([^/]++)(?|/edit(*:97)|(*:104))|account\\-modules/([^/]++)(?|/edit(*:146)|(*:154))|payment\\-accounts/([^/]++)(?|/edit(*:197)|(*:205))|journal\\-entries/([^/]++)(?|(*:242)|/edit(*:255)|(*:263)))|u(?|dit\\-logs/([^/]++)(*:295)|th/(?|tenant\\-entry/([^/]++)(*:331)|reset\\-password/([^/]++)(*:363))))|/hospital/(?|settings/([^/]++)(*:404)|investigation(?|\\-categories/([^/]++)(?|/edit(*:457)|(*:465))|s/([^/]++)(?|/edit(*:492)|(*:500)))|operation(?|\\-categories/([^/]++)(?|/edit(*:551)|(*:559))|s/([^/]++)(?|/edit(*:586)|(*:594)))|appointments/([^/]++)(?|/edit(*:633)|(*:641))|co(?|nsultations/([^/]++)(?|(*:678)|/edit(*:691)|(*:699))|mmissions/(consultation|investigation|operation)/([0-9]+)(*:765))|patient(?|\\-(?|investigations/([^/]++)(?|(*:815)|/edit(*:828)|(*:836))|operations/([^/]++)(?|(*:867)|/edit(*:880)|(*:888)))|s/([^/]++)(?|/edit(*:916)|(*:924)))|d(?|e(?|livery\\-investigations/([^/]++)(*:973)|partments/([^/]++)(?|/edit(*:1007)|(*:1016)))|ue\\-collections/([^/]++)(?|(*:1054)|/edit(*:1068)|(*:1077))|octors/([^/]++)(?|(*:1105)|/edit(*:1119)|(*:1128)))|ref(?|und(?|s/([^/]++)(?|(*:1164)|/edit(*:1178)|(*:1187))|\\-causes/([^/]++)(?|/edit(*:1222)|(*:1231)))|erences/([^/]++)(?|/edit(*:1266)|(*:1275))))|/p(?|harmacy/(?|s(?|ettings/([^/]++)(*:1323)|helf/([^/]++)(?|/edit(*:1353)|(*:1362))|uppliers/([^/]++)(?|/edit(*:1397)|(*:1406))|ale(?|s/([^/]++)(?|/(?|void(*:1443)|edit(*:1456))|(*:1466))|\\-(?|returns/([^/]++)(?|/(?|void(*:1508)|edit(*:1521))|(*:1531))|payments/([^/]++)(?|/void(*:1566)|(*:1575)))))|categories/([^/]++)(?|/edit(*:1615)|(*:1624))|d(?|osages/([^/]++)(?|/edit(*:1661)|(*:1670))|amage/([^/]++)(?|/void(*:1702)|(*:1711)))|units/([^/]++)(?|/edit(*:1744)|(*:1753))|p(?|roduct(?|s/([^/]++)(?|/edit(*:1794)|(*:1803))|\\-units/([^/]++)(?|/edit(*:1837)|(*:1846)))|urchase(?|s/([^/]++)(?|/(?|void(*:1888)|edit(*:1901))|(*:1911))|\\-(?|returns/([^/]++)(?|/(?|void(*:1953)|edit(*:1966))|(*:1976))|payments/([^/]++)(?|/void(*:2011)|(*:2020)))))|variants/([^/]++)(?|/edit(*:2058)|(*:2067))|opening\\-stock/([^/]++)(?|/void(*:2108)|(*:2117))|adjustments/([^/]++)(?|/void(*:2155)|(*:2164))|transfers/([^/]++)(?|/void(*:2200)|(*:2209)))|rescription/(?|options/([^/]++)(?|/edit(*:2259)|(*:2268))|prescription(?|\\-dose/([^/]++)(?|/edit(*:2316)|(*:2325))|s/([^/]++)(?|(*:2348)|/edit(*:2362)|(*:2371)))|settings/([^/]++)(*:2399)|glass\\-prescriptions/([^/]++)(?|(*:2440)|/edit(*:2454)|(*:2463)))|ayment\\-types/([^/]++)(?|/edit(*:2504)|(*:2513)))|/s(?|ms/recharges/([^/]++)/proof(*:2556)|ettings/([^/]++)(?|/edit(*:2589)|(*:2598)))|/b(?|ranch(?|\\-dashboard/([^/]++)(*:2642)|es/([^/]++)(?|/edit(*:2670)|(*:2679)))|illing/invoices/([^/]++)(?|(*:2717)|/checkouts(*:2736)))|/income(?|\\-heads/([^/]++)(?|/edit(*:2781)|(*:2790))|s/([^/]++)(?|/edit(*:2818)|(*:2827)))|/expense(?|\\-heads/([^/]++)(?|/edit(*:2873)|(*:2882))|s/([^/]++)(?|/edit(*:2910)|(*:2919)))|/di(?|visions/([^/]++)(?|/edit(*:2960)|(*:2969))|stricts/([^/]++)(?|/edit(*:3003)|(*:3012)))|/thanas/([^/]++)(?|/edit(*:3047)|(*:3056))|/users/([^/]++)(?|/edit(*:3089)|(*:3098))|/core/(?|tenants/([^/]++)(?|/e(?|nter(*:3145)|dit(*:3157))|(*:3167))|admins/([^/]++)(?|/edit(*:3200)|(*:3209))|p(?|lan(?|s/([^/]++)(?|/edit(*:3247)|(*:3256))|\\-permissions/([^/]++)(*:3288))|ayments/(?|([^/]++)(*:3317)|callback/([^/]++)/([^/]++)(*:3352)|notify/([^/]++)/([^/]++)(*:3385))|ermissions/([^/]++)(*:3414))|s(?|ubscriptions/([^/]++)(?|/edit(*:3457)|(*:3466))|ettings/([^/]++)(?|/edit(*:3500)|(*:3509))|ms\\-(?|accounts/([^/]++)(?|/edit(*:3551)|(*:3560))|recharges/([^/]++)(?|/proof(*:3597)|(*:3606))|history/([^/]++)(?|/resolve(*:3643)|(*:3652))))|invoices/([^/]++)(?|/(?|issue(*:3693)|void(*:3706)|edit(*:3719))|(*:3729))|checkouts/([^/]++)/(?|approve(*:3768)|reject(*:3783))|roles/([^/]++)(?|/edit(*:3815)|(*:3824))))/?$}sDu',
     ),
     3 => 
     array (
@@ -8330,21 +8386,64 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2295 => 
+      2316 => 
       array (
         0 => 
         array (
           0 => 
           array (
-            '_route' => 'prescription.settings.update',
+            '_route' => 'prescription.prescription-dose.edit',
           ),
           1 => 
           array (
-            0 => 'setting',
+            0 => 'prescription_dose',
+          ),
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      2325 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'prescription.prescription-dose.update',
+          ),
+          1 => 
+          array (
+            0 => 'prescription_dose',
           ),
           2 => 
           array (
             'PUT' => 0,
+            'PATCH' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => true,
+          6 => NULL,
+        ),
+        1 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'prescription.prescription-dose.destroy',
+          ),
+          1 => 
+          array (
+            0 => 'prescription_dose',
+          ),
+          2 => 
+          array (
+            'DELETE' => 0,
           ),
           3 => NULL,
           4 => false,
@@ -8352,7 +8451,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2329 => 
+      2348 => 
       array (
         0 => 
         array (
@@ -8375,7 +8474,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2343 => 
+      2362 => 
       array (
         0 => 
         array (
@@ -8398,7 +8497,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2352 => 
+      2371 => 
       array (
         0 => 
         array (
@@ -8440,7 +8539,29 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2394 => 
+      2399 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'prescription.settings.update',
+          ),
+          1 => 
+          array (
+            0 => 'setting',
+          ),
+          2 => 
+          array (
+            'PUT' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => true,
+          6 => NULL,
+        ),
+      ),
+      2440 => 
       array (
         0 => 
         array (
@@ -8463,7 +8584,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2408 => 
+      2454 => 
       array (
         0 => 
         array (
@@ -8486,7 +8607,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2417 => 
+      2463 => 
       array (
         0 => 
         array (
@@ -8528,7 +8649,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2458 => 
+      2504 => 
       array (
         0 => 
         array (
@@ -8551,7 +8672,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2467 => 
+      2513 => 
       array (
         0 => 
         array (
@@ -8593,7 +8714,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2510 => 
+      2556 => 
       array (
         0 => 
         array (
@@ -8616,7 +8737,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2543 => 
+      2589 => 
       array (
         0 => 
         array (
@@ -8639,7 +8760,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2552 => 
+      2598 => 
       array (
         0 => 
         array (
@@ -8662,7 +8783,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2596 => 
+      2642 => 
       array (
         0 => 
         array (
@@ -8684,7 +8805,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2624 => 
+      2670 => 
       array (
         0 => 
         array (
@@ -8707,7 +8828,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2633 => 
+      2679 => 
       array (
         0 => 
         array (
@@ -8749,7 +8870,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2671 => 
+      2717 => 
       array (
         0 => 
         array (
@@ -8772,7 +8893,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2690 => 
+      2736 => 
       array (
         0 => 
         array (
@@ -8794,7 +8915,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2735 => 
+      2781 => 
       array (
         0 => 
         array (
@@ -8817,7 +8938,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2744 => 
+      2790 => 
       array (
         0 => 
         array (
@@ -8859,7 +8980,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2772 => 
+      2818 => 
       array (
         0 => 
         array (
@@ -8882,7 +9003,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2781 => 
+      2827 => 
       array (
         0 => 
         array (
@@ -8924,7 +9045,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2827 => 
+      2873 => 
       array (
         0 => 
         array (
@@ -8947,7 +9068,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2836 => 
+      2882 => 
       array (
         0 => 
         array (
@@ -8989,7 +9110,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2864 => 
+      2910 => 
       array (
         0 => 
         array (
@@ -9012,7 +9133,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2873 => 
+      2919 => 
       array (
         0 => 
         array (
@@ -9054,7 +9175,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2914 => 
+      2960 => 
       array (
         0 => 
         array (
@@ -9077,7 +9198,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2923 => 
+      2969 => 
       array (
         0 => 
         array (
@@ -9119,7 +9240,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2957 => 
+      3003 => 
       array (
         0 => 
         array (
@@ -9142,7 +9263,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      2966 => 
+      3012 => 
       array (
         0 => 
         array (
@@ -9184,7 +9305,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3001 => 
+      3047 => 
       array (
         0 => 
         array (
@@ -9207,7 +9328,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3010 => 
+      3056 => 
       array (
         0 => 
         array (
@@ -9249,7 +9370,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3043 => 
+      3089 => 
       array (
         0 => 
         array (
@@ -9272,7 +9393,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3052 => 
+      3098 => 
       array (
         0 => 
         array (
@@ -9314,7 +9435,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3099 => 
+      3145 => 
       array (
         0 => 
         array (
@@ -9336,7 +9457,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3111 => 
+      3157 => 
       array (
         0 => 
         array (
@@ -9359,7 +9480,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3121 => 
+      3167 => 
       array (
         0 => 
         array (
@@ -9401,7 +9522,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3154 => 
+      3200 => 
       array (
         0 => 
         array (
@@ -9424,7 +9545,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3163 => 
+      3209 => 
       array (
         0 => 
         array (
@@ -9466,7 +9587,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3201 => 
+      3247 => 
       array (
         0 => 
         array (
@@ -9489,7 +9610,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3210 => 
+      3256 => 
       array (
         0 => 
         array (
@@ -9531,7 +9652,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3242 => 
+      3288 => 
       array (
         0 => 
         array (
@@ -9554,7 +9675,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3271 => 
+      3317 => 
       array (
         0 => 
         array (
@@ -9577,7 +9698,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3306 => 
+      3352 => 
       array (
         0 => 
         array (
@@ -9602,7 +9723,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3339 => 
+      3385 => 
       array (
         0 => 
         array (
@@ -9625,7 +9746,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3368 => 
+      3414 => 
       array (
         0 => 
         array (
@@ -9648,7 +9769,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3411 => 
+      3457 => 
       array (
         0 => 
         array (
@@ -9671,7 +9792,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3420 => 
+      3466 => 
       array (
         0 => 
         array (
@@ -9694,7 +9815,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3454 => 
+      3500 => 
       array (
         0 => 
         array (
@@ -9717,7 +9838,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3463 => 
+      3509 => 
       array (
         0 => 
         array (
@@ -9740,7 +9861,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3505 => 
+      3551 => 
       array (
         0 => 
         array (
@@ -9763,7 +9884,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3514 => 
+      3560 => 
       array (
         0 => 
         array (
@@ -9786,7 +9907,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3551 => 
+      3597 => 
       array (
         0 => 
         array (
@@ -9809,7 +9930,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3560 => 
+      3606 => 
       array (
         0 => 
         array (
@@ -9852,7 +9973,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3597 => 
+      3643 => 
       array (
         0 => 
         array (
@@ -9874,7 +9995,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3606 => 
+      3652 => 
       array (
         0 => 
         array (
@@ -9897,7 +10018,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3647 => 
+      3693 => 
       array (
         0 => 
         array (
@@ -9919,7 +10040,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3660 => 
+      3706 => 
       array (
         0 => 
         array (
@@ -9941,7 +10062,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3673 => 
+      3719 => 
       array (
         0 => 
         array (
@@ -9964,7 +10085,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3683 => 
+      3729 => 
       array (
         0 => 
         array (
@@ -10007,7 +10128,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3722 => 
+      3768 => 
       array (
         0 => 
         array (
@@ -10029,7 +10150,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3737 => 
+      3783 => 
       array (
         0 => 
         array (
@@ -10051,7 +10172,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3769 => 
+      3815 => 
       array (
         0 => 
         array (
@@ -10074,7 +10195,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      3778 => 
+      3824 => 
       array (
         0 => 
         array (
@@ -10371,7 +10492,7 @@ app('router')->setCompiledRoutes(
             }
 
             return response()->json([\'status\' => \'logged\']);
-        }";s:5:"scope";s:34:"Laravel\\Boost\\BoostServiceProvider";s:4:"this";N;s:4:"self";s:32:"000000000000114e0000000000000000";}}',
+        }";s:5:"scope";s:34:"Laravel\\Boost\\BoostServiceProvider";s:4:"this";N;s:4:"self";s:32:"000000000000115b0000000000000000";}}',
         'as' => 'boost.browser-logs',
         'excluded_middleware' => 
         array (
@@ -23312,6 +23433,250 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
+    'prescription.prescription-dose.index' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'prescription/prescription-dose',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'tenant',
+          3 => 'subscribed',
+          4 => 'prescription.permission',
+        ),
+        'as' => 'prescription.prescription-dose.index',
+        'uses' => 'Modules\\Prescription\\Http\\Controllers\\PrescriptionDoseController@index',
+        'controller' => 'Modules\\Prescription\\Http\\Controllers\\PrescriptionDoseController@index',
+        'namespace' => NULL,
+        'prefix' => 'prescription',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'prescription.prescription-dose.create' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'prescription/prescription-dose/create',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'tenant',
+          3 => 'subscribed',
+          4 => 'prescription.permission',
+        ),
+        'as' => 'prescription.prescription-dose.create',
+        'uses' => 'Modules\\Prescription\\Http\\Controllers\\PrescriptionDoseController@create',
+        'controller' => 'Modules\\Prescription\\Http\\Controllers\\PrescriptionDoseController@create',
+        'namespace' => NULL,
+        'prefix' => 'prescription',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'prescription.prescription-dose.store' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'POST',
+      ),
+      'uri' => 'prescription/prescription-dose',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'tenant',
+          3 => 'subscribed',
+          4 => 'prescription.permission',
+        ),
+        'as' => 'prescription.prescription-dose.store',
+        'uses' => 'Modules\\Prescription\\Http\\Controllers\\PrescriptionDoseController@store',
+        'controller' => 'Modules\\Prescription\\Http\\Controllers\\PrescriptionDoseController@store',
+        'namespace' => NULL,
+        'prefix' => 'prescription',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'prescription.prescription-dose.edit' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'prescription/prescription-dose/{prescription_dose}/edit',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'tenant',
+          3 => 'subscribed',
+          4 => 'prescription.permission',
+        ),
+        'as' => 'prescription.prescription-dose.edit',
+        'uses' => 'Modules\\Prescription\\Http\\Controllers\\PrescriptionDoseController@edit',
+        'controller' => 'Modules\\Prescription\\Http\\Controllers\\PrescriptionDoseController@edit',
+        'namespace' => NULL,
+        'prefix' => 'prescription',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'prescription.prescription-dose.update' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'PUT',
+        1 => 'PATCH',
+      ),
+      'uri' => 'prescription/prescription-dose/{prescription_dose}',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'tenant',
+          3 => 'subscribed',
+          4 => 'prescription.permission',
+        ),
+        'as' => 'prescription.prescription-dose.update',
+        'uses' => 'Modules\\Prescription\\Http\\Controllers\\PrescriptionDoseController@store',
+        'controller' => 'Modules\\Prescription\\Http\\Controllers\\PrescriptionDoseController@store',
+        'namespace' => NULL,
+        'prefix' => 'prescription',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'prescription.prescription-dose.destroy' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'DELETE',
+      ),
+      'uri' => 'prescription/prescription-dose/{prescription_dose}',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'tenant',
+          3 => 'subscribed',
+          4 => 'prescription.permission',
+        ),
+        'as' => 'prescription.prescription-dose.destroy',
+        'uses' => 'Modules\\Prescription\\Http\\Controllers\\PrescriptionDoseController@destroy',
+        'controller' => 'Modules\\Prescription\\Http\\Controllers\\PrescriptionDoseController@destroy',
+        'namespace' => NULL,
+        'prefix' => 'prescription',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
     'prescription.settings.index' => 
     array (
       'methods' => 
@@ -30467,7 +30832,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::IeVNAKEpurx9ORyz' => 
+    'generated::utbIabknBjMDHAHZ' => 
     array (
       'methods' => 
       array (
@@ -30479,7 +30844,7 @@ app('router')->setCompiledRoutes(
       array (
         'uses' => 'Illuminate\\Foundation\\Http\\HealthCheck@__invoke',
         'controller' => 'Illuminate\\Foundation\\Http\\HealthCheck',
-        'as' => 'generated::IeVNAKEpurx9ORyz',
+        'as' => 'generated::utbIabknBjMDHAHZ',
       ),
       'fallback' => false,
       'defaults' => 

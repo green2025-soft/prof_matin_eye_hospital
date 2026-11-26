@@ -8,7 +8,7 @@
         <h2 class="app-form-section-title" id="refund-cause-form-heading"><span class="app-form-section-icon"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i></span><?php echo e($pageTitle); ?></h2>
         <p class="app-form-section-note">Set the refund cause name and display order.</p>
         <div class="mb-3">
-            <label class="form-label" for="name">Name <span class="text-danger" aria-hidden="true">*</span></label>
+            <label class="form-label" for="name">Refund Name <span class="text-danger" aria-hidden="true">*</span></label>
             <input class="<?php echo e(inputClass('name')); ?>" id="name" name="name" type="text" value="<?php echo e(getValue('name', $refund_cause)); ?>" maxlength="255" autocomplete="off" required autofocus <?php echo e(inputAttrs('name')); ?>>
             <?php $__errorArgs = ['name'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
